@@ -96,39 +96,29 @@ internal static class ProfileParser
 
     private static RuleCall ReadRule(JsonElement rule)
     {
-        var strings = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
-        var lists = ImmutableDictionary.CreateBuilder<string, IReadOnlyList<string>>(StringComparer.Ordinal);
-        var maps = ImmutableDictionary.CreateBuilder<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal);
-        foreach (var property in rule.EnumerateObject().Where(property => property.Name is not ("rule" or "when")))
-        {
-            switch (property.Value.ValueKind)
-            {
-                case JsonValueKind.String:
-                    strings[property.Name] = property.Value.GetString() ?? "";
-                    break;
-                case JsonValueKind.Number:
-                    strings[property.Name] = property.Value.GetRawText();
-                    break;
-                case JsonValueKind.True:
-                case JsonValueKind.False:
-                    strings[property.Name] = property.Value.GetBoolean() ? "true" : "false";
-                    break;
-                case JsonValueKind.Array:
-                    lists[property.Name] = [.. property.Value.EnumerateArray().Select(item => item.GetString() ?? "")];
-                    break;
-                case JsonValueKind.Object:
-                    maps[property.Name] = property.Value.EnumerateObject().ToImmutableDictionary(item => item.Name, item => item.Value.GetString() ?? "", StringComparer.Ordinal);
-                    break;
-            }
-        }
-
+        var arguments = rule.EnumerateObject().Where(property => property.Name is not ("rule" or "when")).ToArray();
         return new RuleCall(
             rule.GetProperty("rule").GetString() ?? "",
             rule.TryGetProperty("when", out var when) ? ReadWhen(when) : null,
-            strings.ToImmutable(),
-            lists.ToImmutable(),
-            maps.ToImmutable());
+            arguments.Where(property => property.Value.ValueKind is JsonValueKind.String or JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False)
+                .ToImmutableDictionary(property => property.Name, property => Scalar(property.Value), StringComparer.Ordinal),
+            arguments.Where(property => property.Value.ValueKind is JsonValueKind.Array)
+                .ToImmutableDictionary(property => property.Name, property => (IReadOnlyList<string>)[.. property.Value.EnumerateArray().Select(item => item.GetString() ?? "")], StringComparer.Ordinal),
+            arguments.Where(property => property.Value.ValueKind is JsonValueKind.Object)
+                .ToImmutableDictionary(
+                    property => property.Name,
+                    property => (IReadOnlyDictionary<string, string>)property.Value.EnumerateObject().ToImmutableDictionary(item => item.Name, item => item.Value.GetString() ?? "", StringComparer.Ordinal),
+                    StringComparer.Ordinal));
     }
+
+    private static string Scalar(JsonElement value) => value.ValueKind switch
+    {
+        JsonValueKind.String => value.GetString() ?? "",
+        JsonValueKind.Number => value.GetRawText(),
+        JsonValueKind.True => "true",
+        JsonValueKind.False => "false",
+        _ => "",
+    };
 
     private static WhenClause ReadWhen(JsonElement when) => new(
         when.GetProperty("field").GetString() ?? "",

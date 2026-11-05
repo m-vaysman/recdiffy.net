@@ -65,11 +65,13 @@ public sealed record TraceStep(string RuleId, string Field, string? Raw, string?
 
 public sealed record ProfileError(string Code, string Message);
 
-public sealed class ProfileCompileException : Exception
+public sealed class ProfileCompileException(IReadOnlyList<ProfileError> errors) : Exception(Format(errors))
 {
-    public ProfileCompileException(IReadOnlyList<ProfileError> errors)
-        : base(string.Join("; ", errors.Select(error => $"{error.Code}: {error.Message}"))) =>
-        Errors = errors;
+    public IReadOnlyList<ProfileError> Errors { get; } = errors;
 
-    public IReadOnlyList<ProfileError> Errors { get; }
+    private static string Format(IReadOnlyList<ProfileError> errors)
+    {
+        ArgumentNullException.ThrowIfNull(errors);
+        return string.Join("; ", errors.Select(error => $"{error.Code}: {error.Message}"));
+    }
 }

@@ -40,7 +40,11 @@ public sealed record RowContext
 
     public required ImmutableList<TraceStep> Traces { get; init; }
 
-    public static RowContext Create(string rowKey, Side side, IReadOnlyDictionary<string, object?> raw) => new()
+    public static RowContext Create(string rowKey, Side side, IReadOnlyDictionary<string, object?> raw)
+    {
+        ArgumentNullException.ThrowIfNull(rowKey);
+        ArgumentNullException.ThrowIfNull(raw);
+        return new()
     {
         RowKey = rowKey,
         Side = side,
@@ -49,7 +53,8 @@ public sealed record RowContext
         Values = ImmutableDictionary.Create<string, CanonicalCell>(StringComparer.Ordinal),
         Diagnostics = [],
         Traces = [],
-    };
+        };
+    }
 
     public bool IsNull(string field) => !Values.TryGetValue(field, out var cell) || cell.IsNull;
 

@@ -70,5 +70,9 @@ public sealed record ProfileDocument
 
     public required SearchLimits Limits { get; init; }
 
-    public static ProfileDocument Parse(string json) => ProfileParser.Parse(json);
+    public static ProfileDocument Parse(string json)
+    {
+        ArgumentNullException.ThrowIfNull(json);
+        return ProfileParser.Parse(json);
+    }
 }

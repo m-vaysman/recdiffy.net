@@ -22,7 +22,7 @@ internal static class ProfileCompiler
             pair => CompileSide(pair.Key, pair.Value, schema, document.Midpoint, registry),
             StringComparer.Ordinal);
         var pathErrors = ValidatePaths(document, schema, sides);
-        var errors = formatErrors.Concat(duplicateErrors).Concat(sides.Values.SelectMany(side => side.Errors)).Concat(pathErrors).ToArray();
+        ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors];
         return errors.Length == 0
             ? new CompileOutcome(new CompiledProfile(document.ProfileId, document.Version, document.FormatVersion, Hash(document), document, SideRules(sides, "left"), SideRules(sides, "right")), [])
             : new CompileOutcome(null, errors);
@@ -62,7 +62,7 @@ internal static class ProfileCompiler
         var cap = (pass.MaxGroupSize ?? document.Limits.MaxGroupSize) > 16
             ? new[] { new ProfileError("LimitExceeded", $"Pass '{pass.Id}' maxGroupSize exceeds the hard cap of 16.") }
             : [];
-        var fields = pass.Key.Concat(pass.Block).Concat(pass.Conserve).SelectMany(field => ValidateKeyField(path.Id, field, schema, sides));
+        var fields = ((string[])[.. pass.Key, .. pass.Block, .. pass.Conserve]).SelectMany(field => ValidateKeyField(path.Id, field, schema, sides));
         return [.. unknown, .. group, .. cap, .. fields];
     }
 
@@ -76,7 +76,7 @@ internal static class ProfileCompiler
         schema.TryGet(field, out var declaration) switch
         {
             false => [new ProfileError("UnknownField", $"Path '{pathId}' names unknown field '{field}'.")],
-            true when declaration.Type == FieldType.Text || declaration.Role == FieldRole.Text => [new ProfileError("TextKey", $"Path '{pathId}' uses text field '{field}' as a key.")],
+            true when declaration is { Type: FieldType.Text } or { Role: FieldRole.Text } => [new ProfileError("TextKey", $"Path '{pathId}' uses text field '{field}' as a key.")],
             true when sides.Values.Any(side => !side.Written.Contains(field)) => [new ProfileError("FieldNotProduced", $"Path '{pathId}' keys '{field}', which a side does not write.")],
             _ => [],
         };
@@ -147,9 +147,9 @@ internal sealed record SideCompilation(ImmutableDictionary<string, WriteSite> Wr
             && !rule.Reads.Any(read => read.Name == write.Name)
             && !WhenClause.MutuallyExclusive(previous.When, call.When)).Select(write =>
             new ProfileError("AmbiguousWrite", $"{side} field '{write.Name}' is written by '{WrittenSites[write.Name].Rule}' and '{call.Rule}'."));
-        var unknown = rule.Reads.Concat(rule.Writes).Where(field => !schema.TryGet(field.Name, out _)).Select(field =>
+        var unknown = ((FieldId[])[.. rule.Reads, .. rule.Writes]).Where(field => schema.TryGet(field.Name, out _) is false).Select(field =>
             new ProfileError("UnknownField", $"{side}.{call.Rule} uses undeclared field '{field.Name}'."));
-        var errors = readErrors.Concat(writeErrors).Concat(unknown).ToArray();
+        ProfileError[] errors = [.. readErrors, .. writeErrors, .. unknown];
         var written = rule.Writes.Aggregate(WrittenSites, (sites, write) => sites.SetItem(write.Name, new WriteSite(call.Rule, call.When)));
         return errors.Length == 0
             ? this with { WrittenSites = written, Rules = Rules.Add(new CompiledRule(rule, call.When)) }
@@ -181,6 +181,12 @@ public sealed class CompiledProfile
         IReadOnlyList<CompiledRule> leftRules,
         IReadOnlyList<CompiledRule> rightRules)
     {
+        ArgumentNullException.ThrowIfNull(profileId);
+        ArgumentNullException.ThrowIfNull(version);
+        ArgumentNullException.ThrowIfNull(hash);
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(leftRules);
+        ArgumentNullException.ThrowIfNull(rightRules);
         ProfileId = profileId;
         Version = version;
         FormatVersion = formatVersion;

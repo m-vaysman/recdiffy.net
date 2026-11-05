@@ -20,7 +20,7 @@ public sealed record RuleRegistry
                     call.Strings["from"],
                     call.Strings["to"],
                     call.Maps.TryGetValue("map", out var map) ? map : ImmutableDictionary<string, string>.Empty,
-                    call.Strings.TryGetValue("passthrough", out var passthrough) ? passthrough != "false" : true))
+                    call.Strings.TryGetValue("passthrough", out var passthrough) ? passthrough is not "false" : true))
             .Register("identifier.map", RulePhase.Identify, ["from", "to", "scheme"], (call, _, _) =>
                 new IdentifierMapRule(call.Strings["from"], call.Strings["to"], call.Strings["scheme"], call.Strings.GetValueOrDefault("scope") ?? ""))
             .Register("text.copy", RulePhase.Identify, ["from", "to"], (call, _, _) =>
@@ -45,14 +45,17 @@ internal sealed record NormalizationRegistration(
     IReadOnlyList<string> Required,
     Func<RuleCall, FieldSchema, MidpointMode, INormalizationRule> Create);
 
-internal sealed class FieldSchema
+internal sealed class FieldSchema(IReadOnlyList<FieldDeclaration> fields)
 {
-    private readonly ImmutableDictionary<string, FieldDeclaration> _fields;
+    private readonly ImmutableDictionary<string, FieldDeclaration> _fields = Index(fields);
 
-    public FieldSchema(IReadOnlyList<FieldDeclaration> fields) =>
-        _fields = fields.ToImmutableDictionary(field => field.Name, StringComparer.Ordinal);
+    private static ImmutableDictionary<string, FieldDeclaration> Index(IReadOnlyList<FieldDeclaration> fields)
+    {
+        ArgumentNullException.ThrowIfNull(fields);
+        return fields.ToImmutableDictionary(field => field.Name, StringComparer.Ordinal);
+    }
 
-    public bool TryGet(string name, out FieldDeclaration field) => _fields.TryGetValue(name, out field!);
+    public bool TryGet(string name, [NotNullWhen(true)] out FieldDeclaration? field) => _fields.TryGetValue(name, out field);
 
     public int Scale(string name) => _fields[name].Scale;
 }
