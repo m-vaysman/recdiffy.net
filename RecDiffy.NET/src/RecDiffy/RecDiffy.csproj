@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="RecDiffy.Tests" />
+    <InternalsVisibleTo Include="RecDiffy.Benchmarks" />
     <InternalsVisibleTo Include="RecDiffy.RulePacks.Trading" />
   </ItemGroup>
 

@@ -3,5 +3,7 @@
     <Project Path="src/RecDiffy/RecDiffy.csproj" />
     <Project Path="src/RecDiffy.RulePacks.Trading/RecDiffy.RulePacks.Trading.csproj" />
     <Project Path="src/RecDiffy.Tests/RecDiffy.Tests.csproj" />
+    <Project Path="src/RecDiffy.Benchmarks/RecDiffy.Benchmarks.csproj" />
+    <Project Path="src/RecDiffy.AotHost/RecDiffy.AotHost.csproj" />
   </Folder>
 </Solution>
