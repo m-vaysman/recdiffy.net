@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using RecDiffy.Rules;
@@ -12,17 +13,25 @@ internal static class ProfileCompiler
         var formatErrors = document.FormatVersion == 1
             ? []
             : new[] { new ProfileError("UnsupportedFormat", $"formatVersion {document.FormatVersion} is not accepted.") };
-        var schema = new FieldSchema(document.Fields);
         var duplicateErrors = document.Fields
             .GroupBy(field => field.Name, StringComparer.Ordinal)
             .Where(group => group.Count() > 1)
-            .Select(group => new ProfileError("DuplicateField", $"Field '{group.Key}' is declared more than once."));
+            .Select(group => new ProfileError("DuplicateField", $"Field '{group.Key}' is declared more than once."))
+            .ToArray();
+        var scaleErrors = document.Fields
+            .Where(field => field.Scale is < 0 or > 28)
+            .Select(field => new ProfileError("InvalidParameter", $"Field '{field.Name}' scale {field.Scale} is outside 0..28."))
+            .ToArray();
+        if (duplicateErrors.Length > 0)
+            return new CompileOutcome(null, [.. formatErrors, .. duplicateErrors, .. scaleErrors]);
+
+        var schema = new FieldSchema(document.Fields);
         var sides = document.Normalization.ToImmutableDictionary(
             pair => pair.Key,
             pair => CompileSide(pair.Key, pair.Value, schema, document.Midpoint, registry),
             StringComparer.Ordinal);
         var pathErrors = ValidatePaths(document, schema, sides);
-        ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors];
+        ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. scaleErrors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors];
         return errors.Length == 0
             ? new CompileOutcome(new CompiledProfile(document.ProfileId, document.Version, document.FormatVersion, Hash(document), document, SideRules(sides, "left"), SideRules(sides, "right")), [])
             : new CompileOutcome(null, errors);
@@ -42,6 +51,10 @@ internal static class ProfileCompiler
 
     private static IReadOnlyList<ProfileError> ValidatePaths(ProfileDocument document, FieldSchema schema, IReadOnlyDictionary<string, SideCompilation> sides)
     {
+        var missingPaths = document.Paths.Count == 0
+            ? new[] { new ProfileError("MissingParameter", "paths must contain a route.") }
+            : [];
+        var routeErrors = document.Paths.SelectMany(path => ValidateRoute(path, schema));
         var overlap = document.Paths.SelectMany((path, index) => document.Paths.Take(index).Where(earlier => RoutesOverlap(earlier.Route, path.Route)).Select(_ =>
             new ProfileError("OverlappingRoute", $"Path '{path.Id}' overlaps another route.")));
         var passErrors = document.Paths.SelectMany(path => path.Passes.SelectMany(pass => ValidatePass(path, pass, document, schema, sides)));
@@ -50,8 +63,19 @@ internal static class ProfileCompiler
         var limit = document.Limits.MaxGroupSize > 16
             ? new[] { new ProfileError("LimitExceeded", "limits.maxGroupSize exceeds the hard cap of 16.") }
             : [];
-        return [.. overlap, .. passErrors, .. diffErrors, .. limit];
+        return [.. missingPaths, .. routeErrors, .. overlap, .. passErrors, .. diffErrors, .. limit];
     }
+
+    private static IEnumerable<ProfileError> ValidateRoute(PathDeclaration path, FieldSchema schema) => path.Route.Rule switch
+    {
+        "route.all" => [],
+        "route.byField" when path.Route.Field is null || path.Route.EqualsValue is null =>
+            [new ProfileError("MissingParameter", $"Path '{path.Id}' route.byField requires field and equals.")],
+        "route.byField" when schema.TryGet(path.Route.Field!, out _) is false =>
+            [new ProfileError("UnknownField", $"Path '{path.Id}' route names unknown field '{path.Route.Field}'.")],
+        "route.byField" => [],
+        _ => [new ProfileError("UnknownRule", $"Route '{path.Route.Rule}' is not registered.")],
+    };
 
     private static IEnumerable<ProfileError> ValidatePass(PathDeclaration path, PassDeclaration pass, ProfileDocument document, FieldSchema schema, IReadOnlyDictionary<string, SideCompilation> sides)
     {
@@ -107,13 +131,100 @@ internal static class ProfileCompiler
     private static IReadOnlyList<CompiledRule> SideRules(IReadOnlyDictionary<string, SideCompilation> sides, string name) =>
         sides.TryGetValue(name, out var side) ? side.Rules : [];
 
-    private static string Hash(ProfileDocument document)
+    private static string Hash(ProfileDocument document) =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Canonical(document)))).ToLowerInvariant();
+
+    private static string Canonical(ProfileDocument document)
     {
-        var text = string.Join(
-            ",",
-            document.Fields.OrderBy(field => field.Name, StringComparer.Ordinal).Select(field => $"{field.Name}:{field.Type}:{field.Role}:{field.Scale}"));
-        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes($"{document.FormatVersion}|{document.ProfileId}|{document.Version}|{document.Midpoint}|{text}"))).ToLowerInvariant();
+        var builder = new StringBuilder();
+        builder.Append(document.FormatVersion).Append('|').Append(document.ProfileId).Append('|').Append(document.Version).Append('|').Append(document.Midpoint).Append('\n');
+        foreach (var field in document.Fields.OrderBy(field => field.Name, StringComparer.Ordinal))
+            builder.Append("field|").Append(field.Name).Append('|').Append(field.Type).Append('|').Append(field.Role).Append('|').Append(field.Scale).Append('\n');
+        foreach (var source in document.SourceKeys.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+            builder.Append("source|").Append(source.Key).Append('|').Append(source.Value).Append('\n');
+        builder.Append("limits|").Append(document.Limits.MaxGroupSize).Append('|').Append(document.Limits.MaxBlockItems).Append('|')
+            .Append(document.Limits.MaxTargetsPerComponent).Append('|').Append(document.Limits.MaxNodesPerTarget).Append('\n');
+        foreach (var side in document.Normalization.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+        {
+            AppendCalls(builder, side.Key, "identify", side.Value.Identify);
+            AppendCalls(builder, side.Key, "parse", side.Value.Parse);
+            AppendCalls(builder, side.Key, "derive", side.Value.Derive);
+            AppendCalls(builder, side.Key, "validate", side.Value.Validate);
+        }
+
+        foreach (var path in document.Paths)
+            AppendPath(builder, path);
+        foreach (var side in document.Consolidation.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+            AppendConsolidation(builder, side.Key, side.Value);
+        return builder.ToString();
     }
+
+    private static void AppendCalls(StringBuilder builder, string side, string phase, IReadOnlyList<RuleCall> calls)
+    {
+        foreach (var call in calls)
+        {
+            builder.Append("rule|").Append(side).Append('|').Append(phase).Append('|').Append(call.Rule).Append('\n');
+            AppendWhen(builder, "when", call.When);
+            foreach (var pair in call.Strings.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+                builder.Append("arg|").Append(pair.Key).Append('|').Append(pair.Value).Append('\n');
+            foreach (var pair in call.Lists.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+                builder.Append("list|").Append(pair.Key).Append('|').Append(string.Join(",", pair.Value)).Append('\n');
+            foreach (var pair in call.Maps.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+            {
+                builder.Append("map|").Append(pair.Key);
+                foreach (var entry in pair.Value.OrderBy(entry => entry.Key, StringComparer.Ordinal))
+                    builder.Append('|').Append(entry.Key).Append('=').Append(entry.Value);
+                builder.Append('\n');
+            }
+        }
+    }
+
+    private static void AppendPath(StringBuilder builder, PathDeclaration path)
+    {
+        builder.Append("path|").Append(path.Id).Append('|').Append(path.Route.Rule).Append('|').Append(path.Route.Field).Append('|').Append(path.Route.EqualsValue).Append('\n');
+        foreach (var pass in path.Passes)
+        {
+            builder.Append("pass|").Append(pass.Id).Append('|').Append(pass.Pass).Append('|').Append(pass.Many).Append('|').Append(pass.MaxGroupSize).Append('\n');
+            builder.Append("key|").Append(string.Join(",", pass.Key)).Append('\n');
+            builder.Append("block|").Append(string.Join(",", pass.Block)).Append('\n');
+            builder.Append("conserve|").Append(string.Join(",", pass.Conserve)).Append('\n');
+        }
+
+        if (path.Diff is not { } diff)
+            return;
+        foreach (var pair in diff.Fields.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+        {
+            var tolerance = pair.Value.Tolerance;
+            builder.Append("diff|").Append(pair.Key).Append('|').Append(tolerance.Kind).Append('|')
+                .Append(Money(tolerance.Absolute)).Append('|').Append(Money(tolerance.Relative)).Append('|')
+                .Append(tolerance.Attributed).Append('|').Append(pair.Value.Attributed).Append('\n');
+            AppendWhen(builder, "tolerance-when", tolerance.When);
+            AppendWhen(builder, "applicable", pair.Value.ApplicableWhen);
+        }
+    }
+
+    private static void AppendConsolidation(StringBuilder builder, string side, ConsolidationSide plan)
+    {
+        builder.Append("consolidation|").Append(side).Append('\n');
+        if (plan.Lifecycle is { } lifecycle)
+            builder.Append("life|").Append(lifecycle.ActionField).Append('|').Append(lifecycle.TargetField).Append('|').Append(lifecycle.ScopeField).Append('|').Append(lifecycle.CorrPointsAt).Append('\n');
+        foreach (var package in plan.Packages)
+        {
+            builder.Append("package|").Append(package.LinkField).Append('|').Append(package.RoleField).Append('|').Append(string.Join(",", package.RequiredRoles)).Append('\n');
+            foreach (var aggregate in package.Aggregates.OrderBy(aggregate => aggregate.Field, StringComparer.Ordinal))
+                builder.Append("agg|").Append(aggregate.Field).Append('|').Append(aggregate.Kind).Append('|').Append(aggregate.Role).Append('|').Append(aggregate.OtherRole).Append('\n');
+        }
+    }
+
+    private static void AppendWhen(StringBuilder builder, string label, WhenClause? when)
+    {
+        if (when is null)
+            return;
+        var membership = when.In is { } values ? string.Join(",", values.OrderBy(value => value, StringComparer.Ordinal)) : "";
+        builder.Append(label).Append('|').Append(when.Field).Append('|').Append(when.EqualsValue).Append('|').Append(when.NotEquals).Append('|').Append(membership).Append('\n');
+    }
+
+    private static string Money(decimal? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "";
 }
 
 internal sealed record CompileOutcome(CompiledProfile? Profile, IReadOnlyList<ProfileError> Errors);

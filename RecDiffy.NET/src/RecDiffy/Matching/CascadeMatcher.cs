@@ -20,6 +20,8 @@ internal sealed class MatchWorkspace
     public required string? SharedField { get; init; }
 
     public required int MaxGroupSize { get; init; }
+
+    public required CancellationToken Cancellation { get; init; }
 }
 
 internal sealed record ActiveItem(int Index, Side Side, ConsolidatedRow Row);
@@ -80,7 +82,8 @@ internal static class CascadeMatcher
         IReadOnlyList<ConsolidatedRow> right,
         IReadOnlyList<PassDeclaration> passes,
         IReadOnlyList<FieldDeclaration> fields,
-        SearchLimits limits)
+        SearchLimits limits,
+        CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(right);
@@ -96,7 +99,8 @@ internal static class CascadeMatcher
         var cursor = 0;
         while (cursor < engines.Length)
         {
-            var workspace = Workspace(engines[cursor].PassId, items, free, schema, limits, shared, engines[cursor].MaxGroup);
+            cancellation.ThrowIfCancellationRequested();
+            var workspace = Workspace(engines[cursor].PassId, items, free, schema, limits, shared, engines[cursor].MaxGroup, cancellation);
             var proposal = engines[cursor].ProposeFirst(workspace);
             if (proposal is null)
             {
@@ -114,7 +118,8 @@ internal static class CascadeMatcher
             (Claimed: claimed, Clusters: ImmutableList<ResidueCluster>.Empty),
             (state, engine) =>
             {
-                var found = engine.Residue(Workspace(engine.PassId, items, free, schema, limits, shared, engine.MaxGroup))
+                cancellation.ThrowIfCancellationRequested();
+                var found = engine.Residue(Workspace(engine.PassId, items, free, schema, limits, shared, engine.MaxGroup, cancellation))
                     .Select(cluster => cluster with { Rows = [.. cluster.Rows.Where(row => state.Claimed.Contains(IndexOf(items, row)) is false)] })
                     .Where(cluster => cluster.Rows.Count > 0)
                     .ToArray();
@@ -127,7 +132,7 @@ internal static class CascadeMatcher
     }
 
     private static ActiveItem[] Items(IReadOnlyList<ConsolidatedRow> left, IReadOnlyList<ConsolidatedRow> right) =>
-        [.. left.Concat(right).Where(row => row is { Quarantined: false, Suppression: null }).Select((row, index) => new ActiveItem(index, row.Context.Side, row))];
+        [.. left.Concat(right).Where(row => row is { Quarantined: false, Suppression: null } && row.Context.Diagnostics.All(diagnostic => diagnostic.Severity != DiagnosticSeverity.Invalid)).Select((row, index) => new ActiveItem(index, row.Context.Side, row))];
 
     private static MatchWorkspace Workspace(
         string passId,
@@ -136,7 +141,8 @@ internal static class CascadeMatcher
         IReadOnlyDictionary<string, FieldDeclaration> schema,
         SearchLimits limits,
         string? shared,
-        int maxGroup) => new()
+        int maxGroup,
+        CancellationToken cancellation) => new()
         {
             PassId = passId,
             Items = items,
@@ -145,6 +151,7 @@ internal static class CascadeMatcher
             Limits = limits,
             SharedField = shared,
             MaxGroupSize = maxGroup,
+            Cancellation = cancellation,
         };
 
     private static CascadePass Create(PassDeclaration pass, SearchLimits limits) => pass.Pass switch
@@ -301,16 +308,33 @@ internal sealed class GroupPass(string passId, IReadOnlyList<string> block, IRea
 
     private TargetSearch Search(int target, Component component, MatchWorkspace workspace)
     {
-        var eligible = EligibleFor(target, component).Select(index => workspace.Items[index]).ToArray();
-        var classes = eligible
-            .Select(item => (Item: item, Values: conserve.Select(field => workspace.Items[item.Index].Row.Context.Values[field].Number).ToArray()))
-            .GroupBy(pair => string.Join('\u001f', pair.Values.Select(value => value.ToString(CultureInfo.InvariantCulture))), StringComparer.Ordinal)
-            .Select(group => new ConservedClass(group.First().Values, [.. group.Select(pair => pair.Item.Index)]))
+        var targetValues = Conserved(workspace.Items[target].Row.Context);
+        if (targetValues is null)
+            return new TargetSearch(SearchState.None, []);
+        var classes = EligibleFor(target, component)
+            .Select(index => workspace.Items[index])
+            .Select(item => (Item: item, Values: Conserved(item.Row.Context)))
+            .Where(pair => pair.Values is not null)
+            .GroupBy(pair => string.Join('\u001f', pair.Values!.Select(value => value.ToString(CultureInfo.InvariantCulture))), StringComparer.Ordinal)
+            .Select(group => new ConservedClass(group.First().Values!, [.. group.Select(pair => pair.Item.Index)]))
             .OrderByDescending(cls => cls.Values[0])
             .ThenBy(cls => string.Join('\u001f', cls.Values.Select(value => value.ToString(CultureInfo.InvariantCulture))), StringComparer.Ordinal)
             .ToArray();
-        var targetValues = conserve.Select(field => workspace.Items[target].Row.Context.Values[field].Number).ToArray();
-        return SubsetSearch.Search(classes, targetValues, workspace.MaxGroupSize, workspace.Limits.MaxNodesPerTarget);
+        return SubsetSearch.Search(classes, targetValues, workspace.MaxGroupSize, workspace.Limits.MaxNodesPerTarget, workspace.Cancellation);
+    }
+
+    private decimal[]? Conserved(RowContext row)
+    {
+        var values = new decimal[conserve.Count];
+        for (var index = 0; index < conserve.Count; index++)
+        {
+            var field = conserve[index];
+            if (row.IsNull(field))
+                return null;
+            values[index] = row.Values[field].Number;
+        }
+
+        return values;
     }
 
     private IEnumerable<Component> Components(MatchWorkspace workspace) =>

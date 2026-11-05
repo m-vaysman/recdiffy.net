@@ -52,7 +52,7 @@ public sealed record RowContext
         {
             RowKey = rowKey,
             Side = side,
-            Raw = raw,
+            Raw = raw.ToImmutableDictionary(StringComparer.Ordinal),
             Pool = InternPool.Empty,
             Reference = ReferenceDataSet.Empty,
             Instruments = InstrumentMaster.Empty,

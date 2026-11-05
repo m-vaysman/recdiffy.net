@@ -27,7 +27,7 @@ internal static class Intake
         IReadOnlyList<CompiledRule> rules,
         ReferenceDataSet reference,
         InstrumentMaster master) =>
-        [.. Collapse(rows).Select(group => group.Conflict
+        [.. rows.Where(row => row.MissingKey).Select(QuarantineMissing), .. Collapse(rows.Where(row => row.MissingKey is false).ToArray()).Select(group => group.Conflict
             ? Quarantine(group)
             : new IntakeRow(group.Members, Warn(Apply(group.Row, rules, reference, master), group.Members.Count), false))];
 
@@ -50,6 +50,13 @@ internal static class Intake
         rule.Rule.Apply(ref next);
         return next;
     }
+
+    private static IntakeRow QuarantineMissing(RawRecord row) =>
+        new(
+            [row.Ref],
+            RowContext.Create(row.Ref.RowKey, row.Ref.Source is "right" ? Side.Right : Side.Left, row.Cells)
+                .Diagnose("MissingKey", DiagnosticSeverity.Invalid, "intake", null, null),
+            true);
 
     private static IntakeRow Quarantine(DuplicateGroup group) =>
         new(

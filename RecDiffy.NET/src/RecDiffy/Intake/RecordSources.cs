@@ -1,4 +1,5 @@
 using System.Data;
+using System.Globalization;
 
 namespace RecDiffy;
 
@@ -75,9 +76,17 @@ public static class RecordSources
         ArgumentNullException.ThrowIfNull(options);
         return new DataReaderSource(open, options);
     }
+
+    internal static (string Key, bool Missing) RowIdentity(IReadOnlyDictionary<string, object?> cells, string rowKey, int ordinal)
+    {
+        if (rowKey.Length == 0)
+            return (ordinal.ToString(CultureInfo.InvariantCulture), false);
+        var text = cells.TryGetValue(rowKey, out var value) ? value?.ToString()?.Trim() : null;
+        return string.IsNullOrEmpty(text) ? ("", true) : (text, false);
+    }
 }
 
-internal sealed record RawRecord(SourceRef Ref, IReadOnlyDictionary<string, object?> Cells);
+internal sealed record RawRecord(SourceRef Ref, IReadOnlyDictionary<string, object?> Cells, bool MissingKey = false);
 
 internal sealed class ObjectSource<T>(IEnumerable<T> rows, SourceMap<T> map) : RecordSource
 {
@@ -91,8 +100,8 @@ internal sealed class ObjectSource<T>(IEnumerable<T> rows, SourceMap<T> map) : R
     {
         cancellation.ThrowIfCancellationRequested();
         var cells = map.Project(row);
-        var key = cells.TryGetValue(rowKey, out var value) ? value?.ToString() ?? ordinal.ToString() : ordinal.ToString();
-        return new RawRecord(new SourceRef(sideName, key, ordinal), cells);
+        var (key, missing) = RecordSources.RowIdentity(cells, rowKey, ordinal);
+        return new RawRecord(new SourceRef(sideName, key, ordinal), cells, missing);
     }
 }
 
@@ -108,8 +117,8 @@ internal sealed class AsyncObjectSource<T>(IAsyncEnumerable<T> rows, SourceMap<T
         await foreach (var row in rows.WithCancellation(cancellation).ConfigureAwait(false))
         {
             var cells = map.Project(row);
-            var key = cells.TryGetValue(rowKey, out var value) ? value?.ToString() ?? ordinal.ToString() : ordinal.ToString();
-            built.Add(new RawRecord(new SourceRef(sideName, key, ordinal), cells));
+            var (key, missing) = RecordSources.RowIdentity(cells, rowKey, ordinal);
+            built.Add(new RawRecord(new SourceRef(sideName, key, ordinal), cells, missing));
             ordinal++;
         }
 
@@ -163,8 +172,8 @@ internal sealed class DataReaderSource(Func<IDataReader> open, TabularOptions op
     private static RawRecord ToRow(string sideName, string rowKey, string[] headers, object?[] values, int ordinal)
     {
         var cells = headers.Zip(values, (header, value) => (header, Cell: CellOf(value))).ToDictionary(pair => pair.header, pair => pair.Cell, StringComparer.Ordinal);
-        var key = cells.TryGetValue(rowKey, out var found) ? found?.ToString() ?? ordinal.ToString() : ordinal.ToString();
-        return new RawRecord(new SourceRef(sideName, key, ordinal), cells);
+        var (key, missing) = RecordSources.RowIdentity(cells, rowKey, ordinal);
+        return new RawRecord(new SourceRef(sideName, key, ordinal), cells, missing);
     }
 
     private static object? CellOf(object? value) => value switch

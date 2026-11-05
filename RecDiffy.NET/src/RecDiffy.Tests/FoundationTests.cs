@@ -113,6 +113,99 @@ public class ProfileCompileTests
         Assert.Contains(errors, error => error.Code == "LimitExceeded");
     }
 
+    [Fact]
+    public void Rejects_a_duplicate_field_as_a_profile_error()
+    {
+        var errors = Compile("""
+            {
+              "formatVersion": 1,
+              "profileId": "sample",
+              "version": "1.0.0",
+              "fields": [
+                { "name": "Sku", "type": "Symbol", "role": "Key" },
+                { "name": "Sku", "type": "Symbol", "role": "Key" }
+              ],
+              "paths": [ { "id": "only", "route": { "rule": "route.all" } } ]
+            }
+            """);
+
+        Assert.Contains(errors, error => error.Code == "DuplicateField");
+    }
+
+    [Fact]
+    public void Rejects_a_scale_outside_zero_through_28()
+    {
+        var errors = Compile("""
+            {
+              "formatVersion": 1,
+              "profileId": "sample",
+              "version": "1.0.0",
+              "fields": [ { "name": "Quantity", "type": "Decimal", "scale": -1, "role": "Economic" } ],
+              "paths": [ { "id": "only", "route": { "rule": "route.all" } } ]
+            }
+            """);
+
+        Assert.Contains(errors, error => error.Code == "InvalidParameter");
+    }
+
+    [Fact]
+    public void Rejects_an_empty_path_list_and_an_unknown_route()
+    {
+        var empty = Compile("""
+            {
+              "formatVersion": 1,
+              "profileId": "sample",
+              "version": "1.0.0",
+              "fields": [],
+              "paths": []
+            }
+            """);
+        var unknown = Compile("""
+            {
+              "formatVersion": 1,
+              "profileId": "sample",
+              "version": "1.0.0",
+              "fields": [],
+              "paths": [ { "id": "only", "route": { "rule": "route.mystery" } } ]
+            }
+            """);
+
+        Assert.Contains(empty, error => error.Code == "MissingParameter");
+        Assert.Contains(unknown, error => error.Code == "UnknownRule");
+    }
+
+    [Fact]
+    public void Changes_the_hash_when_the_key_or_the_tolerance_changes()
+    {
+        var sku = Reconciler.Compile(ProfileDocument.Parse(HashProfile("""["Sku"]""")), RuleRegistry.CreateCore());
+        var quantity = Reconciler.Compile(ProfileDocument.Parse(HashProfile("""["Sku", "Quantity"]""")), RuleRegistry.CreateCore());
+        var tolerant = Reconciler.Compile(ProfileDocument.Parse(HashProfile("""["Sku"]""", """ , "diff": { "fields": { "Quantity": { "tolerance": { "absolute": "999999" } } } } """)), RuleRegistry.CreateCore());
+        var again = Reconciler.Compile(ProfileDocument.Parse(HashProfile("""["Sku"]""")), RuleRegistry.CreateCore());
+
+        Assert.NotEqual(sku.Hash, quantity.Hash);
+        Assert.NotEqual(sku.Hash, tolerant.Hash);
+        Assert.Equal(sku.Hash, again.Hash);
+    }
+
+    private static string HashProfile(string key, string diff = "") => $$"""
+        {
+          "formatVersion": 1,
+          "profileId": "sample",
+          "version": "1.0.0",
+          "fields": [
+            { "name": "Sku", "type": "Symbol", "role": "Key" },
+            { "name": "Quantity", "type": "Decimal", "scale": 0, "role": "Economic" }
+          ],
+          "normalization": {
+            "left": { "identify": [ { "rule": "symbol.map", "from": "Sku", "to": "Sku" } ], "parse": [ { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" } ] },
+            "right": { "identify": [ { "rule": "symbol.map", "from": "Sku", "to": "Sku" } ], "parse": [ { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" } ] }
+          },
+          "paths": [ { "id": "stock", "route": { "rule": "route.all" }, "passes": [
+            { "id": "P2", "pass": "match.naturalKey", "key": {{key}} }
+          ]{{diff}} } ]
+        }
+        """;
+
     private static IReadOnlyList<ProfileError> Compile(string json)
     {
         var exception = Assert.Throws<ProfileCompileException>(() => Reconciler.Compile(ProfileDocument.Parse(json), RuleRegistry.CreateCore()));

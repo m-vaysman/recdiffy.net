@@ -12,32 +12,35 @@ internal static class ResultBuilder
     public static ReconciliationResult Build(
         CompiledProfile profile,
         ReferenceDataSet reference,
-        PathDeclaration path,
+        IReadOnlyList<(PathDeclaration Path, MatchReport Match)> routed,
         IReadOnlyList<ConsolidatedRow> left,
         IReadOnlyList<ConsolidatedRow> right,
-        MatchReport match,
         RunOptions options,
         CancellationToken cancellation)
     {
-        var plan = DiffPlan.From(path, profile.Document.Fields, profile.Document.Midpoint);
-        var committed = match.Committed.ToArray();
-        var built = new (ResultEntry Entry, RowContext Left, RowContext Right)[committed.Length];
+        var jobs = routed.SelectMany(item => item.Match.Committed.Select(group => (item.Path, Group: group))).ToArray();
+        var built = new (ResultEntry Entry, RowContext Left, RowContext Right)[jobs.Length];
         var degree = options.MaxDegreeOfParallelism is int chosen and > 1 ? chosen : 1;
-        if (degree == 1 || committed.Length < 2)
+        if (degree == 1 || jobs.Length < 2)
         {
-            for (var index = 0; index < committed.Length; index++)
+            for (var index = 0; index < jobs.Length; index++)
             {
                 cancellation.ThrowIfCancellationRequested();
-                built[index] = Matched(path.Id, committed[index], plan);
+                var plan = DiffPlan.From(jobs[index].Path, profile.Document.Fields, profile.Document.Midpoint);
+                built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan);
             }
         }
         else
         {
             Parallel.For(
                 0,
-                committed.Length,
+                jobs.Length,
                 new ParallelOptions { MaxDegreeOfParallelism = degree, CancellationToken = cancellation },
-                index => built[index] = Matched(path.Id, committed[index], plan));
+                index =>
+                {
+                    var plan = DiffPlan.From(jobs[index].Path, profile.Document.Fields, profile.Document.Midpoint);
+                    built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan);
+                });
         }
 
         var entries = new List<ResultEntry>();
@@ -48,8 +51,11 @@ internal static class ResultBuilder
             projections[item.Entry.Id] = (item.Left, item.Right);
         }
 
-        foreach (var cluster in match.Residue)
-            entries.Add(Open(path.Id, cluster));
+        foreach (var item in routed)
+        {
+            foreach (var cluster in item.Match.Residue)
+                entries.Add(Open(item.Path.Id, cluster));
+        }
         var entryByRow = Index(entries, left.Concat(right).ToArray());
         var rows = left.Concat(right).SelectMany(row => row.Members.Select(member => Row(row, member, entryByRow, entries))).ToArray();
         var summary = Summarize(entries, rows);
@@ -158,7 +164,9 @@ internal static class ResultBuilder
             ? seed
             : plan.Steps.Where(step => step.Field.Type == FieldType.Decimal).Aggregate(seed, (current, step) =>
             {
-                var sum = rows.Aggregate(0m, (total, row) => total + (row.Context.IsNull(step.Field.Name) ? 0m : row.Context.Values[step.Field.Name].Number));
+                if (rows.Any(row => row.Context.IsNull(step.Field.Name)))
+                    return current.Write(step.Field.Name, CanonicalCell.Null(FieldType.Decimal), "aggregate", null, null);
+                var sum = rows.Aggregate(0m, (total, row) => total + row.Context.Values[step.Field.Name].Number);
                 return current.Write(step.Field.Name, CanonicalCell.FromDecimal(Rounding.Round(sum, step.Field.Scale, plan.Midpoint)), "aggregate", null, null);
             });
     }

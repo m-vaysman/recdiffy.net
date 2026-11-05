@@ -15,15 +15,16 @@ internal readonly record struct TargetSearch(SearchState State, int[] DrawnItems
 // The walk mutates a count buffer and restores it. A 250,000-node budget has to stay a node budget.
 internal static class SubsetSearch
 {
-    public static TargetSearch Search(IReadOnlyList<ConservedClass> classes, decimal[] target, int maxGroup, int maxNodes)
+    public static TargetSearch Search(IReadOnlyList<ConservedClass> classes, decimal[] target, int maxGroup, int maxNodes, CancellationToken cancellation = default)
     {
+        cancellation.ThrowIfCancellationRequested();
         var counts = new int[classes.Count];
         var sums = new decimal[target.Length];
         var suffix = new decimal[classes.Count + 1];
         for (var index = classes.Count - 1; index >= 0; index--)
             suffix[index] = suffix[index + 1] + classes[index].Values[0] * classes[index].Items.Length;
         var nonNegative = classes.All(cls => cls.Values[0] >= 0m);
-        var walk = new Walk(classes, target, maxGroup, maxNodes, counts, sums, suffix, nonNegative);
+        var walk = new Walk(classes, target, maxGroup, maxNodes, counts, sums, suffix, nonNegative, cancellation);
         walk.Go(0, 0);
         return walk.Finish();
     }
@@ -36,7 +37,8 @@ internal static class SubsetSearch
         int[] counts,
         decimal[] sums,
         decimal[] suffix,
-        bool nonNegative)
+        bool nonNegative,
+        CancellationToken cancellation)
     {
         private int _nodes;
         private bool _stop;
@@ -47,6 +49,7 @@ internal static class SubsetSearch
 
         public void Go(int index, int size)
         {
+            cancellation.ThrowIfCancellationRequested();
             _nodes++;
             if (_nodes > maxNodes)
             {

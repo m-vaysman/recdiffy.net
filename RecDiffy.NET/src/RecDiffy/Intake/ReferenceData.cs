@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace RecDiffy;
 
 public sealed record ReferenceDataSet(
@@ -12,9 +14,9 @@ public sealed record ReferenceDataSet(
         "empty",
         default,
         "",
-        new Dictionary<string, string>(StringComparer.Ordinal),
-        new Dictionary<string, string>(StringComparer.Ordinal),
-        new Dictionary<string, string>(StringComparer.Ordinal));
+        ImmutableDictionary.Create<string, string>(StringComparer.Ordinal),
+        ImmutableDictionary.Create<string, string>(StringComparer.Ordinal),
+        ImmutableDictionary.Create<string, string>(StringComparer.Ordinal));
 
     public static ReferenceDataSet Create(
         string id,
@@ -29,8 +31,11 @@ public sealed record ReferenceDataSet(
         ArgumentNullException.ThrowIfNull(leiToCode);
         ArgumentNullException.ThrowIfNull(aliasToCode);
         ArgumentNullException.ThrowIfNull(dateFormatByCode);
-        return new(id, asOf, contentHash, leiToCode, aliasToCode, dateFormatByCode);
+        return new(id, asOf, contentHash, Freeze(leiToCode), Freeze(aliasToCode), Freeze(dateFormatByCode));
     }
+
+    private static IReadOnlyDictionary<string, string> Freeze(IReadOnlyDictionary<string, string> source) =>
+        source.ToImmutableDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
 }
 
 internal sealed record InstrumentMaster(

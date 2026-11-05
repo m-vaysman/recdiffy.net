@@ -79,11 +79,20 @@ internal static class RunPipeline
         cancellation.ThrowIfCancellationRequested();
         var consolidatedLeft = Consolidate(profile, "left", normalized.Left);
         var consolidatedRight = Consolidate(profile, "right", normalized.Right);
-        var path = profile.Document.Paths.FirstOrDefault(item => item.Route.Rule == "route.all") ?? profile.Document.Paths[0];
-        var match = CascadeMatcher.Run(consolidatedLeft, consolidatedRight, path.Passes, profile.Document.Fields, profile.Document.Limits);
+        var schema = profile.Document.Fields.ToDictionary(field => field.Name, StringComparer.Ordinal);
+        var paths = profile.Document.Paths;
+        var routed = paths.Select(path => (
+            Path: path,
+            Match: CascadeMatcher.Run(
+                OnPath(consolidatedLeft, path, paths, schema),
+                OnPath(consolidatedRight, path, paths, schema),
+                path.Passes,
+                profile.Document.Fields,
+                profile.Document.Limits,
+                cancellation))).ToArray();
         cancellation.ThrowIfCancellationRequested();
-        RecDiffyInstrumentation.Commits.Add(match.Committed.Count);
-        var result = ResultBuilder.Build(profile, reference, path, consolidatedLeft, consolidatedRight, match, options, cancellation);
+        RecDiffyInstrumentation.Commits.Add(routed.Sum(item => item.Match.Committed.Count));
+        var result = ResultBuilder.Build(profile, reference, routed, consolidatedLeft, consolidatedRight, options, cancellation);
         RecDiffyInstrumentation.Breaks.Add(result.Summary.Break);
         return result;
     }
@@ -94,4 +103,34 @@ internal static class RunPipeline
         var collapsed = Consolidation.Run(rows, plan?.Lifecycle, null);
         return plan is null ? collapsed : plan.Packages.Aggregate(collapsed, Packages.Pack);
     }
+
+    private static IReadOnlyList<ConsolidatedRow> OnPath(
+        IReadOnlyList<ConsolidatedRow> rows,
+        PathDeclaration path,
+        IReadOnlyList<PathDeclaration> paths,
+        IReadOnlyDictionary<string, FieldDeclaration> schema) =>
+        [.. rows.Where(row => ReferenceEquals(FirstPath(row, paths, schema), path))];
+
+    private static PathDeclaration? FirstPath(
+        ConsolidatedRow row,
+        IReadOnlyList<PathDeclaration> paths,
+        IReadOnlyDictionary<string, FieldDeclaration> schema)
+    {
+        foreach (var candidate in paths)
+        {
+            if (OnRoute(candidate.Route, row, schema))
+                return candidate;
+        }
+
+        return null;
+    }
+
+    private static bool OnRoute(RouteDeclaration route, ConsolidatedRow row, IReadOnlyDictionary<string, FieldDeclaration> schema) =>
+        route.Rule switch
+        {
+            "route.all" => true,
+            "route.byField" when route.Field is { } name && schema.TryGetValue(name, out var field) =>
+                MatchKeys.Text(row.Context, field) == route.EqualsValue,
+            _ => false,
+        };
 }
