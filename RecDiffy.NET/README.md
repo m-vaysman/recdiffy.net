@@ -1,3 +1,7 @@
+<p align="center">
+  <img alt="RecDiffy.NET" src="resources/logos/columns-dark.jpg" width="640" />
+</p>
+
 # RecDiffy.NET
 
 Reconcile two datasets and explain every match, difference, and unmatched row.
