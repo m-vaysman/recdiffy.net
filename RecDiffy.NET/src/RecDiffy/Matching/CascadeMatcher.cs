@@ -43,12 +43,8 @@ internal static class MatchKeys
     public static string? Compose(ActiveItem item, IReadOnlyList<string> fields, IReadOnlyDictionary<string, FieldDeclaration> schema)
     {
         var parts = fields.Select(field => Text(item.Row.Context, schema[field])).ToArray();
-        return parts.Any(part => part is null) ? null : string.Join('\u001f', parts.Select(part => Escape(part!)));
+        return parts.Any(part => part is null) ? null : Delimited.Join('\u001f', parts.Select(part => part!));
     }
-
-    // A value may contain the unit separator. Escape it, and escape backslash first, so the join stays one-to-one.
-    private static string Escape(string part) =>
-        part.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\u001f", "\\\u001f", StringComparison.Ordinal);
 
     public static string? Text(RowContext row, FieldDeclaration field) =>
         row.IsNull(field.Name)

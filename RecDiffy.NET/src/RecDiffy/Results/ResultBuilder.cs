@@ -193,7 +193,7 @@ internal static class ResultBuilder
     {
         var text = string.Join(
             '\n',
-            members.Distinct().OrderBy(member => member.Source, StringComparer.Ordinal).ThenBy(member => member.RowKey, StringComparer.Ordinal).Select(member => $"{member.Source}\u001f{member.RowKey}"));
+            members.Distinct().OrderBy(member => member.Source, StringComparer.Ordinal).ThenBy(member => member.RowKey, StringComparer.Ordinal).Select(member => Delimited.Join('\u001f', [member.Source, member.RowKey])));
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(text));
         return new GroupId(Convert.ToHexString(hash.AsSpan(0, 16)).ToLowerInvariant());
     }

@@ -49,6 +49,18 @@ public class CascadeTests
     }
 
     [Fact]
+    public void Does_not_hash_crossed_source_and_row_keys_to_the_same_group()
+    {
+        const string separator = "\u001f";
+        var crossed = ResultBuilder.Identify([new SourceRef("a" + separator + "b", "c", 0)]);
+        var other = ResultBuilder.Identify([new SourceRef("a", "b" + separator + "c", 0)]);
+        var same = ResultBuilder.Identify([new SourceRef("a" + separator + "b", "c", 0)]);
+
+        Assert.NotEqual(crossed, other);
+        Assert.Equal(crossed, same);
+    }
+
+    [Fact]
     public void Commits_a_shared_reference_before_it_reads_price()
     {
         var report = Run(
