@@ -35,8 +35,8 @@ internal static class SideResolution
         null or "" => null,
         "B" or "BOT" or "BUY" => "BUY",
         "S" or "SLD" or "SELL" => "SELL",
-        "P" or "PAY" or "PAY_FIXED" => "PAY_FIXED",
-        "R" or "REC" or "REC_FIXED" => "REC_FIXED",
+        "P" or "PAY" or "PAYFIXED" or "PAY_FIXED" => "PAY_FIXED",
+        "R" or "REC" or "RECEIVEFIXED" or "REC_FIXED" => "REC_FIXED",
         _ => "",
     };
 

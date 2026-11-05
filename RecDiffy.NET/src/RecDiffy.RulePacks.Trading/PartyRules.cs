@@ -51,7 +51,7 @@ internal sealed class PartyAliasRule(string from, string to) : INormalizationRul
 
     public RulePhase Phase => RulePhase.Identify;
 
-    public IReadOnlyList<FieldId> Reads => [new(to)];
+    public IReadOnlyList<FieldId> Reads { get; } = [];
 
     public IReadOnlyList<FieldId> Writes => [new(to)];
 
