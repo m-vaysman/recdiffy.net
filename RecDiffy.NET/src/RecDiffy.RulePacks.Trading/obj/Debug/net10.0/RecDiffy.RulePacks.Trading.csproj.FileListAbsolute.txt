@@ -1,0 +1,16 @@
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\obj\Debug\net10.0\RecDiffy.RulePacks.Trading.csproj.AssemblyReference.cache
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\obj\Debug\net10.0\RecDiffy.RulePacks.Trading.GeneratedMSBuildEditorConfig.editorconfig
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\obj\Debug\net10.0\RecDiffy.RulePacks.Trading.AssemblyInfoInputs.cache
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\obj\Debug\net10.0\RecDiffy.RulePacks.Trading.AssemblyInfo.cs
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\obj\Debug\net10.0\RecDiffy.RulePacks.Trading.csproj.CoreCompileInputs.cache
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\obj\Debug\net10.0\RecDiffy.RulePacks.Trading.sourcelink.json
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\bin\Debug\net10.0\RecDiffy.RulePacks.Trading.deps.json
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\bin\Debug\net10.0\RecDiffy.RulePacks.Trading.dll
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\bin\Debug\net10.0\RecDiffy.RulePacks.Trading.pdb
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\bin\Debug\net10.0\RecDiffy.dll
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\bin\Debug\net10.0\RecDiffy.pdb
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\obj\Debug\net10.0\RecDiffy.F1E67282.Up2Date
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\obj\Debug\net10.0\RecDiffy.RulePacks.Trading.dll
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\obj\Debug\net10.0\refint\RecDiffy.RulePacks.Trading.dll
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\obj\Debug\net10.0\RecDiffy.RulePacks.Trading.pdb
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy.RulePacks.Trading\obj\Debug\net10.0\ref\RecDiffy.RulePacks.Trading.dll

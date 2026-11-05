@@ -1,0 +1,12 @@
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy\obj\Debug\net10.0\RecDiffy.GeneratedMSBuildEditorConfig.editorconfig
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy\obj\Debug\net10.0\RecDiffy.AssemblyInfoInputs.cache
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy\obj\Debug\net10.0\RecDiffy.AssemblyInfo.cs
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy\obj\Debug\net10.0\RecDiffy.csproj.CoreCompileInputs.cache
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy\obj\Debug\net10.0\RecDiffy.sourcelink.json
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy\bin\Debug\net10.0\RecDiffy.deps.json
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy\bin\Debug\net10.0\RecDiffy.dll
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy\bin\Debug\net10.0\RecDiffy.pdb
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy\obj\Debug\net10.0\RecDiffy.dll
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy\obj\Debug\net10.0\refint\RecDiffy.dll
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy\obj\Debug\net10.0\RecDiffy.pdb
+I:\Projects\recdiffy.net\RecDiffy.NET\src\RecDiffy\obj\Debug\net10.0\ref\RecDiffy.dll

@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "RecDiffy.RulePacks.Trading/1.0.0": {
+        "dependencies": {
+          "RecDiffy": "1.0.0"
+        },
+        "runtime": {
+          "RecDiffy.RulePacks.Trading.dll": {}
+        }
+      },
+      "RecDiffy/1.0.0": {
+        "runtime": {
+          "RecDiffy.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "RecDiffy.RulePacks.Trading/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "RecDiffy/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
