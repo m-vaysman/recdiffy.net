@@ -1,0 +1,22 @@
+name: main-source-guard
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, edited]
+
+jobs:
+  main-source-is-dev:
+    name: main-source-is-dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require head branch is dev on this repository
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REF" != "dev" ] || [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            echo "Only the local 'dev' branch may merge into main (got head=$HEAD_REF from $HEAD_REPO)."
+            exit 1
+          fi
