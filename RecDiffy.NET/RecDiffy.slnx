@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RecDiffy/RecDiffy.csproj" />
+    <Project Path="src/RecDiffy.RulePacks.Trading/RecDiffy.RulePacks.Trading.csproj" />
+    <Project Path="src/RecDiffy.Tests/RecDiffy.Tests.csproj" />
+  </Folder>
+</Solution>
