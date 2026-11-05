@@ -3,3 +3,9 @@ obj/
 
 # Test-data Python generator/verify scripts (keep on disk; stop GitHub linguist counting them as primary language)
 RecDiffy.NET/test-data/**/*.py
+
+# Cursor / Argon briefs and local Cursor config (kept on disk, not public)
+RecDiffy.NET/ARGON_BRIEF.md
+RecDiffy.NET/Argon.MD
+RecDiffy.NET/CURSOR_BRIEF.md
+.cursor/
