@@ -69,6 +69,7 @@ internal static class SideBySideBuilder
             _ => this,
         };
 
+        // LeftOnly is negated on the cell. RightOnly stays positive.
         public SideBySideCell Cell() => new(Left, Right, Right - Left, -LeftOnly, RightOnly, MatchedRight - MatchedLeft);
     }
 }

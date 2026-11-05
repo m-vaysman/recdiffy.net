@@ -111,6 +111,7 @@ internal static class RunPipeline
         IReadOnlyDictionary<string, FieldDeclaration> schema) =>
         [.. rows.Where(row => ReferenceEquals(FirstPath(row, paths, schema), path))];
 
+    // The first matching path wins. Two byField routes on different fields can both match, and compile accepts that.
     private static PathDeclaration? FirstPath(
         ConsolidatedRow row,
         IReadOnlyList<PathDeclaration> paths,

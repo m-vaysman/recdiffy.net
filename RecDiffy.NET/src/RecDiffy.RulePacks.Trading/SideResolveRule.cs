@@ -49,6 +49,7 @@ internal static class SideResolution
         var other => other,
     };
 
+    // An unreadable quantity is zero, so a blank quantity and no code is UndeterminedSide.
     private static decimal Quantity(RowContext row, string column) =>
         row.Raw.TryGetValue(column, out var raw) && raw is decimal number ? number
         : decimal.TryParse(raw?.ToString(), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var parsed) ? parsed

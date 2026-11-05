@@ -60,6 +60,7 @@ internal static class SubsetSearch
 
             if (index == classes.Count)
             {
+                // One row is not a group, even when its conserved values equal the target.
                 if (size >= 2 && size <= maxGroup && Conserved())
                     Record();
                 return;
@@ -112,6 +113,7 @@ internal static class SubsetSearch
         {
             var whole = counts.Select((count, index) => count is 0 || count == classes[index].Items.Length).All(held => held);
             _drawn.AddRange(classes.SelectMany((cls, index) => counts[index] > 0 ? cls.Items : []));
+            // Taking part of a class, or finding a second solution, is a contest and stops the walk.
             if (!whole || _solution is not null)
             {
                 _contest = true;

@@ -56,6 +56,7 @@ internal static class FieldDiffer
                 : Finish(plan.Steps[index], scores[index], scores, plan, left, right);
         }
 
+        // netCash is finished after every score is measured. Finish reads sibling scores, and an unmeasured score is NotCompared.
         for (var index = 0; index < plan.Steps.Length; index++)
         {
             if (plan.Steps[index].Attribution is "trading.netCash")

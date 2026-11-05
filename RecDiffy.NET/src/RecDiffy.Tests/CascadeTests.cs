@@ -179,6 +179,7 @@ public class CascadeTests
     }
 
     [Fact]
+    // cascade-seed.txt pins Seed's commit order and each commit's pass, key, and row keys. Residue lines are sorted.
     public void Matches_the_seeded_golden_snapshot()
     {
         var golden = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Goldens", "cascade-seed.txt")).TrimEnd();

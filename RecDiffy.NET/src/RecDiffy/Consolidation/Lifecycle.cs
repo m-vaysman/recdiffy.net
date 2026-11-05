@@ -133,6 +133,7 @@ internal static class Consolidation
         return [.. members.Where(member => member.Action is not "CANC" && cancelled.Contains(member.Id) is false && superseded.Contains(member.Id) is false)];
     }
 
+    // When corrPointsAt is CANC and the named event is a cancel, the correction supersedes that cancel's target.
     private static string Predecessor(LifeEvent corr, IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index, string corrPointsAt) =>
         (corr.Target, corrPointsAt) switch
         {

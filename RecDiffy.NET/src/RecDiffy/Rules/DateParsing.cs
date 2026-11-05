@@ -22,6 +22,7 @@ internal static class DateParsing
         };
     }
 
+    // A formatBy value with no reference format invalidates the date. The formats list is not a fallback.
     private static IReadOnlyList<string>? Formats(RowContext row, IReadOnlyList<string> formats, string? formatBy) =>
         formatBy switch
         {

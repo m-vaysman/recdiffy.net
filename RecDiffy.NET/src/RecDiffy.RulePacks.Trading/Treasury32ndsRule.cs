@@ -21,6 +21,7 @@ internal static class Treasury32nds
     {
         if (text is not { Length: > 2 })
             return null;
+        // A trailing '+' adds half a 32nd.
         var plus = text[^1] is '+';
         var body = plus ? text[..^1] : text;
         var dash = body.IndexOf('-');

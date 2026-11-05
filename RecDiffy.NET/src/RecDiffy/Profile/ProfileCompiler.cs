@@ -22,6 +22,7 @@ internal static class ProfileCompiler
             .Where(field => field.Scale is < 0 or > 28)
             .Select(field => new ProfileError("InvalidParameter", $"Field '{field.Name}' scale {field.Scale} is outside 0..28."))
             .ToArray();
+        // ToImmutableDictionary throws on a repeated name, so DuplicateField has to be returned before FieldSchema is built.
         if (duplicateErrors.Length > 0)
             return new CompileOutcome(null, [.. formatErrors, .. duplicateErrors, .. scaleErrors]);
 
@@ -136,6 +137,7 @@ internal static class ProfileCompiler
 
     private static string Canonical(ProfileDocument document)
     {
+        // Field names are sorted. Rule calls and paths stay in profile order, so reordering those changes the hash.
         var builder = new StringBuilder();
         builder.Append(document.FormatVersion).Append('|').Append(document.ProfileId).Append('|').Append(document.Version).Append('|').Append(document.Midpoint).Append('\n');
         foreach (var field in document.Fields.OrderBy(field => field.Name, StringComparer.Ordinal))
@@ -253,6 +255,7 @@ internal sealed record SideCompilation(ImmutableDictionary<string, WriteSite> Wr
         var rule = registration.Create(call, schema, midpoint);
         var readErrors = rule.Reads.Where(read => !WrittenSites.ContainsKey(read.Name)).Select(read =>
             new ProfileError("FieldReadBeforeWrite", $"{side}.{call.Rule} reads '{read.Name}' before any rule writes it."));
+        // Rewriting a field this rule also reads is allowed. Two writers that do not read the field conflict unless their when clauses exclude each other.
         var writeErrors = rule.Writes.Where(write =>
             WrittenSites.TryGetValue(write.Name, out var previous)
             && !rule.Reads.Any(read => read.Name == write.Name)

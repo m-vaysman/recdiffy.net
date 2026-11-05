@@ -104,11 +104,13 @@ internal static class CascadeMatcher
         ArgumentNullException.ThrowIfNull(limits);
         var items = Items(left, right);
         var schema = fields.ToDictionary(field => field.Name, StringComparer.Ordinal);
+        // TradeRef is the veto column when the schema declares it. Shared-ref passes do not apply it; the other passes do.
         var shared = schema.ContainsKey("TradeRef") ? "TradeRef" : null;
         var engines = passes.Select(pass => Create(pass, limits)).ToArray();
         var counters = new MatchCounters();
         var rowIndex = items.ToDictionary(item => item.Row, item => item.Index, RowIdentity.Instance);
         var free = items.Select(item => item.Index).ToHashSet();
+        // Free on the workspace is the pre-commit snapshot. Later commits drop rows through Release, not through this set.
         var workspace = Workspace(passes.Count == 0 ? "" : passes[0].Id, items, free.ToImmutableHashSet(), schema, limits, shared, limits.MaxGroupSize, cancellation);
         foreach (var engine in engines)
             engine.BuildIndex(workspace, counters);
@@ -190,6 +192,7 @@ internal static class CascadeMatcher
     private static IReadOnlyList<ConsolidatedRow> Rows(IReadOnlyList<ActiveItem> items, IReadOnlyList<int> indexes) =>
         [.. indexes.Select(index => items[index].Row)];
 
+    // ConsolidatedRow is a record. Value equality would treat distinct rows as the same key.
     private sealed class RowIdentity : IEqualityComparer<ConsolidatedRow>
     {
         public static RowIdentity Instance { get; } = new();
@@ -276,6 +279,7 @@ internal sealed class PairPass(string passId, IReadOnlyList<string> fields, bool
         return key is null ? null : _ready[key];
     }
 
+    // A row belongs to one key. Refresh rewrites only keys in dirty; a removal that skips the mark leaves that row in NextReady.
     public override void Release(IReadOnlyCollection<int> taken, MatchCounters counters)
     {
         var dirty = new HashSet<string>(StringComparer.Ordinal);
@@ -406,6 +410,7 @@ internal sealed class GroupPass(string passId, IReadOnlyList<string> block, IRea
         return key is null ? null : _ready[key][0].Proposal;
     }
 
+    // A row belongs to one block. Evaluate rewrites only blocks in dirty; a removal that skips the mark leaves that row in NextReady and in residue.
     public override void Release(IReadOnlyCollection<int> taken, MatchCounters counters)
     {
         var dirty = new HashSet<string>(StringComparer.Ordinal);

@@ -198,6 +198,7 @@ internal static class ResultBuilder
         return new GroupId(Convert.ToHexString(hash.AsSpan(0, 16)).ToLowerInvariant());
     }
 
+    // LeftOnly and RightOnly count entries, so they exclude unrouted rows and rows excluded as Invalid that still show as LeftOnly or RightOnly in Rows.
     private static RunSummary Summarize(IReadOnlyList<ResultEntry> entries, IReadOnlyList<RowResult> rows) => new(
         entries.Count(entry => entry.Alignment == Alignment.Matched),
         entries.Count(entry => entry.Outcome == FieldOutcome.Exact),
