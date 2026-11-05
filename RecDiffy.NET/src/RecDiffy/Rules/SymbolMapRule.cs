@@ -1,0 +1,19 @@
+namespace RecDiffy.Rules;
+
+internal sealed class SymbolMapRule(
+    string from,
+    string to,
+    IReadOnlyDictionary<string, string> map,
+    bool passthrough) : INormalizationRule
+{
+    public string RuleId => "symbol.map";
+
+    public RulePhase Phase => RulePhase.Identify;
+
+    public IReadOnlyList<FieldId> Reads { get; } = [];
+
+    public IReadOnlyList<FieldId> Writes => [new FieldId(to)];
+
+    public void Apply(ref RowContext row) =>
+        row = SymbolMapping.Apply(row, from, to, map, passthrough, RuleId);
+}
