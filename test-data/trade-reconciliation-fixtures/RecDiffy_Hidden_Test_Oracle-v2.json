@@ -1,0 +1,4130 @@
+{
+  "dataset_version": "2.0",
+  "generated_date": "2026-11-04",
+  "purpose": "Sealed Ground-Truth Oracle for RecDiffy.NET xUnit Automated Regression Testing",
+  "counts": {
+    "internal_trades_total": 300,
+    "counterparty_lines_total": 200,
+    "predetermined_known_exact_pairs": 120,
+    "blind_within_tolerance_pairs": 18,
+    "blind_economic_break_pairs": 20,
+    "blind_allocation_split_groups_3_to_1": 12,
+    "blind_two_leg_swap_fx_packages_2_to_1": 8,
+    "blind_cancel_correct_chains_1_to_3": 5,
+    "blind_unmatched_internal_orphans": 85,
+    "blind_unmatched_counterparty_alleged": 7
+  },
+  "counterparty_normalization_rules": [
+    {
+      "internal_code": "GSCO",
+      "internal_name": "Goldman Sachs & Co. LLC",
+      "lei": "FOR8UP27PHTHYVLBNG30",
+      "cpty_sender_names": [
+        "GS_NY_PRIME",
+        "Goldman Sachs International",
+        "GOLDMAN SACHS & CO"
+      ],
+      "side_style": "SINGLE_CHAR",
+      "qty_style": "UNSIGNED",
+      "id_pref": "CUSIP",
+      "feed_perspective": "CLIENT_PB"
+    },
+    {
+      "internal_code": "JPM",
+      "internal_name": "J.P. Morgan Securities LLC",
+      "lei": "ZBUT11V806EZRVTWT807",
+      "cpty_sender_names": [
+        "JPMS_CLEAR",
+        "JPMORGAN CHASE BANK NA",
+        "J.P. Morgan Sec"
+      ],
+      "side_style": "SIGNED_QTY_NO_SIDE",
+      "qty_style": "SIGNED",
+      "id_pref": "ISIN",
+      "feed_perspective": "CLIENT_PB"
+    },
+    {
+      "internal_code": "MSCO",
+      "internal_name": "Morgan Stanley & Co. LLC",
+      "lei": "9R7GPTSO7KV3UQJZQ078",
+      "cpty_sender_names": [
+        "MS_PRIME_PB",
+        "MORGAN STANLEY INTL",
+        "MSCO_NY"
+      ],
+      "side_style": "SHORT_AND_SIGNED",
+      "qty_style": "SIGNED",
+      "id_pref": "SEDOL",
+      "feed_perspective": "CLIENT_PB"
+    },
+    {
+      "internal_code": "BAML",
+      "internal_name": "BofA Securities, Inc.",
+      "lei": "549300HN4UKV1E2R3U73",
+      "cpty_sender_names": [
+        "BOFA_MLPF&S",
+        "Merrill Lynch Intl",
+        "BAML_DERIV"
+      ],
+      "side_style": "LONG_LOWER",
+      "qty_style": "UNSIGNED",
+      "id_pref": "ISIN",
+      "feed_perspective": "DEALER_BILATERAL_ON_OTC"
+    },
+    {
+      "internal_code": "CITI",
+      "internal_name": "Citigroup Global Markets Inc.",
+      "lei": "MBNUM2BPBDO7JBLYG310",
+      "cpty_sender_names": [
+        "CGMI_NY",
+        "CITIBANK N.A.",
+        "Citigroup Global Mkts"
+      ],
+      "side_style": "DIRECTIONAL",
+      "qty_style": "UNSIGNED",
+      "id_pref": "TICKER",
+      "feed_perspective": "DEALER_BILATERAL_ON_OTC"
+    },
+    {
+      "internal_code": "BARC",
+      "internal_name": "Barclays Capital Inc.",
+      "lei": "AC28XWWI3WIBK2824319",
+      "cpty_sender_names": [
+        "BARCAP_LDN",
+        "Barclays Bank PLC",
+        "BCI_US"
+      ],
+      "side_style": "SINGLE_CHAR",
+      "qty_style": "SIGNED",
+      "id_pref": "ISIN",
+      "feed_perspective": "DEALER_BILATERAL_ON_OTC"
+    },
+    {
+      "internal_code": "UBS",
+      "internal_name": "UBS Securities LLC",
+      "lei": "549300SZJ9VS8SGX5264",
+      "cpty_sender_names": [
+        "UBS_AG_STAMFORD",
+        "UBS_LDN_PB",
+        "UBS Financial"
+      ],
+      "side_style": "SIGNED_QTY_NO_SIDE",
+      "qty_style": "SIGNED",
+      "id_pref": "CUSIP",
+      "feed_perspective": "CLIENT_PB"
+    },
+    {
+      "internal_code": "CITADEL",
+      "internal_name": "Citadel Securities LLC",
+      "lei": "5493001B2C3D4E5F6G77",
+      "cpty_sender_names": [
+        "CITSEC_MM",
+        "Citadel Execution Svcs",
+        "CDRG_FI"
+      ],
+      "side_style": "SINGLE_CHAR",
+      "qty_style": "UNSIGNED",
+      "id_pref": "CUSIP",
+      "feed_perspective": "DEALER_BILATERAL_ON_FI"
+    }
+  ],
+  "ground_truth_cases": [
+    {
+      "scenario_id": "EXACT-001",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10001"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50001"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "UST 32nds Quote ('98-08' == 98.25), Side 'SELL' vs 'sell'"
+    },
+    {
+      "scenario_id": "EXACT-002",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10002"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50002"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "UST 32nds Quote ('98-11+' == 98.359375), Side 'SELL' vs '(Blank)', Signed Negative Qty, Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-003",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10003"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50003"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "UST 32nds Quote ('99-04+' == 99.140625), Side 'BUY' vs 'BOT', Cross-ID (TICKER)"
+    },
+    {
+      "scenario_id": "EXACT-004",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10004"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50004"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "UST 32nds Quote ('98-24' == 98.75), Side 'BUY' vs '(Blank)', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-005",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10005"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50005"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "UST 32nds Quote ('99-06+' == 99.203125), Side 'SELL' vs '(Blank)', Signed Negative Qty"
+    },
+    {
+      "scenario_id": "EXACT-006",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10006"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50006"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "UST 32nds Quote ('99-05+' == 99.171875), Side 'BUY' vs 'B', Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-007",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10007"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50007"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "UST 32nds Quote ('98-15+' == 98.484375), Side 'BUY' vs '(Blank)'"
+    },
+    {
+      "scenario_id": "EXACT-008",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10008"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50008"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "UST 32nds Quote ('99-07' == 99.21875), Side 'BUY' vs '(Blank)', Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-009",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10009"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50009"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "UST 32nds Quote ('96-07+' == 96.234375), Side 'SELL' vs 'S', Cross-ID (CUSIP)"
+    },
+    {
+      "scenario_id": "EXACT-010",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10010"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50010"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "UST 32nds Quote ('96-26+' == 96.828125), Side 'BUY' vs '(Blank)', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-011",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10011"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50011"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "UST 32nds Quote ('96-13+' == 96.421875), Side 'BUY' vs 'B', Cross-ID (SEDOL)"
+    },
+    {
+      "scenario_id": "EXACT-012",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10012"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50012"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "UST 32nds Quote ('98-22+' == 98.703125), Side 'SELL' vs 'sell', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-013",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10013"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50013"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dirty Price Quote (99.629356 = Clean 98.796875 + Accrued), Side 'BUY' vs 'B'"
+    },
+    {
+      "scenario_id": "EXACT-014",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10014"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50014"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dirty Price Quote (99.766165 = Clean 99.125 + Accrued), Side 'SELL' vs '(Blank)', Signed Negative Qty, Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-015",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10015"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50015"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dirty Price Quote (99.664557 = Clean 98.78125 + Accrued), Side 'BUY' vs 'B', Cross-ID (SEDOL)"
+    },
+    {
+      "scenario_id": "EXACT-016",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10016"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50016"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dirty Price Quote (100.608085 = Clean 99.628125 + Accrued), Side 'BUY' vs 'B', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-017",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10017"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50017"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dirty Price Quote (100.234283 = Clean 99.5 + Accrued), Side 'BUY' vs 'B', Cross-ID (CUSIP)"
+    },
+    {
+      "scenario_id": "EXACT-018",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10018"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50018"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dirty Price Quote (99.844874 = Clean 98.4375 + Accrued), Side 'BUY' vs 'B', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-019",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10019"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50019"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dirty Price Quote (101.94028 = Clean 101.484375 + Accrued), Side 'BUY' vs 'buy'"
+    },
+    {
+      "scenario_id": "EXACT-020",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10020"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50020"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dirty Price Quote (102.462215 = Clean 100.9375 + Accrued), Side 'BUY' vs 'BOT', Cross-ID (TICKER), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-021",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10021"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50021"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'sell'"
+    },
+    {
+      "scenario_id": "EXACT-022",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10022"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50022"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dealer Perspective Inverted ('BUY' <-> Dealer 'S'), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-023",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10023"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50023"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dealer Perspective Inverted ('BUY' <-> Dealer 'S'), Signed Negative Qty, Cross-ID (TICKER)"
+    },
+    {
+      "scenario_id": "EXACT-024",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10024"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50024"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dealer Perspective Inverted ('PAY_FIXED' <-> Dealer 'rec_fixed'), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-025",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10025"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50025"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S'"
+    },
+    {
+      "scenario_id": "EXACT-026",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10026"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50026"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dealer Perspective Inverted ('BUY' <-> Dealer 'S'), Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-027",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10027"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50027"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dealer Perspective Inverted ('BUY' <-> Dealer 'SLD'), Cross-ID (TICKER)"
+    },
+    {
+      "scenario_id": "EXACT-028",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10028"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50028"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dealer Perspective Inverted ('PAY_FIXED' <-> Dealer 'REC'), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-029",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10029"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50029"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs '(Blank)', Cross-ID (CUSIP)"
+    },
+    {
+      "scenario_id": "EXACT-030",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10030"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50030"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dealer Perspective Inverted ('SELL' <-> Dealer 'Signed'), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-031",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10031"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50031"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dealer Perspective Inverted ('SELL' <-> Dealer 'B')"
+    },
+    {
+      "scenario_id": "EXACT-032",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10032"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50032"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dealer Perspective Inverted ('PAY_FIXED' <-> Dealer 'Signed'), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-033",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10033"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50033"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'B'"
+    },
+    {
+      "scenario_id": "EXACT-034",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10034"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50034"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dealer Perspective Inverted ('SELL' <-> Dealer 'B'), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-035",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10035"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50035"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Dealer Perspective Inverted ('BUY' <-> Dealer 'S'), Cross-ID (TICKER)"
+    },
+    {
+      "scenario_id": "EXACT-036",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10036"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50036"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'REC_FIXED' vs 'rec_fixed', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-037",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10037"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50037"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'sell'"
+    },
+    {
+      "scenario_id": "EXACT-038",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10038"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50038"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'buy', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-039",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10039"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50039"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S', Signed Negative Qty, Cross-ID (TICKER)"
+    },
+    {
+      "scenario_id": "EXACT-040",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10040"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50040"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'REC_FIXED' vs 'B', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-041",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10041"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50041"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs '(Blank)', Signed Negative Qty"
+    },
+    {
+      "scenario_id": "EXACT-042",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10042"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50042"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs '(Blank)', Signed Negative Qty, Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-043",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10043"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50043"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs '(Blank)'"
+    },
+    {
+      "scenario_id": "EXACT-044",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10044"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50044"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'REC_FIXED' vs '(Blank)', Cross-ID (TICKER), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-045",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10045"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50045"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'sell'"
+    },
+    {
+      "scenario_id": "EXACT-046",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10046"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50046"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'SLD', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-047",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10047"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50047"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs '(Blank)'"
+    },
+    {
+      "scenario_id": "EXACT-048",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10048"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50048"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'PAY_FIXED' vs 'P', Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-049",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10049"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50049"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs '(Blank)', Signed Negative Qty"
+    },
+    {
+      "scenario_id": "EXACT-050",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10050"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50050"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs '(Blank)', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-051",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10051"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50051"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs '(Blank)'"
+    },
+    {
+      "scenario_id": "EXACT-052",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10052"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50052"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'REC_FIXED' vs 'R', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-053",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10053"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50053"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'B'"
+    },
+    {
+      "scenario_id": "EXACT-054",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10054"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50054"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S', Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-055",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10055"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50055"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'B'"
+    },
+    {
+      "scenario_id": "EXACT-056",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10056"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50056"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'PAY_FIXED' vs 'S', Signed Negative Qty, Cross-ID (TICKER), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-057",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10057"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50057"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S', Signed Negative Qty, Cross-ID (SEDOL)"
+    },
+    {
+      "scenario_id": "EXACT-058",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10058"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50058"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'B', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-059",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10059"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50059"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S', Signed Negative Qty, Cross-ID (TICKER)"
+    },
+    {
+      "scenario_id": "EXACT-060",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10060"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50060"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'PAY_FIXED' vs 'PAY', Cross-ID (TICKER), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-061",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10061"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50061"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'B'"
+    },
+    {
+      "scenario_id": "EXACT-062",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10062"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50062"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs '(Blank)', Signed Negative Qty, Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-063",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10063"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50063"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'BOT', Cross-ID (TICKER)"
+    },
+    {
+      "scenario_id": "EXACT-064",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10064"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50064"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'PAY_FIXED' vs 'P', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-065",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10065"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50065"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'BOT', Cross-ID (TICKER)"
+    },
+    {
+      "scenario_id": "EXACT-066",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10066"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50066"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'buy', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-067",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10067"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50067"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'sell'"
+    },
+    {
+      "scenario_id": "EXACT-068",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10068"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50068"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'PAY_FIXED' vs 'PAY', Cross-ID (TICKER), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-069",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10069"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50069"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S', Signed Negative Qty"
+    },
+    {
+      "scenario_id": "EXACT-070",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10070"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50070"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs '(Blank)', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-071",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10071"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50071"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'B'"
+    },
+    {
+      "scenario_id": "EXACT-072",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10072"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50072"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'REC_FIXED' vs 'B', Cross-ID (TICKER), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-073",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10073"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50073"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S', Signed Negative Qty"
+    },
+    {
+      "scenario_id": "EXACT-074",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10074"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50074"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs '(Blank)', Signed Negative Qty, Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-075",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10075"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50075"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S', Signed Negative Qty"
+    },
+    {
+      "scenario_id": "EXACT-076",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10076"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50076"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'PAY_FIXED' vs '(Blank)', Signed Negative Qty, Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-077",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10077"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50077"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S', Cross-ID (CUSIP)"
+    },
+    {
+      "scenario_id": "EXACT-078",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10078"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50078"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs '(Blank)', Signed Negative Qty, Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-079",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10079"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50079"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'BOT'"
+    },
+    {
+      "scenario_id": "EXACT-080",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10080"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50080"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'PAY_FIXED' vs '(Blank)', Signed Negative Qty, Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-081",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10081"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50081"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S', Signed Negative Qty"
+    },
+    {
+      "scenario_id": "EXACT-082",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10082"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50082"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S', Signed Negative Qty, Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-083",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10083"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50083"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs '(Blank)', Signed Negative Qty"
+    },
+    {
+      "scenario_id": "EXACT-084",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10084"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50084"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'PAY_FIXED' vs 'PAY', Cross-ID (TICKER), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-085",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10085"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50085"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'SLD'"
+    },
+    {
+      "scenario_id": "EXACT-086",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10086"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50086"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S', Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-087",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10087"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50087"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S', Cross-ID (TICKER)"
+    },
+    {
+      "scenario_id": "EXACT-088",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10088"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50088"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'REC_FIXED' vs '(Blank)', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-089",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10089"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50089"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'sell'"
+    },
+    {
+      "scenario_id": "EXACT-090",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10090"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50090"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'B', Cross-ID (SEDOL), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-091",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10091"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50091"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs '(Blank)'"
+    },
+    {
+      "scenario_id": "EXACT-092",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10092"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50092"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'PAY_FIXED' vs 'P', Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-093",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10093"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50093"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'B', Cross-ID (CUSIP)"
+    },
+    {
+      "scenario_id": "EXACT-094",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10094"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50094"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'sell', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-095",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10095"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50095"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs '(Blank)', Signed Negative Qty, Cross-ID (TICKER)"
+    },
+    {
+      "scenario_id": "EXACT-096",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10096"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50096"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'PAY_FIXED' vs 'S', Signed Negative Qty, Cross-ID (TICKER), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-097",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10097"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50097"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'BOT'"
+    },
+    {
+      "scenario_id": "EXACT-098",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10098"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50098"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'S', Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-099",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10099"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50099"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'B'"
+    },
+    {
+      "scenario_id": "EXACT-100",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10100"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50100"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'REC_FIXED' vs 'R', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-101",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10101"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50101"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs '(Blank)'"
+    },
+    {
+      "scenario_id": "EXACT-102",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10102"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50102"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'buy', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-103",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10103"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50103"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs '(Blank)'"
+    },
+    {
+      "scenario_id": "EXACT-104",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10104"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50104"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'REC_FIXED' vs 'R', Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-105",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10105"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50105"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'SLD', Cross-ID (TICKER)"
+    },
+    {
+      "scenario_id": "EXACT-106",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10106"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50106"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs '(Blank)', Signed Negative Qty, Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-107",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10107"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50107"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs '(Blank)', Signed Negative Qty"
+    },
+    {
+      "scenario_id": "EXACT-108",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10108"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50108"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'REC_FIXED' vs 'REC', Cross-ID (TICKER), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-109",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10109"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50109"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs '(Blank)', Signed Negative Qty"
+    },
+    {
+      "scenario_id": "EXACT-110",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10110"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50110"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'B', Cross-ID (CUSIP), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-111",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10111"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50111"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'B'"
+    },
+    {
+      "scenario_id": "EXACT-112",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10112"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50112"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'REC_FIXED' vs 'rec_fixed', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-113",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10113"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50113"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'B', Cross-ID (SEDOL)"
+    },
+    {
+      "scenario_id": "EXACT-114",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10114"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50114"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'sell', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-115",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10115"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50115"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'B'"
+    },
+    {
+      "scenario_id": "EXACT-116",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10116"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50116"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'REC_FIXED' vs 'B', Cross-ID (TICKER), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-117",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10117"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50117"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs 'SLD', Cross-ID (TICKER)"
+    },
+    {
+      "scenario_id": "EXACT-118",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10118"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50118"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'BUY' vs 'BOT', Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "EXACT-119",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10119"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50119"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'SELL' vs '(Blank)', Signed Negative Qty"
+    },
+    {
+      "scenario_id": "EXACT-120",
+      "category": "PREDETERMINED_EXACT_NORMALIZED",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10120"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50120"
+      ],
+      "expected_match_status": "EXACT_MATCH_AFTER_NORMALIZATION",
+      "expected_breaks": [],
+      "notes": "Side 'PAY_FIXED' vs 'P', Cross-ID (TICKER), Matched via Natural Keys"
+    },
+    {
+      "scenario_id": "TOL-001",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10121"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50121"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 152350000.0,
+          "counterparty": 152350000.04,
+          "delta": 0.04,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-002",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10122"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50122"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 228525000.0,
+          "counterparty": 228524999.97,
+          "delta": -0.03,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-003",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10123"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50123"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 587906.95,
+          "counterparty": 587908.07,
+          "delta": 1.12,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-004",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10124"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50124"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 1202646.91,
+          "counterparty": 1202647.3,
+          "delta": 0.39,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-005",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10125"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50125"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 278200.0,
+          "counterparty": 278199.97,
+          "delta": -0.03,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-006",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10126"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50126"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 198055000.0,
+          "counterparty": 198055000.04,
+          "delta": 0.04,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-007",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10127"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50127"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 130001.0,
+          "counterparty": 130001.04,
+          "delta": 0.04,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-008",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10128"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50128"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 417300.0,
+          "counterparty": 417299.97,
+          "delta": -0.03,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-009",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10129"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50129"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 325350.0,
+          "counterparty": 325349.97,
+          "delta": -0.03,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-010",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10130"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50130"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 167585000.0,
+          "counterparty": 167585000.04,
+          "delta": 0.04,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-011",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10131"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50131"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 4020007.5,
+          "counterparty": 4020007.54,
+          "delta": 0.04,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-012",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10132"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50132"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 84002.0,
+          "counterparty": 84002.04,
+          "delta": 0.04,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-013",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10133"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50133"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 342404.0,
+          "counterparty": 342404.04,
+          "delta": 0.04,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-014",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10134"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50134"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 1448097.03,
+          "counterparty": 1448096.22,
+          "delta": -0.81,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-015",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10135"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50135"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 433800.0,
+          "counterparty": 433799.97,
+          "delta": -0.03,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-016",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10136"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50136"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 901236.51,
+          "counterparty": 901237.7,
+          "delta": 1.19,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-017",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10137"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50137"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 810743.99,
+          "counterparty": 810745.18,
+          "delta": 1.19,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "TOL-018",
+      "category": "WITHIN_TOLERANCE_MATCH",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10138"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50138"
+      ],
+      "expected_match_status": "MATCHED_WITHIN_TOLERANCE",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 980942.38,
+          "counterparty": 980941.57,
+          "delta": -0.81,
+          "within_tolerance": true
+        }
+      ],
+      "notes": "Day-count accrued rounding / FX 4th decimal / SEC penny fee tolerance"
+    },
+    {
+      "scenario_id": "BRK-001",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10139"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50139"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Clean_Price_Rate",
+          "internal": 138.2,
+          "counterparty": 139.9275,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-002",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10140"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50140"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Quantity_Notional",
+          "internal": 900000,
+          "counterparty": 720000,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-003",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10141"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50141"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Settle_Date",
+          "internal": "2026-11-03",
+          "counterparty": "2026-11-04",
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-004",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10142"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50142"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 2000000,
+          "counterparty": 2000450.0,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-005",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10143"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50143"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Clean_Price_Rate",
+          "internal": 428.0,
+          "counterparty": 433.35,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-006",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10144"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50144"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Quantity_Notional",
+          "internal": 1600000,
+          "counterparty": 1280000,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-007",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10145"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50145"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Settle_Date",
+          "internal": "2026-11-02",
+          "counterparty": "2026-11-03",
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-008",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10146"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50146"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 2000000,
+          "counterparty": 2000450.0,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-009",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10147"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50147"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Clean_Price_Rate",
+          "internal": 138.2,
+          "counterparty": 139.9275,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-010",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10148"
+      ],
+      "cpty_report_ids": [
+        "CP-UBS-50148"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Quantity_Notional",
+          "internal": 800000,
+          "counterparty": 640000,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-011",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10149"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50149"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Settle_Date",
+          "internal": "2026-11-03",
+          "counterparty": "2026-11-04",
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-012",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10150"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50150"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 1900000,
+          "counterparty": 1900450.0,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-013",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10151"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50151"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Clean_Price_Rate",
+          "internal": 25.4,
+          "counterparty": 25.7175,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-014",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10152"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50152"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Quantity_Notional",
+          "internal": 1400000,
+          "counterparty": 1120000,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-015",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10153"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50153"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Settle_Date",
+          "internal": "2026-11-05",
+          "counterparty": "2026-11-06",
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-016",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10154"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50154"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 1500000,
+          "counterparty": 1500450.0,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-017",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10155"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50155"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Clean_Price_Rate",
+          "internal": 225.5,
+          "counterparty": 228.3187,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-018",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10156"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50156"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Quantity_Notional",
+          "internal": 1800000,
+          "counterparty": 1440000,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-019",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10157"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50157"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Settle_Date",
+          "internal": "2026-11-05",
+          "counterparty": "2026-11-06",
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "BRK-020",
+      "category": "ECONOMIC_FIELD_BREAK",
+      "cardinality": "1:1",
+      "internal_trade_ids": [
+        "HF-2026-10158"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50158"
+      ],
+      "expected_match_status": "MATCHED_WITH_ECONOMIC_BREAK",
+      "expected_breaks": [
+        {
+          "field": "Net_Settlement_Amount",
+          "internal": 500000,
+          "counterparty": 500450.0,
+          "within_tolerance": false
+        }
+      ],
+      "notes": "True economic discrepancy requiring middle-office resolution"
+    },
+    {
+      "scenario_id": "SPLIT-001",
+      "category": "N_TO_1_ALLOCATION_BLOCK_NETTING",
+      "cardinality": "3:1",
+      "internal_trade_ids": [
+        "HF-2026-10159",
+        "HF-2026-10160",
+        "HF-2026-10161"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50159"
+      ],
+      "expected_match_status": "NETTED_ALLOCATION_MATCH",
+      "expected_breaks": [],
+      "notes": "3 internal sub-fund allocations (400000+600000+500000=1500000) sum to 1 Cpty Block"
+    },
+    {
+      "scenario_id": "SPLIT-002",
+      "category": "N_TO_1_ALLOCATION_BLOCK_NETTING",
+      "cardinality": "3:1",
+      "internal_trade_ids": [
+        "HF-2026-10162",
+        "HF-2026-10163",
+        "HF-2026-10164"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50160"
+      ],
+      "expected_match_status": "NETTED_ALLOCATION_MATCH",
+      "expected_breaks": [],
+      "notes": "3 internal sub-fund allocations (300000+500000+600000=1400000) sum to 1 Cpty Block"
+    },
+    {
+      "scenario_id": "SPLIT-003",
+      "category": "N_TO_1_ALLOCATION_BLOCK_NETTING",
+      "cardinality": "3:1",
+      "internal_trade_ids": [
+        "HF-2026-10165",
+        "HF-2026-10166",
+        "HF-2026-10167"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50161"
+      ],
+      "expected_match_status": "NETTED_ALLOCATION_MATCH",
+      "expected_breaks": [],
+      "notes": "3 internal sub-fund allocations (300000+300000+600000=1200000) sum to 1 Cpty Block"
+    },
+    {
+      "scenario_id": "SPLIT-004",
+      "category": "N_TO_1_ALLOCATION_BLOCK_NETTING",
+      "cardinality": "3:1",
+      "internal_trade_ids": [
+        "HF-2026-10168",
+        "HF-2026-10169",
+        "HF-2026-10170"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50162"
+      ],
+      "expected_match_status": "NETTED_ALLOCATION_MATCH",
+      "expected_breaks": [],
+      "notes": "3 internal sub-fund allocations (500000+200000+600000=1300000) sum to 1 Cpty Block"
+    },
+    {
+      "scenario_id": "SPLIT-005",
+      "category": "N_TO_1_ALLOCATION_BLOCK_NETTING",
+      "cardinality": "3:1",
+      "internal_trade_ids": [
+        "HF-2026-10171",
+        "HF-2026-10172",
+        "HF-2026-10173"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50163"
+      ],
+      "expected_match_status": "NETTED_ALLOCATION_MATCH",
+      "expected_breaks": [],
+      "notes": "3 internal sub-fund allocations (200000+200000+400000=800000) sum to 1 Cpty Block"
+    },
+    {
+      "scenario_id": "SPLIT-006",
+      "category": "N_TO_1_ALLOCATION_BLOCK_NETTING",
+      "cardinality": "3:1",
+      "internal_trade_ids": [
+        "HF-2026-10174",
+        "HF-2026-10175",
+        "HF-2026-10176"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50164"
+      ],
+      "expected_match_status": "NETTED_ALLOCATION_MATCH",
+      "expected_breaks": [],
+      "notes": "3 internal sub-fund allocations (400000+500000+600000=1500000) sum to 1 Cpty Block"
+    },
+    {
+      "scenario_id": "SPLIT-007",
+      "category": "N_TO_1_ALLOCATION_BLOCK_NETTING",
+      "cardinality": "3:1",
+      "internal_trade_ids": [
+        "HF-2026-10177",
+        "HF-2026-10178",
+        "HF-2026-10179"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50165"
+      ],
+      "expected_match_status": "NETTED_ALLOCATION_MATCH",
+      "expected_breaks": [],
+      "notes": "3 internal sub-fund allocations (200+500+600=1300) sum to 1 Cpty Block"
+    },
+    {
+      "scenario_id": "SPLIT-008",
+      "category": "N_TO_1_ALLOCATION_BLOCK_NETTING",
+      "cardinality": "3:1",
+      "internal_trade_ids": [
+        "HF-2026-10180",
+        "HF-2026-10181",
+        "HF-2026-10182"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50166"
+      ],
+      "expected_match_status": "NETTED_ALLOCATION_MATCH",
+      "expected_breaks": [],
+      "notes": "3 internal sub-fund allocations (300+400+400=1100) sum to 1 Cpty Block"
+    },
+    {
+      "scenario_id": "SPLIT-009",
+      "category": "N_TO_1_ALLOCATION_BLOCK_NETTING",
+      "cardinality": "3:1",
+      "internal_trade_ids": [
+        "HF-2026-10183",
+        "HF-2026-10184",
+        "HF-2026-10185"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50167"
+      ],
+      "expected_match_status": "NETTED_ALLOCATION_MATCH",
+      "expected_breaks": [],
+      "notes": "3 internal sub-fund allocations (600000+600000+200000=1400000) sum to 1 Cpty Block"
+    },
+    {
+      "scenario_id": "SPLIT-010",
+      "category": "N_TO_1_ALLOCATION_BLOCK_NETTING",
+      "cardinality": "3:1",
+      "internal_trade_ids": [
+        "HF-2026-10186",
+        "HF-2026-10187",
+        "HF-2026-10188"
+      ],
+      "cpty_report_ids": [
+        "CP-GSCO-50168"
+      ],
+      "expected_match_status": "NETTED_ALLOCATION_MATCH",
+      "expected_breaks": [],
+      "notes": "3 internal sub-fund allocations (300000+400000+200000=900000) sum to 1 Cpty Block"
+    },
+    {
+      "scenario_id": "SPLIT-011",
+      "category": "N_TO_1_ALLOCATION_BLOCK_NETTING",
+      "cardinality": "3:1",
+      "internal_trade_ids": [
+        "HF-2026-10189",
+        "HF-2026-10190",
+        "HF-2026-10191"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50169"
+      ],
+      "expected_match_status": "NETTED_ALLOCATION_MATCH",
+      "expected_breaks": [],
+      "notes": "3 internal sub-fund allocations (500+400+300=1200) sum to 1 Cpty Block"
+    },
+    {
+      "scenario_id": "SPLIT-012",
+      "category": "N_TO_1_ALLOCATION_BLOCK_NETTING",
+      "cardinality": "3:1",
+      "internal_trade_ids": [
+        "HF-2026-10192",
+        "HF-2026-10193",
+        "HF-2026-10194"
+      ],
+      "cpty_report_ids": [
+        "CP-BARC-50170"
+      ],
+      "expected_match_status": "NETTED_ALLOCATION_MATCH",
+      "expected_breaks": [],
+      "notes": "3 internal sub-fund allocations (400+300+600=1300) sum to 1 Cpty Block"
+    },
+    {
+      "scenario_id": "TWOLEG-001",
+      "category": "TWO_LEG_INTERNAL_TO_SINGLE_CPTY",
+      "cardinality": "2:1",
+      "internal_trade_ids": [
+        "HF-2026-10195",
+        "HF-2026-10196"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50171"
+      ],
+      "expected_match_status": "MULTI_LEG_PACKAGE_MATCH",
+      "expected_breaks": [],
+      "notes": "Internal books PAY_LEG and REC_LEG under SWAP-PKG-700; Cpty reports single net row"
+    },
+    {
+      "scenario_id": "TWOLEG-002",
+      "category": "TWO_LEG_INTERNAL_TO_SINGLE_CPTY",
+      "cardinality": "2:1",
+      "internal_trade_ids": [
+        "HF-2026-10197",
+        "HF-2026-10198"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50172"
+      ],
+      "expected_match_status": "MULTI_LEG_PACKAGE_MATCH",
+      "expected_breaks": [],
+      "notes": "Internal books PAY_LEG and REC_LEG under SWAP-PKG-701; Cpty reports single net row"
+    },
+    {
+      "scenario_id": "TWOLEG-003",
+      "category": "TWO_LEG_INTERNAL_TO_SINGLE_CPTY",
+      "cardinality": "2:1",
+      "internal_trade_ids": [
+        "HF-2026-10199",
+        "HF-2026-10200"
+      ],
+      "cpty_report_ids": [
+        "CP-CITI-50173"
+      ],
+      "expected_match_status": "MULTI_LEG_PACKAGE_MATCH",
+      "expected_breaks": [],
+      "notes": "Internal books PAY_LEG and REC_LEG under SWAP-PKG-702; Cpty reports single net row"
+    },
+    {
+      "scenario_id": "TWOLEG-004",
+      "category": "TWO_LEG_INTERNAL_TO_SINGLE_CPTY",
+      "cardinality": "2:1",
+      "internal_trade_ids": [
+        "HF-2026-10201",
+        "HF-2026-10202"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50174"
+      ],
+      "expected_match_status": "MULTI_LEG_PACKAGE_MATCH",
+      "expected_breaks": [],
+      "notes": "Internal books PAY_LEG and REC_LEG under SWAP-PKG-703; Cpty reports single net row"
+    },
+    {
+      "scenario_id": "TWOLEG-005",
+      "category": "TWO_LEG_INTERNAL_TO_SINGLE_CPTY",
+      "cardinality": "2:1",
+      "internal_trade_ids": [
+        "HF-2026-10203",
+        "HF-2026-10204"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50175"
+      ],
+      "expected_match_status": "MULTI_LEG_PACKAGE_MATCH",
+      "expected_breaks": [],
+      "notes": "Internal books PAY_LEG and REC_LEG under SWAP-PKG-704; Cpty reports single net row"
+    },
+    {
+      "scenario_id": "TWOLEG-006",
+      "category": "TWO_LEG_INTERNAL_TO_SINGLE_CPTY",
+      "cardinality": "2:1",
+      "internal_trade_ids": [
+        "HF-2026-10205",
+        "HF-2026-10206"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50176"
+      ],
+      "expected_match_status": "MULTI_LEG_PACKAGE_MATCH",
+      "expected_breaks": [],
+      "notes": "Internal books PAY_LEG and REC_LEG under SWAP-PKG-705; Cpty reports single net row"
+    },
+    {
+      "scenario_id": "TWOLEG-007",
+      "category": "TWO_LEG_INTERNAL_TO_SINGLE_CPTY",
+      "cardinality": "2:1",
+      "internal_trade_ids": [
+        "HF-2026-10207",
+        "HF-2026-10208"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50177"
+      ],
+      "expected_match_status": "MULTI_LEG_PACKAGE_MATCH",
+      "expected_breaks": [],
+      "notes": "Internal books PAY_LEG and REC_LEG under SWAP-PKG-706; Cpty reports single net row"
+    },
+    {
+      "scenario_id": "TWOLEG-008",
+      "category": "TWO_LEG_INTERNAL_TO_SINGLE_CPTY",
+      "cardinality": "2:1",
+      "internal_trade_ids": [
+        "HF-2026-10209",
+        "HF-2026-10210"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50178"
+      ],
+      "expected_match_status": "MULTI_LEG_PACKAGE_MATCH",
+      "expected_breaks": [],
+      "notes": "Internal books PAY_LEG and REC_LEG under SWAP-PKG-707; Cpty reports single net row"
+    },
+    {
+      "scenario_id": "CANC-CHAIN-001",
+      "category": "CANCEL_AND_CORRECT_CHAIN",
+      "cardinality": "1:3 (Collapses to 1:1)",
+      "internal_trade_ids": [
+        "HF-2026-10211"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50179",
+        "CP-JPM-50180",
+        "CP-JPM-50181"
+      ],
+      "active_surviving_cpty_id": "CP-JPM-50181",
+      "expected_match_status": "EXACT_MATCH_AFTER_LIFECYCLE_COLLAPSE",
+      "expected_breaks": [],
+      "notes": "CP-JPM-50180 cancels CP-JPM-50179; surviving rebook CP-JPM-50181 matches HF-2026-10211 exactly"
+    },
+    {
+      "scenario_id": "CANC-CHAIN-002",
+      "category": "CANCEL_AND_CORRECT_CHAIN",
+      "cardinality": "1:3 (Collapses to 1:1)",
+      "internal_trade_ids": [
+        "HF-2026-10212"
+      ],
+      "cpty_report_ids": [
+        "CP-MSCO-50182",
+        "CP-MSCO-50183",
+        "CP-MSCO-50184"
+      ],
+      "active_surviving_cpty_id": "CP-MSCO-50184",
+      "expected_match_status": "EXACT_MATCH_AFTER_LIFECYCLE_COLLAPSE",
+      "expected_breaks": [],
+      "notes": "CP-MSCO-50183 cancels CP-MSCO-50182; surviving rebook CP-MSCO-50184 matches HF-2026-10212 exactly"
+    },
+    {
+      "scenario_id": "CANC-CHAIN-003",
+      "category": "CANCEL_AND_CORRECT_CHAIN",
+      "cardinality": "1:3 (Collapses to 1:1)",
+      "internal_trade_ids": [
+        "HF-2026-10213"
+      ],
+      "cpty_report_ids": [
+        "CP-BAML-50185",
+        "CP-BAML-50186",
+        "CP-BAML-50187"
+      ],
+      "active_surviving_cpty_id": "CP-BAML-50187",
+      "expected_match_status": "EXACT_MATCH_AFTER_LIFECYCLE_COLLAPSE",
+      "expected_breaks": [],
+      "notes": "CP-BAML-50186 cancels CP-BAML-50185; surviving rebook CP-BAML-50187 matches HF-2026-10213 exactly"
+    },
+    {
+      "scenario_id": "CANC-CHAIN-004",
+      "category": "CANCEL_AND_CORRECT_CHAIN",
+      "cardinality": "1:3 (Collapses to 1:1)",
+      "internal_trade_ids": [
+        "HF-2026-10214"
+      ],
+      "cpty_report_ids": [
+        "CP-CITADEL-50188",
+        "CP-CITADEL-50189",
+        "CP-CITADEL-50190"
+      ],
+      "active_surviving_cpty_id": "CP-CITADEL-50190",
+      "expected_match_status": "EXACT_MATCH_AFTER_LIFECYCLE_COLLAPSE",
+      "expected_breaks": [],
+      "notes": "CP-CITADEL-50189 cancels CP-CITADEL-50188; surviving rebook CP-CITADEL-50190 matches HF-2026-10214 exactly"
+    },
+    {
+      "scenario_id": "CANC-CHAIN-005",
+      "category": "CANCEL_AND_CORRECT_CHAIN",
+      "cardinality": "1:3 (Collapses to 1:1)",
+      "internal_trade_ids": [
+        "HF-2026-10215"
+      ],
+      "cpty_report_ids": [
+        "CP-JPM-50191",
+        "CP-JPM-50192",
+        "CP-JPM-50193"
+      ],
+      "active_surviving_cpty_id": "CP-JPM-50193",
+      "expected_match_status": "EXACT_MATCH_AFTER_LIFECYCLE_COLLAPSE",
+      "expected_breaks": [],
+      "notes": "CP-JPM-50192 cancels CP-JPM-50191; surviving rebook CP-JPM-50193 matches HF-2026-10215 exactly"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-001",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10216"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-002",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10217"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-003",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10218"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-004",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10219"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-005",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10220"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-006",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10221"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-007",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10222"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-008",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10223"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-009",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10224"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-010",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10225"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-011",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10226"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-012",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10227"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-013",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10228"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-014",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10229"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-015",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10230"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-016",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10231"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-017",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10232"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-018",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10233"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-019",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10234"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-020",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10235"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-021",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10236"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-022",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10237"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-023",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10238"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-024",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10239"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-025",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10240"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-026",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10241"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-027",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10242"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-028",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10243"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-029",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10244"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-030",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10245"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-031",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10246"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-032",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10247"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-033",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10248"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-034",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10249"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-035",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10250"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-036",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10251"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-037",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10252"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-038",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10253"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-039",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10254"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-040",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10255"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-041",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10256"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-042",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10257"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-043",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10258"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-044",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10259"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-045",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10260"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-046",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10261"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-047",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10262"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-048",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10263"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-049",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10264"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-050",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10265"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-051",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10266"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-052",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10267"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-053",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10268"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-054",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10269"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-055",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10270"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-056",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10271"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-057",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10272"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-058",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10273"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-059",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10274"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-060",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10275"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-061",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10276"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-062",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10277"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-063",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10278"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-064",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10279"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-065",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10280"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-066",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10281"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-067",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10282"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-068",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10283"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-069",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10284"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-070",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10285"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-071",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10286"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-072",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10287"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-073",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10288"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-074",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10289"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-075",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10290"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-076",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10291"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-077",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10292"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-078",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10293"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-079",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10294"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-080",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10295"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-081",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10296"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-082",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10297"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-083",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10298"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-084",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10299"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ORPHAN-INT-085",
+      "category": "UNMATCHED_INTERNAL_ONLY",
+      "cardinality": "1:0",
+      "internal_trade_ids": [
+        "HF-2026-10300"
+      ],
+      "cpty_report_ids": [],
+      "expected_match_status": "LEFT_ONLY_UNMATCHED",
+      "expected_breaks": [],
+      "notes": "Unconfirmed internal trade / missing from street feed"
+    },
+    {
+      "scenario_id": "ALLEGED-CPTY-001",
+      "category": "UNMATCHED_COUNTERPARTY_ONLY",
+      "cardinality": "0:1",
+      "internal_trade_ids": [],
+      "cpty_report_ids": [
+        "CP-JPM-50194"
+      ],
+      "expected_match_status": "RIGHT_ONLY_ALLEGED",
+      "expected_breaks": [],
+      "notes": "Alleged street trade not booked in internal OMS"
+    },
+    {
+      "scenario_id": "ALLEGED-CPTY-002",
+      "category": "UNMATCHED_COUNTERPARTY_ONLY",
+      "cardinality": "0:1",
+      "internal_trade_ids": [],
+      "cpty_report_ids": [
+        "CP-CITI-50195"
+      ],
+      "expected_match_status": "RIGHT_ONLY_ALLEGED",
+      "expected_breaks": [],
+      "notes": "Alleged street trade not booked in internal OMS"
+    },
+    {
+      "scenario_id": "ALLEGED-CPTY-003",
+      "category": "UNMATCHED_COUNTERPARTY_ONLY",
+      "cardinality": "0:1",
+      "internal_trade_ids": [],
+      "cpty_report_ids": [
+        "CP-BARC-50196"
+      ],
+      "expected_match_status": "RIGHT_ONLY_ALLEGED",
+      "expected_breaks": [],
+      "notes": "Alleged street trade not booked in internal OMS"
+    },
+    {
+      "scenario_id": "ALLEGED-CPTY-004",
+      "category": "UNMATCHED_COUNTERPARTY_ONLY",
+      "cardinality": "0:1",
+      "internal_trade_ids": [],
+      "cpty_report_ids": [
+        "CP-MSCO-50197"
+      ],
+      "expected_match_status": "RIGHT_ONLY_ALLEGED",
+      "expected_breaks": [],
+      "notes": "Alleged street trade not booked in internal OMS"
+    },
+    {
+      "scenario_id": "ALLEGED-CPTY-005",
+      "category": "UNMATCHED_COUNTERPARTY_ONLY",
+      "cardinality": "0:1",
+      "internal_trade_ids": [],
+      "cpty_report_ids": [
+        "CP-JPM-50198"
+      ],
+      "expected_match_status": "RIGHT_ONLY_ALLEGED",
+      "expected_breaks": [],
+      "notes": "Alleged street trade not booked in internal OMS"
+    },
+    {
+      "scenario_id": "ALLEGED-CPTY-006",
+      "category": "UNMATCHED_COUNTERPARTY_ONLY",
+      "cardinality": "0:1",
+      "internal_trade_ids": [],
+      "cpty_report_ids": [
+        "CP-GSCO-50199"
+      ],
+      "expected_match_status": "RIGHT_ONLY_ALLEGED",
+      "expected_breaks": [],
+      "notes": "Alleged street trade not booked in internal OMS"
+    },
+    {
+      "scenario_id": "ALLEGED-CPTY-007",
+      "category": "UNMATCHED_COUNTERPARTY_ONLY",
+      "cardinality": "0:1",
+      "internal_trade_ids": [],
+      "cpty_report_ids": [
+        "CP-BAML-50200"
+      ],
+      "expected_match_status": "RIGHT_ONLY_ALLEGED",
+      "expected_breaks": [],
+      "notes": "Alleged street trade not booked in internal OMS"
+    }
+  ]
+}

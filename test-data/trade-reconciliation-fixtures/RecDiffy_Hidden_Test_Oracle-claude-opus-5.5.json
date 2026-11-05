@@ -1,0 +1,3850 @@
+{
+  "meta": {
+    "dataset": "RecDiffy.NET trade reconciliation test dataset",
+    "generator_seed": 20261104,
+    "generated_for_as_of_date": "2026-11-04",
+    "trade_dates": [
+      "2026-10-27",
+      "2026-10-28",
+      "2026-10-29",
+      "2026-10-30",
+      "2026-11-02",
+      "2026-11-03"
+    ],
+    "synthetic_data_note": "All trades are synthetic and prices are illustrative. Equity tickers and identifiers aim to match real listed securities but are not reference data. LEIs and bond, FX and swap identifiers are made up. All identifiers pass their check-digit rules.",
+    "row_counts": {
+      "Internal_Trades": 300,
+      "Counterparty_Trades": 200,
+      "Known_Exact_Matches": 120,
+      "blind_internal": 180,
+      "blind_counterparty": 80
+    }
+  },
+  "economic_conventions": {
+    "principal": {
+      "Bond": "quantity * clean price / 100",
+      "Equity": "quantity * price",
+      "Forward": "base notional * rate, in the quote currency",
+      "Swap": "notional * fixed rate / 100 / 2 (first semi-annual fixed amount)"
+    },
+    "net_settlement": "principal + accrued + fees when we pay (BUY, PAY_FIXED); principal + accrued - fees when we receive (SELL, REC_FIXED). Cash amounts are unsigned on both tabs.",
+    "accrued_interest": "Bonds only. US Treasuries Actual/Actual, corporates 30/360, to the settlement date.",
+    "commission": "Tab 2 has no commission column, so fees show only in Net_Cash_Amount.",
+    "settlement": "Equities and bonds T+1. FX forwards on the value date. Swaps effective T+2.",
+    "allocations": "Allocated principal is exact. Accrued and fees are pro rata, with the last allocation carrying any rounding, so quantity and net cash sum exactly to the block.",
+    "multi_leg_rules": {
+      "FX_SWAP_NET": "LEG_1_PAY buys base on the near date; LEG_2_RECEIVE sells it on the far date. Street row: notional = leg notional, Exec_Price_Rate = far rate - near rate, Net_Cash_Amount = |far amount - near amount|, Value_Settle_Date = far date, direction = PAY if the near amount is larger, otherwise REC.",
+      "FIXED_FIXED_NET": "LEG_1_PAY pays one fixed rate; LEG_2_RECEIVE receives another. Street row: notional = leg notional, Exec_Price_Rate and Coupon = |rate difference|, Net_Cash_Amount = |leg 1 net - leg 2 net|, direction = PAY if leg 1 net is larger, otherwise REC. Fixed/fixed is used because the Side column has no floating-rate value."
+    }
+  },
+  "normalization_reference": {
+    "counterparty_aliases": {
+      "GS_NY_PRIME": "GSCO",
+      "GS_PB_CLEARING": "GSCO",
+      "Goldman Sachs International": "GSCO",
+      "JPMS_CLEAR": "JPM",
+      "JPM_PRIME_NY": "JPM",
+      "JPMCB_OTC": "JPM",
+      "MS_PRIME_NY": "MSCO",
+      "Morgan Stanley & Co LLC": "MSCO",
+      "MSIP_LDN": "MSCO",
+      "BOFA_MLPF&S": "BAML",
+      "MERRILL_PRIME": "BAML",
+      "BANA_OTC_NY": "BAML",
+      "CGMI_NY": "CITI",
+      "Citigroup Global Markets": "CITI",
+      "CITIBANK_NA_OTC": "CITI",
+      "BARCAP_LDN": "BARC",
+      "Barclays Capital Inc": "BARC",
+      "BBPLC_OTC": "BARC",
+      "UBS_SEC_LLC": "UBS",
+      "UBS_PB_STAMFORD": "UBS",
+      "UBS_AG_LDN": "UBS",
+      "CITADEL_SEC": "CITADEL",
+      "Citadel Securities LLC": "CITADEL"
+    },
+    "counterparty_lei": {
+      "549300F9J6F2DLRPXO24": {
+        "counterparty_code": "GSCO",
+        "legal_entity": "Goldman Sachs & Co. LLC"
+      },
+      "549300LQWCRVR2SRCV26": {
+        "counterparty_code": "GSCO",
+        "legal_entity": "Goldman Sachs International"
+      },
+      "549300YOHIZ68KA7CW44": {
+        "counterparty_code": "JPM",
+        "legal_entity": "J.P. Morgan Securities LLC"
+      },
+      "5493005IOXKEF6201349": {
+        "counterparty_code": "JPM",
+        "legal_entity": "JPMorgan Chase Bank, N.A."
+      },
+      "5493003CHWMWBT687W29": {
+        "counterparty_code": "MSCO",
+        "legal_entity": "Morgan Stanley & Co. LLC"
+      },
+      "549300JXJYNZP8RV1S68": {
+        "counterparty_code": "MSCO",
+        "legal_entity": "Morgan Stanley & Co. International plc"
+      },
+      "549300A6JEMCXEMEQ197": {
+        "counterparty_code": "BAML",
+        "legal_entity": "BofA Securities, Inc."
+      },
+      "549300NHEO0MOZNH3D22": {
+        "counterparty_code": "BAML",
+        "legal_entity": "Bank of America, N.A."
+      },
+      "5493004V3KLRXJ5J7G15": {
+        "counterparty_code": "CITI",
+        "legal_entity": "Citigroup Global Markets Inc."
+      },
+      "54930062GXCR4LVP9I48": {
+        "counterparty_code": "CITI",
+        "legal_entity": "Citibank, N.A."
+      },
+      "5493006T2BI5UE8Q9R50": {
+        "counterparty_code": "BARC",
+        "legal_entity": "Barclays Capital Securities Ltd"
+      },
+      "5493001REITKCHK99X24": {
+        "counterparty_code": "BARC",
+        "legal_entity": "Barclays Capital Inc."
+      },
+      "549300F4T89CMWX2T514": {
+        "counterparty_code": "BARC",
+        "legal_entity": "Barclays Bank PLC"
+      },
+      "549300JK6P4YRIATGV69": {
+        "counterparty_code": "UBS",
+        "legal_entity": "UBS Securities LLC"
+      },
+      "549300XHHTT5PY5HQ980": {
+        "counterparty_code": "UBS",
+        "legal_entity": "UBS AG London Branch"
+      },
+      "5493007U6OULAVM9RZ63": {
+        "counterparty_code": "CITADEL",
+        "legal_entity": "Citadel Securities LLC"
+      }
+    },
+    "direction_codes": {
+      "B": "BUY",
+      "BOT": "BUY",
+      "buy": "BUY",
+      "S": "SELL",
+      "SLD": "SELL",
+      "sell": "SELL",
+      "P": "PAY_FIXED",
+      "PAY": "PAY_FIXED",
+      "pay": "PAY_FIXED",
+      "R": "REC_FIXED",
+      "REC": "REC_FIXED",
+      "rec": "REC_FIXED"
+    },
+    "blank_direction_rule": "When Dir_Ind is blank, a negative quantity means SELL or PAY and a positive quantity means BUY or REC. Swap products and FX_SWAP net rows use PAY and REC.",
+    "dealer_view_rule": "DEALER_BILATERAL_VIEW rows state the dealer's side, so invert direction to get our side. PB_CLIENT_VIEW rows already state our side.",
+    "product_types": {
+      "GOVT_BOND": "Bond",
+      "Govt Bond": "Bond",
+      "FIXED_INCOME": "Bond",
+      "CORP_BOND": "Bond",
+      "Corp Bond": "Bond",
+      "EQUITY_CASH": "Equity",
+      "Cash Equity": "Equity",
+      "EQ": "Equity",
+      "FX_FWD": "Forward",
+      "FX Forward": "Forward",
+      "FXFWD": "Forward",
+      "IRS": "Swap",
+      "Interest Rate Swap": "Swap",
+      "SWAP": "Swap",
+      "FX_SWAP": "Forward",
+      "FX Swap": "Forward",
+      "FXSWAP": "Forward",
+      "IRS_PACKAGE": "Swap",
+      "Fixed-Fixed Swap Package": "Swap",
+      "SWAP_PKG": "Swap"
+    },
+    "price_quote_conventions": {
+      "DECIMAL_CLEAN_PCT": "Decimal clean price, percent of par.",
+      "32NDS_UST": "WHOLE-TT or WHOLE-TT+ where TT is 32nds and + adds 1/64. 98-24 = 98.75; 98-11+ = 98.359375.",
+      "DIRTY_PCT": "Dirty price. Clean = dirty - Reported_Accrued_Int / abs(quantity) * 100; round to 6 decimals.",
+      "PER_SHARE": "Price per share.",
+      "FX_OUTRIGHT": "Outright forward rate.",
+      "FIXED_RATE_PCT": "Swap fixed rate, percent.",
+      "FX_SWAP_POINTS": "Far rate minus near rate.",
+      "NET_FIXED_SPREAD_PCT": "Absolute difference between the two fixed rates, percent."
+    },
+    "security_lookup": "Primary_Security_ID resolves against the Tab 1 column named by Security_ID_Source. FX and swap rows have no CUSIP or SEDOL, so those brokers fall back to ISIN.",
+    "field_mapping": {
+      "Trade_Date": "Trade_Date",
+      "Settle_Date": "Value_Settle_Date",
+      "Quantity_Notional": "Reported_Qty_Notional (absolute value)",
+      "Clean_Price_Rate": "Exec_Price_Rate (after quote convention)",
+      "Currency": "Trade_Ccy",
+      "Accrued_Interest": "Reported_Accrued_Int",
+      "Net_Settlement_Amount": "Net_Cash_Amount",
+      "Coupon_Rate": "Coupon",
+      "Maturity_Date": "Maturity"
+    }
+  },
+  "tolerances": {
+    "accrued_interest_abs": 1.25,
+    "accrued_interest_note": "Net_Cash_Amount moves by the same amount as accrued.",
+    "fx_rate_abs": 0.0005,
+    "fx_rate_note": "Net_Cash_Amount moves by notional * rate difference and should not break on its own.",
+    "fee_rounding_net_cash_abs": 0.05
+  },
+  "known_exact_matches": [
+    {
+      "pair_no": 1,
+      "internal_trade_id": "IT-621567",
+      "cpty_report_id": "CR-67530162",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 2,
+      "internal_trade_id": "IT-649016",
+      "cpty_report_id": "CR-16146881",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_TICKER"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 3,
+      "internal_trade_id": "IT-666581",
+      "cpty_report_id": "CR-60878095",
+      "asset_class": "Swap",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_TICKER",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 4,
+      "internal_trade_id": "IT-271650",
+      "cpty_report_id": "CR-43011999",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 5,
+      "internal_trade_id": "IT-364251",
+      "cpty_report_id": "CR-54712802",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN",
+        "PRICE_32NDS"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 6,
+      "internal_trade_id": "IT-712324",
+      "cpty_report_id": "CR-61878225",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 7,
+      "internal_trade_id": "IT-157231",
+      "cpty_report_id": "CR-98761122",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 8,
+      "internal_trade_id": "IT-872934",
+      "cpty_report_id": "CR-61548783",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_ISIN",
+        "PRICE_32NDS"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 9,
+      "internal_trade_id": "IT-621481",
+      "cpty_report_id": "CR-54919323",
+      "asset_class": "Swap",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 10,
+      "internal_trade_id": "IT-286009",
+      "cpty_report_id": "CR-82721691",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_SEDOL"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 11,
+      "internal_trade_id": "IT-387820",
+      "cpty_report_id": "CR-12147677",
+      "asset_class": "Swap",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 12,
+      "internal_trade_id": "IT-423981",
+      "cpty_report_id": "CR-59610990",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 13,
+      "internal_trade_id": "IT-364259",
+      "cpty_report_id": "CR-70544510",
+      "asset_class": "Swap",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 14,
+      "internal_trade_id": "IT-649326",
+      "cpty_report_id": "CR-79339228",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 15,
+      "internal_trade_id": "IT-755476",
+      "cpty_report_id": "CR-24918858",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_SEDOL"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 16,
+      "internal_trade_id": "IT-205572",
+      "cpty_report_id": "CR-43471855",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 17,
+      "internal_trade_id": "IT-444446",
+      "cpty_report_id": "CR-73860636",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 18,
+      "internal_trade_id": "IT-942245",
+      "cpty_report_id": "CR-71234526",
+      "asset_class": "Swap",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 19,
+      "internal_trade_id": "IT-638243",
+      "cpty_report_id": "CR-16129779",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_SEDOL"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 20,
+      "internal_trade_id": "IT-476918",
+      "cpty_report_id": "CR-91701329",
+      "asset_class": "Forward",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 21,
+      "internal_trade_id": "IT-443254",
+      "cpty_report_id": "CR-22129792",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 22,
+      "internal_trade_id": "IT-608632",
+      "cpty_report_id": "CR-10246483",
+      "asset_class": "Forward",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 23,
+      "internal_trade_id": "IT-416493",
+      "cpty_report_id": "CR-75620766",
+      "asset_class": "Swap",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 24,
+      "internal_trade_id": "IT-156093",
+      "cpty_report_id": "CR-65026488",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_SEDOL"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 25,
+      "internal_trade_id": "IT-515602",
+      "cpty_report_id": "CR-96596724",
+      "asset_class": "Forward",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 26,
+      "internal_trade_id": "IT-472251",
+      "cpty_report_id": "CR-46624252",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_SEDOL"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 27,
+      "internal_trade_id": "IT-601615",
+      "cpty_report_id": "CR-14412163",
+      "asset_class": "Swap",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_TICKER"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 28,
+      "internal_trade_id": "IT-275436",
+      "cpty_report_id": "CR-62577546",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 29,
+      "internal_trade_id": "IT-632446",
+      "cpty_report_id": "CR-87097351",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 30,
+      "internal_trade_id": "IT-682882",
+      "cpty_report_id": "CR-65721500",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 31,
+      "internal_trade_id": "IT-791201",
+      "cpty_report_id": "CR-80460169",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 32,
+      "internal_trade_id": "IT-779045",
+      "cpty_report_id": "CR-15707363",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 33,
+      "internal_trade_id": "IT-493537",
+      "cpty_report_id": "CR-86323238",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 34,
+      "internal_trade_id": "IT-559630",
+      "cpty_report_id": "CR-63696136",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_TICKER"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 35,
+      "internal_trade_id": "IT-840885",
+      "cpty_report_id": "CR-98708981",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 36,
+      "internal_trade_id": "IT-247096",
+      "cpty_report_id": "CR-10455228",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 37,
+      "internal_trade_id": "IT-587183",
+      "cpty_report_id": "CR-40497864",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 38,
+      "internal_trade_id": "IT-193498",
+      "cpty_report_id": "CR-12874055",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_TICKER"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 39,
+      "internal_trade_id": "IT-915786",
+      "cpty_report_id": "CR-94262724",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 40,
+      "internal_trade_id": "IT-813234",
+      "cpty_report_id": "CR-25836989",
+      "asset_class": "Forward",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_TICKER",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 41,
+      "internal_trade_id": "IT-996385",
+      "cpty_report_id": "CR-49084066",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 42,
+      "internal_trade_id": "IT-135939",
+      "cpty_report_id": "CR-13390233",
+      "asset_class": "Forward",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 43,
+      "internal_trade_id": "IT-669108",
+      "cpty_report_id": "CR-45315439",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 44,
+      "internal_trade_id": "IT-758756",
+      "cpty_report_id": "CR-23418430",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP",
+        "PRICE_DIRTY"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 45,
+      "internal_trade_id": "IT-985402",
+      "cpty_report_id": "CR-22764425",
+      "asset_class": "Forward",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 46,
+      "internal_trade_id": "IT-171612",
+      "cpty_report_id": "CR-37465899",
+      "asset_class": "Swap",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 47,
+      "internal_trade_id": "IT-333716",
+      "cpty_report_id": "CR-66006336",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_TICKER"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 48,
+      "internal_trade_id": "IT-534232",
+      "cpty_report_id": "CR-13793849",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_CUSIP",
+        "PRICE_DIRTY"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 49,
+      "internal_trade_id": "IT-560679",
+      "cpty_report_id": "CR-64668437",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 50,
+      "internal_trade_id": "IT-444403",
+      "cpty_report_id": "CR-90506442",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN",
+        "PRICE_32NDS"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 51,
+      "internal_trade_id": "IT-638181",
+      "cpty_report_id": "CR-46794585",
+      "asset_class": "Forward",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 52,
+      "internal_trade_id": "IT-499850",
+      "cpty_report_id": "CR-21191186",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_SEDOL"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 53,
+      "internal_trade_id": "IT-224098",
+      "cpty_report_id": "CR-68173508",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN",
+        "PRICE_32NDS"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 54,
+      "internal_trade_id": "IT-429325",
+      "cpty_report_id": "CR-34634889",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 55,
+      "internal_trade_id": "IT-340906",
+      "cpty_report_id": "CR-24260271",
+      "asset_class": "Swap",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 56,
+      "internal_trade_id": "IT-868276",
+      "cpty_report_id": "CR-26100445",
+      "asset_class": "Swap",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_TICKER",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 57,
+      "internal_trade_id": "IT-228397",
+      "cpty_report_id": "CR-47599355",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_TICKER"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 58,
+      "internal_trade_id": "IT-414189",
+      "cpty_report_id": "CR-89098682",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 59,
+      "internal_trade_id": "IT-423587",
+      "cpty_report_id": "CR-87392023",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 60,
+      "internal_trade_id": "IT-560278",
+      "cpty_report_id": "CR-28867770",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_SEDOL",
+        "PRICE_DIRTY"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 61,
+      "internal_trade_id": "IT-197537",
+      "cpty_report_id": "CR-69049306",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_SEDOL"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 62,
+      "internal_trade_id": "IT-174866",
+      "cpty_report_id": "CR-18525088",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_TICKER"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 63,
+      "internal_trade_id": "IT-327633",
+      "cpty_report_id": "CR-53440894",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_TICKER"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 64,
+      "internal_trade_id": "IT-322157",
+      "cpty_report_id": "CR-29955933",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 65,
+      "internal_trade_id": "IT-615804",
+      "cpty_report_id": "CR-49047270",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP",
+        "PRICE_DIRTY"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 66,
+      "internal_trade_id": "IT-454288",
+      "cpty_report_id": "CR-14183744",
+      "asset_class": "Forward",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 67,
+      "internal_trade_id": "IT-358946",
+      "cpty_report_id": "CR-29819314",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_SEDOL",
+        "PRICE_DIRTY"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 68,
+      "internal_trade_id": "IT-764288",
+      "cpty_report_id": "CR-39941081",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 69,
+      "internal_trade_id": "IT-995718",
+      "cpty_report_id": "CR-34940363",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_SEDOL",
+        "PRICE_32NDS"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 70,
+      "internal_trade_id": "IT-911624",
+      "cpty_report_id": "CR-13020025",
+      "asset_class": "Swap",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 71,
+      "internal_trade_id": "IT-432521",
+      "cpty_report_id": "CR-64481850",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP",
+        "PRICE_DIRTY"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 72,
+      "internal_trade_id": "IT-604410",
+      "cpty_report_id": "CR-28095318",
+      "asset_class": "Swap",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 73,
+      "internal_trade_id": "IT-511691",
+      "cpty_report_id": "CR-87414834",
+      "asset_class": "Forward",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 74,
+      "internal_trade_id": "IT-627338",
+      "cpty_report_id": "CR-35595018",
+      "asset_class": "Forward",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_TICKER",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 75,
+      "internal_trade_id": "IT-539362",
+      "cpty_report_id": "CR-89739801",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 76,
+      "internal_trade_id": "IT-985135",
+      "cpty_report_id": "CR-71632336",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP",
+        "PRICE_32NDS"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 77,
+      "internal_trade_id": "IT-429589",
+      "cpty_report_id": "CR-98255865",
+      "asset_class": "Swap",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 78,
+      "internal_trade_id": "IT-262680",
+      "cpty_report_id": "CR-82814179",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 79,
+      "internal_trade_id": "IT-994887",
+      "cpty_report_id": "CR-89459749",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 80,
+      "internal_trade_id": "IT-111488",
+      "cpty_report_id": "CR-75654750",
+      "asset_class": "Forward",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 81,
+      "internal_trade_id": "IT-240707",
+      "cpty_report_id": "CR-17885550",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_ISIN",
+        "PRICE_32NDS"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 82,
+      "internal_trade_id": "IT-187529",
+      "cpty_report_id": "CR-88626036",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 83,
+      "internal_trade_id": "IT-824210",
+      "cpty_report_id": "CR-74523000",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 84,
+      "internal_trade_id": "IT-184118",
+      "cpty_report_id": "CR-89726269",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 85,
+      "internal_trade_id": "IT-674245",
+      "cpty_report_id": "CR-90787135",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 86,
+      "internal_trade_id": "IT-430466",
+      "cpty_report_id": "CR-71120002",
+      "asset_class": "Swap",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_TICKER",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 87,
+      "internal_trade_id": "IT-694242",
+      "cpty_report_id": "CR-40632107",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 88,
+      "internal_trade_id": "IT-535483",
+      "cpty_report_id": "CR-28161000",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 89,
+      "internal_trade_id": "IT-479735",
+      "cpty_report_id": "CR-22241464",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_SEDOL"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 90,
+      "internal_trade_id": "IT-864821",
+      "cpty_report_id": "CR-48303209",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_TICKER",
+        "PRICE_DIRTY"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 91,
+      "internal_trade_id": "IT-768407",
+      "cpty_report_id": "CR-62880109",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 92,
+      "internal_trade_id": "IT-907031",
+      "cpty_report_id": "CR-13431660",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 93,
+      "internal_trade_id": "IT-625484",
+      "cpty_report_id": "CR-60318172",
+      "asset_class": "Forward",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_ISIN",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 94,
+      "internal_trade_id": "IT-170149",
+      "cpty_report_id": "CR-24034404",
+      "asset_class": "Forward",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 95,
+      "internal_trade_id": "IT-887805",
+      "cpty_report_id": "CR-26451678",
+      "asset_class": "Swap",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 96,
+      "internal_trade_id": "IT-377017",
+      "cpty_report_id": "CR-47042674",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_TICKER"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 97,
+      "internal_trade_id": "IT-502116",
+      "cpty_report_id": "CR-68012378",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 98,
+      "internal_trade_id": "IT-510200",
+      "cpty_report_id": "CR-16138545",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_TICKER",
+        "PRICE_32NDS"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 99,
+      "internal_trade_id": "IT-790918",
+      "cpty_report_id": "CR-15991232",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 100,
+      "internal_trade_id": "IT-639786",
+      "cpty_report_id": "CR-13216951",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 101,
+      "internal_trade_id": "IT-800080",
+      "cpty_report_id": "CR-76580084",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_SEDOL"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 102,
+      "internal_trade_id": "IT-710511",
+      "cpty_report_id": "CR-21479768",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_SEDOL"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 103,
+      "internal_trade_id": "IT-715288",
+      "cpty_report_id": "CR-32567526",
+      "asset_class": "Forward",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 104,
+      "internal_trade_id": "IT-606455",
+      "cpty_report_id": "CR-79838883",
+      "asset_class": "Swap",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 105,
+      "internal_trade_id": "IT-255048",
+      "cpty_report_id": "CR-10844358",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_TICKER",
+        "PRICE_32NDS"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 106,
+      "internal_trade_id": "IT-591827",
+      "cpty_report_id": "CR-12311161",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_SEDOL",
+        "PRICE_32NDS"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 107,
+      "internal_trade_id": "IT-518550",
+      "cpty_report_id": "CR-17699198",
+      "asset_class": "Swap",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_TICKER",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 108,
+      "internal_trade_id": "IT-156363",
+      "cpty_report_id": "CR-27179842",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 109,
+      "internal_trade_id": "IT-660652",
+      "cpty_report_id": "CR-35378942",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 110,
+      "internal_trade_id": "IT-887596",
+      "cpty_report_id": "CR-37211539",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_CUSIP",
+        "PRICE_32NDS"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 111,
+      "internal_trade_id": "IT-345303",
+      "cpty_report_id": "CR-97043628",
+      "asset_class": "Bond",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP",
+        "PRICE_32NDS"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 112,
+      "internal_trade_id": "IT-509547",
+      "cpty_report_id": "CR-63700516",
+      "asset_class": "Forward",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_ISIN",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 113,
+      "internal_trade_id": "IT-936311",
+      "cpty_report_id": "CR-32521867",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_SIGNED",
+        "ID_SEDOL"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 114,
+      "internal_trade_id": "IT-789428",
+      "cpty_report_id": "CR-68299999",
+      "asset_class": "Forward",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_TICKER",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 115,
+      "internal_trade_id": "IT-452172",
+      "cpty_report_id": "CR-20518851",
+      "asset_class": "Equity",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_LOWER_UNSIGNED",
+        "ID_TICKER"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 116,
+      "internal_trade_id": "IT-753068",
+      "cpty_report_id": "CR-41587574",
+      "asset_class": "Forward",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_TICKER",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 117,
+      "internal_trade_id": "IT-777297",
+      "cpty_report_id": "CR-88710343",
+      "asset_class": "Swap",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_BLANK_SIGNED",
+        "ID_ISIN",
+        "DEALER_INVERSION"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 118,
+      "internal_trade_id": "IT-147964",
+      "cpty_report_id": "CR-91014896",
+      "asset_class": "Equity",
+      "match_basis": "SHARED_EXEC_REF",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_CODE_UNSIGNED",
+        "ID_CUSIP"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 119,
+      "internal_trade_id": "IT-109876",
+      "cpty_report_id": "CR-88646767",
+      "asset_class": "Bond",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_CUSIP",
+        "PRICE_DIRTY"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    },
+    {
+      "pair_no": 120,
+      "internal_trade_id": "IT-274035",
+      "cpty_report_id": "CR-38970378",
+      "asset_class": "Forward",
+      "match_basis": "NATURAL_KEY",
+      "normalization_tests": [
+        "CPTY_ALIAS",
+        "DIR_WORD_UNSIGNED",
+        "ID_ISIN"
+      ],
+      "expected_status": "MATCHED_EXACT"
+    }
+  ],
+  "blind_scenarios": {
+    "within_tolerance_near_matches": [
+      {
+        "internal_trade_id": "IT-671265",
+        "cpty_report_id": "CR-33831946",
+        "asset_class": "Bond",
+        "tolerance_type": "ACCRUED_INTEREST",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Accrued_Interest",
+            "counterparty_field": "Reported_Accrued_Int",
+            "internal_value": 104595.79,
+            "counterparty_value": 104595.2,
+            "abs_diff": 0.59
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 5309211.42,
+            "counterparty_value": 5309210.83,
+            "abs_diff": 0.59
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-467425",
+        "cpty_report_id": "CR-15322698",
+        "asset_class": "Bond",
+        "tolerance_type": "ACCRUED_INTEREST",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Accrued_Interest",
+            "counterparty_field": "Reported_Accrued_Int",
+            "internal_value": 16120.97,
+            "counterparty_value": 16121.8,
+            "abs_diff": 0.83
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 6925845.97,
+            "counterparty_value": 6925846.8,
+            "abs_diff": 0.83
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-755934",
+        "cpty_report_id": "CR-25958898",
+        "asset_class": "Bond",
+        "tolerance_type": "ACCRUED_INTEREST",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Accrued_Interest",
+            "counterparty_field": "Reported_Accrued_Int",
+            "internal_value": 2042.12,
+            "counterparty_value": 2042.98,
+            "abs_diff": 0.86
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 101620.25,
+            "counterparty_value": 101621.11,
+            "abs_diff": 0.86
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-110833",
+        "cpty_report_id": "CR-90627851",
+        "asset_class": "Bond",
+        "tolerance_type": "ACCRUED_INTEREST",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Accrued_Interest",
+            "counterparty_field": "Reported_Accrued_Int",
+            "internal_value": 53051.74,
+            "counterparty_value": 53050.92,
+            "abs_diff": 0.82
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 7538890.49,
+            "counterparty_value": 7538889.67,
+            "abs_diff": 0.82
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-101821",
+        "cpty_report_id": "CR-47280465",
+        "asset_class": "Bond",
+        "tolerance_type": "ACCRUED_INTEREST",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Accrued_Interest",
+            "counterparty_field": "Reported_Accrued_Int",
+            "internal_value": 72411.11,
+            "counterparty_value": 72410.38,
+            "abs_diff": 0.73
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 3395411.11,
+            "counterparty_value": 3395410.38,
+            "abs_diff": 0.73
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-250668",
+        "cpty_report_id": "CR-56915376",
+        "asset_class": "Bond",
+        "tolerance_type": "ACCRUED_INTEREST",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Accrued_Interest",
+            "counterparty_field": "Reported_Accrued_Int",
+            "internal_value": 92959.24,
+            "counterparty_value": 92958.34,
+            "abs_diff": 0.9
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 4455999.08,
+            "counterparty_value": 4455998.18,
+            "abs_diff": 0.9
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-857652",
+        "cpty_report_id": "CR-54386258",
+        "asset_class": "Forward",
+        "tolerance_type": "FX_RATE_4TH_DECIMAL",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Clean_Price_Rate",
+            "counterparty_field": "Exec_Price_Rate",
+            "internal_value": 0.8045,
+            "counterparty_value": 0.8044,
+            "abs_diff": 0.0001
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 8366800.0,
+            "counterparty_value": 8365760.0,
+            "abs_diff": 1040.0
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-709481",
+        "cpty_report_id": "CR-30279539",
+        "asset_class": "Forward",
+        "tolerance_type": "FX_RATE_4TH_DECIMAL",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Clean_Price_Rate",
+            "counterparty_field": "Exec_Price_Rate",
+            "internal_value": 1.3232,
+            "counterparty_value": 1.3233,
+            "abs_diff": 0.0001
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 7012960.0,
+            "counterparty_value": 7013490.0,
+            "abs_diff": 530.0
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-800975",
+        "cpty_report_id": "CR-75470279",
+        "asset_class": "Forward",
+        "tolerance_type": "FX_RATE_4TH_DECIMAL",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Clean_Price_Rate",
+            "counterparty_field": "Exec_Price_Rate",
+            "internal_value": 0.5707,
+            "counterparty_value": 0.5706,
+            "abs_diff": 0.0001
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 6677190.0,
+            "counterparty_value": 6676020.0,
+            "abs_diff": 1170.0
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-104189",
+        "cpty_report_id": "CR-33912338",
+        "asset_class": "Forward",
+        "tolerance_type": "FX_RATE_4TH_DECIMAL",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Clean_Price_Rate",
+            "counterparty_field": "Exec_Price_Rate",
+            "internal_value": 1.3197,
+            "counterparty_value": 1.32,
+            "abs_diff": 0.0003
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 24678390.0,
+            "counterparty_value": 24684000.0,
+            "abs_diff": 5610.0
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-837889",
+        "cpty_report_id": "CR-63107282",
+        "asset_class": "Forward",
+        "tolerance_type": "FX_RATE_4TH_DECIMAL",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Clean_Price_Rate",
+            "counterparty_field": "Exec_Price_Rate",
+            "internal_value": 1.4109,
+            "counterparty_value": 1.4111,
+            "abs_diff": 0.0002
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 15096630.0,
+            "counterparty_value": 15098770.0,
+            "abs_diff": 2140.0
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-531578",
+        "cpty_report_id": "CR-63318577",
+        "asset_class": "Forward",
+        "tolerance_type": "FX_RATE_4TH_DECIMAL",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Clean_Price_Rate",
+            "counterparty_field": "Exec_Price_Rate",
+            "internal_value": 1.396,
+            "counterparty_value": 1.3963,
+            "abs_diff": 0.0003
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 12145200.0,
+            "counterparty_value": 12147810.0,
+            "abs_diff": 2610.0
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-261467",
+        "cpty_report_id": "CR-90157378",
+        "asset_class": "Equity",
+        "tolerance_type": "FEE_ROUNDING",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 60879780.0,
+            "counterparty_value": 60879780.05,
+            "abs_diff": 0.05
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-995272",
+        "cpty_report_id": "CR-34353185",
+        "asset_class": "Equity",
+        "tolerance_type": "FEE_ROUNDING",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 33820340.4,
+            "counterparty_value": 33820340.38,
+            "abs_diff": 0.02
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-741024",
+        "cpty_report_id": "CR-84762609",
+        "asset_class": "Equity",
+        "tolerance_type": "FEE_ROUNDING",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 13481925.0,
+            "counterparty_value": 13481925.04,
+            "abs_diff": 0.04
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-732174",
+        "cpty_report_id": "CR-21810332",
+        "asset_class": "Equity",
+        "tolerance_type": "FEE_ROUNDING",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 90357092.8,
+            "counterparty_value": 90357092.84,
+            "abs_diff": 0.04
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-850131",
+        "cpty_report_id": "CR-27239796",
+        "asset_class": "Equity",
+        "tolerance_type": "FEE_ROUNDING",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 10595784.5,
+            "counterparty_value": 10595784.47,
+            "abs_diff": 0.03
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      },
+      {
+        "internal_trade_id": "IT-607896",
+        "cpty_report_id": "CR-47902638",
+        "asset_class": "Equity",
+        "tolerance_type": "FEE_ROUNDING",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 7044166.5,
+            "counterparty_value": 7044166.48,
+            "abs_diff": 0.02
+          }
+        ],
+        "expected_status": "MATCHED_WITHIN_TOLERANCE"
+      }
+    ],
+    "true_economic_breaks": [
+      {
+        "internal_trade_id": "IT-784633",
+        "cpty_report_id": "CR-45140708",
+        "asset_class": "Equity",
+        "break_type": "PRICE_BUST",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Clean_Price_Rate",
+            "counterparty_field": "Exec_Price_Rate",
+            "internal_value": 274.764,
+            "counterparty_value": 277.51,
+            "abs_diff": 2.746
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 40140828.9,
+            "counterparty_value": 40542019.5,
+            "abs_diff": 401190.6
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-620052",
+        "cpty_report_id": "CR-21252621",
+        "asset_class": "Bond",
+        "break_type": "PRICE_BUST",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Clean_Price_Rate",
+            "counterparty_field": "Exec_Price_Rate",
+            "internal_value": 103.8,
+            "counterparty_value": 102.783,
+            "abs_diff": 1.017
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 2622762.5,
+            "counterparty_value": 2597337.5,
+            "abs_diff": 25425.0
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-333787",
+        "cpty_report_id": "CR-83137411",
+        "asset_class": "Bond",
+        "break_type": "PRICE_BUST",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Clean_Price_Rate",
+            "counterparty_field": "Exec_Price_Rate",
+            "internal_value": 102.375,
+            "counterparty_value": 100.358,
+            "abs_diff": 2.017
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 6890825.1,
+            "counterparty_value": 6757198.85,
+            "abs_diff": 133626.25
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-443231",
+        "cpty_report_id": "CR-26512178",
+        "asset_class": "Forward",
+        "break_type": "PRICE_BUST",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Clean_Price_Rate",
+            "counterparty_field": "Exec_Price_Rate",
+            "internal_value": 0.6486,
+            "counterparty_value": 0.6421,
+            "abs_diff": 0.0065
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 14658360.0,
+            "counterparty_value": 14511460.0,
+            "abs_diff": 146900.0
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-232084",
+        "cpty_report_id": "CR-94453041",
+        "asset_class": "Equity",
+        "break_type": "PRICE_BUST",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Clean_Price_Rate",
+            "counterparty_field": "Exec_Price_Rate",
+            "internal_value": 112.79,
+            "counterparty_value": 115.43,
+            "abs_diff": 2.64
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 6835528.5,
+            "counterparty_value": 6995512.5,
+            "abs_diff": 159984.0
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-701894",
+        "cpty_report_id": "CR-58119687",
+        "asset_class": "Equity",
+        "break_type": "PARTIAL_FILL_80_PCT",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Quantity_Notional",
+            "counterparty_field": "Reported_Qty_Notional",
+            "internal_value": 60000.0,
+            "counterparty_value": 48000.0,
+            "abs_diff": 12000.0
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 17115600.0,
+            "counterparty_value": 13692480.0,
+            "abs_diff": 3423120.0
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-294365",
+        "cpty_report_id": "CR-27149207",
+        "asset_class": "Bond",
+        "break_type": "PARTIAL_FILL_80_PCT",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Quantity_Notional",
+            "counterparty_field": "Reported_Qty_Notional",
+            "internal_value": 8375000.0,
+            "counterparty_value": 6700000.0,
+            "abs_diff": 1675000.0
+          },
+          {
+            "internal_field": "Accrued_Interest",
+            "counterparty_field": "Reported_Accrued_Int",
+            "internal_value": 43268.04,
+            "counterparty_value": 34614.43,
+            "abs_diff": 8653.61
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 8070386.79,
+            "counterparty_value": 6456309.43,
+            "abs_diff": 1614077.36
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-414879",
+        "cpty_report_id": "CR-73792756",
+        "asset_class": "Equity",
+        "break_type": "PARTIAL_FILL_80_PCT",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Quantity_Notional",
+            "counterparty_field": "Reported_Qty_Notional",
+            "internal_value": 180000.0,
+            "counterparty_value": 144000.0,
+            "abs_diff": 36000.0
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 26820000.0,
+            "counterparty_value": 21456000.0,
+            "abs_diff": 5364000.0
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-581646",
+        "cpty_report_id": "CR-54523491",
+        "asset_class": "Bond",
+        "break_type": "PARTIAL_FILL_80_PCT",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Quantity_Notional",
+            "counterparty_field": "Reported_Qty_Notional",
+            "internal_value": 2500000.0,
+            "counterparty_value": 2000000.0,
+            "abs_diff": 500000.0
+          },
+          {
+            "internal_field": "Accrued_Interest",
+            "counterparty_field": "Reported_Accrued_Int",
+            "internal_value": 20380.43,
+            "counterparty_value": 16304.35,
+            "abs_diff": 4076.08
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 2437921.06,
+            "counterparty_value": 1950336.85,
+            "abs_diff": 487584.21
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-298537",
+        "cpty_report_id": "CR-89122047",
+        "asset_class": "Forward",
+        "break_type": "PARTIAL_FILL_80_PCT",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Quantity_Notional",
+            "counterparty_field": "Reported_Qty_Notional",
+            "internal_value": 10500000.0,
+            "counterparty_value": 8400000.0,
+            "abs_diff": 2100000.0
+          },
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 1612170000.0,
+            "counterparty_value": 1289736000.0,
+            "abs_diff": 322434000.0
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-907631",
+        "cpty_report_id": "CR-15353499",
+        "asset_class": "Equity",
+        "break_type": "SETTLE_DATE_LAG_T1_T2",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Settle_Date",
+            "counterparty_field": "Value_Settle_Date",
+            "internal_value": "2026-10-28",
+            "counterparty_value": "2026-10-29",
+            "abs_diff_days": 1
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-918428",
+        "cpty_report_id": "CR-72406181",
+        "asset_class": "Equity",
+        "break_type": "SETTLE_DATE_LAG_T1_T2",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Settle_Date",
+            "counterparty_field": "Value_Settle_Date",
+            "internal_value": "2026-10-28",
+            "counterparty_value": "2026-10-29",
+            "abs_diff_days": 1
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-612002",
+        "cpty_report_id": "CR-31018125",
+        "asset_class": "Equity",
+        "break_type": "SETTLE_DATE_LAG_T1_T2",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Settle_Date",
+            "counterparty_field": "Value_Settle_Date",
+            "internal_value": "2026-11-03",
+            "counterparty_value": "2026-11-04",
+            "abs_diff_days": 1
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-812293",
+        "cpty_report_id": "CR-79847506",
+        "asset_class": "Swap",
+        "break_type": "SETTLE_DATE_LAG_T1_T2",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Settle_Date",
+            "counterparty_field": "Value_Settle_Date",
+            "internal_value": "2026-11-05",
+            "counterparty_value": "2026-11-04",
+            "abs_diff_days": 1
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-394802",
+        "cpty_report_id": "CR-26612399",
+        "asset_class": "Swap",
+        "break_type": "SETTLE_DATE_LAG_T1_T2",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Settle_Date",
+            "counterparty_field": "Value_Settle_Date",
+            "internal_value": "2026-11-05",
+            "counterparty_value": "2026-11-04",
+            "abs_diff_days": 1
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-156553",
+        "cpty_report_id": "CR-82359223",
+        "asset_class": "Equity",
+        "break_type": "COMMISSION_450",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 9582441.0,
+            "counterparty_value": 9581991.0,
+            "abs_diff": 450.0
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-502126",
+        "cpty_report_id": "CR-20372977",
+        "asset_class": "Bond",
+        "break_type": "COMMISSION_450",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 4361025.0,
+            "counterparty_value": 4361475.0,
+            "abs_diff": 450.0
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-583689",
+        "cpty_report_id": "CR-71464915",
+        "asset_class": "Equity",
+        "break_type": "COMMISSION_450",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 6428119.5,
+            "counterparty_value": 6427669.5,
+            "abs_diff": 450.0
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-821896",
+        "cpty_report_id": "CR-75462423",
+        "asset_class": "Bond",
+        "break_type": "COMMISSION_450",
+        "shares_exec_ref": true,
+        "differences": [
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 8573165.22,
+            "counterparty_value": 8573615.22,
+            "abs_diff": 450.0
+          }
+        ],
+        "expected_status": "BREAK"
+      },
+      {
+        "internal_trade_id": "IT-277516",
+        "cpty_report_id": "CR-77137171",
+        "asset_class": "Swap",
+        "break_type": "COMMISSION_450",
+        "shares_exec_ref": false,
+        "differences": [
+          {
+            "internal_field": "Net_Settlement_Amount",
+            "counterparty_field": "Net_Cash_Amount",
+            "internal_value": 2403425.0,
+            "counterparty_value": 2402975.0,
+            "abs_diff": 450.0
+          }
+        ],
+        "expected_status": "BREAK"
+      }
+    ],
+    "n_to_1_allocations": [
+      {
+        "group_no": 1,
+        "internal_trade_ids": [
+          "IT-886346",
+          "IT-133931",
+          "IT-884353"
+        ],
+        "cpty_report_id": "CR-68311349",
+        "asset_class": "Bond",
+        "books": [
+          "CREDIT_OPP",
+          "STAT_ARB_EQ",
+          "MACRO_RATES"
+        ],
+        "allocated_quantities": [
+          3675000.0,
+          2200000.0,
+          1500000.0
+        ],
+        "block_quantity": 7375000.0,
+        "block_net_cash": 7554590.17,
+        "shares_exec_ref": false,
+        "expected_status": "MATCHED_N_TO_1"
+      },
+      {
+        "group_no": 2,
+        "internal_trade_ids": [
+          "IT-612230",
+          "IT-571268",
+          "IT-896975"
+        ],
+        "cpty_report_id": "CR-69877496",
+        "asset_class": "Bond",
+        "books": [
+          "CREDIT_OPP",
+          "MACRO_RATES",
+          "STAT_ARB_EQ"
+        ],
+        "allocated_quantities": [
+          3850000.0,
+          1600000.0,
+          975000.0
+        ],
+        "block_quantity": 6425000.0,
+        "block_net_cash": 6359605.99,
+        "shares_exec_ref": false,
+        "expected_status": "MATCHED_N_TO_1"
+      },
+      {
+        "group_no": 3,
+        "internal_trade_ids": [
+          "IT-704871",
+          "IT-665799",
+          "IT-896973"
+        ],
+        "cpty_report_id": "CR-49764954",
+        "asset_class": "Equity",
+        "books": [
+          "STAT_ARB_EQ",
+          "CREDIT_OPP",
+          "MACRO_RATES"
+        ],
+        "allocated_quantities": [
+          49200.0,
+          20500.0,
+          12300.0
+        ],
+        "block_quantity": 82000.0,
+        "block_net_cash": 22346640.0,
+        "shares_exec_ref": true,
+        "expected_status": "MATCHED_N_TO_1"
+      },
+      {
+        "group_no": 4,
+        "internal_trade_ids": [
+          "IT-894740",
+          "IT-236486",
+          "IT-450024"
+        ],
+        "cpty_report_id": "CR-65242816",
+        "asset_class": "Bond",
+        "books": [
+          "STAT_ARB_EQ",
+          "MACRO_RATES",
+          "CREDIT_OPP"
+        ],
+        "allocated_quantities": [
+          3125000.0,
+          2725000.0,
+          1975000.0
+        ],
+        "block_quantity": 7825000.0,
+        "block_net_cash": 7903786.88,
+        "shares_exec_ref": true,
+        "expected_status": "MATCHED_N_TO_1"
+      },
+      {
+        "group_no": 5,
+        "internal_trade_ids": [
+          "IT-691883",
+          "IT-659609",
+          "IT-586181"
+        ],
+        "cpty_report_id": "CR-42618049",
+        "asset_class": "Equity",
+        "books": [
+          "STAT_ARB_EQ",
+          "CREDIT_OPP",
+          "MACRO_RATES"
+        ],
+        "allocated_quantities": [
+          82700.0,
+          49600.0,
+          33200.0
+        ],
+        "block_quantity": 165500.0,
+        "block_net_cash": 16156937.5,
+        "shares_exec_ref": true,
+        "expected_status": "MATCHED_N_TO_1"
+      },
+      {
+        "group_no": 6,
+        "internal_trade_ids": [
+          "IT-213617",
+          "IT-273516",
+          "IT-423462"
+        ],
+        "cpty_report_id": "CR-75633815",
+        "asset_class": "Bond",
+        "books": [
+          "STAT_ARB_EQ",
+          "MACRO_RATES",
+          "CREDIT_OPP"
+        ],
+        "allocated_quantities": [
+          3025000.0,
+          1800000.0,
+          1250000.0
+        ],
+        "block_quantity": 6075000.0,
+        "block_net_cash": 6063612.55,
+        "shares_exec_ref": true,
+        "expected_status": "MATCHED_N_TO_1"
+      },
+      {
+        "group_no": 7,
+        "internal_trade_ids": [
+          "IT-304601",
+          "IT-694561",
+          "IT-201690"
+        ],
+        "cpty_report_id": "CR-20705366",
+        "asset_class": "Equity",
+        "books": [
+          "CREDIT_OPP",
+          "STAT_ARB_EQ",
+          "MACRO_RATES"
+        ],
+        "allocated_quantities": [
+          25700.0,
+          10700.0,
+          6500.0
+        ],
+        "block_quantity": 42900.0,
+        "block_net_cash": 14459230.5,
+        "shares_exec_ref": false,
+        "expected_status": "MATCHED_N_TO_1"
+      },
+      {
+        "group_no": 8,
+        "internal_trade_ids": [
+          "IT-436951",
+          "IT-727770",
+          "IT-616190"
+        ],
+        "cpty_report_id": "CR-11349881",
+        "asset_class": "Equity",
+        "books": [
+          "STAT_ARB_EQ",
+          "CREDIT_OPP",
+          "MACRO_RATES"
+        ],
+        "allocated_quantities": [
+          31400.0,
+          20900.0,
+          17600.0
+        ],
+        "block_quantity": 69900.0,
+        "block_net_cash": 4778888.25,
+        "shares_exec_ref": true,
+        "expected_status": "MATCHED_N_TO_1"
+      },
+      {
+        "group_no": 9,
+        "internal_trade_ids": [
+          "IT-629691",
+          "IT-715829",
+          "IT-211443"
+        ],
+        "cpty_report_id": "CR-28386069",
+        "asset_class": "Equity",
+        "books": [
+          "CREDIT_OPP",
+          "STAT_ARB_EQ",
+          "MACRO_RATES"
+        ],
+        "allocated_quantities": [
+          91900.0,
+          38300.0,
+          23000.0
+        ],
+        "block_quantity": 153200.0,
+        "block_net_cash": 80495876.0,
+        "shares_exec_ref": false,
+        "expected_status": "MATCHED_N_TO_1"
+      },
+      {
+        "group_no": 10,
+        "internal_trade_ids": [
+          "IT-358920",
+          "IT-452164",
+          "IT-523840"
+        ],
+        "cpty_report_id": "CR-44585148",
+        "asset_class": "Bond",
+        "books": [
+          "STAT_ARB_EQ",
+          "CREDIT_OPP",
+          "MACRO_RATES"
+        ],
+        "allocated_quantities": [
+          500000.0,
+          450000.0,
+          350000.0
+        ],
+        "block_quantity": 1300000.0,
+        "block_net_cash": 1185870.56,
+        "shares_exec_ref": false,
+        "expected_status": "MATCHED_N_TO_1"
+      },
+      {
+        "group_no": 11,
+        "internal_trade_ids": [
+          "IT-854716",
+          "IT-600011",
+          "IT-743222"
+        ],
+        "cpty_report_id": "CR-59917511",
+        "asset_class": "Bond",
+        "books": [
+          "STAT_ARB_EQ",
+          "CREDIT_OPP",
+          "MACRO_RATES"
+        ],
+        "allocated_quantities": [
+          3125000.0,
+          2725000.0,
+          1975000.0
+        ],
+        "block_quantity": 7825000.0,
+        "block_net_cash": 7931413.33,
+        "shares_exec_ref": false,
+        "expected_status": "MATCHED_N_TO_1"
+      },
+      {
+        "group_no": 12,
+        "internal_trade_ids": [
+          "IT-161022",
+          "IT-501798",
+          "IT-711444"
+        ],
+        "cpty_report_id": "CR-87278768",
+        "asset_class": "Equity",
+        "books": [
+          "STAT_ARB_EQ",
+          "CREDIT_OPP",
+          "MACRO_RATES"
+        ],
+        "allocated_quantities": [
+          64200.0,
+          56100.0,
+          40200.0
+        ],
+        "block_quantity": 160500.0,
+        "block_net_cash": 53384306.25,
+        "shares_exec_ref": true,
+        "expected_status": "MATCHED_N_TO_1"
+      }
+    ],
+    "multi_leg_representations": [
+      {
+        "group_no": 1,
+        "parent_link_id": "PKG-863031",
+        "internal_trade_ids": [
+          "IT-885648",
+          "IT-872317"
+        ],
+        "cpty_report_id": "CR-78439416",
+        "asset_class": "Forward",
+        "net_rule": "FX_SWAP_NET",
+        "net_direction": "REC",
+        "net_cash": 42920.0,
+        "notional": 14800000.0,
+        "shares_exec_ref": true,
+        "expected_status": "MATCHED_MULTI_LEG"
+      },
+      {
+        "group_no": 2,
+        "parent_link_id": "PKG-988941",
+        "internal_trade_ids": [
+          "IT-533868",
+          "IT-102460"
+        ],
+        "cpty_report_id": "CR-44153960",
+        "asset_class": "Forward",
+        "net_rule": "FX_SWAP_NET",
+        "net_direction": "REC",
+        "net_cash": 29040.0,
+        "notional": 12100000.0,
+        "shares_exec_ref": true,
+        "expected_status": "MATCHED_MULTI_LEG"
+      },
+      {
+        "group_no": 3,
+        "parent_link_id": "PKG-551151",
+        "internal_trade_ids": [
+          "IT-394310",
+          "IT-958783"
+        ],
+        "cpty_report_id": "CR-40627284",
+        "asset_class": "Forward",
+        "net_rule": "FX_SWAP_NET",
+        "net_direction": "REC",
+        "net_cash": 32300.0,
+        "notional": 9500000.0,
+        "shares_exec_ref": false,
+        "expected_status": "MATCHED_MULTI_LEG"
+      },
+      {
+        "group_no": 4,
+        "parent_link_id": "PKG-123132",
+        "internal_trade_ids": [
+          "IT-630670",
+          "IT-537021"
+        ],
+        "cpty_report_id": "CR-51822818",
+        "asset_class": "Forward",
+        "net_rule": "FX_SWAP_NET",
+        "net_direction": "REC",
+        "net_cash": 58410.0,
+        "notional": 9900000.0,
+        "shares_exec_ref": false,
+        "expected_status": "MATCHED_MULTI_LEG"
+      },
+      {
+        "group_no": 5,
+        "parent_link_id": "PKG-187502",
+        "internal_trade_ids": [
+          "IT-902584",
+          "IT-893923"
+        ],
+        "cpty_report_id": "CR-61986164",
+        "asset_class": "Swap",
+        "net_rule": "FIXED_FIXED_NET",
+        "net_direction": "REC",
+        "net_cash": 18425.0,
+        "notional": 37000000.0,
+        "shares_exec_ref": true,
+        "expected_status": "MATCHED_MULTI_LEG"
+      },
+      {
+        "group_no": 6,
+        "parent_link_id": "PKG-712415",
+        "internal_trade_ids": [
+          "IT-464691",
+          "IT-823121"
+        ],
+        "cpty_report_id": "CR-11674731",
+        "asset_class": "Swap",
+        "net_rule": "FIXED_FIXED_NET",
+        "net_direction": "REC",
+        "net_cash": 158437.5,
+        "notional": 77000000.0,
+        "shares_exec_ref": false,
+        "expected_status": "MATCHED_MULTI_LEG"
+      },
+      {
+        "group_no": 7,
+        "parent_link_id": "PKG-369955",
+        "internal_trade_ids": [
+          "IT-836004",
+          "IT-121579"
+        ],
+        "cpty_report_id": "CR-94096036",
+        "asset_class": "Swap",
+        "net_rule": "FIXED_FIXED_NET",
+        "net_direction": "PAY",
+        "net_cash": 47075.0,
+        "notional": 50000000.0,
+        "shares_exec_ref": false,
+        "expected_status": "MATCHED_MULTI_LEG"
+      },
+      {
+        "group_no": 8,
+        "parent_link_id": "PKG-161299",
+        "internal_trade_ids": [
+          "IT-493794",
+          "IT-388349"
+        ],
+        "cpty_report_id": "CR-74185505",
+        "asset_class": "Swap",
+        "net_rule": "FIXED_FIXED_NET",
+        "net_direction": "PAY",
+        "net_cash": 15550.0,
+        "notional": 11000000.0,
+        "shares_exec_ref": true,
+        "expected_status": "MATCHED_MULTI_LEG"
+      }
+    ],
+    "cancel_correct_chains": [
+      {
+        "internal_trade_id": "IT-936460",
+        "new_report_id": "CR-24862173",
+        "canc_report_id": "CR-34442598",
+        "corr_report_id": "CR-38039917",
+        "asset_class": "Equity",
+        "busted_field": "PRICE",
+        "matching_report_id": "CR-38039917",
+        "shares_exec_ref": true,
+        "expected_status": "MATCHED_AFTER_LIFECYCLE_COLLAPSE"
+      },
+      {
+        "internal_trade_id": "IT-707834",
+        "new_report_id": "CR-27221933",
+        "canc_report_id": "CR-42307514",
+        "corr_report_id": "CR-88434774",
+        "asset_class": "Bond",
+        "busted_field": "QUANTITY",
+        "matching_report_id": "CR-88434774",
+        "shares_exec_ref": false,
+        "expected_status": "MATCHED_AFTER_LIFECYCLE_COLLAPSE"
+      },
+      {
+        "internal_trade_id": "IT-792628",
+        "new_report_id": "CR-19085577",
+        "canc_report_id": "CR-35187689",
+        "corr_report_id": "CR-87332047",
+        "asset_class": "Forward",
+        "busted_field": "PRICE",
+        "matching_report_id": "CR-87332047",
+        "shares_exec_ref": true,
+        "expected_status": "MATCHED_AFTER_LIFECYCLE_COLLAPSE"
+      },
+      {
+        "internal_trade_id": "IT-185067",
+        "new_report_id": "CR-42019277",
+        "canc_report_id": "CR-46213975",
+        "corr_report_id": "CR-92319726",
+        "asset_class": "Swap",
+        "busted_field": "QUANTITY",
+        "matching_report_id": "CR-92319726",
+        "shares_exec_ref": false,
+        "expected_status": "MATCHED_AFTER_LIFECYCLE_COLLAPSE"
+      },
+      {
+        "internal_trade_id": "IT-975916",
+        "new_report_id": "CR-14709703",
+        "canc_report_id": "CR-35260574",
+        "corr_report_id": "CR-56300251",
+        "asset_class": "Bond",
+        "busted_field": "PRICE",
+        "matching_report_id": "CR-56300251",
+        "shares_exec_ref": true,
+        "expected_status": "MATCHED_AFTER_LIFECYCLE_COLLAPSE"
+      }
+    ],
+    "unmatched_internal_orphans": [
+      {
+        "internal_trade_id": "IT-431735",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": "SAME_KEY_DIFFERENT_QTY_AND_PRICE",
+        "resembles_internal_trade_id": "IT-322157",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-986698",
+        "asset_class": "Forward",
+        "reason": "DK",
+        "decoy_type": "SAME_KEY_DIFFERENT_QTY_AND_PRICE",
+        "resembles_internal_trade_id": "IT-454288",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-774990",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": "SAME_KEY_DIFFERENT_QTY_AND_PRICE",
+        "resembles_internal_trade_id": "IT-423587",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-681906",
+        "asset_class": "Equity",
+        "reason": "DK",
+        "decoy_type": "SAME_KEY_DIFFERENT_QTY_AND_PRICE",
+        "resembles_internal_trade_id": "IT-197537",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-315392",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": "SAME_KEY_DIFFERENT_QTY_AND_PRICE",
+        "resembles_internal_trade_id": "IT-615804",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-407442",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": "SAME_ECONOMICS_DIFFERENT_COUNTERPARTY",
+        "resembles_internal_trade_id": "IT-995718",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-583355",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": "SAME_ECONOMICS_DIFFERENT_COUNTERPARTY",
+        "resembles_internal_trade_id": "IT-674245",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-144700",
+        "asset_class": "Forward",
+        "reason": "DK",
+        "decoy_type": "SAME_ECONOMICS_DIFFERENT_COUNTERPARTY",
+        "resembles_internal_trade_id": "IT-511691",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-795632",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": "SAME_ECONOMICS_DIFFERENT_COUNTERPARTY",
+        "resembles_internal_trade_id": "IT-535483",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-658874",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": "SAME_ECONOMICS_DIFFERENT_COUNTERPARTY",
+        "resembles_internal_trade_id": "IT-660652",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-983463",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": "SAME_ECONOMICS_DIFFERENT_TRADE_DATE",
+        "resembles_internal_trade_id": "IT-157231",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-375852",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": "SAME_ECONOMICS_DIFFERENT_TRADE_DATE",
+        "resembles_internal_trade_id": "IT-322157",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-838619",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": "SAME_ECONOMICS_DIFFERENT_TRADE_DATE",
+        "resembles_internal_trade_id": "IT-768407",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-263313",
+        "asset_class": "Bond",
+        "reason": "DK",
+        "decoy_type": "SAME_ECONOMICS_DIFFERENT_TRADE_DATE",
+        "resembles_internal_trade_id": "IT-560278",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-380247",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": "SAME_ECONOMICS_DIFFERENT_TRADE_DATE",
+        "resembles_internal_trade_id": "IT-502116",
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-607317",
+        "asset_class": "Equity",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-646496",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-955918",
+        "asset_class": "Equity",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-960482",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-921086",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-111485",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-454508",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-401903",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-496964",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-123127",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-706017",
+        "asset_class": "Equity",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-587007",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-250554",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-534636",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-525694",
+        "asset_class": "Equity",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-109676",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-947599",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-369221",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-991183",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-297400",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-806525",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-258459",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-690947",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-870870",
+        "asset_class": "Equity",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-907551",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-250234",
+        "asset_class": "Bond",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-418902",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-225505",
+        "asset_class": "Bond",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-854093",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-678786",
+        "asset_class": "Bond",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-861118",
+        "asset_class": "Bond",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-230535",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-788577",
+        "asset_class": "Bond",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-634094",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-636560",
+        "asset_class": "Bond",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-521716",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-714931",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-640583",
+        "asset_class": "Bond",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-846427",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-927969",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-417207",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-909286",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-897787",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-774201",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-567109",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-685826",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-695221",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-242100",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-193244",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-768272",
+        "asset_class": "Bond",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-482444",
+        "asset_class": "Forward",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-263146",
+        "asset_class": "Forward",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-105926",
+        "asset_class": "Forward",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-714696",
+        "asset_class": "Forward",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-108884",
+        "asset_class": "Forward",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-744202",
+        "asset_class": "Forward",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-539231",
+        "asset_class": "Forward",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-732684",
+        "asset_class": "Forward",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-170311",
+        "asset_class": "Forward",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-432407",
+        "asset_class": "Forward",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-920514",
+        "asset_class": "Swap",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-353867",
+        "asset_class": "Swap",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-756373",
+        "asset_class": "Swap",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-642137",
+        "asset_class": "Swap",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-244268",
+        "asset_class": "Swap",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-690681",
+        "asset_class": "Swap",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-378442",
+        "asset_class": "Swap",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-267629",
+        "asset_class": "Swap",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-355568",
+        "asset_class": "Swap",
+        "reason": "DK",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      },
+      {
+        "internal_trade_id": "IT-711908",
+        "asset_class": "Swap",
+        "reason": "UNCONFIRMED",
+        "decoy_type": null,
+        "resembles_internal_trade_id": null,
+        "expected_status": "UNMATCHED_INTERNAL"
+      }
+    ],
+    "unmatched_counterparty_alleged": [
+      {
+        "cpty_report_id": "CR-60986531",
+        "product_type": "Cash Equity",
+        "note": "SECURITY_NOT_IN_INTERNAL_BOOK",
+        "expected_status": "UNMATCHED_COUNTERPARTY"
+      },
+      {
+        "cpty_report_id": "CR-44939024",
+        "product_type": "EQUITY_CASH",
+        "note": "SECURITY_NOT_IN_INTERNAL_BOOK",
+        "expected_status": "UNMATCHED_COUNTERPARTY"
+      },
+      {
+        "cpty_report_id": "CR-32256107",
+        "product_type": "EQUITY_CASH",
+        "note": "NO_INTERNAL_TRADE",
+        "expected_status": "UNMATCHED_COUNTERPARTY"
+      },
+      {
+        "cpty_report_id": "CR-97005822",
+        "product_type": "Govt Bond",
+        "note": "NO_INTERNAL_TRADE",
+        "expected_status": "UNMATCHED_COUNTERPARTY"
+      },
+      {
+        "cpty_report_id": "CR-44809135",
+        "product_type": "CORP_BOND",
+        "note": "NO_INTERNAL_TRADE",
+        "expected_status": "UNMATCHED_COUNTERPARTY"
+      },
+      {
+        "cpty_report_id": "CR-37496048",
+        "product_type": "FX_FWD",
+        "note": "NO_INTERNAL_TRADE",
+        "expected_status": "UNMATCHED_COUNTERPARTY"
+      },
+      {
+        "cpty_report_id": "CR-93131969",
+        "product_type": "Interest Rate Swap",
+        "note": "NO_INTERNAL_TRADE",
+        "expected_status": "UNMATCHED_COUNTERPARTY"
+      }
+    ]
+  },
+  "expected_counts": {
+    "within_tolerance_near_matches": {
+      "internal": 18,
+      "counterparty": 18
+    },
+    "true_economic_breaks": {
+      "internal": 20,
+      "counterparty": 20
+    },
+    "n_to_1_allocations": {
+      "internal": 36,
+      "counterparty": 12
+    },
+    "multi_leg_representations": {
+      "internal": 16,
+      "counterparty": 8
+    },
+    "cancel_correct_chains": {
+      "internal": 5,
+      "counterparty": 15
+    },
+    "unmatched_internal_orphans": {
+      "internal": 85,
+      "counterparty": 0
+    },
+    "unmatched_counterparty_alleged": {
+      "internal": 0,
+      "counterparty": 7
+    }
+  }
+}
