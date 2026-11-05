@@ -45,6 +45,7 @@ internal static class ProfileParser
                 Fields = ReadFields(root),
                 Normalization = ReadNormalization(root),
                 Paths = ReadPaths(root),
+                SourceKeys = ReadSourceKeys(root),
                 Limits = ReadLimits(root),
             };
         }
@@ -183,6 +184,14 @@ internal static class ProfileParser
                 _ => null,
             }
             : null;
+
+    private static IReadOnlyDictionary<string, string> ReadSourceKeys(JsonElement root) =>
+        root.TryGetProperty("sources", out var sources) && sources.ValueKind is JsonValueKind.Object
+            ? sources.EnumerateObject().ToDictionary(
+                property => property.Name,
+                property => property.Value.TryGetProperty("rowKey", out var key) ? key.GetString() ?? "" : "",
+                StringComparer.Ordinal)
+            : new Dictionary<string, string>(StringComparer.Ordinal);
 
     private static SearchLimits ReadLimits(JsonElement root) =>
         root.TryGetProperty("limits", out var limits)

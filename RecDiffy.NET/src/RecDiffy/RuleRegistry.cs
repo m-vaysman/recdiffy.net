@@ -14,7 +14,11 @@ public sealed record RuleRegistry
             .Register("decimal.parse", RulePhase.Parse, ["from", "to"], (call, schema, midpoint) =>
                 new DecimalParseRule(call.Strings["from"], call.Strings["to"], schema.Scale(call.Strings["to"]), midpoint))
             .Register("date.parse", RulePhase.Parse, ["from", "to"], (call, _, _) =>
-                new DateParseRule(call.Strings["from"], call.Strings["to"], call.Lists.TryGetValue("formats", out var formats) ? formats : []))
+                new DateParseRule(
+                    call.Strings["from"],
+                    call.Strings["to"],
+                    call.Lists.TryGetValue("formats", out var formats) ? formats : [],
+                    call.Strings.GetValueOrDefault("formatBy")))
             .Register("symbol.map", RulePhase.Identify, ["from", "to"], (call, _, _) =>
                 new SymbolMapRule(
                     call.Strings["from"],

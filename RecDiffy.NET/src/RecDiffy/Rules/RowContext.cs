@@ -34,6 +34,10 @@ public sealed record RowContext
 
     internal InternPool Pool { get; init; } = InternPool.Empty;
 
+    public ReferenceDataSet Reference { get; init; } = ReferenceDataSet.Empty;
+
+    internal InstrumentMaster Instruments { get; init; } = InstrumentMaster.Empty;
+
     public required ImmutableDictionary<string, CanonicalCell> Values { get; init; }
 
     public required ImmutableList<Diagnostic> Diagnostics { get; init; }
@@ -45,14 +49,16 @@ public sealed record RowContext
         ArgumentNullException.ThrowIfNull(rowKey);
         ArgumentNullException.ThrowIfNull(raw);
         return new()
-    {
-        RowKey = rowKey,
-        Side = side,
-        Raw = raw,
-        Pool = InternPool.Empty,
-        Values = ImmutableDictionary.Create<string, CanonicalCell>(StringComparer.Ordinal),
-        Diagnostics = [],
-        Traces = [],
+        {
+            RowKey = rowKey,
+            Side = side,
+            Raw = raw,
+            Pool = InternPool.Empty,
+            Reference = ReferenceDataSet.Empty,
+            Instruments = InstrumentMaster.Empty,
+            Values = ImmutableDictionary.Create<string, CanonicalCell>(StringComparer.Ordinal),
+            Diagnostics = [],
+            Traces = [],
         };
     }
 

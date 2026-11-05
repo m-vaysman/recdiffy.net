@@ -4,17 +4,31 @@ namespace RecDiffy.Rules;
 
 internal static class DateParsing
 {
-    public static RowContext Apply(RowContext row, string from, string to, IReadOnlyList<string> formats, string ruleId)
+    public static RowContext Apply(RowContext row, string from, string to, IReadOnlyList<string> formats, string? formatBy, string ruleId)
     {
         var raw = row.Raw.TryGetValue(from, out var value) ? value : null;
-        return Read(raw, formats) switch
+        var chosen = Formats(row, formats, formatBy);
+        return chosen switch
         {
-            { Missing: true } => row.Write(to, CanonicalCell.Null(FieldType.Date), ruleId, null, null),
-            { Ok: true, Value: var date } => row.Write(to, CanonicalCell.FromDate(date), ruleId, raw?.ToString(), date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
-            _ => row.Write(to, CanonicalCell.Null(FieldType.Date), ruleId, raw?.ToString(), null)
+            null => row.Write(to, CanonicalCell.Null(FieldType.Date), ruleId, raw?.ToString(), null)
                 .Diagnose("DateParse", DiagnosticSeverity.Invalid, ruleId, to, raw?.ToString()),
+            var active => Read(raw, active) switch
+            {
+                { Missing: true } => row.Write(to, CanonicalCell.Null(FieldType.Date), ruleId, null, null),
+                { Ok: true, Value: var date } => row.Write(to, CanonicalCell.FromDate(date), ruleId, raw?.ToString(), date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
+                _ => row.Write(to, CanonicalCell.Null(FieldType.Date), ruleId, raw?.ToString(), null)
+                    .Diagnose("DateParse", DiagnosticSeverity.Invalid, ruleId, to, raw?.ToString()),
+            },
         };
     }
+
+    private static IReadOnlyList<string>? Formats(RowContext row, IReadOnlyList<string> formats, string? formatBy) =>
+        formatBy switch
+        {
+            null => formats,
+            var field when row.Display(field) is { } party && row.Reference.DateFormatByCode.TryGetValue(party, out var format) => [format],
+            _ => null,
+        };
 
     private static Parsed Read(object? raw, IReadOnlyList<string> formats) => raw switch
     {

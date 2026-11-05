@@ -68,6 +68,8 @@ public sealed record ProfileDocument
 
     public required IReadOnlyList<PathDeclaration> Paths { get; init; }
 
+    public required IReadOnlyDictionary<string, string> SourceKeys { get; init; }
+
     public required SearchLimits Limits { get; init; }
 
     public static ProfileDocument Parse(string json)

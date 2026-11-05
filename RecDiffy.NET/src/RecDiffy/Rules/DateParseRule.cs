@@ -1,6 +1,6 @@
 namespace RecDiffy.Rules;
 
-internal sealed class DateParseRule(string from, string to, IReadOnlyList<string> formats) : INormalizationRule
+internal sealed class DateParseRule(string from, string to, IReadOnlyList<string> formats, string? formatBy) : INormalizationRule
 {
     public string RuleId => "date.parse";
 
@@ -11,5 +11,5 @@ internal sealed class DateParseRule(string from, string to, IReadOnlyList<string
     public IReadOnlyList<FieldId> Writes => [new FieldId(to)];
 
     public void Apply(ref RowContext row) =>
-        row = DateParsing.Apply(row, from, to, formats, RuleId);
+        row = DateParsing.Apply(row, from, to, formats, formatBy, RuleId);
 }

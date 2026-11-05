@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RecDiffy\RecDiffy.csproj" />
+    <ProjectReference Include="..\RecDiffy.RulePacks.Trading\RecDiffy.RulePacks.Trading.csproj" />
   </ItemGroup>
 
 </Project>
