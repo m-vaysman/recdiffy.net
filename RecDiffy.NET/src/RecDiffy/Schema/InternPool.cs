@@ -16,6 +16,7 @@ internal sealed record InternPool(
         ImmutableDictionary.Create<IdentifierKey, int>(),
         []);
 
+    // The pool passed in stays unchanged. The returned pool is the one that carries the new id.
     public (InternPool Pool, int Id) InternSymbol(string value) =>
         Symbols.TryGetValue(value, out var existing)
             ? (this, existing)

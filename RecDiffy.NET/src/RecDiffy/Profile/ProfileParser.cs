@@ -6,8 +6,10 @@ namespace RecDiffy;
 
 internal static class ProfileParser
 {
+    // Unknown properties are ignored. A misspelled optional name keeps its default.
     public static ProfileDocument Parse(string json)
     {
+        // A document that is not JSON becomes InvalidJson. A value of the wrong JSON type throws out of Parse.
         JsonDocument document;
         try
         {
@@ -53,6 +55,7 @@ internal static class ProfileParser
     private static IEnumerable<ProfileError> Require(JsonElement element, string name) =>
         element.TryGetProperty(name, out _) ? [] : [new ProfileError("MissingParameter", $"{name} is required.")];
 
+    // An omitted midpoint is ToEven. The token AwayFromZero selects the other mode.
     private static MidpointMode ReadMidpoint(JsonElement root) =>
         root.TryGetProperty("rounding", out var rounding) && rounding.TryGetProperty("midpoint", out var midpoint)
             ? midpoint.GetString() switch
@@ -72,6 +75,7 @@ internal static class ProfileParser
         ParseEnum<FieldRole>(field.GetProperty("role").GetString(), "role"),
         field.TryGetProperty("scale", out var scale) ? scale.GetInt32() : 0);
 
+    // The token matches the enum name, case-sensitive. "decimal" is rejected.
     private static TEnum ParseEnum<TEnum>(string? text, string name) where TEnum : struct =>
         Enum.TryParse<TEnum>(text, out var parsed)
             ? parsed
@@ -97,6 +101,7 @@ internal static class ProfileParser
     private static RuleCall ReadRule(JsonElement rule)
     {
         var arguments = rule.EnumerateObject().Where(property => property.Name is not ("rule" or "when")).ToArray();
+        // Names and map keys are ordinal. "Buy" and "BUY" do not match.
         return new RuleCall(
             rule.GetProperty("rule").GetString() ?? "",
             rule.TryGetProperty("when", out var when) ? ReadWhen(when) : null,
@@ -114,6 +119,7 @@ internal static class ProfileParser
     private static string Scalar(JsonElement value) => value.ValueKind switch
     {
         JsonValueKind.String => value.GetString() ?? "",
+        // Raw JSON text. The token stays the spelling from the document.
         JsonValueKind.Number => value.GetRawText(),
         JsonValueKind.True => "true",
         JsonValueKind.False => "false",
@@ -159,6 +165,8 @@ internal static class ProfileParser
 
     private static ToleranceDeclaration ReadTolerance(JsonElement tolerance)
     {
+        // Kind is inferred from which properties are present. Absolute and relative outrank days.
+        // The days count is not stored.
         var absolute = DecimalOrNull(tolerance, "absolute");
         var relative = DecimalOrNull(tolerance, "relative");
         var attributed = Optional(tolerance, "attributed");

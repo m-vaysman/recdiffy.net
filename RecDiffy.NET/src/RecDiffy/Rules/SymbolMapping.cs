@@ -5,6 +5,7 @@ internal static class SymbolMapping
     public static RowContext Apply(RowContext row, string from, string to, IReadOnlyDictionary<string, string> map, bool passthrough, string ruleId)
     {
         var raw = row.Raw.TryGetValue(from, out var value) ? value?.ToString()?.Trim() : null;
+        // An unmapped symbol is interned when passthrough is on. Otherwise the cell is null and the diagnostic is UnknownSymbol.
         return raw switch
         {
             null or "" => row.Write(to, CanonicalCell.Null(FieldType.Symbol), ruleId, raw, null),
