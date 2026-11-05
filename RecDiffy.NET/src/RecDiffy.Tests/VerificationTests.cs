@@ -25,6 +25,32 @@ public class VerificationTests
     }
 
     [Fact]
+    public void Commits_blocks_under_the_limit_and_leaves_an_oversize_block_unresolved()
+    {
+        var profile = Reconciler.Compile(ProfileDocument.Parse(LimitedStock), RuleRegistry.CreateCore());
+        Dictionary<string, string> Stock(string id, string sku, string quantity) => new(StringComparer.Ordinal)
+        {
+            ["Id"] = id,
+            ["Sku"] = sku,
+            ["Quantity"] = quantity,
+        };
+        var split = Reconciler.Run(
+            profile,
+            RecordSources.FromObjects("bins", new[] { Stock("A1", "A", "1"), Stock("A2", "A", "1"), Stock("B1", "B", "1"), Stock("B2", "B", "1") }, BinMap()),
+            RecordSources.FromObjects("book", new[] { Stock("RA", "A", "2"), Stock("RB", "B", "2") }, BinMap()),
+            ReferenceDataSet.Empty);
+        var over = Reconciler.Run(
+            profile,
+            RecordSources.FromObjects("bins", new[] { Stock("L1", "A", "1"), Stock("L2", "A", "1"), Stock("L3", "A", "1"), Stock("L4", "A", "1") }, BinMap()),
+            RecordSources.FromObjects("book", new[] { Stock("R", "A", "4") }, BinMap()),
+            ReferenceDataSet.Empty);
+
+        Assert.Equal(2, split.Entries.Count(entry => entry.Alignment == Alignment.Matched));
+        Assert.DoesNotContain(over.Entries, entry => entry.Alignment == Alignment.Matched);
+        Assert.Contains(over.Entries, entry => entry.Alignment == Alignment.SearchIncomplete);
+    }
+
+    [Fact]
     public void Gives_every_input_row_one_disposition()
     {
         var profile = Reconciler.Compile(ProfileDocument.Parse(Pairs), RuleRegistry.CreateCore());
@@ -263,6 +289,27 @@ public class VerificationTests
           "formatVersion": 1,
           "profileId": "warehouse",
           "version": "1.0.0",
+          "sources": { "left": { "rowKey": "Id" }, "right": { "rowKey": "Id" } },
+          "fields": [
+            { "name": "Sku", "type": "Symbol", "role": "Key" },
+            { "name": "Quantity", "type": "Decimal", "scale": 0, "role": "Economic" }
+          ],
+          "normalization": {
+            "left": { "identify": [ { "rule": "symbol.map", "from": "Sku", "to": "Sku" } ], "parse": [ { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" } ] },
+            "right": { "identify": [ { "rule": "symbol.map", "from": "Sku", "to": "Sku" } ], "parse": [ { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" } ] }
+          },
+          "paths": [ { "id": "stock", "route": { "rule": "route.all" }, "passes": [
+            { "id": "P3", "pass": "match.groupSum", "many": "left", "block": ["Sku"], "conserve": ["Quantity"] }
+          ] } ]
+        }
+        """;
+
+    private const string LimitedStock = """
+        {
+          "formatVersion": 1,
+          "profileId": "warehouse-limited",
+          "version": "1.0.0",
+          "limits": { "maxBlockItems": 3 },
           "sources": { "left": { "rowKey": "Id" }, "right": { "rowKey": "Id" } },
           "fields": [
             { "name": "Sku", "type": "Symbol", "role": "Key" },

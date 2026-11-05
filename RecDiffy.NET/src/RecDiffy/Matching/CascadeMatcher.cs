@@ -82,6 +82,7 @@ internal static class MatchKeys
 
     public readonly record struct SharedClaim(bool Wildcard, string? Value);
 
+    // The bucket is the value alone. Vetoed compares values across every non-broker scheme, so ISIN "X" and CUSIP "X" are one component.
     public static SharedClaim Claim(RowContext row, string? sharedField, IReadOnlyDictionary<string, FieldDeclaration> schema)
     {
         if (sharedField is null || schema.TryGetValue(sharedField, out var field) is false)
