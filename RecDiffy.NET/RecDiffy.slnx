@@ -5,5 +5,6 @@
     <Project Path="src/RecDiffy.Tests/RecDiffy.Tests.csproj" />
     <Project Path="src/RecDiffy.Benchmarks/RecDiffy.Benchmarks.csproj" />
     <Project Path="src/RecDiffy.AotHost/RecDiffy.AotHost.csproj" />
+    <Project Path="src/RecDiffy.Samples/RecDiffy.Samples.csproj" />
   </Folder>
 </Solution>

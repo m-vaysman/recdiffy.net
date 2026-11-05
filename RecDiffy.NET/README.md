@@ -53,13 +53,13 @@ Your inventory book reports one position:
 
 A group-sum matching pass can reconcile the two warehouse rows against the single book row because their quantities total 10.
 
-Run the existing warehouse example as a focused test:
+Run the sample:
 
 ```powershell
-dotnet test src/RecDiffy.Tests/RecDiffy.Tests.csproj --filter FullyQualifiedName~Matches_warehouse_bins_to_book_stock_without_the_trading_pack
+dotnet run --project src/RecDiffy.Samples/RecDiffy.Samples.csproj
 ```
 
-Expected result: the test passes, asserting one matched entry with `ManyToOne` composition and an `Exact` comparison outcome. All three source rows receive a `Matched` disposition.
+The first example prints one matched entry with `ManyToOne` composition and an `Exact` comparison outcome. All three source rows receive a `Matched` disposition. The same program then shows a field break, an unmatched row, a quarantined row, a side-by-side view, an async run, and a trading-pack run that uses reference data.
 
 The application API has three steps:
 
@@ -83,7 +83,11 @@ var result = Reconciler.Run(
     ReferenceDataSet.Empty);
 ```
 
-For the complete working example, see `Matches_warehouse_bins_to_book_stock_without_the_trading_pack` in [VerificationTests.cs](src/RecDiffy.Tests/VerificationTests.cs). That file includes the profile JSON, source mappings, input helpers, and assertions. The outline above is not a standalone program.
+The complete program for that outline is [FirstReconciliation.cs](src/RecDiffy.Samples/FirstReconciliation.cs). The same behavior is checked by `Matches_warehouse_bins_to_book_stock_without_the_trading_pack` in [VerificationTests.cs](src/RecDiffy.Tests/VerificationTests.cs):
+
+```powershell
+dotnet test src/RecDiffy.Tests/RecDiffy.Tests.csproj --filter FullyQualifiedName~Matches_warehouse_bins_to_book_stock_without_the_trading_pack
+```
 
 ## Understand the result
 
@@ -112,7 +116,7 @@ A profile declares:
 - **Comparison rules:** fields to compare and tolerances to apply.
 - **Search limits:** bounds on group matching.
 
-Compile the profile once, then pass the compiled profile to reconciliation runs. Start with the warehouse profile in the test above before adapting it to your own fields and source mappings.
+Compile the profile once, then pass the compiled profile to reconciliation runs. Start with the warehouse profile in the sample above before adapting it to your own fields and source mappings.
 
 ## Troubleshooting
 
@@ -136,6 +140,7 @@ Compile the profile once, then pass the compiled profile to reconciliation runs.
 | [src/RecDiffy.Tests](src/RecDiffy.Tests) | Behavior tests and usage examples |
 | [src/RecDiffy.Benchmarks](src/RecDiffy.Benchmarks) | Performance benchmarks |
 | [src/RecDiffy.AotHost](src/RecDiffy.AotHost) | Native AOT host |
+| [src/RecDiffy.Samples](src/RecDiffy.Samples) | Runnable demonstration of the application API |
 | [docs/ARCHITECTURE-SPEC.md](docs/ARCHITECTURE-SPEC.md) | Detailed architecture and intended behavior; verify version-sensitive details against the code |
 
 See the [Architecture Overview](https://github.com/m-vaysman/recdiffy.net/wiki/Architecture-Overview) for more background.
