@@ -15,6 +15,7 @@ public sealed record RuleRegistry
                 new DecimalParseRule(call.Strings["from"], call.Strings["to"], schema.Scale(call.Strings["to"]), midpoint))
             .Register("date.parse", RulePhase.Parse, ["from", "to"], (call, _, _) =>
                 new DateParseRule(call.Strings["from"], call.Strings["to"], call.Lists.TryGetValue("formats", out var formats) ? formats : []))
+            // Passthrough stays on unless the token is false. "False" does not turn it off.
             .Register("symbol.map", RulePhase.Identify, ["from", "to"], (call, _, _) =>
                 new SymbolMapRule(
                     call.Strings["from"],
@@ -33,6 +34,7 @@ public sealed record RuleRegistry
         RulePhase phase,
         IReadOnlyList<string> required,
         Func<RuleCall, FieldSchema, MidpointMode, INormalizationRule> create) =>
+        // A second registration of the same id throws.
         this with { Normalization = Normalization.Add(ruleId, new NormalizationRegistration(ruleId, phase, required, create)) };
 
     internal bool TryGet(string ruleId, [NotNullWhen(true)] out NormalizationRegistration? registration) =>
@@ -52,6 +54,7 @@ internal sealed class FieldSchema(IReadOnlyList<FieldDeclaration> fields)
     private static ImmutableDictionary<string, FieldDeclaration> Index(IReadOnlyList<FieldDeclaration> fields)
     {
         ArgumentNullException.ThrowIfNull(fields);
+        // Ordinal names. "Quantity" and "quantity" are different fields.
         return fields.ToImmutableDictionary(field => field.Name, StringComparer.Ordinal);
     }
 

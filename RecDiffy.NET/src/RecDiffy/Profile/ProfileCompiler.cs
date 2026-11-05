@@ -12,6 +12,7 @@ internal static class ProfileCompiler
         var formatErrors = document.FormatVersion == 1
             ? []
             : new[] { new ProfileError("UnsupportedFormat", $"formatVersion {document.FormatVersion} is not accepted.") };
+        // FieldSchema throws on a repeated name, so DuplicateField below is never produced.
         var schema = new FieldSchema(document.Fields);
         var duplicateErrors = document.Fields
             .GroupBy(field => field.Name, StringComparer.Ordinal)
@@ -23,6 +24,7 @@ internal static class ProfileCompiler
             StringComparer.Ordinal);
         var pathErrors = ValidatePaths(document, schema, sides);
         ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors];
+        // A side whose name is not "left" or "right" contributes errors only. Its rules are dropped.
         return errors.Length == 0
             ? new CompileOutcome(new CompiledProfile(document.ProfileId, document.Version, document.FormatVersion, Hash(document), document, SideRules(sides, "left"), SideRules(sides, "right")), [])
             : new CompileOutcome(null, errors);
@@ -32,6 +34,7 @@ internal static class ProfileCompiler
         Phases(normalization).Aggregate(SideCompilation.Empty, (state, phase) =>
             phase.Calls.Aggregate(state, (current, call) => current.Accept(side, phase.Name, phase.Phase, call, schema, midpoint, registry)));
 
+    // Identify, then parse, then derive, then validate. A later phase reads what an earlier phase wrote.
     private static IEnumerable<(string Name, RulePhase Phase, IReadOnlyList<RuleCall> Calls)> Phases(NormalizationSide normalization) =>
     [
         ("identify", RulePhase.Identify, normalization.Identify),
@@ -62,6 +65,7 @@ internal static class ProfileCompiler
         var cap = (pass.MaxGroupSize ?? document.Limits.MaxGroupSize) > 16
             ? new[] { new ProfileError("LimitExceeded", $"Pass '{pass.Id}' maxGroupSize exceeds the hard cap of 16.") }
             : [];
+        // Key, block, and conserve all take the key checks. A text block fails TextKey.
         var fields = ((string[])[.. pass.Key, .. pass.Block, .. pass.Conserve]).SelectMany(field => ValidateKeyField(path.Id, field, schema, sides));
         return [.. unknown, .. group, .. cap, .. fields];
     }
@@ -72,6 +76,7 @@ internal static class ProfileCompiler
         _ => false,
     };
 
+    // Every side listed in normalization must write the field. A side that is absent is not checked.
     private static IEnumerable<ProfileError> ValidateKeyField(string pathId, string field, FieldSchema schema, IReadOnlyDictionary<string, SideCompilation> sides) =>
         schema.TryGet(field, out var declaration) switch
         {
@@ -89,6 +94,7 @@ internal static class ProfileCompiler
             _ => [],
         };
 
+    // Exact fits every type. Absolute, relative, and attributed fit decimal only. Days fits date only.
     private static bool ToleranceFits(FieldType type, string kind) => (type, kind) switch
     {
         (FieldType.Decimal, "Exact" or "Absolute" or "Relative" or "AbsoluteOrRelative" or "Attributed") => true,
@@ -97,6 +103,8 @@ internal static class ProfileCompiler
         _ => false,
     };
 
+    // route.all meets every route. Two byField routes meet only when the field and the value are equal.
+    // Any other rule name never overlaps, including a repeated name.
     private static bool RoutesOverlap(RouteDeclaration left, RouteDeclaration right) => (left.Rule, right.Rule) switch
     {
         ("route.all", _) or (_, "route.all") => true,
@@ -109,6 +117,8 @@ internal static class ProfileCompiler
 
     private static string Hash(ProfileDocument document)
     {
+        // Sorted by name, so declaration order does not change Hash.
+        // Paths, rules, tolerances, and limits are omitted. Those can change while Hash stays put.
         var text = string.Join(
             ",",
             document.Fields.OrderBy(field => field.Name, StringComparer.Ordinal).Select(field => $"{field.Name}:{field.Type}:{field.Role}:{field.Scale}"));
@@ -142,6 +152,7 @@ internal sealed record SideCompilation(ImmutableDictionary<string, WriteSite> Wr
         var rule = registration.Create(call, schema, midpoint);
         var readErrors = rule.Reads.Where(read => !WrittenSites.ContainsKey(read.Name)).Select(read =>
             new ProfileError("FieldReadBeforeWrite", $"{side}.{call.Rule} reads '{read.Name}' before any rule writes it."));
+        // A rule that reads the field it writes skips the ambiguous-write check.
         var writeErrors = rule.Writes.Where(write =>
             WrittenSites.TryGetValue(write.Name, out var previous)
             && !rule.Reads.Any(read => read.Name == write.Name)
@@ -150,7 +161,11 @@ internal sealed record SideCompilation(ImmutableDictionary<string, WriteSite> Wr
         var unknown = ((FieldId[])[.. rule.Reads, .. rule.Writes]).Where(field => schema.TryGet(field.Name, out _) is false).Select(field =>
             new ProfileError("UnknownField", $"{side}.{call.Rule} uses undeclared field '{field.Name}'."));
         ProfileError[] errors = [.. readErrors, .. writeErrors, .. unknown];
+        // On success the site keeps the latest clause only.
+        // A newer clause can overlap an earlier write when each neighbor pair is exclusive.
         var written = rule.Writes.Aggregate(WrittenSites, (sites, write) => sites.SetItem(write.Name, new WriteSite(call.Rule, call.When)));
+        // Any error drops the whole call. Writes from that call are not recorded.
+        // A later read of a target that no earlier call wrote reports FieldReadBeforeWrite.
         return errors.Length == 0
             ? this with { WrittenSites = written, Rules = Rules.Add(new CompiledRule(rule, call.When)) }
             : this with { Errors = Errors.AddRange(errors) };
@@ -158,6 +173,8 @@ internal sealed record SideCompilation(ImmutableDictionary<string, WriteSite> Wr
 
     private SideCompilation Fail(string code, string message) => this with { Errors = Errors.Add(new ProfileError(code, message)) };
 
+    // "fields" has to be a list. A string under that name is missing.
+    // Any other required name is present as either a string or a list, and a list named "from" passes here then throws in the factory.
     private static string? Missing(NormalizationRegistration registration, RuleCall call) =>
         registration.Required.FirstOrDefault(required => required switch
         {

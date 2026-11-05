@@ -7,6 +7,7 @@ internal static class DecimalParsing
     public static RowContext Apply(RowContext row, string from, string to, int scale, MidpointMode midpoint, string ruleId)
     {
         var raw = row.Raw.TryGetValue(from, out var value) ? value : null;
+        // Missing comes first. Blank has Ok set too, so the success arm would write zero for an empty cell.
         return Read(raw) switch
         {
             { Missing: true } => row.Write(to, CanonicalCell.Null(FieldType.Decimal), ruleId, null, null),
@@ -30,6 +31,7 @@ internal static class DecimalParsing
         float value => Parsed.Of(Rounding.FromDouble(value)),
         int value => Parsed.Of(value),
         long value => Parsed.Of(value),
+        // Invariant culture. The comma groups thousands, so "1.234,50" does not parse.
         string text when decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed) => Parsed.Of(parsed),
         _ => Parsed.Failed,
     };

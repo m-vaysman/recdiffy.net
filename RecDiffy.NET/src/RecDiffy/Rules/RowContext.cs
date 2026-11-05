@@ -17,10 +17,13 @@ public interface INormalizationRule
 
     RulePhase Phase { get; }
 
+    // Names here are canonical fields already written by an earlier rule.
+    // The raw source of a parse is not one of them. Listing that name is FieldReadBeforeWrite while it is still unwritten.
     IReadOnlyList<FieldId> Reads { get; }
 
     IReadOnlyList<FieldId> Writes { get; }
 
+    // The next row comes back through the ref parameter. The previous instance stays unchanged.
     void Apply(ref RowContext row);
 }
 
@@ -32,6 +35,7 @@ public sealed record RowContext
 
     public required IReadOnlyDictionary<string, object?> Raw { get; init; }
 
+    // Each row starts empty. An id from one row is not an id in another row's pool.
     internal InternPool Pool { get; init; } = InternPool.Empty;
 
     public required ImmutableDictionary<string, CanonicalCell> Values { get; init; }
@@ -56,6 +60,7 @@ public sealed record RowContext
         };
     }
 
+    // A missing field and a written null are both null. Compile's write set is what separates them.
     public bool IsNull(string field) => !Values.TryGetValue(field, out var cell) || cell.IsNull;
 
     public RowContext Write(string field, CanonicalCell cell, string ruleId, string? raw, string? canonical) =>
@@ -65,6 +70,7 @@ public sealed record RowContext
             Traces = Traces.Add(new TraceStep(ruleId, field, raw, canonical)),
         };
 
+    // Write keeps the pool already on the row. Display looks up ids in that pool.
     internal RowContext WithPool(InternPool pool) => this with { Pool = pool };
 
     public RowContext Diagnose(string code, DiagnosticSeverity severity, string ruleId, string? field, string? raw) =>
