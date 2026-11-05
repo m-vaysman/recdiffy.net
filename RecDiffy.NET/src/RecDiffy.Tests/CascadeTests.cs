@@ -25,6 +25,51 @@ public class CascadeTests
     ];
 
     [Fact]
+    public void Does_not_join_values_that_only_match_across_the_key_separator()
+    {
+        const string separator = "\u001f";
+        var report = Run(
+            [
+                Trade("L-split", Side.Left, "A" + separator + "B", "C", 1m, 1m, 1m, null),
+                Trade("L-slash", Side.Left, "A\\", "B", 3m, 1m, 1m, null),
+                Trade("L-same", Side.Left, "A" + separator + "B", "C", 2m, 1m, 1m, null),
+            ],
+            [
+                Trade("R-other", Side.Right, "A", "B" + separator + "C", 1m, 1m, 1m, null),
+                Trade("R-slash", Side.Right, "A", "\\B", 3m, 1m, 1m, null),
+                Trade("R-same", Side.Right, "A" + separator + "B", "C", 2m, 1m, 1m, null),
+            ]);
+
+        var match = Assert.Single(report.Committed);
+        Assert.Equal("L-same", match.Left[0].Context.RowKey);
+        Assert.Equal("R-same", match.Right[0].Context.RowKey);
+        Assert.Equal(
+            ["L-slash", "L-split", "R-other", "R-slash"],
+            report.Residue.SelectMany(cluster => cluster.Rows).Select(row => row.Context.RowKey).OrderBy(key => key, StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void Does_not_hash_crossed_source_and_row_keys_to_the_same_group()
+    {
+        const string separator = "\u001f";
+        var crossed = ResultBuilder.Identify([new SourceRef("a" + separator + "b", "c", 0)]);
+        var other = ResultBuilder.Identify([new SourceRef("a", "b" + separator + "c", 0)]);
+        var same = ResultBuilder.Identify([new SourceRef("a" + separator + "b", "c", 0)]);
+
+        Assert.NotEqual(crossed, other);
+        Assert.Equal(crossed, same);
+    }
+
+    [Fact]
+    public void Keeps_a_carriage_return_from_collapsing_into_the_newline_join()
+    {
+        var broken = Delimited.Join('\n', ["a\r", "b"]);
+        var plain = Delimited.Join('\n', ["a", "b"]);
+
+        Assert.NotEqual(plain, broken.Replace("\r\n", "\n", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Commits_a_shared_reference_before_it_reads_price()
     {
         var report = Run(

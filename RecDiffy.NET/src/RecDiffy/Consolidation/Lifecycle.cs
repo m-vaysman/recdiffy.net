@@ -69,22 +69,22 @@ internal static class Consolidation
         IReadOnlyList<LifeEvent> events,
         IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index) =>
         events.Aggregate(
-            (Seen: ImmutableHashSet.Create<string>(StringComparer.Ordinal), Groups: ImmutableList<IReadOnlyList<LifeEvent>>.Empty),
+            (Seen: ImmutableHashSet<LifeKey>.Empty, Groups: ImmutableList<IReadOnlyList<LifeEvent>>.Empty),
             (state, evt) => state.Seen.Contains(evt.Key) ? state : Add(state, evt, index)).Groups;
 
-    private static (ImmutableHashSet<string> Seen, ImmutableList<IReadOnlyList<LifeEvent>> Groups) Add(
-        (ImmutableHashSet<string> Seen, ImmutableList<IReadOnlyList<LifeEvent>> Groups) state,
+    private static (ImmutableHashSet<LifeKey> Seen, ImmutableList<IReadOnlyList<LifeEvent>> Groups) Add(
+        (ImmutableHashSet<LifeKey> Seen, ImmutableList<IReadOnlyList<LifeEvent>> Groups) state,
         LifeEvent start,
         IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index)
     {
         var keys = Reachable([start.Key], [], index);
-        var members = keys.Select(key => index[(ScopeOf(key), IdOf(key))]).DistinctBy(evt => evt.Key).ToArray();
+        var members = keys.Select(key => index[(key.Scope, key.Id)]).DistinctBy(evt => evt.Key).ToArray();
         return (state.Seen.Union(keys), state.Groups.Add(members));
     }
 
-    private static ImmutableHashSet<string> Reachable(
-        string[] pending,
-        ImmutableHashSet<string> seen,
+    private static ImmutableHashSet<LifeKey> Reachable(
+        LifeKey[] pending,
+        ImmutableHashSet<LifeKey> seen,
         IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index) =>
         pending.Length is 0
             ? seen
@@ -93,14 +93,12 @@ internal static class Consolidation
                 seen.Union(pending),
                 index);
 
-    private static IEnumerable<string> Links(string key, IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index)
+    private static IEnumerable<LifeKey> Links(LifeKey key, IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index)
     {
-        var scope = ScopeOf(key);
-        var id = IdOf(key);
-        var outbound = index.TryGetValue((scope, id), out var evt) && evt.Target is { } target && index.ContainsKey((scope, target))
-            ? [Key(scope, target)]
-            : Array.Empty<string>();
-        var inbound = index.Values.Where(other => other.Scope == scope && other.Target == id).Select(other => other.Key);
+        var outbound = index.TryGetValue((key.Scope, key.Id), out var evt) && evt.Target is { } target && index.ContainsKey((key.Scope, target))
+            ? [new LifeKey(key.Scope, target)]
+            : Array.Empty<LifeKey>();
+        var inbound = index.Values.Where(other => other.Scope == key.Scope && other.Target == key.Id).Select(other => other.Key);
         return [key, .. outbound, .. inbound];
     }
 
@@ -165,14 +163,10 @@ internal static class Consolidation
     private static ConsolidatedRow Row(LifeEvent evt, bool quarantine, SuppressionReason? suppression, string? code) =>
         new(evt.Row.Members, evt.Row.Context, quarantine, suppression, code);
 
-    private static string Key(string scope, string id) => scope + "\u001f" + id;
-
-    private static string ScopeOf(string key) => key.Split('\u001f')[0];
-
-    private static string IdOf(string key) => key.Split('\u001f')[^1];
+    private readonly record struct LifeKey(string Scope, string Id);
 
     private sealed record LifeEvent(IntakeRow Row, string Scope, string Id, string Action, string? Target)
     {
-        public string Key => Consolidation.Key(Scope, Id);
+        public LifeKey Key => new(Scope, Id);
     }
 }

@@ -43,7 +43,7 @@ internal static class MatchKeys
     public static string? Compose(ActiveItem item, IReadOnlyList<string> fields, IReadOnlyDictionary<string, FieldDeclaration> schema)
     {
         var parts = fields.Select(field => Text(item.Row.Context, schema[field])).ToArray();
-        return parts.Any(part => part is null) ? null : string.Join('\u001f', parts);
+        return parts.Any(part => part is null) ? null : Delimited.Join('\u001f', parts.Select(part => part!));
     }
 
     public static string? Text(RowContext row, FieldDeclaration field) =>
