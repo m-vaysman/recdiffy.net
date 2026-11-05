@@ -2,6 +2,8 @@ namespace RecDiffy;
 
 public sealed record WhenClause(string Field, string? EqualsValue, string? NotEquals, IReadOnlyList<string>? In)
 {
+    // A null clause is unconditional and overlaps every other clause.
+    // `in` is not compared. Disjoint lists are treated as overlapping writes.
     public static bool MutuallyExclusive(WhenClause? left, WhenClause? right) => (left, right) switch
     {
         (null, _) or (_, null) => false,

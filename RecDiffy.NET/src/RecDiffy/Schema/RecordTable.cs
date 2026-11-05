@@ -14,6 +14,7 @@ internal abstract record Column(string Name, FieldType Type)
             _ => throw new ArgumentOutOfRangeException(nameof(field), field.Type, "Unknown field type."),
         };
 
+    // A null cell is stored as default(T). Intern id 0 and decimal 0 are real values, so the null flag is the discriminator.
     private static ImmutableArray<T> Values<T>(IReadOnlyList<IReadOnlyDictionary<string, CanonicalCell>> rows, string name, Func<CanonicalCell, T> select) =>
         [.. rows.Select(row => row.TryGetValue(name, out var cell) && !cell.IsNull ? select(cell) : default)!];
 
@@ -36,6 +37,7 @@ internal sealed record RecordTable(IReadOnlyDictionary<string, Column> Columns, 
             fields.ToImmutableDictionary(field => field.Name, field => Column.From(field, rows), StringComparer.Ordinal),
             rows.Count);
 
+    // A new column subtype takes this arm and looks like a null column.
     public bool IsNull(int row, string field) => Columns[field] switch
     {
         DecimalColumn column => column.Nulls[row],
@@ -45,6 +47,7 @@ internal sealed record RecordTable(IReadOnlyDictionary<string, Column> Columns, 
         _ => true,
     };
 
+    // Decimal and DecimalColumn are the typed readers. Date, intern, and text values stay reachable through Columns.
     public decimal Decimal(int row, string field) => Columns[field] switch
     {
         DecimalColumn column => column.Values[row],

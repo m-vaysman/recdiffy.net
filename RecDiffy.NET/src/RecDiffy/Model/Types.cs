@@ -45,6 +45,7 @@ public readonly record struct FieldId(string Name)
 
 public readonly record struct SourceRef(string Source, string RowKey, int Ordinal);
 
+// Every field type shares this shape. Inactive slots are zero, default, or null.
 public readonly record struct CanonicalCell(FieldType Type, bool IsNull, decimal Number, DateOnly Date, int Interned, string? Text)
 {
     public static CanonicalCell Null(FieldType type) => new(type, true, 0m, default, 0, null);
@@ -53,8 +54,10 @@ public readonly record struct CanonicalCell(FieldType Type, bool IsNull, decimal
 
     public static CanonicalCell FromDate(DateOnly value) => new(FieldType.Date, false, 0m, value, 0, null);
 
+    // Stores the id. The text stays in the pool that minted the id.
     public static CanonicalCell FromInterned(FieldType type, int id) => new(type, false, 0m, default, id, null);
 
+    // Null and empty share one cell. Blank text and omitted text are the same value.
     public static CanonicalCell FromText(string? text) =>
         string.IsNullOrEmpty(text) ? Null(FieldType.Text) : new(FieldType.Text, false, 0m, default, 0, text);
 }

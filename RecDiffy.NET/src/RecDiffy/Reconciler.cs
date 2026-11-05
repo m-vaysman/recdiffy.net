@@ -6,6 +6,7 @@ public static class Reconciler
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(registry);
+        // An error list throws. Callers receive a complete profile or an exception.
         return ProfileCompiler.Compile(document, registry) switch
         {
             { Errors: [] } outcome => outcome.Profile!,

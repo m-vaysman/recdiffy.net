@@ -12,6 +12,7 @@ internal static class DateParsing
         {
             null => row.Write(to, CanonicalCell.Null(FieldType.Date), ruleId, raw?.ToString(), null)
                 .Diagnose("DateParse", DiagnosticSeverity.Invalid, ruleId, to, raw?.ToString()),
+            // Missing comes first. Blank has Ok set too, so the success arm would write 0001-01-01 for an empty cell.
             var active => Read(raw, active) switch
             {
                 { Missing: true } => row.Write(to, CanonicalCell.Null(FieldType.Date), ruleId, null, null),
@@ -30,6 +31,7 @@ internal static class DateParsing
             _ => null,
         };
 
+    // Null or empty is blank. A whitespace-only string fails the parse.
     private static Parsed Read(object? raw, IReadOnlyList<string> formats) => raw switch
     {
         null or "" => Parsed.Blank,
@@ -40,6 +42,8 @@ internal static class DateParsing
         _ => Parsed.Failed,
     };
 
+    // No formats means a loose invariant parse, and that parse is month-first. "13/01/2024" fails.
+    // Listed formats use an exact match, and the first hit wins.
     private static DateOnly? ParseText(string text, IReadOnlyList<string> formats) =>
         formats.Count == 0
             ? DateOnly.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed) ? parsed : null

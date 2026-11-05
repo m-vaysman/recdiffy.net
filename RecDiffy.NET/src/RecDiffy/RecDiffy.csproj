@@ -5,13 +5,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Version>1.0.0</Version>
+    <!-- Turns on the Native AOT and trim analyzers for hosts that publish this assembly trimmed. -->
     <IsAotCompatible>true</IsAotCompatible>
     <IsTrimmable>true</IsTrimmable>
     <RootNamespace>RecDiffy</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Tests construct internal columns, pools, and rules. -->
     <InternalsVisibleTo Include="RecDiffy.Tests" />
+    <!-- Register is internal. The pack needs visibility to call it. -->
     <InternalsVisibleTo Include="RecDiffy.RulePacks.Trading" />
   </ItemGroup>
 

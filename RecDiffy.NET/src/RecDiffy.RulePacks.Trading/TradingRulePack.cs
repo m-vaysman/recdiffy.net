@@ -4,6 +4,7 @@ namespace RecDiffy.RulePacks.Trading;
 
 public static class TradingRulePack
 {
+    // Registers trading-specific normalization rules onto the shared registry.
     public static RuleRegistry AddTo(RuleRegistry registry)
     {
         ArgumentNullException.ThrowIfNull(registry);
