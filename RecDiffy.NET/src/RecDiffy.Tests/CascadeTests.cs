@@ -61,6 +61,15 @@ public class CascadeTests
     }
 
     [Fact]
+    public void Keeps_a_carriage_return_from_collapsing_into_the_newline_join()
+    {
+        var broken = Delimited.Join('\n', ["a\r", "b"]);
+        var plain = Delimited.Join('\n', ["a", "b"]);
+
+        Assert.NotEqual(plain, broken.Replace("\r\n", "\n", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Commits_a_shared_reference_before_it_reads_price()
     {
         var report = Run(
