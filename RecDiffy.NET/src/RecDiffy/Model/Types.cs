@@ -65,6 +65,13 @@ public sealed record TraceStep(string RuleId, string Field, string? Raw, string?
 
 public sealed record ProfileError(string Code, string Message);
 
+public enum SuppressionReason
+{
+    Superseded,
+    CancelEvent,
+    FullyCancelled,
+}
+
 public sealed class ProfileCompileException(IReadOnlyList<ProfileError> errors) : Exception(Format(errors))
 {
     public IReadOnlyList<ProfileError> Errors { get; } = errors;
