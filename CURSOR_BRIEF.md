@@ -32,7 +32,16 @@
 
 ## Decision rule
 
-**Grok makes the final call.** Run this task on Grok (Grok 4.7 or the newest available, highest reasoning). Grok weighs every input above and decides what to keep, change or drop.
+**Grok makes the final call.** Run this task on **Grok 4.7 Extra High with the 500k context window, not Fast** (model ID `grok-4.7[effort=xhigh,context=500k,fast=false]`). Grok weighs every input above and decides what to keep, change or drop.
+
+## Subagents
+
+Every subagent or exploration task you spawn must also use Grok 4.7 Extra High with 500k context, not the "High Fast" variant.
+
+- In Cursor's subagent settings the only Grok option offered is "High Fast", alongside a "New Agent" button. Don't use that option.
+- Instead, define a custom subagent at `.cursor/agents/architect.md` with `model: grok-4.7[effort=xhigh,context=500k,fast=false]`, or `model: inherit` to use the main model, and delegate exploration and research to it.
+- If Cursor won't run a subagent on that variant (for example, the built-in Explore subagent picks its own faster model), keep the work in the main agent or use `model: inherit`.
+- Record any such limitation in the spec's Open questions section, noting which subagent ran on which model, as shown on its task card.
 
 The spec ends with a **Decisions** table. Each row gives the item, its source (wiki, test data, Argon.MD, or a named model), whether it is kept, changed or rejected, and a one-line reason.
 
