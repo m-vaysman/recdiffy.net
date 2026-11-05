@@ -1,0 +1,18 @@
+<Project>
+  <PropertyGroup>
+    <Authors>Michael Vaysman</Authors>
+    <Description>A general-purpose reconciliation and diffing library for .NET.</Description>
+    <PackageTags>reconciliation;diff;matching;dotnet</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>Copyright (c) 2026 Michael Vaysman</Copyright>
+    <RepositoryUrl>https://github.com/m-vaysman/recdiffy.net</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/m-vaysman/recdiffy.net/wiki</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>

@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <IsAotCompatible>true</IsAotCompatible>
     <IsTrimmable>true</IsTrimmable>
+    <Description>Trading normalization rules for RecDiffy.NET.</Description>
   </PropertyGroup>
 
   <ItemGroup>

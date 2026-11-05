@@ -4,6 +4,8 @@
 
 # RecDiffy.NET
 
+[![CI](https://github.com/m-vaysman/recdiffy.net/actions/workflows/ci.yml/badge.svg)](https://github.com/m-vaysman/recdiffy.net/actions/workflows/ci.yml)
+
 Reconcile two datasets and explain every match, difference, and unmatched row.
 
 RecDiffy.NET is a general-purpose reconciliation and diffing library for .NET. Use it when records from two systems represent the same underlying activity but differ in identifiers, formatting, or grouping—for example, warehouse bins versus book inventory, or internal trades versus broker records.
