@@ -15,13 +15,39 @@ internal static class ResultBuilder
         PathDeclaration path,
         IReadOnlyList<ConsolidatedRow> left,
         IReadOnlyList<ConsolidatedRow> right,
-        MatchReport match)
+        MatchReport match,
+        RunOptions options,
+        CancellationToken cancellation)
     {
         var plan = DiffPlan.From(path, profile.Document.Fields, profile.Document.Midpoint);
+        var committed = match.Committed.ToArray();
+        var built = new (ResultEntry Entry, RowContext Left, RowContext Right)[committed.Length];
+        var degree = options.MaxDegreeOfParallelism is int chosen and > 1 ? chosen : 1;
+        if (degree == 1 || committed.Length < 2)
+        {
+            for (var index = 0; index < committed.Length; index++)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                built[index] = Matched(path.Id, committed[index], plan);
+            }
+        }
+        else
+        {
+            Parallel.For(
+                0,
+                committed.Length,
+                new ParallelOptions { MaxDegreeOfParallelism = degree, CancellationToken = cancellation },
+                index => built[index] = Matched(path.Id, committed[index], plan));
+        }
+
         var entries = new List<ResultEntry>();
         var projections = new Dictionary<GroupId, (RowContext Left, RowContext Right)>();
-        foreach (var group in match.Committed)
-            entries.Add(Matched(path.Id, group, plan, projections));
+        foreach (var item in built)
+        {
+            entries.Add(item.Entry);
+            projections[item.Entry.Id] = (item.Left, item.Right);
+        }
+
         foreach (var cluster in match.Residue)
             entries.Add(Open(path.Id, cluster));
         var entryByRow = Index(entries, left.Concat(right).ToArray());
@@ -36,7 +62,7 @@ internal static class ResultBuilder
             left.Concat(right).SelectMany(row => row.Members.Select(member => (member, row.Context))).ToDictionary(pair => pair.member, pair => pair.Context));
     }
 
-    private static ResultEntry Matched(string pathId, CommittedMatch group, DiffPlan plan, Dictionary<GroupId, (RowContext Left, RowContext Right)> projections)
+    private static (ResultEntry Entry, RowContext Left, RowContext Right) Matched(string pathId, CommittedMatch group, DiffPlan plan)
     {
         var left = Aggregate(group.Left, plan);
         var right = Aggregate(group.Right, plan);
@@ -46,17 +72,19 @@ internal static class ResultBuilder
             : diffs.Any(diff => diff.Outcome == FieldOutcome.WithinTolerance) ? FieldOutcome.WithinTolerance : FieldOutcome.Exact;
         var members = Members(group.Left, group.Right);
         var id = Identify(members);
-        projections[id] = (left, right);
-        return new ResultEntry(
-            id,
-            pathId,
-            Alignment.Matched,
-            Compose(group),
-            outcome,
-            [.. group.Left.SelectMany(row => row.Members)],
-            [.. group.Right.SelectMany(row => row.Members)],
-            diffs,
-            new Explanation(group.PassId, [new PassAttempt(group.PassId, PassVerdict.Committed, group.Key, members, null)], []));
+        return (
+            new ResultEntry(
+                id,
+                pathId,
+                Alignment.Matched,
+                Compose(group),
+                outcome,
+                [.. group.Left.SelectMany(row => row.Members)],
+                [.. group.Right.SelectMany(row => row.Members)],
+                diffs,
+                new Explanation(group.PassId, [new PassAttempt(group.PassId, PassVerdict.Committed, group.Key, members, null)], [])),
+            left,
+            right);
     }
 
     private static ResultEntry Open(string pathId, ResidueCluster cluster)
@@ -209,6 +237,12 @@ public sealed class ReconciliationResult
     public IReadOnlyList<RowResult> Rows { get; }
 
     public RunSummary Summary { get; }
+
+    public SideBySideView BuildSideBySide(SideBySideSpec spec)
+    {
+        ArgumentNullException.ThrowIfNull(spec);
+        return SideBySideBuilder.Build(this, spec);
+    }
 
     public CanonicalRow Projection(GroupId entry, Side side)
     {

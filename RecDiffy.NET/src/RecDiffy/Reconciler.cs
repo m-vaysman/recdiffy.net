@@ -29,13 +29,12 @@ public static class Reconciler
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(right);
         ArgumentNullException.ThrowIfNull(referenceData);
-        _ = options;
-        cancellationToken.ThrowIfCancellationRequested();
         return RunPipeline.Execute(
             profile,
             left.Materialize("left", Key(profile, "left"), cancellationToken),
             right.Materialize("right", Key(profile, "right"), cancellationToken),
             referenceData,
+            options ?? new RunOptions(),
             cancellationToken);
     }
 
@@ -55,7 +54,7 @@ public static class Reconciler
         cancellationToken.ThrowIfCancellationRequested();
         var leftRows = await left.MaterializeAsync("left", Key(profile, "left"), cancellationToken).ConfigureAwait(false);
         var rightRows = await right.MaterializeAsync("right", Key(profile, "right"), cancellationToken).ConfigureAwait(false);
-        return RunPipeline.Execute(profile, leftRows, rightRows, referenceData, cancellationToken);
+        return RunPipeline.Execute(profile, leftRows, rightRows, referenceData, options ?? new RunOptions(), cancellationToken);
     }
 
     private static string Key(CompiledProfile profile, string side) =>
@@ -69,9 +68,13 @@ internal static class RunPipeline
         IReadOnlyList<RawRecord> left,
         IReadOnlyList<RawRecord> right,
         ReferenceDataSet reference,
+        RunOptions options,
         CancellationToken cancellation)
     {
+        using var activity = RecDiffyInstrumentation.Source.StartActivity("RecDiffy.Run");
+        activity?.SetTag("profile.hash", profile.Hash);
         cancellation.ThrowIfCancellationRequested();
+        RecDiffyInstrumentation.RowsRead.Add(left.Count + right.Count);
         var normalized = Intake.Normalize(profile, left, right, reference);
         cancellation.ThrowIfCancellationRequested();
         var consolidatedLeft = Consolidate(profile, "left", normalized.Left);
@@ -79,7 +82,10 @@ internal static class RunPipeline
         var path = profile.Document.Paths.FirstOrDefault(item => item.Route.Rule == "route.all") ?? profile.Document.Paths[0];
         var match = CascadeMatcher.Run(consolidatedLeft, consolidatedRight, path.Passes, profile.Document.Fields, profile.Document.Limits);
         cancellation.ThrowIfCancellationRequested();
-        return ResultBuilder.Build(profile, reference, path, consolidatedLeft, consolidatedRight, match);
+        RecDiffyInstrumentation.Commits.Add(match.Committed.Count);
+        var result = ResultBuilder.Build(profile, reference, path, consolidatedLeft, consolidatedRight, match, options, cancellation);
+        RecDiffyInstrumentation.Breaks.Add(result.Summary.Break);
+        return result;
     }
 
     private static IReadOnlyList<ConsolidatedRow> Consolidate(CompiledProfile profile, string side, IReadOnlyList<IntakeRow> rows)
