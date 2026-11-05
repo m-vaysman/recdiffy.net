@@ -178,6 +178,114 @@ public class CascadeTests
         Assert.NotEmpty(search.DrawnItems);
     }
 
+    [Fact]
+    public void Matches_the_seeded_golden_snapshot()
+    {
+        var golden = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Goldens", "cascade-seed.txt")).TrimEnd();
+        Assert.Equal(golden, Snapshot(Seed()));
+    }
+
+    [Fact]
+    public void Keeps_the_same_membership_when_the_rows_are_reversed()
+    {
+        var (left, right) = SeedRows();
+        var forward = Snapshot(Run(left, right));
+        var backward = Snapshot(Run([.. left.AsEnumerable().Reverse()], [.. right.AsEnumerable().Reverse()]));
+        Assert.Equal(forward, backward);
+    }
+
+    [Fact]
+    public void Builds_one_index_per_pass()
+    {
+        var report = Seed();
+        Assert.Equal(4, report.Counters.IndexBuilds);
+        Assert.True(report.Counters.SubsetSearches <= report.Counters.Components + report.Counters.DirtyResearches);
+    }
+
+    [Fact]
+    public void Does_not_research_an_untouched_group_block()
+    {
+        var left = new[]
+        {
+            Trade("A1", Side.Left, "JPM", "AAA", 2m, 10m, 2m, null),
+            Trade("A2", Side.Left, "JPM", "AAA", 3m, 10m, 3m, null),
+            Trade("B1", Side.Left, "JPM", "BBB", 1m, 10m, 1m, null),
+            Trade("B2", Side.Left, "JPM", "BBB", 4m, 10m, 4m, null),
+        };
+        var right = new[]
+        {
+            Trade("AR", Side.Right, "JPM", "AAA", 5m, 10m, 5m, null),
+            Trade("BR", Side.Right, "JPM", "BBB", 5m, 10m, 5m, null),
+        };
+        var report = CascadeMatcher.Run(left, right, [Passes[2]], Fields, SearchLimits.Default);
+
+        Assert.Equal(2, report.Committed.Count);
+        Assert.Equal(1, report.Counters.IndexBuilds);
+        Assert.Equal(2, report.Counters.SubsetSearches);
+        Assert.Equal(0, report.Counters.DirtyResearches);
+    }
+
+    [Fact]
+    public void Doubling_pair_matches_stays_under_a_quadratic_slope()
+    {
+        var once = Elapsed(600);
+        var twice = Elapsed(1_200);
+        Assert.True(twice < once * 3 + TimeSpan.FromMilliseconds(200), $"600 rows took {once}, 1200 rows took {twice}");
+    }
+
+    private static TimeSpan Elapsed(int count)
+    {
+        var left = new ConsolidatedRow[count];
+        var right = new ConsolidatedRow[count];
+        for (var index = 0; index < count; index++)
+        {
+            left[index] = Trade($"L{index}", Side.Left, "C", "I" + index, 10m, 100m, 1m, null);
+            right[index] = Trade($"R{index}", Side.Right, "C", "I" + index, 10m, 100m, 1m, null);
+        }
+
+        var passes = new[] { Passes[1] };
+        CascadeMatcher.Run(left, right, passes, Fields, SearchLimits.Default);
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        CascadeMatcher.Run(left, right, passes, Fields, SearchLimits.Default);
+        watch.Stop();
+        return watch.Elapsed;
+    }
+
+    private static string Snapshot(MatchReport report)
+    {
+        var committed = report.Committed.Select(match =>
+            $"C|{match.PassId}|{match.Key}|{string.Join(",", match.Left.Select(row => row.Context.RowKey))}|{string.Join(",", match.Right.Select(row => row.Context.RowKey))}");
+        var residue = report.Residue
+            .Select(cluster => $"R|{cluster.Alignment}|{cluster.PassId}|{string.Join(",", cluster.Rows.Select(row => row.Context.RowKey).OrderBy(key => key, StringComparer.Ordinal))}")
+            .OrderBy(line => line, StringComparer.Ordinal);
+        return string.Join("\n", committed.Concat(residue));
+    }
+
+    private static MatchReport Seed()
+    {
+        var (left, right) = SeedRows();
+        return Run(left, right);
+    }
+
+    private static (List<ConsolidatedRow> Left, List<ConsolidatedRow> Right) SeedRows()
+    {
+        var left = new List<ConsolidatedRow>();
+        var right = new List<ConsolidatedRow>();
+        for (var index = 0; index < 12; index++)
+        {
+            var shared = index % 4 == 0 ? $"REF{index:00}" : null;
+            left.Add(Trade($"L{index:00}", Side.Left, "C" + (index % 3), "I" + (index % 4), 10m + index, 100m, 1m, shared));
+            right.Add(Trade($"R{index:00}", Side.Right, "C" + (index % 3), "I" + (index % 4), 10m + index, 100m, 1m, shared));
+        }
+
+        left.Add(Trade("A1", Side.Left, "JPM", "ALLOC", 2_200m, 114m, 250_811m, "EX-A"));
+        left.Add(Trade("A2", Side.Left, "JPM", "ALLOC", 5_400m, 114m, 615_627m, null));
+        left.Add(Trade("A3", Side.Left, "JPM", "ALLOC", 1_400m, 114m, 159_607m, null));
+        right.Add(Trade("AR", Side.Right, "JPM", "ALLOC", 9_000m, 114m, 1_026_045m, "EX-A"));
+        left.Add(Trade("ORPHAN", Side.Left, "NONE", "ZZ", 1m, 1m, 1m, null));
+        return (left, right);
+    }
+
     private static MatchReport Run(IReadOnlyList<ConsolidatedRow> left, IReadOnlyList<ConsolidatedRow> right, SearchLimits? limits = null) =>
         CascadeMatcher.Run(left, right, Passes, Fields, limits ?? SearchLimits.Default);
 

@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using RecDiffy.Results;
 using RecDiffy.Rules;
 
@@ -30,7 +31,18 @@ internal sealed record CommittedMatch(string PassId, string Key, IReadOnlyList<C
 
 internal sealed record ResidueCluster(Alignment Alignment, string? Code, string? PassId, IReadOnlyList<ConsolidatedRow> Rows);
 
-internal sealed record MatchReport(IReadOnlyList<CommittedMatch> Committed, IReadOnlyList<ResidueCluster> Residue);
+internal sealed record MatchReport(IReadOnlyList<CommittedMatch> Committed, IReadOnlyList<ResidueCluster> Residue, MatchCounters Counters);
+
+internal sealed class MatchCounters
+{
+    public int IndexBuilds { get; set; }
+
+    public int SubsetSearches { get; set; }
+
+    public int DirtyResearches { get; set; }
+
+    public int Components { get; set; }
+}
 
 internal static class MatchKeys
 {
@@ -94,41 +106,46 @@ internal static class CascadeMatcher
         var schema = fields.ToDictionary(field => field.Name, StringComparer.Ordinal);
         var shared = schema.ContainsKey("TradeRef") ? "TradeRef" : null;
         var engines = passes.Select(pass => Create(pass, limits)).ToArray();
-        var free = items.Select(item => item.Index).ToImmutableHashSet();
+        var counters = new MatchCounters();
+        var rowIndex = items.ToDictionary(item => item.Row, item => item.Index, RowIdentity.Instance);
+        var free = items.Select(item => item.Index).ToHashSet();
+        var workspace = Workspace(passes.Count == 0 ? "" : passes[0].Id, items, free.ToImmutableHashSet(), schema, limits, shared, limits.MaxGroupSize, cancellation);
+        foreach (var engine in engines)
+            engine.BuildIndex(workspace, counters);
+
         var committed = ImmutableList<CommittedMatch>.Empty;
-        var cursor = 0;
-        while (cursor < engines.Length)
+        while (true)
         {
             cancellation.ThrowIfCancellationRequested();
-            var workspace = Workspace(engines[cursor].PassId, items, free, schema, limits, shared, engines[cursor].MaxGroup, cancellation);
-            var proposal = engines[cursor].ProposeFirst(workspace);
-            if (proposal is null)
-            {
-                cursor++;
-                continue;
-            }
-
-            committed = committed.Add(Commit(engines[cursor].PassId, proposal, items));
-            free = free.Except(proposal.Left).Except(proposal.Right);
-            cursor = 0;
+            var chosen = engines.Select(engine => (Engine: engine, Proposal: engine.NextReady())).FirstOrDefault(pair => pair.Proposal is not null);
+            if (chosen.Proposal is null)
+                break;
+            committed = committed.Add(Commit(chosen.Engine.PassId, chosen.Proposal, items));
+            var taken = chosen.Proposal.Left.Concat(chosen.Proposal.Right).ToArray();
+            free.ExceptWith(taken);
+            foreach (var engine in engines)
+                engine.Release(taken, counters);
         }
 
-        var claimed = ImmutableHashSet<int>.Empty;
-        var residue = engines.Aggregate(
-            (Claimed: claimed, Clusters: ImmutableList<ResidueCluster>.Empty),
-            (state, engine) =>
+        var claimed = new HashSet<int>();
+        var residue = new List<ResidueCluster>();
+        foreach (var engine in engines)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            foreach (var cluster in engine.Residue(workspace))
             {
-                cancellation.ThrowIfCancellationRequested();
-                var found = engine.Residue(Workspace(engine.PassId, items, free, schema, limits, shared, engine.MaxGroup, cancellation))
-                    .Select(cluster => cluster with { Rows = [.. cluster.Rows.Where(row => state.Claimed.Contains(IndexOf(items, row)) is false)] })
-                    .Where(cluster => cluster.Rows.Count > 0)
-                    .ToArray();
-                var taken = found.SelectMany(cluster => cluster.Rows.Select(row => IndexOf(items, row))).ToImmutableHashSet();
-                return (state.Claimed.Union(taken), state.Clusters.AddRange(found));
-            });
-        var only = items.Where(item => free.Contains(item.Index) && residue.Claimed.Contains(item.Index) is false)
+                var rows = cluster.Rows.Where(row => claimed.Contains(rowIndex[row]) is false).ToArray();
+                if (rows.Length == 0)
+                    continue;
+                foreach (var row in rows)
+                    claimed.Add(rowIndex[row]);
+                residue.Add(cluster with { Rows = rows });
+            }
+        }
+
+        var only = items.Where(item => free.Contains(item.Index) && claimed.Contains(item.Index) is false)
             .Select(item => new ResidueCluster(item.Side == Side.Left ? Alignment.LeftOnly : Alignment.RightOnly, null, null, [item.Row]));
-        return new MatchReport(committed, [.. residue.Clusters, .. only]);
+        return new MatchReport(committed, [.. residue, .. only], counters);
     }
 
     private static ActiveItem[] Items(IReadOnlyList<ConsolidatedRow> left, IReadOnlyList<ConsolidatedRow> right) =>
@@ -173,8 +190,14 @@ internal static class CascadeMatcher
     private static IReadOnlyList<ConsolidatedRow> Rows(IReadOnlyList<ActiveItem> items, IReadOnlyList<int> indexes) =>
         [.. indexes.Select(index => items[index].Row)];
 
-    private static int IndexOf(IReadOnlyList<ActiveItem> items, ConsolidatedRow row) =>
-        items.First(item => ReferenceEquals(item.Row, row)).Index;
+    private sealed class RowIdentity : IEqualityComparer<ConsolidatedRow>
+    {
+        public static RowIdentity Instance { get; } = new();
+
+        public bool Equals(ConsolidatedRow? left, ConsolidatedRow? right) => ReferenceEquals(left, right);
+
+        public int GetHashCode(ConsolidatedRow row) => RuntimeHelpers.GetHashCode(row);
+    }
 }
 
 internal abstract class CascadePass : IMatchPass
@@ -189,6 +212,12 @@ internal abstract class CascadePass : IMatchPass
 
     public abstract IReadOnlyList<ResidueCluster> Residue(MatchWorkspace workspace);
 
+    public abstract void BuildIndex(MatchWorkspace workspace, MatchCounters counters);
+
+    public abstract MatchProposal? NextReady();
+
+    public abstract void Release(IReadOnlyCollection<int> taken, MatchCounters counters);
+
     public MatchProposal? ProposeFirst(MatchWorkspace workspace)
     {
         var sink = new ProposalSink();
@@ -202,11 +231,66 @@ internal abstract class CascadePass : IMatchPass
 
 internal sealed class PairPass(string passId, IReadOnlyList<string> fields, bool veto, int maxGroup) : CascadePass
 {
+    private readonly Dictionary<string, HashSet<int>> _left = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, HashSet<int>> _right = new(StringComparer.Ordinal);
+    private readonly Dictionary<int, string> _keyOf = [];
+    private readonly Dictionary<string, MatchProposal> _ready = new(StringComparer.Ordinal);
+    private readonly SortedSet<string> _readyOrder = new(StringComparer.Ordinal);
+    private MatchWorkspace? _indexed;
+
     public override string PassId => passId;
 
     public override PassCardinality Cardinality => PassCardinality.OneToOne;
 
     public override int MaxGroup => maxGroup;
+
+    public override void BuildIndex(MatchWorkspace workspace, MatchCounters counters)
+    {
+        _indexed = workspace;
+        counters.IndexBuilds++;
+        foreach (var index in workspace.Free)
+        {
+            var key = MatchKeys.Compose(workspace.Items[index], fields, workspace.Schema);
+            if (key is null)
+                continue;
+            var side = workspace.Items[index].Side == Side.Left ? _left : _right;
+            if (!side.TryGetValue(key, out var members))
+            {
+                members = [];
+                side[key] = members;
+            }
+
+            members.Add(index);
+            _keyOf[index] = key;
+        }
+
+        foreach (var key in _left.Keys.Union(_right.Keys, StringComparer.Ordinal))
+            Refresh(key);
+    }
+
+    public override MatchProposal? NextReady()
+    {
+        if (_readyOrder.Count == 0)
+            return null;
+        var key = _readyOrder.Min;
+        return key is null ? null : _ready[key];
+    }
+
+    public override void Release(IReadOnlyCollection<int> taken, MatchCounters counters)
+    {
+        var dirty = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var index in taken)
+        {
+            if (!_keyOf.TryGetValue(index, out var key))
+                continue;
+            dirty.Add(key);
+            (_indexed!.Items[index].Side == Side.Left ? _left : _right)[key].Remove(index);
+            _keyOf.Remove(index);
+        }
+
+        foreach (var key in dirty)
+            Refresh(key);
+    }
 
     public override void Propose(in PassContext context, ProposalSink sink)
     {
@@ -216,9 +300,42 @@ internal sealed class PairPass(string passId, IReadOnlyList<string> fields, bool
     }
 
     public override IReadOnlyList<ResidueCluster> Residue(MatchWorkspace workspace) =>
-        [.. Eligible(workspace, veto)
-            .Where(bucket => bucket.Left.Length > 0 && bucket.Right.Length > 0 && (bucket.Left.Length > 1 || bucket.Right.Length > 1))
-            .Select(bucket => new ResidueCluster(Alignment.Ambiguous, null, passId, Rows(workspace, [.. bucket.Left, .. bucket.Right])))];
+        _indexed is null
+            ? [.. Eligible(workspace, veto)
+                .Where(bucket => bucket.Left.Length > 0 && bucket.Right.Length > 0 && (bucket.Left.Length > 1 || bucket.Right.Length > 1))
+                .Select(bucket => new ResidueCluster(Alignment.Ambiguous, null, passId, Rows(workspace, [.. bucket.Left, .. bucket.Right])))]
+            : [.. _left.Keys.Union(_right.Keys, StringComparer.Ordinal).OrderBy(key => key, StringComparer.Ordinal).Select(IndexedResidue).OfType<ResidueCluster>()];
+
+    private ResidueCluster? IndexedResidue(string key)
+    {
+        var (left, right) = Sides(key);
+        return left.Length > 0 && right.Length > 0 && (left.Length != 1 || right.Length != 1)
+            ? new ResidueCluster(Alignment.Ambiguous, null, passId, Rows(_indexed!, [.. left.OrderBy(index => index), .. right.OrderBy(index => index)]))
+            : null;
+    }
+
+    private void Refresh(string key)
+    {
+        _ready.Remove(key);
+        _readyOrder.Remove(key);
+        var (left, right) = Sides(key);
+        if (left.Length != 1 || right.Length != 1)
+            return;
+        _ready[key] = new MatchProposal([left[0]], [right[0]], key);
+        _readyOrder.Add(key);
+    }
+
+    private (int[] Left, int[] Right) Sides(string key)
+    {
+        var left = _left.TryGetValue(key, out var leftMembers) ? leftMembers : [];
+        var right = _right.TryGetValue(key, out var rightMembers) ? rightMembers : [];
+        var eligibleLeft = left.Where(index => right.Any(other => !veto || !Veto(index, other))).OrderBy(index => index).ToArray();
+        var eligibleRight = right.Where(index => left.Any(other => !veto || !Veto(other, index))).OrderBy(index => index).ToArray();
+        return (eligibleLeft, eligibleRight);
+    }
+
+    private bool Veto(int left, int right) =>
+        MatchKeys.Vetoed(_indexed!.Items[left], _indexed.Items[right], _indexed.SharedField, _indexed.Schema);
 
     private IEnumerable<Bucket> Eligible(MatchWorkspace workspace, bool applyVeto) =>
         workspace.Free
@@ -245,11 +362,65 @@ internal sealed class PairPass(string passId, IReadOnlyList<string> fields, bool
 
 internal sealed class GroupPass(string passId, IReadOnlyList<string> block, IReadOnlyList<string> conserve, Side many, int maxGroup) : CascadePass
 {
+    private readonly Dictionary<string, HashSet<int>> _blocks = new(StringComparer.Ordinal);
+    private readonly Dictionary<int, string> _blockOf = [];
+    private readonly Dictionary<string, Decision[]> _decisions = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, List<ReadyProposal>> _ready = new(StringComparer.Ordinal);
+    private readonly SortedSet<string> _readyOrder = new(StringComparer.Ordinal);
+    private MatchWorkspace? _indexed;
+
     public override string PassId => passId;
 
     public override PassCardinality Cardinality => many == Side.Left ? PassCardinality.ManyToOne : PassCardinality.OneToMany;
 
     public override int MaxGroup => maxGroup;
+
+    public override void BuildIndex(MatchWorkspace workspace, MatchCounters counters)
+    {
+        _indexed = workspace;
+        counters.IndexBuilds++;
+        foreach (var index in workspace.Free)
+        {
+            var key = MatchKeys.Compose(workspace.Items[index], block, workspace.Schema);
+            if (key is null)
+                continue;
+            if (!_blocks.TryGetValue(key, out var members))
+            {
+                members = [];
+                _blocks[key] = members;
+            }
+
+            members.Add(index);
+            _blockOf[index] = key;
+        }
+
+        foreach (var key in _blocks.Keys.ToArray())
+            Evaluate(key, counters, false);
+    }
+
+    public override MatchProposal? NextReady()
+    {
+        if (_readyOrder.Count == 0)
+            return null;
+        var key = _readyOrder.Min;
+        return key is null ? null : _ready[key][0].Proposal;
+    }
+
+    public override void Release(IReadOnlyCollection<int> taken, MatchCounters counters)
+    {
+        var dirty = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var index in taken)
+        {
+            if (!_blockOf.TryGetValue(index, out var key))
+                continue;
+            dirty.Add(key);
+            _blocks[key].Remove(index);
+            _blockOf.Remove(index);
+        }
+
+        foreach (var key in dirty)
+            Evaluate(key, counters, true);
+    }
 
     public override void Propose(in PassContext context, ProposalSink sink)
     {
@@ -259,33 +430,87 @@ internal sealed class GroupPass(string passId, IReadOnlyList<string> block, IRea
     }
 
     public override IReadOnlyList<ResidueCluster> Residue(MatchWorkspace workspace) =>
-        [.. Components(workspace).SelectMany(component => Clusters(component, workspace))];
+        _indexed is null
+            ? [.. Components(workspace).SelectMany(component => Clusters(component, workspace))]
+            : [.. _decisions.SelectMany(pair => pair.Value.SelectMany(decision => FromDecision(decision, _indexed)))];
 
     private IEnumerable<MatchProposal> Proposals(Component component, MatchWorkspace workspace) =>
-        Decide(component, workspace) switch
+        Decide(component, workspace, null, false) switch
         {
             { Kind: DecisionKind.Commit } decision => decision.Commits,
             _ => [],
         };
 
-    private IEnumerable<ResidueCluster> Clusters(Component component, MatchWorkspace workspace) =>
-        Decide(component, workspace) switch
+    private void Evaluate(string key, MatchCounters counters, bool dirty)
+    {
+        Drop(key);
+        if (!_blocks.TryGetValue(key, out var members) || members.Count == 0)
         {
-            { Kind: DecisionKind.Contest } decision => [new ResidueCluster(Alignment.Ambiguous, null, passId, Rows(workspace, decision.Contest))],
-            { Kind: DecisionKind.Incomplete } decision => [new ResidueCluster(Alignment.SearchIncomplete, decision.Code, passId, Rows(workspace, decision.Incomplete))],
-            { Kind: DecisionKind.Split } decision =>
-            [
-                new ResidueCluster(Alignment.Ambiguous, null, passId, Rows(workspace, decision.Contest)),
-                new ResidueCluster(Alignment.SearchIncomplete, decision.Code, passId, Rows(workspace, decision.Incomplete)),
-            ],
-            _ => [],
-        };
+            _decisions.Remove(key);
+            _blocks.Remove(key);
+            return;
+        }
 
-    private Decision Decide(Component component, MatchWorkspace workspace)
+        var items = members.OrderBy(index => index).Select(index => _indexed!.Items[index]).ToArray();
+        var components = Couple(items, _indexed!).ToArray();
+        var decisions = new Decision[components.Length];
+        for (var index = 0; index < components.Length; index++)
+        {
+            counters.Components++;
+            decisions[index] = Decide(components[index], _indexed!, counters, dirty);
+            if (decisions[index].Kind != DecisionKind.Commit)
+                continue;
+            foreach (var proposal in decisions[index].Commits)
+                Add(key, proposal);
+        }
+
+        _decisions[key] = decisions;
+    }
+
+    private void Add(string blockKey, MatchProposal proposal)
+    {
+        if (!_ready.TryGetValue(proposal.Key, out var list))
+        {
+            list = [];
+            _ready[proposal.Key] = list;
+            _readyOrder.Add(proposal.Key);
+        }
+
+        list.Add(new ReadyProposal(proposal, blockKey));
+    }
+
+    private void Drop(string blockKey)
+    {
+        foreach (var key in _ready.Keys.ToArray())
+        {
+            _ready[key].RemoveAll(ready => ready.Block == blockKey);
+            if (_ready[key].Count > 0)
+                continue;
+            _ready.Remove(key);
+            _readyOrder.Remove(key);
+        }
+    }
+
+    private IEnumerable<ResidueCluster> FromDecision(Decision decision, MatchWorkspace workspace) => decision.Kind switch
+    {
+        DecisionKind.Contest => [new ResidueCluster(Alignment.Ambiguous, null, passId, Rows(workspace, decision.Contest))],
+        DecisionKind.Incomplete => [new ResidueCluster(Alignment.SearchIncomplete, decision.Code, passId, Rows(workspace, decision.Incomplete))],
+        DecisionKind.Split =>
+        [
+            new ResidueCluster(Alignment.Ambiguous, null, passId, Rows(workspace, decision.Contest)),
+            new ResidueCluster(Alignment.SearchIncomplete, decision.Code, passId, Rows(workspace, decision.Incomplete)),
+        ],
+        _ => [],
+    };
+
+    private IEnumerable<ResidueCluster> Clusters(Component component, MatchWorkspace workspace) =>
+        FromDecision(Decide(component, workspace, null, false), workspace);
+
+    private Decision Decide(Component component, MatchWorkspace workspace, MatchCounters? counters, bool dirty)
     {
         if (component.Targets.Length > workspace.Limits.MaxTargetsPerComponent || component.Eligible.Length > workspace.Limits.MaxBlockItems)
             return Decision.Blocked([.. component.Targets, .. component.Eligible]);
-        var searches = component.Targets.Select(target => (Target: target, Search: Search(target, component, workspace))).ToArray();
+        var searches = component.Targets.Select(target => (Target: target, Search: Search(target, component, workspace, counters, dirty))).ToArray();
         var overlap = searches.Where(pair => pair.Search.State == SearchState.Unique).Select(pair => pair.Search.DrawnItems).ToArray();
         var shared = overlap.SelectMany(items => items).GroupBy(item => item).Any(group => group.Count() > 1);
         var contest = searches.Any(pair => pair.Search.State == SearchState.Contest) || shared;
@@ -306,11 +531,18 @@ internal sealed class GroupPass(string passId, IReadOnlyList<string> block, IRea
             ? new MatchProposal(drawn, [target], Key(target, workspace))
             : new MatchProposal([target], drawn, Key(target, workspace));
 
-    private TargetSearch Search(int target, Component component, MatchWorkspace workspace)
+    private TargetSearch Search(int target, Component component, MatchWorkspace workspace, MatchCounters? counters, bool dirty)
     {
         var targetValues = Conserved(workspace.Items[target].Row.Context);
         if (targetValues is null)
             return new TargetSearch(SearchState.None, []);
+        if (counters is not null)
+        {
+            counters.SubsetSearches++;
+            if (dirty)
+                counters.DirtyResearches++;
+        }
+
         var classes = EligibleFor(target, component)
             .Select(index => workspace.Items[index])
             .Select(item => (Item: item, Values: Conserved(item.Row.Context)))
@@ -320,7 +552,7 @@ internal sealed class GroupPass(string passId, IReadOnlyList<string> block, IRea
             .OrderByDescending(cls => cls.Values[0])
             .ThenBy(cls => string.Join('\u001f', cls.Values.Select(value => value.ToString(CultureInfo.InvariantCulture))), StringComparer.Ordinal)
             .ToArray();
-        return SubsetSearch.Search(classes, targetValues, workspace.MaxGroupSize, workspace.Limits.MaxNodesPerTarget, workspace.Cancellation);
+        return SubsetSearch.Search(classes, targetValues, maxGroup, workspace.Limits.MaxNodesPerTarget, workspace.Cancellation);
     }
 
     private decimal[]? Conserved(RowContext row)
@@ -378,6 +610,8 @@ internal sealed class GroupPass(string passId, IReadOnlyList<string> block, IRea
 
     private static IReadOnlyList<ConsolidatedRow> Rows(MatchWorkspace workspace, IEnumerable<int> indexes) =>
         [.. indexes.Distinct().Select(index => workspace.Items[index].Row)];
+
+    private sealed record ReadyProposal(MatchProposal Proposal, string Block);
 
     private sealed record Component(int[] Targets, int[] Eligible, Dictionary<int, int[]> ByTarget);
 
