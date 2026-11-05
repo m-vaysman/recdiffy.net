@@ -139,3 +139,7 @@ Compile the profile once, then pass the compiled profile to reconciliation runs.
 | [docs/ARCHITECTURE-SPEC.md](docs/ARCHITECTURE-SPEC.md) | Detailed architecture and intended behavior; verify version-sensitive details against the code |
 
 See the [Architecture Overview](https://github.com/m-vaysman/recdiffy.net/wiki/Architecture-Overview) for more background.
+
+## License
+
+RecDiffy.NET is licensed under the [MIT License](../LICENSE).
