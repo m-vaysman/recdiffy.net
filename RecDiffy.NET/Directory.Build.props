@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>Copyright (c) 2026 Michael Vaysman</Copyright>
+  </PropertyGroup>
+</Project>
