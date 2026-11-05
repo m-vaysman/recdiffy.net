@@ -79,6 +79,16 @@ internal static class MatchKeys
             };
 
     private static bool IsShared(string scheme) => scheme is not "broker";
+
+    public readonly record struct SharedClaim(bool Wildcard, string? Value);
+
+    public static SharedClaim Claim(RowContext row, string? sharedField, IReadOnlyDictionary<string, FieldDeclaration> schema)
+    {
+        if (sharedField is null || schema.TryGetValue(sharedField, out var field) is false)
+            return new(true, null);
+        var (scheme, value) = Identity(row, field);
+        return scheme is null || value is null || IsShared(scheme) is false ? new(true, null) : new(false, value);
+    }
 }
 
 internal static class CascadeMatcher
@@ -493,6 +503,7 @@ internal sealed record GroupIndex(
         var current = index;
         foreach (var key in keys)
         {
+            index.Workspace.Cancellation.ThrowIfCancellationRequested();
             var evaluated = current.Evaluate(key, counters, dirty);
             current = evaluated.Index;
             counters = evaluated.Counters;
@@ -625,24 +636,131 @@ internal sealed record GroupIndex(
 
     private IEnumerable<Component> Couple(IReadOnlyList<ActiveItem> blockItems)
     {
+        Workspace.Cancellation.ThrowIfCancellationRequested();
         var targets = blockItems.Where(item => item.Side != Many).Select(item => item.Index).OrderBy(index => index).ToArray();
         var manyItems = blockItems.Where(item => item.Side == Many).Select(item => item.Index).ToArray();
-        var eligible = targets.ToImmutableDictionary(target => target, target => manyItems.Where(item => Veto(target, item) is false).ToArray());
-        return targets.Aggregate(
-            ImmutableList<int[]>.Empty,
-            (components, target) =>
-            {
-                var joined = components.Where(component => component.Any(other => eligible[target].Intersect(eligible[other]).Any())).ToArray();
-                var kept = components.Where(component => joined.Contains(component) is false);
-                var merged = joined.SelectMany(component => component).Append(target).Distinct().ToArray();
-                return kept.Append(merged).ToImmutableList();
-            }).Select(group => new Component(group, [.. group.SelectMany(target => eligible[target]).Distinct()], eligible));
+        var census = Census.Collect(manyItems, ClaimOf, Workspace.Cancellation);
+        return targets.Aggregate(ImmutableList<Draft>.Empty, (components, target) => Merge(components, target, census))
+            .Select(draft => Finish(draft, census));
     }
 
-    private bool Veto(int target, int item) =>
-        Workspace.Items[target].Side is Side.Left
-            ? MatchKeys.Vetoed(Workspace.Items[target], Workspace.Items[item], Workspace.SharedField, Workspace.Schema)
-            : MatchKeys.Vetoed(Workspace.Items[item], Workspace.Items[target], Workspace.SharedField, Workspace.Schema);
+    private MatchKeys.SharedClaim ClaimOf(int index) =>
+        MatchKeys.Claim(Workspace.Items[index].Row.Context, Workspace.SharedField, Workspace.Schema);
+
+    private ImmutableList<Draft> Merge(ImmutableList<Draft> components, int target, Census census)
+    {
+        Workspace.Cancellation.ThrowIfCancellationRequested();
+        var claim = ClaimOf(target);
+        var joined = components.Where(component => Intersects(component, claim, census)).ToArray();
+        var kept = components.Where(component => joined.Contains(component) is false);
+        var values = joined.Aggregate(
+            claim.Wildcard || claim.Value is null ? ImmutableHashSet.Create<string>(StringComparer.Ordinal) : ImmutableHashSet.Create(StringComparer.Ordinal, claim.Value),
+            (set, component) => set.Union(component.Values));
+        var merged = new Draft(
+            [.. joined.SelectMany(component => component.Targets), target],
+            claim.Wildcard || joined.Any(component => component.WildcardTarget),
+            values);
+        return [.. kept, merged];
+    }
+
+    private static bool Intersects(Draft draft, MatchKeys.SharedClaim claim, Census census) =>
+        NonEmpty(claim, census) && Occupied(draft, census) && (draft.WildcardTarget || claim.Wildcard || census.Wildcards.Length > 0 || (claim.Value is { } value && draft.Values.Contains(value) && census.Has(value)));
+
+    private static bool Occupied(Draft draft, Census census) =>
+        (draft.WildcardTarget && census.Many.Length > 0) || census.Wildcards.Length > 0 || draft.Values.Any(census.Has);
+
+    private static bool NonEmpty(MatchKeys.SharedClaim claim, Census census) =>
+        claim.Wildcard ? census.Many.Length > 0 : census.Wildcards.Length > 0 || (claim.Value is { } value && census.Has(value));
+
+    private Component Finish(Draft draft, Census census)
+    {
+        var eligible = Union(draft, census);
+        var blocked = draft.Targets.Length > Workspace.Limits.MaxTargetsPerComponent || eligible.Length > Workspace.Limits.MaxBlockItems;
+        return new Component(
+            draft.Targets,
+            eligible,
+            blocked ? ImmutableDictionary<int, int[]>.Empty : draft.Targets.ToImmutableDictionary(target => target, target => ListFor(ClaimOf(target), census)));
+    }
+
+    private int[] Union(Draft draft, Census census)
+    {
+        var seen = new HashSet<int>();
+        var result = new List<int>();
+        var emitted = new HashSet<string>(StringComparer.Ordinal);
+        var covered = false;
+        foreach (var target in draft.Targets)
+        {
+            Workspace.Cancellation.ThrowIfCancellationRequested();
+            var claim = ClaimOf(target);
+            if (claim.Wildcard)
+            {
+                if (covered)
+                    continue;
+                foreach (var item in census.Many)
+                    if (seen.Add(item))
+                        result.Add(item);
+                covered = true;
+                continue;
+            }
+
+            if (covered || claim.Value is not { } value || emitted.Add(value) is false)
+                continue;
+            foreach (var item in census.For(value))
+                if (seen.Add(item))
+                    result.Add(item);
+        }
+
+        return [.. result];
+    }
+
+    private static int[] ListFor(MatchKeys.SharedClaim claim, Census census) =>
+        claim.Wildcard ? census.Many : claim.Value is { } value ? census.For(value) : [];
+
+    private sealed record Draft(int[] Targets, bool WildcardTarget, ImmutableHashSet<string> Values);
+
+    private sealed record Census(int[] Many, int[] Wildcards, ImmutableDictionary<string, int[]> Buckets)
+    {
+        public bool Has(string value) => Buckets.TryGetValue(value, out var rows) && rows.Length > 0;
+
+        public int[] For(string value) => Merge(Wildcards, Buckets.GetValueOrDefault(value) ?? []);
+
+        public static Census Collect(int[] many, Func<int, MatchKeys.SharedClaim> claim, CancellationToken cancellation)
+        {
+            var wildcards = new List<int>();
+            var buckets = new Dictionary<string, List<int>>(StringComparer.Ordinal);
+            foreach (var item in many)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                var row = claim(item);
+                if (row.Wildcard)
+                {
+                    wildcards.Add(item);
+                    continue;
+                }
+
+                if (buckets.TryGetValue(row.Value!, out var list) is false)
+                    buckets[row.Value!] = list = [];
+                list.Add(item);
+            }
+
+            return new(many, [.. wildcards], buckets.ToImmutableDictionary(pair => pair.Key, pair => pair.Value.ToArray(), StringComparer.Ordinal));
+        }
+
+        private static int[] Merge(int[] left, int[] right)
+        {
+            var merged = new int[left.Length + right.Length];
+            var i = 0;
+            var j = 0;
+            var n = 0;
+            while (i < left.Length && j < right.Length)
+                merged[n++] = left[i] <= right[j] ? left[i++] : right[j++];
+            while (i < left.Length)
+                merged[n++] = left[i++];
+            while (j < right.Length)
+                merged[n++] = right[j++];
+            return merged;
+        }
+    }
 
     private static int[] EligibleFor(int target, Component component) => component.ByTarget[target];
 

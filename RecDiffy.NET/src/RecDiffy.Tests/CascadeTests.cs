@@ -165,6 +165,132 @@ public class CascadeTests
     }
 
     [Fact]
+    public void Keeps_each_target_separate_when_the_many_side_is_empty()
+    {
+        var report = Group([], [Row("R1", Side.Right, null), Row("R2", Side.Right, null), Row("R3", Side.Right, null)], Blocked);
+
+        Assert.Equal([["R1"], ["R2"], ["R3"]], BlockedKeys(report));
+    }
+
+    [Fact]
+    public void Glues_every_target_when_a_many_side_row_is_a_wildcard()
+    {
+        var report = Group([Row("L", Side.Left, null)], [Row("R1", Side.Right, "A"), Row("R2", Side.Right, "B")], Blocked);
+
+        Assert.Equal([["R1", "R2", "L"]], BlockedKeys(report));
+    }
+
+    [Fact]
+    public void Lets_a_wildcard_target_bridge_nonempty_buckets_and_leaves_an_empty_bucket_apart()
+    {
+        var report = Group(
+            [Row("LA", Side.Left, "A"), Row("LB", Side.Left, "B")],
+            [Row("RA", Side.Right, "A"), Row("RB", Side.Right, "B"), Row("RW", Side.Right, null), Row("RZ", Side.Right, "Z")],
+            Blocked);
+
+        Assert.Equal([["RA", "RB", "RW", "LA", "LB"], ["RZ"]], BlockedKeys(report));
+    }
+
+    [Fact]
+    public void Treats_the_same_value_under_different_schemes_as_one_bucket()
+    {
+        var report = Group(
+            [Row("L", Side.Left, "X", "CUSIP")],
+            [Row("R", Side.Right, "X", "ISIN")],
+            Blocked);
+
+        Assert.Equal([["R", "L"]], BlockedKeys(report));
+    }
+
+    [Fact]
+    public void Keeps_different_values_apart_when_nothing_is_a_wildcard()
+    {
+        var report = Group(
+            [Row("LA", Side.Left, "A"), Row("LB", Side.Left, "B")],
+            [Row("RA", Side.Right, "A"), Row("RB", Side.Right, "B")],
+            Blocked);
+
+        Assert.Equal([["RA", "LA"], ["RB", "LB"]], BlockedKeys(report));
+    }
+
+    [Fact]
+    public void Treats_a_broker_many_side_row_and_a_broker_target_as_wildcards()
+    {
+        var many = Group([Row("L", Side.Left, "NOPE", "broker")], [Row("R1", Side.Right, "A"), Row("R2", Side.Right, "B")], Blocked);
+        var target = Group(
+            [Row("LA", Side.Left, "A"), Row("LB", Side.Left, "B")],
+            [Row("RW", Side.Right, "WHATEVER", "broker")],
+            Blocked);
+
+        Assert.Equal([["R1", "R2", "L"]], BlockedKeys(many));
+        Assert.Equal([["RW", "LA", "LB"]], BlockedKeys(target));
+    }
+
+    [Fact]
+    public void Leaves_targets_with_an_empty_bucket_in_separate_components()
+    {
+        var report = Group(
+            [Row("LB", Side.Left, "B")],
+            [Row("RA1", Side.Right, "A"), Row("RA2", Side.Right, "A")],
+            Blocked);
+
+        Assert.Equal([["RA1"], ["RA2"]], BlockedKeys(report));
+    }
+
+    [Fact]
+    public void Does_not_search_a_component_over_either_limit_and_keeps_residue_order()
+    {
+        var left = Enumerable.Range(0, 4).Select(index => Row($"L{index}", Side.Left, null, quantity: 1m, cash: 1m)).ToArray();
+        var report = Group(left, [Row("R", Side.Right, null, quantity: 4m, cash: 4m)], SearchLimits.Default with { MaxBlockItems = 3 });
+
+        Assert.Empty(report.Committed);
+        Assert.Equal(0, report.Counters.SubsetSearches);
+        Assert.Equal([["R", "L0", "L1", "L2", "L3"]], BlockedKeys(report));
+    }
+
+    [Fact]
+    public void Commits_the_small_components_inside_a_block_that_is_over_the_raw_limit()
+    {
+        var report = Group(
+            [
+                Row("A1", Side.Left, "A", quantity: 2m, cash: 2m),
+                Row("A2", Side.Left, "A", quantity: 3m, cash: 3m),
+                Row("B1", Side.Left, "B", quantity: 1m, cash: 1m),
+                Row("B2", Side.Left, "B", quantity: 4m, cash: 4m),
+            ],
+            [
+                Row("RA", Side.Right, "A", quantity: 5m, cash: 5m),
+                Row("RB", Side.Right, "B", quantity: 5m, cash: 5m),
+            ],
+            SearchLimits.Default with { MaxBlockItems = 3 });
+
+        Assert.Equal(2, report.Committed.Count);
+        Assert.Equal(["A1", "A2"], report.Committed.Single(match => match.Right[0].Context.RowKey == "RA").Left.Select(row => row.Context.RowKey).OrderBy(key => key, StringComparer.Ordinal));
+        Assert.Equal(["B1", "B2"], report.Committed.Single(match => match.Right[0].Context.RowKey == "RB").Left.Select(row => row.Context.RowKey).OrderBy(key => key, StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void Blocks_the_whole_component_when_a_wildcard_merges_it_over_the_limit()
+    {
+        var left = Enumerable.Range(0, 4).Select(index => Row($"L{index}", Side.Left, null)).ToArray();
+        var report = Group(left, [Row("R1", Side.Right, "A"), Row("R2", Side.Right, "B")], SearchLimits.Default with { MaxBlockItems = 3 });
+
+        Assert.Empty(report.Committed);
+        Assert.Equal(0, report.Counters.SubsetSearches);
+        Assert.Equal([["R1", "R2", "L0", "L1", "L2", "L3"]], BlockedKeys(report));
+    }
+
+    [Fact]
+    public void Throws_when_the_block_is_built_after_cancellation()
+    {
+        using var source = new CancellationTokenSource();
+        source.Cancel();
+
+        Assert.ThrowsAny<OperationCanceledException>(() =>
+            CascadeMatcher.Run([Row("L", Side.Left, null)], [Row("R", Side.Right, null)], [Passes[2]], Fields, SearchLimits.Default, source.Token));
+    }
+
+    [Fact]
     public void Keeps_a_solution_incomplete_when_the_node_budget_expires()
     {
         var classes = new ConservedClass[]
@@ -287,10 +413,21 @@ public class CascadeTests
         return (left, right);
     }
 
+    private static readonly SearchLimits Blocked = SearchLimits.Default with { MaxTargetsPerComponent = 0 };
+
     private static MatchReport Run(IReadOnlyList<ConsolidatedRow> left, IReadOnlyList<ConsolidatedRow> right, SearchLimits? limits = null) =>
         CascadeMatcher.Run(left, right, Passes, Fields, limits ?? SearchLimits.Default);
 
-    private static ConsolidatedRow Trade(string id, Side side, string party, string instrument, decimal quantity, decimal price, decimal cash, string? tradeRef)
+    private static MatchReport Group(IReadOnlyList<ConsolidatedRow> left, IReadOnlyList<ConsolidatedRow> right, SearchLimits limits) =>
+        CascadeMatcher.Run(left, right, [Passes[2]], Fields, limits);
+
+    private static string[][] BlockedKeys(MatchReport report) =>
+        [.. report.Residue.Where(cluster => cluster.Code == "BlockTooLarge").Select(cluster => cluster.Rows.Select(row => row.Context.RowKey).ToArray())];
+
+    private static ConsolidatedRow Row(string id, Side side, string? tradeRef, string scheme = "shared", decimal quantity = 1m, decimal cash = 1m) =>
+        Trade(id, side, "JPM", "US1", quantity, 10m, cash, tradeRef, scheme);
+
+    private static ConsolidatedRow Trade(string id, Side side, string party, string instrument, decimal quantity, decimal price, decimal cash, string? tradeRef, string scheme = "shared")
     {
         var row = RowContext.Create(id, side, new Dictionary<string, object?>(StringComparer.Ordinal));
         row = Symbol(row, "Counterparty", party);
@@ -301,7 +438,7 @@ public class CascadeTests
         row = row.Write("Price", CanonicalCell.FromDecimal(price), "test", null, null);
         row = row.Write("NetCash", CanonicalCell.FromDecimal(cash), "test", null, null);
         if (tradeRef is not null)
-            row = Identifier(row, "TradeRef", "shared", tradeRef);
+            row = Identifier(row, "TradeRef", scheme, tradeRef);
         return new ConsolidatedRow([new SourceRef(side == Side.Left ? "left" : "right", id, 0)], row, false, null, null);
     }
 
