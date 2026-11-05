@@ -1,0 +1,1 @@
+I'll build a deterministic reconciliation dataset and validate the row counts, economic pairings, and street-noise rules before writing the Excel workbook and JSON oracle. Checking the environment, then generating both files.

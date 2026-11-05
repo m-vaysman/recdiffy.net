@@ -1,0 +1,2238 @@
+{
+  "metadata": {
+    "generator": "RecDiffy trade reconciliation test dataset generator",
+    "seed": 20260618,
+    "base_trade_date": "2026-06-18",
+    "expected_counts": {
+      "internal_trades": 300,
+      "counterparty_trades": 200,
+      "known_exact_match_pairs": 120,
+      "blind_internal_rows": 180,
+      "blind_counterparty_rows": 80,
+      "scenario_counts": {
+        "within_tolerance_near_matches": 18,
+        "true_economic_field_breaks": 20,
+        "n_to_1_allocation_splits": {
+          "groups": 12,
+          "internal_rows": 36,
+          "counterparty_rows": 12
+        },
+        "multi_leg_swap_fx_representation": {
+          "groups": 8,
+          "internal_rows": 16,
+          "counterparty_rows": 8
+        },
+        "cancel_correct_lifecycle_chains": {
+          "chains": 5,
+          "internal_rows": 5,
+          "counterparty_rows": 15
+        },
+        "unmatched_internal_orphans": 85,
+        "unmatched_counterparty_alleged_trades": 7
+      }
+    }
+  },
+  "known_exact_matches": [
+    {
+      "internal_trade_id": "INT-000001",
+      "cpty_report_id": "CPTY-000001",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "us_treasury_32nds_pricing",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000002",
+      "cpty_report_id": "CPTY-000002",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "us_treasury_32nds_pricing",
+        "security_id_source:SEDOL"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000003",
+      "cpty_report_id": "CPTY-000003",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "shared_exec_id_present",
+        "us_treasury_32nds_pricing",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000004",
+      "cpty_report_id": "CPTY-000004",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "us_treasury_32nds_pricing",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000005",
+      "cpty_report_id": "CPTY-000005",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "us_treasury_32nds_pricing",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000006",
+      "cpty_report_id": "CPTY-000006",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "us_treasury_32nds_pricing",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000007",
+      "cpty_report_id": "CPTY-000007",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "shared_exec_id_present",
+        "us_treasury_32nds_pricing",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000008",
+      "cpty_report_id": "CPTY-000008",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "missing_shared_exec_id",
+        "us_treasury_32nds_pricing",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000009",
+      "cpty_report_id": "CPTY-000009",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "us_treasury_32nds_pricing",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000010",
+      "cpty_report_id": "CPTY-000010",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "us_treasury_32nds_pricing",
+        "security_id_source:SEDOL"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000011",
+      "cpty_report_id": "CPTY-000011",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "shared_exec_id_present",
+        "us_treasury_32nds_pricing",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000012",
+      "cpty_report_id": "CPTY-000012",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "us_treasury_32nds_pricing",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000013",
+      "cpty_report_id": "CPTY-000013",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "dirty_price_quote",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000014",
+      "cpty_report_id": "CPTY-000014",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "dirty_price_quote",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000015",
+      "cpty_report_id": "CPTY-000015",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "shared_exec_id_present",
+        "dirty_price_quote",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000016",
+      "cpty_report_id": "CPTY-000016",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "missing_shared_exec_id",
+        "dirty_price_quote",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000017",
+      "cpty_report_id": "CPTY-000017",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "dirty_price_quote",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000018",
+      "cpty_report_id": "CPTY-000018",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "dirty_price_quote",
+        "security_id_source:SEDOL"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000019",
+      "cpty_report_id": "CPTY-000019",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "shared_exec_id_present",
+        "dirty_price_quote",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000020",
+      "cpty_report_id": "CPTY-000020",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "dirty_price_quote",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000021",
+      "cpty_report_id": "CPTY-000021",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000022",
+      "cpty_report_id": "CPTY-000022",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000023",
+      "cpty_report_id": "CPTY-000023",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000024",
+      "cpty_report_id": "CPTY-000024",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000025",
+      "cpty_report_id": "CPTY-000025",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000026",
+      "cpty_report_id": "CPTY-000026",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:SEDOL"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000027",
+      "cpty_report_id": "CPTY-000027",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000028",
+      "cpty_report_id": "CPTY-000028",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000029",
+      "cpty_report_id": "CPTY-000029",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000030",
+      "cpty_report_id": "CPTY-000030",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000031",
+      "cpty_report_id": "CPTY-000031",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000032",
+      "cpty_report_id": "CPTY-000032",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000033",
+      "cpty_report_id": "CPTY-000033",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000034",
+      "cpty_report_id": "CPTY-000034",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:SEDOL"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000035",
+      "cpty_report_id": "CPTY-000035",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000036",
+      "cpty_report_id": "CPTY-000036",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000037",
+      "cpty_report_id": "CPTY-000037",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000038",
+      "cpty_report_id": "CPTY-000038",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000039",
+      "cpty_report_id": "CPTY-000039",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000040",
+      "cpty_report_id": "CPTY-000040",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000041",
+      "cpty_report_id": "CPTY-000041",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000042",
+      "cpty_report_id": "CPTY-000042",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:SEDOL"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000043",
+      "cpty_report_id": "CPTY-000043",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000044",
+      "cpty_report_id": "CPTY-000044",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000045",
+      "cpty_report_id": "CPTY-000045",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000046",
+      "cpty_report_id": "CPTY-000046",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000047",
+      "cpty_report_id": "CPTY-000047",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000048",
+      "cpty_report_id": "CPTY-000048",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000049",
+      "cpty_report_id": "CPTY-000049",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000050",
+      "cpty_report_id": "CPTY-000050",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:SEDOL"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000051",
+      "cpty_report_id": "CPTY-000051",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000052",
+      "cpty_report_id": "CPTY-000052",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000053",
+      "cpty_report_id": "CPTY-000053",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000054",
+      "cpty_report_id": "CPTY-000054",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000055",
+      "cpty_report_id": "CPTY-000055",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000056",
+      "cpty_report_id": "CPTY-000056",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000057",
+      "cpty_report_id": "CPTY-000057",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000058",
+      "cpty_report_id": "CPTY-000058",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:SEDOL"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000059",
+      "cpty_report_id": "CPTY-000059",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000060",
+      "cpty_report_id": "CPTY-000060",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000061",
+      "cpty_report_id": "CPTY-000061",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000062",
+      "cpty_report_id": "CPTY-000062",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000063",
+      "cpty_report_id": "CPTY-000063",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000064",
+      "cpty_report_id": "CPTY-000064",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000065",
+      "cpty_report_id": "CPTY-000065",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000066",
+      "cpty_report_id": "CPTY-000066",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:SEDOL"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000067",
+      "cpty_report_id": "CPTY-000067",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000068",
+      "cpty_report_id": "CPTY-000068",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000069",
+      "cpty_report_id": "CPTY-000069",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:ISIN"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000070",
+      "cpty_report_id": "CPTY-000070",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000071",
+      "cpty_report_id": "CPTY-000071",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "dealer_bilateral_perspective_inversion",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000072",
+      "cpty_report_id": "CPTY-000072",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "dealer_bilateral_perspective_inversion",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000073",
+      "cpty_report_id": "CPTY-000073",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "dealer_bilateral_perspective_inversion",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000074",
+      "cpty_report_id": "CPTY-000074",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "dealer_bilateral_perspective_inversion",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000075",
+      "cpty_report_id": "CPTY-000075",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "dealer_bilateral_perspective_inversion",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000076",
+      "cpty_report_id": "CPTY-000076",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "dealer_bilateral_perspective_inversion",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000077",
+      "cpty_report_id": "CPTY-000077",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "dealer_bilateral_perspective_inversion",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000078",
+      "cpty_report_id": "CPTY-000078",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "dealer_bilateral_perspective_inversion",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000079",
+      "cpty_report_id": "CPTY-000079",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "dealer_bilateral_perspective_inversion",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000080",
+      "cpty_report_id": "CPTY-000080",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "dealer_bilateral_perspective_inversion",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000081",
+      "cpty_report_id": "CPTY-000081",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "dealer_bilateral_perspective_inversion",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000082",
+      "cpty_report_id": "CPTY-000082",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "dealer_bilateral_perspective_inversion",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000083",
+      "cpty_report_id": "CPTY-000083",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "dealer_bilateral_perspective_inversion",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000084",
+      "cpty_report_id": "CPTY-000084",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "dealer_bilateral_perspective_inversion",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000085",
+      "cpty_report_id": "CPTY-000085",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "dealer_bilateral_perspective_inversion",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000086",
+      "cpty_report_id": "CPTY-000086",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000087",
+      "cpty_report_id": "CPTY-000087",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000088",
+      "cpty_report_id": "CPTY-000088",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000089",
+      "cpty_report_id": "CPTY-000089",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000090",
+      "cpty_report_id": "CPTY-000090",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000091",
+      "cpty_report_id": "CPTY-000091",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000092",
+      "cpty_report_id": "CPTY-000092",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000093",
+      "cpty_report_id": "CPTY-000093",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000094",
+      "cpty_report_id": "CPTY-000094",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000095",
+      "cpty_report_id": "CPTY-000095",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000096",
+      "cpty_report_id": "CPTY-000096",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000097",
+      "cpty_report_id": "CPTY-000097",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000098",
+      "cpty_report_id": "CPTY-000098",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000099",
+      "cpty_report_id": "CPTY-000099",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000100",
+      "cpty_report_id": "CPTY-000100",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000101",
+      "cpty_report_id": "CPTY-000101",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000102",
+      "cpty_report_id": "CPTY-000102",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000103",
+      "cpty_report_id": "CPTY-000103",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000104",
+      "cpty_report_id": "CPTY-000104",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000105",
+      "cpty_report_id": "CPTY-000105",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000106",
+      "cpty_report_id": "CPTY-000106",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000107",
+      "cpty_report_id": "CPTY-000107",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000108",
+      "cpty_report_id": "CPTY-000108",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000109",
+      "cpty_report_id": "CPTY-000109",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000110",
+      "cpty_report_id": "CPTY-000110",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000111",
+      "cpty_report_id": "CPTY-000111",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000112",
+      "cpty_report_id": "CPTY-000112",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000113",
+      "cpty_report_id": "CPTY-000113",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000114",
+      "cpty_report_id": "CPTY-000114",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000115",
+      "cpty_report_id": "CPTY-000115",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000116",
+      "cpty_report_id": "CPTY-000116",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000117",
+      "cpty_report_id": "CPTY-000117",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000118",
+      "cpty_report_id": "CPTY-000118",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_lower",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000119",
+      "cpty_report_id": "CPTY-000119",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:words_upper",
+        "shared_exec_id_present",
+        "security_id_source:TICKER"
+      ]
+    },
+    {
+      "internal_trade_id": "INT-000120",
+      "cpty_report_id": "CPTY-000120",
+      "challenges": [
+        "counterparty_naming_drift",
+        "direction_style:unsigned_letter",
+        "missing_shared_exec_id",
+        "security_id_source:TICKER"
+      ]
+    }
+  ],
+  "blind_scenarios": {
+    "within_tolerance_near_matches": [
+      {
+        "internal_trade_id": "INT-000121",
+        "cpty_report_id": "CPTY-000121",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "reported_accrued_int",
+          "difference": 0.62
+        }
+      },
+      {
+        "internal_trade_id": "INT-000122",
+        "cpty_report_id": "CPTY-000122",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "exec_price_rate",
+          "difference": 0.0001
+        }
+      },
+      {
+        "internal_trade_id": "INT-000123",
+        "cpty_report_id": "CPTY-000123",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "net_cash_amount",
+          "difference": 0.01
+        }
+      },
+      {
+        "internal_trade_id": "INT-000124",
+        "cpty_report_id": "CPTY-000124",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "reported_accrued_int",
+          "difference": -1.09
+        }
+      },
+      {
+        "internal_trade_id": "INT-000125",
+        "cpty_report_id": "CPTY-000125",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "exec_price_rate",
+          "difference": -0.0001
+        }
+      },
+      {
+        "internal_trade_id": "INT-000126",
+        "cpty_report_id": "CPTY-000126",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "net_cash_amount",
+          "difference": 0.01
+        }
+      },
+      {
+        "internal_trade_id": "INT-000127",
+        "cpty_report_id": "CPTY-000127",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "reported_accrued_int",
+          "difference": 0.75
+        }
+      },
+      {
+        "internal_trade_id": "INT-000128",
+        "cpty_report_id": "CPTY-000128",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "exec_price_rate",
+          "difference": 0.0001
+        }
+      },
+      {
+        "internal_trade_id": "INT-000129",
+        "cpty_report_id": "CPTY-000129",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "net_cash_amount",
+          "difference": 0.01
+        }
+      },
+      {
+        "internal_trade_id": "INT-000130",
+        "cpty_report_id": "CPTY-000130",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "reported_accrued_int",
+          "difference": 1.07
+        }
+      },
+      {
+        "internal_trade_id": "INT-000131",
+        "cpty_report_id": "CPTY-000131",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "exec_price_rate",
+          "difference": 0.0001
+        }
+      },
+      {
+        "internal_trade_id": "INT-000132",
+        "cpty_report_id": "CPTY-000132",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "net_cash_amount",
+          "difference": 0.01
+        }
+      },
+      {
+        "internal_trade_id": "INT-000133",
+        "cpty_report_id": "CPTY-000133",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "reported_accrued_int",
+          "difference": -0.61
+        }
+      },
+      {
+        "internal_trade_id": "INT-000134",
+        "cpty_report_id": "CPTY-000134",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "exec_price_rate",
+          "difference": 0.0001
+        }
+      },
+      {
+        "internal_trade_id": "INT-000135",
+        "cpty_report_id": "CPTY-000135",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "net_cash_amount",
+          "difference": -0.01
+        }
+      },
+      {
+        "internal_trade_id": "INT-000136",
+        "cpty_report_id": "CPTY-000136",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "reported_accrued_int",
+          "difference": -0.79
+        }
+      },
+      {
+        "internal_trade_id": "INT-000137",
+        "cpty_report_id": "CPTY-000137",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "exec_price_rate",
+          "difference": 0.0001
+        }
+      },
+      {
+        "internal_trade_id": "INT-000138",
+        "cpty_report_id": "CPTY-000138",
+        "scenario": "within_tolerance_near_match",
+        "expected_difference": {
+          "field": "net_cash_amount",
+          "difference": -0.01
+        }
+      }
+    ],
+    "true_economic_field_breaks": [
+      {
+        "internal_trade_id": "INT-000139",
+        "cpty_report_id": "CPTY-000139",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "execution_price_break",
+          "field": "exec_price_rate"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000140",
+        "cpty_report_id": "CPTY-000140",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "partial_fill_quantity_break",
+          "field": "reported_qty_notional"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000141",
+        "cpty_report_id": "CPTY-000141",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "settlement_date_lag",
+          "field": "value_settle_date"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000142",
+        "cpty_report_id": "CPTY-000142",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "commission_break",
+          "field": "net_cash_amount"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000143",
+        "cpty_report_id": "CPTY-000143",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "execution_price_break",
+          "field": "exec_price_rate"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000144",
+        "cpty_report_id": "CPTY-000144",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "partial_fill_quantity_break",
+          "field": "reported_qty_notional"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000145",
+        "cpty_report_id": "CPTY-000145",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "settlement_date_lag",
+          "field": "value_settle_date"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000146",
+        "cpty_report_id": "CPTY-000146",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "commission_break",
+          "field": "net_cash_amount"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000147",
+        "cpty_report_id": "CPTY-000147",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "execution_price_break",
+          "field": "exec_price_rate"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000148",
+        "cpty_report_id": "CPTY-000148",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "partial_fill_quantity_break",
+          "field": "reported_qty_notional"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000149",
+        "cpty_report_id": "CPTY-000149",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "settlement_date_lag",
+          "field": "value_settle_date"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000150",
+        "cpty_report_id": "CPTY-000150",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "commission_break",
+          "field": "net_cash_amount"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000151",
+        "cpty_report_id": "CPTY-000151",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "execution_price_break",
+          "field": "exec_price_rate"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000152",
+        "cpty_report_id": "CPTY-000152",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "partial_fill_quantity_break",
+          "field": "reported_qty_notional"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000153",
+        "cpty_report_id": "CPTY-000153",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "settlement_date_lag",
+          "field": "value_settle_date"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000154",
+        "cpty_report_id": "CPTY-000154",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "commission_break",
+          "field": "net_cash_amount"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000155",
+        "cpty_report_id": "CPTY-000155",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "execution_price_break",
+          "field": "exec_price_rate"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000156",
+        "cpty_report_id": "CPTY-000156",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "partial_fill_quantity_break",
+          "field": "reported_qty_notional"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000157",
+        "cpty_report_id": "CPTY-000157",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "settlement_date_lag",
+          "field": "value_settle_date"
+        }
+      },
+      {
+        "internal_trade_id": "INT-000158",
+        "cpty_report_id": "CPTY-000158",
+        "scenario": "true_economic_field_break",
+        "expected_break": {
+          "break_type": "commission_break",
+          "field": "net_cash_amount"
+        }
+      }
+    ],
+    "n_to_1_allocation_splits": [
+      {
+        "cpty_report_id": "CPTY-000159",
+        "internal_trade_ids": [
+          "INT-000159",
+          "INT-000160",
+          "INT-000161"
+        ],
+        "scenario": "n_to_1_allocation_split",
+        "expected_relation": "sum_of_internal_allocations_to_single_block"
+      },
+      {
+        "cpty_report_id": "CPTY-000160",
+        "internal_trade_ids": [
+          "INT-000162",
+          "INT-000163",
+          "INT-000164"
+        ],
+        "scenario": "n_to_1_allocation_split",
+        "expected_relation": "sum_of_internal_allocations_to_single_block"
+      },
+      {
+        "cpty_report_id": "CPTY-000161",
+        "internal_trade_ids": [
+          "INT-000165",
+          "INT-000166",
+          "INT-000167"
+        ],
+        "scenario": "n_to_1_allocation_split",
+        "expected_relation": "sum_of_internal_allocations_to_single_block"
+      },
+      {
+        "cpty_report_id": "CPTY-000162",
+        "internal_trade_ids": [
+          "INT-000168",
+          "INT-000169",
+          "INT-000170"
+        ],
+        "scenario": "n_to_1_allocation_split",
+        "expected_relation": "sum_of_internal_allocations_to_single_block"
+      },
+      {
+        "cpty_report_id": "CPTY-000163",
+        "internal_trade_ids": [
+          "INT-000171",
+          "INT-000172",
+          "INT-000173"
+        ],
+        "scenario": "n_to_1_allocation_split",
+        "expected_relation": "sum_of_internal_allocations_to_single_block"
+      },
+      {
+        "cpty_report_id": "CPTY-000164",
+        "internal_trade_ids": [
+          "INT-000174",
+          "INT-000175",
+          "INT-000176"
+        ],
+        "scenario": "n_to_1_allocation_split",
+        "expected_relation": "sum_of_internal_allocations_to_single_block"
+      },
+      {
+        "cpty_report_id": "CPTY-000165",
+        "internal_trade_ids": [
+          "INT-000177",
+          "INT-000178",
+          "INT-000179"
+        ],
+        "scenario": "n_to_1_allocation_split",
+        "expected_relation": "sum_of_internal_allocations_to_single_block"
+      },
+      {
+        "cpty_report_id": "CPTY-000166",
+        "internal_trade_ids": [
+          "INT-000180",
+          "INT-000181",
+          "INT-000182"
+        ],
+        "scenario": "n_to_1_allocation_split",
+        "expected_relation": "sum_of_internal_allocations_to_single_block"
+      },
+      {
+        "cpty_report_id": "CPTY-000167",
+        "internal_trade_ids": [
+          "INT-000183",
+          "INT-000184",
+          "INT-000185"
+        ],
+        "scenario": "n_to_1_allocation_split",
+        "expected_relation": "sum_of_internal_allocations_to_single_block"
+      },
+      {
+        "cpty_report_id": "CPTY-000168",
+        "internal_trade_ids": [
+          "INT-000186",
+          "INT-000187",
+          "INT-000188"
+        ],
+        "scenario": "n_to_1_allocation_split",
+        "expected_relation": "sum_of_internal_allocations_to_single_block"
+      },
+      {
+        "cpty_report_id": "CPTY-000169",
+        "internal_trade_ids": [
+          "INT-000189",
+          "INT-000190",
+          "INT-000191"
+        ],
+        "scenario": "n_to_1_allocation_split",
+        "expected_relation": "sum_of_internal_allocations_to_single_block"
+      },
+      {
+        "cpty_report_id": "CPTY-000170",
+        "internal_trade_ids": [
+          "INT-000192",
+          "INT-000193",
+          "INT-000194"
+        ],
+        "scenario": "n_to_1_allocation_split",
+        "expected_relation": "sum_of_internal_allocations_to_single_block"
+      }
+    ],
+    "multi_leg_swap_fx_representation": [
+      {
+        "cpty_report_id": "CPTY-000171",
+        "internal_trade_ids": [
+          "INT-000195",
+          "INT-000196"
+        ],
+        "parent_link_id": "MULTILEG-01",
+        "scenario": "multi_leg_swap_fx_representation",
+        "expected_relation": "two_internal_legs_to_one_counterparty_combined_row"
+      },
+      {
+        "cpty_report_id": "CPTY-000172",
+        "internal_trade_ids": [
+          "INT-000197",
+          "INT-000198"
+        ],
+        "parent_link_id": "MULTILEG-02",
+        "scenario": "multi_leg_swap_fx_representation",
+        "expected_relation": "two_internal_legs_to_one_counterparty_combined_row"
+      },
+      {
+        "cpty_report_id": "CPTY-000173",
+        "internal_trade_ids": [
+          "INT-000199",
+          "INT-000200"
+        ],
+        "parent_link_id": "MULTILEG-03",
+        "scenario": "multi_leg_swap_fx_representation",
+        "expected_relation": "two_internal_legs_to_one_counterparty_combined_row"
+      },
+      {
+        "cpty_report_id": "CPTY-000174",
+        "internal_trade_ids": [
+          "INT-000201",
+          "INT-000202"
+        ],
+        "parent_link_id": "MULTILEG-04",
+        "scenario": "multi_leg_swap_fx_representation",
+        "expected_relation": "two_internal_legs_to_one_counterparty_combined_row"
+      },
+      {
+        "cpty_report_id": "CPTY-000175",
+        "internal_trade_ids": [
+          "INT-000203",
+          "INT-000204"
+        ],
+        "parent_link_id": "MULTILEG-05",
+        "scenario": "multi_leg_swap_fx_representation",
+        "expected_relation": "two_internal_legs_to_one_counterparty_combined_row"
+      },
+      {
+        "cpty_report_id": "CPTY-000176",
+        "internal_trade_ids": [
+          "INT-000205",
+          "INT-000206"
+        ],
+        "parent_link_id": "MULTILEG-06",
+        "scenario": "multi_leg_swap_fx_representation",
+        "expected_relation": "two_internal_legs_to_one_counterparty_combined_row"
+      },
+      {
+        "cpty_report_id": "CPTY-000177",
+        "internal_trade_ids": [
+          "INT-000207",
+          "INT-000208"
+        ],
+        "parent_link_id": "MULTILEG-07",
+        "scenario": "multi_leg_swap_fx_representation",
+        "expected_relation": "two_internal_legs_to_one_counterparty_combined_row"
+      },
+      {
+        "cpty_report_id": "CPTY-000178",
+        "internal_trade_ids": [
+          "INT-000209",
+          "INT-000210"
+        ],
+        "parent_link_id": "MULTILEG-08",
+        "scenario": "multi_leg_swap_fx_representation",
+        "expected_relation": "two_internal_legs_to_one_counterparty_combined_row"
+      }
+    ],
+    "cancel_correct_lifecycle_chains": [
+      {
+        "internal_trade_id": "INT-000211",
+        "original_new_report_id": "CPTY-000179",
+        "cancel_report_id": "CPTY-000180",
+        "corrected_report_id": "CPTY-000181",
+        "scenario": "cancel_correct_lifecycle_chain",
+        "expected_final_match_report_id": "CPTY-000181"
+      },
+      {
+        "internal_trade_id": "INT-000212",
+        "original_new_report_id": "CPTY-000182",
+        "cancel_report_id": "CPTY-000183",
+        "corrected_report_id": "CPTY-000184",
+        "scenario": "cancel_correct_lifecycle_chain",
+        "expected_final_match_report_id": "CPTY-000184"
+      },
+      {
+        "internal_trade_id": "INT-000213",
+        "original_new_report_id": "CPTY-000185",
+        "cancel_report_id": "CPTY-000186",
+        "corrected_report_id": "CPTY-000187",
+        "scenario": "cancel_correct_lifecycle_chain",
+        "expected_final_match_report_id": "CPTY-000187"
+      },
+      {
+        "internal_trade_id": "INT-000214",
+        "original_new_report_id": "CPTY-000188",
+        "cancel_report_id": "CPTY-000189",
+        "corrected_report_id": "CPTY-000190",
+        "scenario": "cancel_correct_lifecycle_chain",
+        "expected_final_match_report_id": "CPTY-000190"
+      },
+      {
+        "internal_trade_id": "INT-000215",
+        "original_new_report_id": "CPTY-000191",
+        "cancel_report_id": "CPTY-000192",
+        "corrected_report_id": "CPTY-000193",
+        "scenario": "cancel_correct_lifecycle_chain",
+        "expected_final_match_report_id": "CPTY-000193"
+      }
+    ],
+    "unmatched_internal_orphans": [
+      {
+        "internal_trade_id": "INT-000216",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000217",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000218",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000219",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000220",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000221",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000222",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000223",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000224",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000225",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000226",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000227",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000228",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000229",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000230",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000231",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000232",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000233",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000234",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000235",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000236",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000237",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000238",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000239",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000240",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000241",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000242",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000243",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000244",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000245",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000246",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000247",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000248",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000249",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000250",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000251",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000252",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000253",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000254",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000255",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000256",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000257",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000258",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000259",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000260",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000261",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000262",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000263",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000264",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000265",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000266",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000267",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000268",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000269",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000270",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000271",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000272",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000273",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000274",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000275",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000276",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000277",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000278",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000279",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000280",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000281",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000282",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000283",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000284",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000285",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000286",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000287",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000288",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000289",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000290",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000291",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000292",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000293",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000294",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000295",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000296",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000297",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000298",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000299",
+        "scenario": "unmatched_internal_orphan"
+      },
+      {
+        "internal_trade_id": "INT-000300",
+        "scenario": "unmatched_internal_orphan"
+      }
+    ],
+    "unmatched_counterparty_alleged_trades": [
+      {
+        "cpty_report_id": "CPTY-000194",
+        "scenario": "unmatched_counterparty_alleged_trade"
+      },
+      {
+        "cpty_report_id": "CPTY-000195",
+        "scenario": "unmatched_counterparty_alleged_trade"
+      },
+      {
+        "cpty_report_id": "CPTY-000196",
+        "scenario": "unmatched_counterparty_alleged_trade"
+      },
+      {
+        "cpty_report_id": "CPTY-000197",
+        "scenario": "unmatched_counterparty_alleged_trade"
+      },
+      {
+        "cpty_report_id": "CPTY-000198",
+        "scenario": "unmatched_counterparty_alleged_trade"
+      },
+      {
+        "cpty_report_id": "CPTY-000199",
+        "scenario": "unmatched_counterparty_alleged_trade"
+      },
+      {
+        "cpty_report_id": "CPTY-000200",
+        "scenario": "unmatched_counterparty_alleged_trade"
+      }
+    ]
+  }
+}
