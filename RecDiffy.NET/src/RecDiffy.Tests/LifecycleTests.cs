@@ -35,6 +35,23 @@ public class LifecycleTests
     }
 
     [Fact]
+    public void Links_a_chain_when_the_scope_and_id_contain_the_separator()
+    {
+        const string separator = "\u001f";
+        var rows = new[]
+        {
+            Event("CORR" + separator + "1", "CORR", "CANC" + separator + "1", 2m, "ACME" + separator + "X"),
+            Event("NEW" + separator + "1", "NEW", null, 1m, "ACME" + separator + "X"),
+            Event("CANC" + separator + "1", "CANC", "NEW" + separator + "1", 1m, "ACME" + separator + "X"),
+        };
+        var result = Consolidation.Run(rows, Life, null).ToDictionary(row => row.Context.RowKey);
+
+        Assert.Null(result["CORR" + separator + "1"].Suppression);
+        Assert.Equal(SuppressionReason.Superseded, result["NEW" + separator + "1"].Suppression);
+        Assert.Equal(SuppressionReason.CancelEvent, result["CANC" + separator + "1"].Suppression);
+    }
+
+    [Fact]
     public void Suppresses_a_fully_cancelled_chain()
     {
         var rows = new[]
@@ -84,17 +101,17 @@ public class LifecycleTests
         Assert.Equal("IncompletePackage", result.Code);
     }
 
-    private static IntakeRow Event(string id, string action, string? target, decimal price) =>
-        new([new SourceRef("right", id, 0)], With(id, action, target, price), false);
+    private static IntakeRow Event(string id, string action, string? target, decimal price, string scope = "CITADEL") =>
+        new([new SourceRef("right", id, 0)], With(id, action, target, price, scope), false);
 
     private static IntakeRow Leg(string id, string link, string role, string side, decimal quantity, decimal price, decimal cash) =>
         new([new SourceRef("left", id, 0)], WithLeg(id, link, role, side, quantity, price, cash), false);
 
-    private static RowContext With(string id, string action, string? target, decimal price)
+    private static RowContext With(string id, string action, string? target, decimal price, string scope)
     {
         var row = RowContext.Create(id, Side.Right, new Dictionary<string, object?>(StringComparer.Ordinal));
         row = Symbol(row, "EventAction", action);
-        row = Symbol(row, "Counterparty", "CITADEL");
+        row = Symbol(row, "Counterparty", scope);
         row = target is null ? row : Text(row, "EventTarget", target);
         return row.Write("Price", CanonicalCell.FromDecimal(price), "test", null, price.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }

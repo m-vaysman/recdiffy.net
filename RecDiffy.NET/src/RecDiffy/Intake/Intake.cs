@@ -83,5 +83,5 @@ internal static class Intake
 internal static class RawFingerprints
 {
     public static string Fingerprint(this RawRecord row) =>
-        string.Join("\u001f", row.Cells.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => $"{pair.Key}={pair.Value}"));
+        Delimited.Join('\u001f', row.Cells.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => $"{pair.Key}={pair.Value}"));
 }

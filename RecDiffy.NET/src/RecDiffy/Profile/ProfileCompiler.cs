@@ -135,96 +135,118 @@ internal static class ProfileCompiler
     private static string Hash(ProfileDocument document) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Canonical(document)))).ToLowerInvariant();
 
-    private static string Canonical(ProfileDocument document)
+    private static string Canonical(ProfileDocument document) =>
+        Delimited.Concat('\n', Lines(document));
+
+    // Field names are sorted. Rule calls and paths stay in profile order, so reordering those changes the hash.
+    private static IEnumerable<string> Lines(ProfileDocument document)
     {
-        // Field names are sorted. Rule calls and paths stay in profile order, so reordering those changes the hash.
-        var builder = new StringBuilder();
-        builder.Append(document.FormatVersion).Append('|').Append(document.ProfileId).Append('|').Append(document.Version).Append('|').Append(document.Midpoint).Append('\n');
+        yield return Pipe(Text(document.FormatVersion), document.ProfileId, document.Version, document.Midpoint.ToString());
         foreach (var field in document.Fields.OrderBy(field => field.Name, StringComparer.Ordinal))
-            builder.Append("field|").Append(field.Name).Append('|').Append(field.Type).Append('|').Append(field.Role).Append('|').Append(field.Scale).Append('\n');
+            yield return Pipe("field", field.Name, field.Type.ToString(), field.Role.ToString(), Text(field.Scale));
         foreach (var source in document.SourceKeys.OrderBy(pair => pair.Key, StringComparer.Ordinal))
-            builder.Append("source|").Append(source.Key).Append('|').Append(source.Value).Append('\n');
-        builder.Append("limits|").Append(document.Limits.MaxGroupSize).Append('|').Append(document.Limits.MaxBlockItems).Append('|')
-            .Append(document.Limits.MaxTargetsPerComponent).Append('|').Append(document.Limits.MaxNodesPerTarget).Append('\n');
+            yield return Pipe("source", source.Key, source.Value);
+        yield return Pipe(
+            "limits",
+            Text(document.Limits.MaxGroupSize),
+            Text(document.Limits.MaxBlockItems),
+            Text(document.Limits.MaxTargetsPerComponent),
+            Text(document.Limits.MaxNodesPerTarget));
         foreach (var side in document.Normalization.OrderBy(pair => pair.Key, StringComparer.Ordinal))
         {
-            AppendCalls(builder, side.Key, "identify", side.Value.Identify);
-            AppendCalls(builder, side.Key, "parse", side.Value.Parse);
-            AppendCalls(builder, side.Key, "derive", side.Value.Derive);
-            AppendCalls(builder, side.Key, "validate", side.Value.Validate);
+            foreach (var line in Calls(side.Key, "identify", side.Value.Identify))
+                yield return line;
+            foreach (var line in Calls(side.Key, "parse", side.Value.Parse))
+                yield return line;
+            foreach (var line in Calls(side.Key, "derive", side.Value.Derive))
+                yield return line;
+            foreach (var line in Calls(side.Key, "validate", side.Value.Validate))
+                yield return line;
         }
 
         foreach (var path in document.Paths)
-            AppendPath(builder, path);
+            foreach (var line in PathLines(path))
+                yield return line;
         foreach (var side in document.Consolidation.OrderBy(pair => pair.Key, StringComparer.Ordinal))
-            AppendConsolidation(builder, side.Key, side.Value);
-        return builder.ToString();
+            foreach (var line in ConsolidationLines(side.Key, side.Value))
+                yield return line;
     }
 
-    private static void AppendCalls(StringBuilder builder, string side, string phase, IReadOnlyList<RuleCall> calls)
+    private static IEnumerable<string> Calls(string side, string phase, IReadOnlyList<RuleCall> calls)
     {
         foreach (var call in calls)
         {
-            builder.Append("rule|").Append(side).Append('|').Append(phase).Append('|').Append(call.Rule).Append('\n');
-            AppendWhen(builder, "when", call.When);
+            yield return Pipe("rule", side, phase, call.Rule);
+            if (When("when", call.When) is { } when)
+                yield return when;
             foreach (var pair in call.Strings.OrderBy(pair => pair.Key, StringComparer.Ordinal))
-                builder.Append("arg|").Append(pair.Key).Append('|').Append(pair.Value).Append('\n');
+                yield return Pipe("arg", pair.Key, pair.Value);
             foreach (var pair in call.Lists.OrderBy(pair => pair.Key, StringComparer.Ordinal))
-                builder.Append("list|").Append(pair.Key).Append('|').Append(string.Join(",", pair.Value)).Append('\n');
+                yield return Delimited.Concat('|', [Delimited.Escape("list"), Delimited.Escape(pair.Key), Delimited.Join(',', pair.Value)]);
             foreach (var pair in call.Maps.OrderBy(pair => pair.Key, StringComparer.Ordinal))
-            {
-                builder.Append("map|").Append(pair.Key);
-                foreach (var entry in pair.Value.OrderBy(entry => entry.Key, StringComparer.Ordinal))
-                    builder.Append('|').Append(entry.Key).Append('=').Append(entry.Value);
-                builder.Append('\n');
-            }
+                yield return MapLine(pair.Key, pair.Value);
         }
     }
 
-    private static void AppendPath(StringBuilder builder, PathDeclaration path)
+    private static IEnumerable<string> PathLines(PathDeclaration path)
     {
-        builder.Append("path|").Append(path.Id).Append('|').Append(path.Route.Rule).Append('|').Append(path.Route.Field).Append('|').Append(path.Route.EqualsValue).Append('\n');
+        yield return Pipe("path", path.Id, path.Route.Rule, path.Route.Field, path.Route.EqualsValue);
         foreach (var pass in path.Passes)
         {
-            builder.Append("pass|").Append(pass.Id).Append('|').Append(pass.Pass).Append('|').Append(pass.Many).Append('|').Append(pass.MaxGroupSize).Append('\n');
-            builder.Append("key|").Append(string.Join(",", pass.Key)).Append('\n');
-            builder.Append("block|").Append(string.Join(",", pass.Block)).Append('\n');
-            builder.Append("conserve|").Append(string.Join(",", pass.Conserve)).Append('\n');
+            yield return Pipe("pass", pass.Id, pass.Pass, pass.Many, Text(pass.MaxGroupSize));
+            yield return Head("key", Delimited.Join(',', pass.Key));
+            yield return Head("block", Delimited.Join(',', pass.Block));
+            yield return Head("conserve", Delimited.Join(',', pass.Conserve));
         }
 
         if (path.Diff is not { } diff)
-            return;
+            yield break;
         foreach (var pair in diff.Fields.OrderBy(pair => pair.Key, StringComparer.Ordinal))
         {
             var tolerance = pair.Value.Tolerance;
-            builder.Append("diff|").Append(pair.Key).Append('|').Append(tolerance.Kind).Append('|')
-                .Append(Money(tolerance.Absolute)).Append('|').Append(Money(tolerance.Relative)).Append('|')
-                .Append(tolerance.Attributed).Append('|').Append(pair.Value.Attributed).Append('\n');
-            AppendWhen(builder, "tolerance-when", tolerance.When);
-            AppendWhen(builder, "applicable", pair.Value.ApplicableWhen);
+            yield return Pipe("diff", pair.Key, tolerance.Kind, Money(tolerance.Absolute), Money(tolerance.Relative), tolerance.Attributed, pair.Value.Attributed);
+            if (When("tolerance-when", tolerance.When) is { } toleranceWhen)
+                yield return toleranceWhen;
+            if (When("applicable", pair.Value.ApplicableWhen) is { } applicable)
+                yield return applicable;
         }
     }
 
-    private static void AppendConsolidation(StringBuilder builder, string side, ConsolidationSide plan)
+    private static IEnumerable<string> ConsolidationLines(string side, ConsolidationSide plan)
     {
-        builder.Append("consolidation|").Append(side).Append('\n');
+        yield return Pipe("consolidation", side);
         if (plan.Lifecycle is { } lifecycle)
-            builder.Append("life|").Append(lifecycle.ActionField).Append('|').Append(lifecycle.TargetField).Append('|').Append(lifecycle.ScopeField).Append('|').Append(lifecycle.CorrPointsAt).Append('\n');
+            yield return Pipe("life", lifecycle.ActionField, lifecycle.TargetField, lifecycle.ScopeField, lifecycle.CorrPointsAt);
         foreach (var package in plan.Packages)
         {
-            builder.Append("package|").Append(package.LinkField).Append('|').Append(package.RoleField).Append('|').Append(string.Join(",", package.RequiredRoles)).Append('\n');
+            yield return Delimited.Concat('|', [Delimited.Escape("package"), Delimited.Escape(package.LinkField), Delimited.Escape(package.RoleField), Delimited.Join(',', package.RequiredRoles)]);
             foreach (var aggregate in package.Aggregates.OrderBy(aggregate => aggregate.Field, StringComparer.Ordinal))
-                builder.Append("agg|").Append(aggregate.Field).Append('|').Append(aggregate.Kind).Append('|').Append(aggregate.Role).Append('|').Append(aggregate.OtherRole).Append('\n');
+                yield return Pipe("agg", aggregate.Field, aggregate.Kind.ToString(), aggregate.Role, aggregate.OtherRole);
         }
     }
 
-    private static void AppendWhen(StringBuilder builder, string label, WhenClause? when)
-    {
-        if (when is null)
-            return;
-        var membership = when.In is { } values ? string.Join(",", values.OrderBy(value => value, StringComparer.Ordinal)) : "";
-        builder.Append(label).Append('|').Append(when.Field).Append('|').Append(when.EqualsValue).Append('|').Append(when.NotEquals).Append('|').Append(membership).Append('\n');
-    }
+    private static string? When(string label, WhenClause? when) =>
+        when is null
+            ? null
+            : Delimited.Concat('|', [
+                Delimited.Escape(label),
+                Delimited.Escape(when.Field),
+                Delimited.Escape(when.EqualsValue ?? ""),
+                Delimited.Escape(when.NotEquals ?? ""),
+                when.In is { } values ? Delimited.Join(',', values.OrderBy(value => value, StringComparer.Ordinal)) : "",
+            ]);
+
+    private static string MapLine(string name, IReadOnlyDictionary<string, string> map) =>
+        Delimited.Concat('|', [Delimited.Escape("map"), Delimited.Escape(name), .. map.OrderBy(entry => entry.Key, StringComparer.Ordinal).Select(entry => Delimited.Join('=', [entry.Key, entry.Value]))]);
+
+    private static string Pipe(params string?[] parts) => Delimited.Join('|', parts.Select(part => part ?? ""));
+
+    private static string Head(string label, string joined) =>
+        Delimited.Concat('|', [Delimited.Escape(label), joined]);
+
+    private static string Text(int value) => value.ToString(CultureInfo.InvariantCulture);
+
+    private static string Text(int? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "";
 
     private static string Money(decimal? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "";
 }

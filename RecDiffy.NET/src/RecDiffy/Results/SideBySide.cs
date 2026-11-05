@@ -23,7 +23,7 @@ internal static class SideBySideBuilder
 {
     public static SideBySideView Build(ReconciliationResult result, SideBySideSpec spec)
     {
-        var totals = new Dictionary<(string Row, string Column, string Measure), Accumulator>();
+        var totals = new Dictionary<(string Row, string Column, string Measure), Bucket>();
         foreach (var row in result.Rows)
         {
             if (row.Disposition is Disposition.Suppressed or Disposition.Quarantined or Disposition.Ambiguous or Disposition.SearchIncomplete)
@@ -31,30 +31,39 @@ internal static class SideBySideBuilder
             var canonical = result.Canonical(row.Row);
             if (spec.Filter is { } filter && canonical.Text(filter.Field) != filter.EqualsValue)
                 continue;
-            var rowKey = Label(canonical, spec.Rows);
-            var columnKey = Label(canonical, spec.Columns);
+            var rowKey = GroupKey(canonical, spec.Rows);
+            var columnKey = GroupKey(canonical, spec.Columns);
+            var rowLabel = Label(canonical, spec.Rows);
+            var columnLabel = Label(canonical, spec.Columns);
             foreach (var measure in spec.Measures)
             {
                 var amount = canonical.IsNull(measure.Field) ? 0m : canonical[measure.Field].Number;
                 var key = (rowKey, columnKey, measure.Field);
-                totals[key] = totals.TryGetValue(key, out var current) ? current.Add(row.Disposition, row.Row.Source, amount) : Accumulator.Start(row.Disposition, row.Row.Source, amount);
+                totals[key] = totals.TryGetValue(key, out var current)
+                    ? current with { Total = current.Total.Add(row.Disposition, row.Row.Source, amount) }
+                    : new Bucket(rowLabel, columnLabel, Accumulator.Start(row.Disposition, row.Row.Source, amount));
             }
         }
 
         var lines = totals
             .GroupBy(pair => (pair.Key.Row, pair.Key.Column))
-            .OrderBy(group => group.Key.Row, StringComparer.Ordinal)
-            .ThenBy(group => group.Key.Column, StringComparer.Ordinal)
+            .OrderBy(group => group.First().Value.RowLabel, StringComparer.Ordinal)
+            .ThenBy(group => group.First().Value.ColumnLabel, StringComparer.Ordinal)
             .Select(group => new SideBySideLine(
-                group.Key.Row,
-                group.Key.Column,
-                group.ToDictionary(pair => pair.Key.Measure, pair => pair.Value.Cell(), StringComparer.Ordinal)))
+                group.First().Value.RowLabel,
+                group.First().Value.ColumnLabel,
+                group.ToDictionary(pair => pair.Key.Measure, pair => pair.Value.Total.Cell(), StringComparer.Ordinal)))
             .ToArray();
         return new SideBySideView(lines);
     }
 
+    private static string GroupKey(CanonicalRow row, IReadOnlyList<string> fields) =>
+        fields.Count == 0 ? "All" : Delimited.Join('|', fields.Select(field => row.Text(field)));
+
     private static string Label(CanonicalRow row, IReadOnlyList<string> fields) =>
         fields.Count == 0 ? "All" : string.Join("|", fields.Select(field => row.Text(field)));
+
+    private readonly record struct Bucket(string RowLabel, string ColumnLabel, Accumulator Total);
 
     private readonly record struct Accumulator(decimal Left, decimal Right, decimal LeftOnly, decimal RightOnly, decimal MatchedLeft, decimal MatchedRight)
     {
