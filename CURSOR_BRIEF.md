@@ -69,6 +69,19 @@ The spec ends with a **Decisions** table. Each row gives the item, its source (w
 12. A test plan that maps the test data and oracles to acceptance criteria, plus a benchmark plan.
 13. Open questions for Michael.
 
+## Concrete samples
+
+Wherever a concept is arcane or stated generically, follow it right away with a short, concrete sample. Draw the samples from this project's own scenarios, not toy data:
+
+- rows shaped like the test data in `test-data/trade-reconciliation-dataset` (internal versus counterparty trades, with their real column names);
+- cascading matching, showing which pass matched which rows and why the earlier passes didn't;
+- NEW, CANC and CORR chains, packages and allocations, and N-to-1 groups;
+- tolerance hits versus breaks, for example a 32nds price or a settle-date shift;
+- ambiguous candidates;
+- the result and explanation objects the engine returns.
+
+Use small tables, before-and-after rows, short C# signatures or snippets, a profile or config fragment, or a `mermaid` diagram, whichever reads fastest. No section should be prose only if an example would make it clearer.
+
 ## Output
 
 - Write the spec to `docs/ARCHITECTURE-SPEC.md` on a new branch `spec/architecture`, and open a pull request against `main`. Don't merge it.
