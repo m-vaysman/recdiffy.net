@@ -6,24 +6,15 @@ using RecDiffy.Rules;
 
 namespace RecDiffy;
 
-internal sealed class MatchWorkspace
-{
-    public required string PassId { get; init; }
-
-    public required IReadOnlyList<ActiveItem> Items { get; init; }
-
-    public required ImmutableHashSet<int> Free { get; init; }
-
-    public required IReadOnlyDictionary<string, FieldDeclaration> Schema { get; init; }
-
-    public required SearchLimits Limits { get; init; }
-
-    public required string? SharedField { get; init; }
-
-    public required int MaxGroupSize { get; init; }
-
-    public required CancellationToken Cancellation { get; init; }
-}
+internal sealed record MatchWorkspace(
+    string PassId,
+    IReadOnlyList<ActiveItem> Items,
+    ImmutableHashSet<int> Free,
+    IReadOnlyDictionary<string, FieldDeclaration> Schema,
+    SearchLimits Limits,
+    string? SharedField,
+    int MaxGroupSize,
+    CancellationToken Cancellation);
 
 internal sealed record ActiveItem(int Index, Side Side, ConsolidatedRow Row);
 
@@ -33,15 +24,17 @@ internal sealed record ResidueCluster(Alignment Alignment, string? Code, string?
 
 internal sealed record MatchReport(IReadOnlyList<CommittedMatch> Committed, IReadOnlyList<ResidueCluster> Residue, MatchCounters Counters);
 
-internal sealed class MatchCounters
+internal sealed record MatchCounters(int IndexBuilds = 0, int SubsetSearches = 0, int DirtyResearches = 0, int Components = 0)
 {
-    public int IndexBuilds { get; set; }
+    public MatchCounters Built() => this with { IndexBuilds = IndexBuilds + 1 };
 
-    public int SubsetSearches { get; set; }
+    public MatchCounters SawComponent() => this with { Components = Components + 1 };
 
-    public int DirtyResearches { get; set; }
-
-    public int Components { get; set; }
+    public MatchCounters SawSearch(bool dirty) => this with
+    {
+        SubsetSearches = SubsetSearches + 1,
+        DirtyResearches = DirtyResearches + (dirty ? 1 : 0),
+    };
 }
 
 internal static class MatchKeys
@@ -107,81 +100,83 @@ internal static class CascadeMatcher
         // TradeRef is the veto column when the schema declares it. Shared-ref passes do not apply it; the other passes do.
         var shared = schema.ContainsKey("TradeRef") ? "TradeRef" : null;
         var engines = passes.Select(pass => Create(pass, limits)).ToArray();
-        var counters = new MatchCounters();
         var rowIndex = items.ToDictionary(item => item.Row, item => item.Index, RowIdentity.Instance);
-        var free = items.Select(item => item.Index).ToHashSet();
         // Free on the workspace is the pre-commit snapshot. Later commits drop rows through Release, not through this set.
-        var workspace = Workspace(passes.Count == 0 ? "" : passes[0].Id, items, free.ToImmutableHashSet(), schema, limits, shared, limits.MaxGroupSize, cancellation);
-        foreach (var engine in engines)
-            engine.BuildIndex(workspace, counters);
-
-        var committed = ImmutableList<CommittedMatch>.Empty;
-        while (true)
-        {
-            cancellation.ThrowIfCancellationRequested();
-            var chosen = engines.Select(engine => (Engine: engine, Proposal: engine.NextReady())).FirstOrDefault(pair => pair.Proposal is not null);
-            if (chosen.Proposal is null)
-                break;
-            committed = committed.Add(Commit(chosen.Engine.PassId, chosen.Proposal, items));
-            var taken = chosen.Proposal.Left.Concat(chosen.Proposal.Right).ToArray();
-            free.ExceptWith(taken);
-            foreach (var engine in engines)
-                engine.Release(taken, counters);
-        }
-
-        var claimed = new HashSet<int>();
-        var residue = new List<ResidueCluster>();
-        foreach (var engine in engines)
-        {
-            cancellation.ThrowIfCancellationRequested();
-            foreach (var cluster in engine.Residue(workspace))
+        var workspace = new MatchWorkspace(passes.Count is 0 ? "" : passes[0].Id, items, [.. items.Select(item => item.Index)], schema, limits, shared, limits.MaxGroupSize, cancellation);
+        var built = engines.Aggregate(
+            (Indexes: ImmutableList<PassIndex>.Empty, Counters: new MatchCounters()),
+            (state, engine) =>
             {
-                var rows = cluster.Rows.Where(row => claimed.Contains(rowIndex[row]) is false).ToArray();
-                if (rows.Length == 0)
-                    continue;
-                foreach (var row in rows)
-                    claimed.Add(rowIndex[row]);
-                residue.Add(cluster with { Rows = rows });
-            }
+                var (index, counters) = engine.Build(workspace, state.Counters);
+                return (state.Indexes.Add(index), counters);
+            });
+        // One commit per turn. A recursive walk of one group per row overflows at the 100k-row bench.
+        var committed = Commit(built.Indexes, built.Counters, items, cancellation);
+        var folded = committed.Indexes.Aggregate(
+            (Claimed: ImmutableHashSet<int>.Empty, Clusters: ImmutableList<ResidueCluster>.Empty),
+            (state, index) =>
+            {
+                cancellation.ThrowIfCancellationRequested();
+                return index.Residue().Aggregate(state, (current, cluster) => Keep(current, cluster, rowIndex));
+            });
+        var only = items
+            .Where(item => committed.Free.Contains(item.Index) && folded.Claimed.Contains(item.Index) is false)
+            .Select(item => new ResidueCluster(item.Side is Side.Left ? Alignment.LeftOnly : Alignment.RightOnly, null, null, [item.Row]));
+        return new MatchReport(committed.Matches, [.. folded.Clusters, .. only], committed.Counters);
+    }
+
+    private static (ImmutableList<CommittedMatch> Matches, ImmutableList<PassIndex> Indexes, MatchCounters Counters, ImmutableHashSet<int> Free) Commit(
+        ImmutableList<PassIndex> indexes,
+        MatchCounters counters,
+        IReadOnlyList<ActiveItem> items,
+        CancellationToken cancellation)
+    {
+        var state = (Matches: ImmutableList<CommittedMatch>.Empty, Indexes: indexes, Counters: counters, Free: indexes.Count is 0 ? [] : indexes[0].WorkspaceFree);
+        while (Next(state.Indexes) is { } chosen)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            var taken = chosen.Proposal.Left.Concat(chosen.Proposal.Right).ToArray();
+            var released = state.Indexes.Aggregate(
+                (Indexes: ImmutableList<PassIndex>.Empty, Counters: state.Counters),
+                (current, index) =>
+                {
+                    var (next, updated) = index.Release(taken, current.Counters);
+                    return (current.Indexes.Add(next), updated);
+                });
+            state = (state.Matches.Add(Commit(chosen.Index.PassId, chosen.Proposal, items)), released.Indexes, released.Counters, state.Free.Except(taken));
         }
 
-        var only = items.Where(item => free.Contains(item.Index) && claimed.Contains(item.Index) is false)
-            .Select(item => new ResidueCluster(item.Side == Side.Left ? Alignment.LeftOnly : Alignment.RightOnly, null, null, [item.Row]));
-        return new MatchReport(committed, [.. residue, .. only], counters);
+        return state;
+    }
+
+    private static (PassIndex Index, MatchProposal Proposal)? Next(ImmutableList<PassIndex> indexes) =>
+        indexes.Select(index => (Index: index, Proposal: index.NextReady())).FirstOrDefault(pair => pair.Proposal is not null) is { Proposal: { } proposal } pair
+            ? (pair.Index, proposal)
+            : null;
+
+    private static (ImmutableHashSet<int> Claimed, ImmutableList<ResidueCluster> Clusters) Keep(
+        (ImmutableHashSet<int> Claimed, ImmutableList<ResidueCluster> Clusters) state,
+        ResidueCluster cluster,
+        Dictionary<ConsolidatedRow, int> rowIndex)
+    {
+        var rows = cluster.Rows.Where(row => state.Claimed.Contains(rowIndex[row]) is false).ToArray();
+        return rows.Length is 0
+            ? state
+            : (state.Claimed.Union(rows.Select(row => rowIndex[row])), state.Clusters.Add(cluster with { Rows = rows }));
     }
 
     private static ActiveItem[] Items(IReadOnlyList<ConsolidatedRow> left, IReadOnlyList<ConsolidatedRow> right) =>
         [.. left.Concat(right).Where(row => row is { Quarantined: false, Suppression: null } && row.Context.Diagnostics.All(diagnostic => diagnostic.Severity != DiagnosticSeverity.Invalid)).Select((row, index) => new ActiveItem(index, row.Context.Side, row))];
 
-    private static MatchWorkspace Workspace(
-        string passId,
-        IReadOnlyList<ActiveItem> items,
-        ImmutableHashSet<int> free,
-        IReadOnlyDictionary<string, FieldDeclaration> schema,
-        SearchLimits limits,
-        string? shared,
-        int maxGroup,
-        CancellationToken cancellation) => new()
-        {
-            PassId = passId,
-            Items = items,
-            Free = free,
-            Schema = schema,
-            Limits = limits,
-            SharedField = shared,
-            MaxGroupSize = maxGroup,
-            Cancellation = cancellation,
-        };
-
     private static CascadePass Create(PassDeclaration pass, SearchLimits limits) => pass.Pass switch
     {
-        "match.sharedRef" => new PairPass(pass.Id, pass.Key.Count == 0 ? ["Counterparty", "TradeRef"] : pass.Key, false, limits.MaxGroupSize),
+        "match.sharedRef" => new PairPass(pass.Id, pass.Key.Count is 0 ? ["Counterparty", "TradeRef"] : pass.Key, false, limits.MaxGroupSize),
         "match.naturalKey" or "match.reducedKey" => new PairPass(pass.Id, pass.Key, true, pass.MaxGroupSize ?? limits.MaxGroupSize),
         "match.groupSum" => new GroupPass(
             pass.Id,
             pass.Block,
             pass.Conserve,
-            pass.Many == "right" ? Side.Right : Side.Left,
+            pass.Many is "right" ? Side.Right : Side.Left,
             pass.MaxGroupSize ?? limits.MaxGroupSize),
         var other => throw new InvalidOperationException($"Pass '{other}' is not a cascade pass."),
     };
@@ -203,6 +198,19 @@ internal static class CascadeMatcher
     }
 }
 
+internal abstract record PassIndex(string PassId)
+{
+    public abstract MatchProposal? NextReady();
+
+    public abstract IReadOnlyList<MatchProposal> ReadyProposals { get; }
+
+    public abstract (PassIndex Index, MatchCounters Counters) Release(IReadOnlyList<int> taken, MatchCounters counters);
+
+    public abstract IReadOnlyList<ResidueCluster> Residue();
+
+    public abstract ImmutableHashSet<int> WorkspaceFree { get; }
+}
+
 internal abstract class CascadePass : IMatchPass
 {
     public abstract string PassId { get; }
@@ -215,11 +223,7 @@ internal abstract class CascadePass : IMatchPass
 
     public abstract IReadOnlyList<ResidueCluster> Residue(MatchWorkspace workspace);
 
-    public abstract void BuildIndex(MatchWorkspace workspace, MatchCounters counters);
-
-    public abstract MatchProposal? NextReady();
-
-    public abstract void Release(IReadOnlyCollection<int> taken, MatchCounters counters);
+    public abstract (PassIndex Index, MatchCounters Counters) Build(MatchWorkspace workspace, MatchCounters counters);
 
     public MatchProposal? ProposeFirst(MatchWorkspace workspace)
     {
@@ -230,366 +234,336 @@ internal abstract class CascadePass : IMatchPass
             .OrderBy(proposal => proposal.Key, StringComparer.Ordinal)
             .FirstOrDefault();
     }
+
+    protected static void Publish(ProposalSink sink, IEnumerable<MatchProposal> proposals)
+    {
+        foreach (var proposal in proposals)
+            sink.Propose(proposal.Left, proposal.Right, proposal.Key);
+    }
 }
 
 internal sealed class PairPass(string passId, IReadOnlyList<string> fields, bool veto, int maxGroup) : CascadePass
 {
-    private readonly Dictionary<string, HashSet<int>> _left = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, HashSet<int>> _right = new(StringComparer.Ordinal);
-    private readonly Dictionary<int, string> _keyOf = [];
-    private readonly Dictionary<string, MatchProposal> _ready = new(StringComparer.Ordinal);
-    private readonly SortedSet<string> _readyOrder = new(StringComparer.Ordinal);
-    private MatchWorkspace? _indexed;
-
     public override string PassId => passId;
 
     public override PassCardinality Cardinality => PassCardinality.OneToOne;
 
     public override int MaxGroup => maxGroup;
 
-    public override void BuildIndex(MatchWorkspace workspace, MatchCounters counters)
-    {
-        _indexed = workspace;
-        counters.IndexBuilds++;
-        foreach (var index in workspace.Free)
-        {
-            var key = MatchKeys.Compose(workspace.Items[index], fields, workspace.Schema);
-            if (key is null)
-                continue;
-            var side = workspace.Items[index].Side == Side.Left ? _left : _right;
-            if (!side.TryGetValue(key, out var members))
-            {
-                members = [];
-                side[key] = members;
-            }
+    public override (PassIndex Index, MatchCounters Counters) Build(MatchWorkspace workspace, MatchCounters counters) =>
+        PairIndex.Create(passId, fields, veto, workspace, counters);
 
-            members.Add(index);
-            _keyOf[index] = key;
-        }
-
-        foreach (var key in _left.Keys.Union(_right.Keys, StringComparer.Ordinal))
-            Refresh(key);
-    }
-
-    public override MatchProposal? NextReady()
-    {
-        if (_readyOrder.Count == 0)
-            return null;
-        var key = _readyOrder.Min;
-        return key is null ? null : _ready[key];
-    }
-
-    // A row belongs to one key. Refresh rewrites only keys in dirty; a removal that skips the mark leaves that row in NextReady.
-    public override void Release(IReadOnlyCollection<int> taken, MatchCounters counters)
-    {
-        var dirty = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var index in taken)
-        {
-            if (!_keyOf.TryGetValue(index, out var key))
-                continue;
-            dirty.Add(key);
-            (_indexed!.Items[index].Side == Side.Left ? _left : _right)[key].Remove(index);
-            _keyOf.Remove(index);
-        }
-
-        foreach (var key in dirty)
-            Refresh(key);
-    }
-
-    public override void Propose(in PassContext context, ProposalSink sink)
-    {
-        var workspace = context.Workspace;
-        foreach (var bucket in Eligible(workspace, veto).Where(bucket => bucket.Left.Length == 1 && bucket.Right.Length == 1))
-            sink.Propose([bucket.Left[0]], [bucket.Right[0]], bucket.Key);
-    }
+    public override void Propose(in PassContext context, ProposalSink sink) =>
+        Publish(sink, Build(context.Workspace, new MatchCounters()).Index.ReadyProposals);
 
     public override IReadOnlyList<ResidueCluster> Residue(MatchWorkspace workspace) =>
-        _indexed is null
-            ? [.. Eligible(workspace, veto)
-                .Where(bucket => bucket.Left.Length > 0 && bucket.Right.Length > 0 && (bucket.Left.Length > 1 || bucket.Right.Length > 1))
-                .Select(bucket => new ResidueCluster(Alignment.Ambiguous, null, passId, Rows(workspace, [.. bucket.Left, .. bucket.Right])))]
-            : [.. _left.Keys.Union(_right.Keys, StringComparer.Ordinal).OrderBy(key => key, StringComparer.Ordinal).Select(IndexedResidue).OfType<ResidueCluster>()];
+        Build(workspace, new MatchCounters()).Index.Residue();
+}
 
-    private ResidueCluster? IndexedResidue(string key)
+// A row belongs to one key. Release rewrites only keys that contained a removed row.
+internal sealed record PairIndex(
+    string PassId,
+    IReadOnlyList<string> Fields,
+    bool ApplyVeto,
+    MatchWorkspace Workspace,
+    ImmutableDictionary<string, ImmutableArray<int>> Left,
+    ImmutableDictionary<string, ImmutableArray<int>> Right,
+    ImmutableDictionary<int, string> KeyOf,
+    ImmutableDictionary<string, MatchProposal> Ready,
+    ImmutableSortedSet<string> ReadyOrder) : PassIndex(PassId)
+{
+    private static readonly ImmutableDictionary<string, ImmutableArray<int>> NoSide =
+        ImmutableDictionary.Create<string, ImmutableArray<int>>(StringComparer.Ordinal);
+
+    public override ImmutableHashSet<int> WorkspaceFree => Workspace.Free;
+
+    public override IReadOnlyList<MatchProposal> ReadyProposals => [.. ReadyOrder.Select(key => Ready[key])];
+
+    public override MatchProposal? NextReady() =>
+        ReadyOrder.IsEmpty || ReadyOrder.Min is not { } key ? null : Ready[key];
+
+    public static (PairIndex Index, MatchCounters Counters) Create(
+        string passId,
+        IReadOnlyList<string> fields,
+        bool veto,
+        MatchWorkspace workspace,
+        MatchCounters counters)
     {
-        var (left, right) = Sides(key);
-        return left.Length > 0 && right.Length > 0 && (left.Length != 1 || right.Length != 1)
-            ? new ResidueCluster(Alignment.Ambiguous, null, passId, Rows(_indexed!, [.. left.OrderBy(index => index), .. right.OrderBy(index => index)]))
-            : null;
+        var placed = Placed(workspace, fields);
+        var seeded = new PairIndex(
+            passId,
+            fields,
+            veto,
+            workspace,
+            SideMap(placed, Side.Left),
+            SideMap(placed, Side.Right),
+            placed.ToImmutableDictionary(row => row.Index, row => row.Key),
+            ImmutableDictionary.Create<string, MatchProposal>(StringComparer.Ordinal),
+            ImmutableSortedSet.Create<string>(StringComparer.Ordinal));
+        var ready = seeded.Left.Keys.Union(seeded.Right.Keys, StringComparer.Ordinal).Aggregate(seeded, (state, key) => state.Refresh(key));
+        return (ready, counters.Built());
     }
 
-    private void Refresh(string key)
+    public override (PassIndex Index, MatchCounters Counters) Release(IReadOnlyList<int> taken, MatchCounters counters)
     {
-        _ready.Remove(key);
-        _readyOrder.Remove(key);
-        var (left, right) = Sides(key);
-        if (left.Length != 1 || right.Length != 1)
-            return;
-        _ready[key] = new MatchProposal([left[0]], [right[0]], key);
-        _readyOrder.Add(key);
+        var dirty = taken.Where(KeyOf.ContainsKey).Select(index => KeyOf[index]).Distinct(StringComparer.Ordinal);
+        var removed = taken.Aggregate(this, (state, index) => state.Without(index));
+        return (dirty.Aggregate(removed, (state, key) => state.Refresh(key)), counters);
+    }
+
+    public override IReadOnlyList<ResidueCluster> Residue() =>
+        [.. Left.Keys.Union(Right.Keys, StringComparer.Ordinal).OrderBy(key => key, StringComparer.Ordinal).SelectMany(Cluster)];
+
+    private IEnumerable<ResidueCluster> Cluster(string key) =>
+        Sides(key) is { Left: { Length: > 0 } left, Right: { Length: > 0 } right } && (left.Length is not 1 || right.Length is not 1)
+            ? [new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows([.. left, .. right]))]
+            : [];
+
+    private PairIndex Without(int index) =>
+        KeyOf.TryGetValue(index, out var key) is false
+            ? this
+            : Workspace.Items[index].Side switch
+            {
+                Side.Left => this with { Left = Left.SetItem(key, Left[key].Remove(index)), KeyOf = KeyOf.Remove(index) },
+                _ => this with { Right = Right.SetItem(key, Right[key].Remove(index)), KeyOf = KeyOf.Remove(index) },
+            };
+
+    private PairIndex Refresh(string key)
+    {
+        var cleared = this with { Ready = Ready.Remove(key), ReadyOrder = ReadyOrder.Remove(key) };
+        var (left, right) = cleared.Sides(key);
+        return left.Length is 1 && right.Length is 1
+            ? cleared with
+            {
+                Ready = cleared.Ready.SetItem(key, new MatchProposal([left[0]], [right[0]], key)),
+                ReadyOrder = cleared.ReadyOrder.Add(key),
+            }
+            : cleared;
     }
 
     private (int[] Left, int[] Right) Sides(string key)
     {
-        var left = _left.TryGetValue(key, out var leftMembers) ? leftMembers : [];
-        var right = _right.TryGetValue(key, out var rightMembers) ? rightMembers : [];
-        var eligibleLeft = left.Where(index => right.Any(other => !veto || !Veto(index, other))).OrderBy(index => index).ToArray();
-        var eligibleRight = right.Where(index => left.Any(other => !veto || !Veto(other, index))).OrderBy(index => index).ToArray();
-        return (eligibleLeft, eligibleRight);
+        var left = Members(Left, key);
+        var right = Members(Right, key);
+        return (
+            [.. left.Where(index => right.Any(other => ApplyVeto is false || Veto(index, other) is false)).OrderBy(index => index)],
+            [.. right.Where(index => left.Any(other => ApplyVeto is false || Veto(other, index) is false)).OrderBy(index => index)]);
     }
 
     private bool Veto(int left, int right) =>
-        MatchKeys.Vetoed(_indexed!.Items[left], _indexed.Items[right], _indexed.SharedField, _indexed.Schema);
+        MatchKeys.Vetoed(Workspace.Items[left], Workspace.Items[right], Workspace.SharedField, Workspace.Schema);
 
-    private IEnumerable<Bucket> Eligible(MatchWorkspace workspace, bool applyVeto) =>
-        workspace.Free
-            .Select(index => workspace.Items[index])
-            .Select(item => (Item: item, Key: MatchKeys.Compose(item, fields, workspace.Schema)))
-            .Where(pair => pair.Key is not null)
-            .GroupBy(pair => pair.Key!, StringComparer.Ordinal)
-            .Select(group => BucketOf(group.Key, [.. group.Select(pair => pair.Item)], workspace, applyVeto));
+    private IReadOnlyList<ConsolidatedRow> Rows(IReadOnlyList<int> indexes) =>
+        [.. indexes.Select(index => Workspace.Items[index].Row)];
 
-    private static Bucket BucketOf(string key, IReadOnlyList<ActiveItem> items, MatchWorkspace workspace, bool applyVeto)
-    {
-        var left = items.Where(item => item.Side == Side.Left).Select(item => item.Index).ToArray();
-        var right = items.Where(item => item.Side == Side.Right).Select(item => item.Index).ToArray();
-        var eligibleLeft = left.Where(index => right.Any(other => !applyVeto || !MatchKeys.Vetoed(workspace.Items[index], workspace.Items[other], workspace.SharedField, workspace.Schema))).ToArray();
-        var eligibleRight = right.Where(index => left.Any(other => !applyVeto || !MatchKeys.Vetoed(workspace.Items[other], workspace.Items[index], workspace.SharedField, workspace.Schema))).ToArray();
-        return new Bucket(key, eligibleLeft, eligibleRight);
-    }
+    private static ImmutableArray<int> Members(ImmutableDictionary<string, ImmutableArray<int>> side, string key) =>
+        side.TryGetValue(key, out var members) ? members : [];
 
-    private static IReadOnlyList<ConsolidatedRow> Rows(MatchWorkspace workspace, IReadOnlyList<int> indexes) =>
-        [.. indexes.Select(index => workspace.Items[index].Row)];
+    private static ImmutableDictionary<string, ImmutableArray<int>> SideMap(IReadOnlyList<PlacedRow> rows, Side side) =>
+        rows.Where(row => row.Side == side)
+            .GroupBy(row => row.Key, StringComparer.Ordinal)
+            .ToImmutableDictionary(group => group.Key, group => group.Select(row => row.Index).ToImmutableArray(), StringComparer.Ordinal);
 
-    private sealed record Bucket(string Key, int[] Left, int[] Right);
+    private static IReadOnlyList<PlacedRow> Placed(MatchWorkspace workspace, IReadOnlyList<string> fields) =>
+        [.. workspace.Free
+            .Select(index => MatchKeys.Compose(workspace.Items[index], fields, workspace.Schema) is { } key
+                ? new PlacedRow(index, workspace.Items[index].Side, key)
+                : null)
+            .OfType<PlacedRow>()];
+
+    private sealed record PlacedRow(int Index, Side Side, string Key);
 }
 
 internal sealed class GroupPass(string passId, IReadOnlyList<string> block, IReadOnlyList<string> conserve, Side many, int maxGroup) : CascadePass
 {
-    private readonly Dictionary<string, HashSet<int>> _blocks = new(StringComparer.Ordinal);
-    private readonly Dictionary<int, string> _blockOf = [];
-    private readonly Dictionary<string, Decision[]> _decisions = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, List<ReadyProposal>> _ready = new(StringComparer.Ordinal);
-    private readonly SortedSet<string> _readyOrder = new(StringComparer.Ordinal);
-    private MatchWorkspace? _indexed;
-
     public override string PassId => passId;
 
     public override PassCardinality Cardinality => many == Side.Left ? PassCardinality.ManyToOne : PassCardinality.OneToMany;
 
     public override int MaxGroup => maxGroup;
 
-    public override void BuildIndex(MatchWorkspace workspace, MatchCounters counters)
-    {
-        _indexed = workspace;
-        counters.IndexBuilds++;
-        foreach (var index in workspace.Free)
-        {
-            var key = MatchKeys.Compose(workspace.Items[index], block, workspace.Schema);
-            if (key is null)
-                continue;
-            if (!_blocks.TryGetValue(key, out var members))
-            {
-                members = [];
-                _blocks[key] = members;
-            }
+    public override (PassIndex Index, MatchCounters Counters) Build(MatchWorkspace workspace, MatchCounters counters) =>
+        GroupIndex.Create(passId, block, conserve, many, maxGroup, workspace, counters);
 
-            members.Add(index);
-            _blockOf[index] = key;
-        }
-
-        foreach (var key in _blocks.Keys.ToArray())
-            Evaluate(key, counters, false);
-    }
-
-    public override MatchProposal? NextReady()
-    {
-        if (_readyOrder.Count == 0)
-            return null;
-        var key = _readyOrder.Min;
-        return key is null ? null : _ready[key][0].Proposal;
-    }
-
-    // A row belongs to one block. Evaluate rewrites only blocks in dirty; a removal that skips the mark leaves that row in NextReady and in residue.
-    public override void Release(IReadOnlyCollection<int> taken, MatchCounters counters)
-    {
-        var dirty = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var index in taken)
-        {
-            if (!_blockOf.TryGetValue(index, out var key))
-                continue;
-            dirty.Add(key);
-            _blocks[key].Remove(index);
-            _blockOf.Remove(index);
-        }
-
-        foreach (var key in dirty)
-            Evaluate(key, counters, true);
-    }
-
-    public override void Propose(in PassContext context, ProposalSink sink)
-    {
-        var workspace = context.Workspace;
-        foreach (var proposal in Components(workspace).SelectMany(component => Proposals(component, workspace)))
-            sink.Propose(proposal.Left, proposal.Right, proposal.Key);
-    }
+    public override void Propose(in PassContext context, ProposalSink sink) =>
+        Publish(sink, Build(context.Workspace, new MatchCounters()).Index.ReadyProposals);
 
     public override IReadOnlyList<ResidueCluster> Residue(MatchWorkspace workspace) =>
-        _indexed is null
-            ? [.. Components(workspace).SelectMany(component => Clusters(component, workspace))]
-            : [.. _decisions.SelectMany(pair => pair.Value.SelectMany(decision => FromDecision(decision, _indexed)))];
+        Build(workspace, new MatchCounters()).Index.Residue();
 
-    private IEnumerable<MatchProposal> Proposals(Component component, MatchWorkspace workspace) =>
-        Decide(component, workspace, null, false) switch
-        {
-            { Kind: DecisionKind.Commit } decision => decision.Commits,
-            _ => [],
-        };
-
-    private void Evaluate(string key, MatchCounters counters, bool dirty)
+    private static void Publish(ProposalSink sink, IReadOnlyList<MatchProposal> proposals)
     {
-        Drop(key);
-        if (!_blocks.TryGetValue(key, out var members) || members.Count == 0)
-        {
-            _decisions.Remove(key);
-            _blocks.Remove(key);
-            return;
-        }
+        foreach (var proposal in proposals)
+            sink.Propose(proposal.Left, proposal.Right, proposal.Key);
+    }
+}
 
-        var items = members.OrderBy(index => index).Select(index => _indexed!.Items[index]).ToArray();
-        var components = Couple(items, _indexed!).ToArray();
-        var decisions = new Decision[components.Length];
-        for (var index = 0; index < components.Length; index++)
-        {
-            counters.Components++;
-            decisions[index] = Decide(components[index], _indexed!, counters, dirty);
-            if (decisions[index].Kind != DecisionKind.Commit)
-                continue;
-            foreach (var proposal in decisions[index].Commits)
-                Add(key, proposal);
-        }
+internal sealed record ReadyProposal(MatchProposal Proposal, string Block);
 
-        _decisions[key] = decisions;
+// A row belongs to one block. Evaluate rewrites only blocks that contained a removed row.
+internal sealed record GroupIndex(
+    string PassId,
+    IReadOnlyList<string> Block,
+    IReadOnlyList<string> Conserve,
+    Side Many,
+    int MaxGroup,
+    MatchWorkspace Workspace,
+    ImmutableDictionary<string, ImmutableArray<int>> Blocks,
+    ImmutableDictionary<int, string> BlockOf,
+    ImmutableDictionary<string, ImmutableArray<Decision>> Decisions,
+    ImmutableDictionary<string, ImmutableList<ReadyProposal>> Ready,
+    ImmutableSortedSet<string> ReadyOrder) : PassIndex(PassId)
+{
+    public override ImmutableHashSet<int> WorkspaceFree => Workspace.Free;
+
+    public override IReadOnlyList<MatchProposal> ReadyProposals =>
+        [.. ReadyOrder.SelectMany(key => Ready[key].Select(ready => ready.Proposal))];
+
+    public override MatchProposal? NextReady() =>
+        ReadyOrder.IsEmpty || ReadyOrder.Min is not { } key ? null : Ready[key][0].Proposal;
+
+    public static (GroupIndex Index, MatchCounters Counters) Create(
+        string passId,
+        IReadOnlyList<string> block,
+        IReadOnlyList<string> conserve,
+        Side many,
+        int maxGroup,
+        MatchWorkspace workspace,
+        MatchCounters counters)
+    {
+        var placed = Placed(workspace, block);
+        var seeded = new GroupIndex(
+            passId,
+            block,
+            conserve,
+            many,
+            maxGroup,
+            workspace,
+            placed.GroupBy(row => row.Key, StringComparer.Ordinal).ToImmutableDictionary(group => group.Key, group => group.Select(row => row.Index).ToImmutableArray(), StringComparer.Ordinal),
+            placed.ToImmutableDictionary(row => row.Index, row => row.Key),
+            ImmutableDictionary.Create<string, ImmutableArray<Decision>>(StringComparer.Ordinal),
+            ImmutableDictionary.Create<string, ImmutableList<ReadyProposal>>(StringComparer.Ordinal),
+            ImmutableSortedSet.Create<string>(StringComparer.Ordinal));
+        return seeded.Blocks.Keys.OrderBy(key => key, StringComparer.Ordinal).Aggregate(
+            (Index: seeded, Counters: counters.Built()),
+            (state, key) => state.Index.Evaluate(key, state.Counters, false));
     }
 
-    private void Add(string blockKey, MatchProposal proposal)
+    public override (PassIndex Index, MatchCounters Counters) Release(IReadOnlyList<int> taken, MatchCounters counters)
     {
-        if (!_ready.TryGetValue(proposal.Key, out var list))
-        {
-            list = [];
-            _ready[proposal.Key] = list;
-            _readyOrder.Add(proposal.Key);
-        }
-
-        list.Add(new ReadyProposal(proposal, blockKey));
+        var dirty = taken.Where(BlockOf.ContainsKey).Select(index => BlockOf[index]).Distinct(StringComparer.Ordinal);
+        var removed = taken.Aggregate(this, (state, index) => state.Without(index));
+        return dirty.Aggregate((Index: removed, Counters: counters), (state, key) => state.Index.Evaluate(key, state.Counters, true));
     }
 
-    private void Drop(string blockKey)
+    public override IReadOnlyList<ResidueCluster> Residue() =>
+        [.. Decisions.SelectMany(pair => pair.Value.SelectMany(decision => FromDecision(decision)))];
+
+    private (GroupIndex Index, MatchCounters Counters) Evaluate(string key, MatchCounters counters, bool dirty)
     {
-        foreach (var key in _ready.Keys.ToArray())
-        {
-            _ready[key].RemoveAll(ready => ready.Block == blockKey);
-            if (_ready[key].Count > 0)
-                continue;
-            _ready.Remove(key);
-            _readyOrder.Remove(key);
-        }
+        var dropped = Drop(key);
+        return dropped.Blocks.TryGetValue(key, out var members) is false || members.IsEmpty
+            ? (dropped with { Decisions = dropped.Decisions.Remove(key), Blocks = dropped.Blocks.Remove(key) }, counters)
+            : Couple(members.OrderBy(index => index).Select(index => Workspace.Items[index]).ToArray())
+                .Aggregate(
+                    (Index: dropped with { Decisions = dropped.Decisions.SetItem(key, []) }, Counters: counters),
+                    (state, component) =>
+                    {
+                        var (decision, next) = state.Index.Decide(component, state.Counters.SawComponent(), dirty);
+                        var stored = state.Index with { Decisions = state.Index.Decisions.SetItem(key, state.Index.Decisions[key].Add(decision)) };
+                        var posted = decision is { Kind: DecisionKind.Commit }
+                            ? decision.Commits.Aggregate(stored, (current, proposal) => current.Add(key, proposal))
+                            : stored;
+                        return (posted, next);
+                    });
     }
 
-    private IEnumerable<ResidueCluster> FromDecision(Decision decision, MatchWorkspace workspace) => decision.Kind switch
-    {
-        DecisionKind.Contest => [new ResidueCluster(Alignment.Ambiguous, null, passId, Rows(workspace, decision.Contest))],
-        DecisionKind.Incomplete => [new ResidueCluster(Alignment.SearchIncomplete, decision.Code, passId, Rows(workspace, decision.Incomplete))],
-        DecisionKind.Split =>
-        [
-            new ResidueCluster(Alignment.Ambiguous, null, passId, Rows(workspace, decision.Contest)),
-            new ResidueCluster(Alignment.SearchIncomplete, decision.Code, passId, Rows(workspace, decision.Incomplete)),
-        ],
-        _ => [],
-    };
+    private GroupIndex Without(int index) =>
+        BlockOf.TryGetValue(index, out var key) is false
+            ? this
+            : this with { Blocks = Blocks.SetItem(key, Blocks[key].Remove(index)), BlockOf = BlockOf.Remove(index) };
 
-    private IEnumerable<ResidueCluster> Clusters(Component component, MatchWorkspace workspace) =>
-        FromDecision(Decide(component, workspace, null, false), workspace);
+    private GroupIndex Drop(string blockKey) =>
+        Ready.Keys.Aggregate(this, (state, key) =>
+        {
+            var kept = state.Ready[key].RemoveAll(ready => ready.Block == blockKey);
+            return kept.IsEmpty
+                ? state with { Ready = state.Ready.Remove(key), ReadyOrder = state.ReadyOrder.Remove(key) }
+                : state with { Ready = state.Ready.SetItem(key, kept) };
+        });
 
-    private Decision Decide(Component component, MatchWorkspace workspace, MatchCounters? counters, bool dirty)
+    private GroupIndex Add(string blockKey, MatchProposal proposal) =>
+        Ready.TryGetValue(proposal.Key, out var list)
+            ? this with { Ready = Ready.SetItem(proposal.Key, list.Add(new ReadyProposal(proposal, blockKey))) }
+            : this with
+            {
+                Ready = Ready.SetItem(proposal.Key, [new ReadyProposal(proposal, blockKey)]),
+                ReadyOrder = ReadyOrder.Add(proposal.Key),
+            };
+
+    private (Decision Decision, MatchCounters Counters) Decide(Component component, MatchCounters counters, bool dirty) =>
+        component.Targets.Length > Workspace.Limits.MaxTargetsPerComponent || component.Eligible.Length > Workspace.Limits.MaxBlockItems
+            ? (Decision.Blocked([.. component.Targets, .. component.Eligible]), counters)
+            : Outcome(component, component.Targets.Aggregate(
+                (Rows: ImmutableArray<(int Target, TargetSearch Search)>.Empty, Counters: counters),
+                (state, target) =>
+                {
+                    var (search, next) = Search(target, component, state.Counters, dirty);
+                    return (state.Rows.Add((target, search)), next);
+                }));
+
+    private (Decision Decision, MatchCounters Counters) Outcome(Component component, (ImmutableArray<(int Target, TargetSearch Search)> Rows, MatchCounters Counters) searched)
     {
-        if (component.Targets.Length > workspace.Limits.MaxTargetsPerComponent || component.Eligible.Length > workspace.Limits.MaxBlockItems)
-            return Decision.Blocked([.. component.Targets, .. component.Eligible]);
-        var searches = component.Targets.Select(target => (Target: target, Search: Search(target, component, workspace, counters, dirty))).ToArray();
-        var overlap = searches.Where(pair => pair.Search.State == SearchState.Unique).Select(pair => pair.Search.DrawnItems).ToArray();
+        var searches = searched.Rows;
+        var overlap = searches.Where(pair => pair.Search.State is SearchState.Unique).Select(pair => pair.Search.DrawnItems).ToArray();
         var shared = overlap.SelectMany(items => items).GroupBy(item => item).Any(group => group.Count() > 1);
-        var contest = searches.Any(pair => pair.Search.State == SearchState.Contest) || shared;
-        var incomplete = searches.Any(pair => pair.Search.State == SearchState.Incomplete);
-        return (contest, incomplete) switch
+        var contest = searches.Any(pair => pair.Search.State is SearchState.Contest) || shared;
+        var incomplete = searches.Any(pair => pair.Search.State is SearchState.Incomplete);
+        var decision = (contest, incomplete) switch
         {
-            (false, false) => Decision.Ready(searches.Where(pair => pair.Search.State == SearchState.Unique).Select(pair => ProposalFor(pair.Target, pair.Search.DrawnItems, workspace)).ToArray()),
+            (false, false) => Decision.Ready([.. searches.Where(pair => pair.Search.State is SearchState.Unique).Select(pair => ProposalFor(pair.Target, pair.Search.DrawnItems))]),
             (true, true) => Decision.Mixed(
-                [.. searches.Where(pair => pair.Search.State is SearchState.Contest or SearchState.Unique).SelectMany(pair => new[] { pair.Target }.Concat(pair.Search.DrawnItems)), .. searches.Where(pair => pair.Search.State == SearchState.Incomplete).SelectMany(pair => pair.Search.DrawnItems)],
-                [.. searches.Where(pair => pair.Search.State == SearchState.Incomplete).SelectMany(pair => EligibleFor(pair.Target, component).Except(pair.Search.DrawnItems))]),
+                [.. searches.Where(pair => pair.Search.State is SearchState.Contest or SearchState.Unique).SelectMany(pair => new[] { pair.Target }.Concat(pair.Search.DrawnItems)), .. searches.Where(pair => pair.Search.State is SearchState.Incomplete).SelectMany(pair => pair.Search.DrawnItems)],
+                [.. searches.Where(pair => pair.Search.State is SearchState.Incomplete).SelectMany(pair => EligibleFor(pair.Target, component).Except(pair.Search.DrawnItems))]),
             (true, false) => Decision.Contested([.. searches.Where(pair => pair.Search.State is not SearchState.None).SelectMany(pair => new[] { pair.Target }.Concat(pair.Search.DrawnItems))]),
             _ => Decision.Exhausted([.. component.Targets, .. component.Eligible]),
         };
+        return (decision, searched.Counters);
     }
 
-    private MatchProposal ProposalFor(int target, int[] drawn, MatchWorkspace workspace) =>
-        many == Side.Left
-            ? new MatchProposal(drawn, [target], Key(target, workspace))
-            : new MatchProposal([target], drawn, Key(target, workspace));
+    private MatchProposal ProposalFor(int target, int[] drawn) =>
+        Many is Side.Left
+            ? new MatchProposal(drawn, [target], Workspace.Items[target].Row.Context.RowKey)
+            : new MatchProposal([target], drawn, Workspace.Items[target].Row.Context.RowKey);
 
-    private TargetSearch Search(int target, Component component, MatchWorkspace workspace, MatchCounters? counters, bool dirty)
-    {
-        var targetValues = Conserved(workspace.Items[target].Row.Context);
-        if (targetValues is null)
-            return new TargetSearch(SearchState.None, []);
-        if (counters is not null)
-        {
-            counters.SubsetSearches++;
-            if (dirty)
-                counters.DirtyResearches++;
-        }
+    private (TargetSearch Result, MatchCounters Counters) Search(int target, Component component, MatchCounters counters, bool dirty) =>
+        Conserved(Workspace.Items[target].Row.Context) is not { } values
+            ? (new TargetSearch(SearchState.None, []), counters)
+            : (
+                SubsetSearch.Search(Classes(target, component), values, MaxGroup, Workspace.Limits.MaxNodesPerTarget, Workspace.Cancellation),
+                counters.SawSearch(dirty));
 
-        var classes = EligibleFor(target, component)
-            .Select(index => workspace.Items[index])
-            .Select(item => (Item: item, Values: Conserved(item.Row.Context)))
+    private ConservedClass[] Classes(int target, Component component) =>
+        [.. EligibleFor(target, component)
+            .Select(index => (Index: index, Values: Conserved(Workspace.Items[index].Row.Context)))
             .Where(pair => pair.Values is not null)
             .GroupBy(pair => string.Join('\u001f', pair.Values!.Select(value => value.ToString(CultureInfo.InvariantCulture))), StringComparer.Ordinal)
-            .Select(group => new ConservedClass(group.First().Values!, [.. group.Select(pair => pair.Item.Index)]))
+            .Select(group => new ConservedClass(group.First().Values!, [.. group.Select(pair => pair.Index)]))
             .OrderByDescending(cls => cls.Values[0])
-            .ThenBy(cls => string.Join('\u001f', cls.Values.Select(value => value.ToString(CultureInfo.InvariantCulture))), StringComparer.Ordinal)
-            .ToArray();
-        return SubsetSearch.Search(classes, targetValues, maxGroup, workspace.Limits.MaxNodesPerTarget, workspace.Cancellation);
-    }
+            .ThenBy(cls => string.Join('\u001f', cls.Values.Select(value => value.ToString(CultureInfo.InvariantCulture))), StringComparer.Ordinal)];
 
     private decimal[]? Conserved(RowContext row)
     {
-        var values = new decimal[conserve.Count];
-        for (var index = 0; index < conserve.Count; index++)
-        {
-            var field = conserve[index];
-            if (row.IsNull(field))
-                return null;
-            values[index] = row.Values[field].Number;
-        }
-
-        return values;
+        var numbers = Conserve.Select(field => row.IsNull(field) ? (decimal?)null : row.Values[field].Number).ToArray();
+        return numbers.Any(number => number is null) ? null : [.. numbers.Select(number => number.GetValueOrDefault())];
     }
 
-    private IEnumerable<Component> Components(MatchWorkspace workspace) =>
-        workspace.Free
-            .Select(index => workspace.Items[index])
-            .Select(item => (Item: item, Key: MatchKeys.Compose(item, block, workspace.Schema)))
-            .Where(pair => pair.Key is not null)
-            .GroupBy(pair => pair.Key!, StringComparer.Ordinal)
-            .SelectMany(group => Couple([.. group.Select(pair => pair.Item)], workspace));
-
-    private IEnumerable<Component> Couple(IReadOnlyList<ActiveItem> blockItems, MatchWorkspace workspace)
+    private IEnumerable<Component> Couple(IReadOnlyList<ActiveItem> blockItems)
     {
-        var targets = blockItems.Where(item => item.Side != many).Select(item => item.Index).OrderBy(index => index).ToArray();
-        var manyItems = blockItems.Where(item => item.Side == many).Select(item => item.Index).ToArray();
-        var eligible = targets.ToDictionary(
-            target => target,
-            target => manyItems.Where(item => !Veto(target, item, workspace)).ToArray());
-        var groups = targets.Aggregate(
+        var targets = blockItems.Where(item => item.Side != Many).Select(item => item.Index).OrderBy(index => index).ToArray();
+        var manyItems = blockItems.Where(item => item.Side == Many).Select(item => item.Index).ToArray();
+        var eligible = targets.ToImmutableDictionary(target => target, target => manyItems.Where(item => Veto(target, item) is false).ToArray());
+        return targets.Aggregate(
             ImmutableList<int[]>.Empty,
             (components, target) =>
             {
@@ -597,41 +571,52 @@ internal sealed class GroupPass(string passId, IReadOnlyList<string> block, IRea
                 var kept = components.Where(component => joined.Contains(component) is false);
                 var merged = joined.SelectMany(component => component).Append(target).Distinct().ToArray();
                 return kept.Append(merged).ToImmutableList();
-            });
-        return groups.Select(group => new Component(
-            group,
-            [.. group.SelectMany(target => eligible[target]).Distinct()],
-            eligible));
+            }).Select(group => new Component(group, [.. group.SelectMany(target => eligible[target]).Distinct()], eligible));
     }
 
-    private static bool Veto(int target, int item, MatchWorkspace workspace) =>
-        workspace.Items[target].Side == Side.Left
-            ? MatchKeys.Vetoed(workspace.Items[target], workspace.Items[item], workspace.SharedField, workspace.Schema)
-            : MatchKeys.Vetoed(workspace.Items[item], workspace.Items[target], workspace.SharedField, workspace.Schema);
+    private bool Veto(int target, int item) =>
+        Workspace.Items[target].Side is Side.Left
+            ? MatchKeys.Vetoed(Workspace.Items[target], Workspace.Items[item], Workspace.SharedField, Workspace.Schema)
+            : MatchKeys.Vetoed(Workspace.Items[item], Workspace.Items[target], Workspace.SharedField, Workspace.Schema);
 
-    private int[] EligibleFor(int target, Component component) => component.ByTarget[target];
+    private static int[] EligibleFor(int target, Component component) => component.ByTarget[target];
 
-    private static string Key(int target, MatchWorkspace workspace) => workspace.Items[target].Row.Context.RowKey;
-
-    private static IReadOnlyList<ConsolidatedRow> Rows(MatchWorkspace workspace, IEnumerable<int> indexes) =>
-        [.. indexes.Distinct().Select(index => workspace.Items[index].Row)];
-
-    private sealed record ReadyProposal(MatchProposal Proposal, string Block);
-
-    private sealed record Component(int[] Targets, int[] Eligible, Dictionary<int, int[]> ByTarget);
-
-    private enum DecisionKind { Commit, Contest, Incomplete, Split }
-
-    private sealed record Decision(DecisionKind Kind, MatchProposal[] Commits, int[] Contest, int[] Incomplete, string? Code)
+    private IEnumerable<ResidueCluster> FromDecision(Decision decision) => decision.Kind switch
     {
-        public static Decision Ready(MatchProposal[] commits) => new(DecisionKind.Commit, commits, [], [], null);
+        DecisionKind.Contest => [new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows(decision.Contest))],
+        DecisionKind.Incomplete => [new ResidueCluster(Alignment.SearchIncomplete, decision.Code, PassId, Rows(decision.Incomplete))],
+        DecisionKind.Split =>
+        [
+            new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows(decision.Contest)),
+            new ResidueCluster(Alignment.SearchIncomplete, decision.Code, PassId, Rows(decision.Incomplete)),
+        ],
+        _ => [],
+    };
 
-        public static Decision Contested(int[] items) => new(DecisionKind.Contest, [], items, [], null);
+    private IReadOnlyList<ConsolidatedRow> Rows(IEnumerable<int> indexes) =>
+        [.. indexes.Distinct().Select(index => Workspace.Items[index].Row)];
 
-        public static Decision Exhausted(int[] items) => new(DecisionKind.Incomplete, [], [], items, "BudgetExhausted");
+    private static IReadOnlyList<BlockedRow> Placed(MatchWorkspace workspace, IReadOnlyList<string> block) =>
+        [.. workspace.Free
+            .Select(index => MatchKeys.Compose(workspace.Items[index], block, workspace.Schema) is { } key ? new BlockedRow(index, key) : null)
+            .OfType<BlockedRow>()];
 
-        public static Decision Blocked(int[] items) => new(DecisionKind.Incomplete, [], [], items, "BlockTooLarge");
+    private sealed record BlockedRow(int Index, string Key);
 
-        public static Decision Mixed(int[] contest, int[] incomplete) => new(DecisionKind.Split, [], contest, incomplete, "BudgetExhausted");
-    }
+    private sealed record Component(int[] Targets, int[] Eligible, ImmutableDictionary<int, int[]> ByTarget);
+}
+
+internal enum DecisionKind { Commit, Contest, Incomplete, Split }
+
+internal sealed record Decision(DecisionKind Kind, MatchProposal[] Commits, int[] Contest, int[] Incomplete, string? Code)
+{
+    public static Decision Ready(MatchProposal[] commits) => new(DecisionKind.Commit, commits, [], [], null);
+
+    public static Decision Contested(int[] items) => new(DecisionKind.Contest, [], items, [], null);
+
+    public static Decision Exhausted(int[] items) => new(DecisionKind.Incomplete, [], [], items, "BudgetExhausted");
+
+    public static Decision Blocked(int[] items) => new(DecisionKind.Incomplete, [], [], items, "BlockTooLarge");
+
+    public static Decision Mixed(int[] contest, int[] incomplete) => new(DecisionKind.Split, [], contest, incomplete, "BudgetExhausted");
 }
