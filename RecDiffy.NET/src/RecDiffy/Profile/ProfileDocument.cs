@@ -52,6 +52,8 @@ public sealed record SearchLimits(int MaxGroupSize, int MaxBlockItems, int MaxTa
     public static SearchLimits Default { get; } = new(8, 24, 8, 250_000);
 }
 
+internal sealed record ConsolidationSide(LifecyclePlan? Lifecycle, IReadOnlyList<PackagePlan> Packages);
+
 public sealed record ProfileDocument
 {
     public required int FormatVersion { get; init; }
@@ -71,6 +73,9 @@ public sealed record ProfileDocument
     public required IReadOnlyDictionary<string, string> SourceKeys { get; init; }
 
     public required SearchLimits Limits { get; init; }
+
+    internal IReadOnlyDictionary<string, ConsolidationSide> Consolidation { get; init; } =
+        new Dictionary<string, ConsolidationSide>(StringComparer.Ordinal);
 
     public static ProfileDocument Parse(string json)
     {

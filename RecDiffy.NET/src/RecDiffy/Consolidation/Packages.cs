@@ -25,7 +25,7 @@ internal static class Packages
             _ => Aggregate(members, plan) switch
             {
                 { Failure: { } code } => Quarantine(members, code),
-                { Context: { } context } => [new ConsolidatedRow([.. members.SelectMany(member => member.Members)], context, false, null, null)],
+                { Context: { } context } => [new ConsolidatedRow([.. members.SelectMany(member => member.Members)], context, false, null, null, true)],
             },
         };
 

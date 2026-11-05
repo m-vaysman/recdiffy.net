@@ -8,7 +8,10 @@ internal sealed record ConsolidatedRow(
     RowContext Context,
     bool Quarantined,
     SuppressionReason? Suppression,
-    string? Code);
+    string? Code,
+    bool Packaged = false,
+    bool LifecycleCollapsed = false,
+    IReadOnlyList<SourceRef>? Lineage = null);
 
 internal sealed record LifecyclePlan(string ActionField, string TargetField, string ScopeField, string CorrPointsAt);
 
@@ -144,7 +147,7 @@ internal static class Consolidation
         IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index,
         string corrPointsAt) =>
         [.. members.Select(member => member.Id == survivorId
-            ? Row(member, false, null, null)
+            ? Row(member, false, null, null) with { LifecycleCollapsed = true, Lineage = [.. members.SelectMany(item => item.Row.Members)] }
             : Row(member, false, member.Action is "CANC" ? SuppressionReason.CancelEvent : SuppressionReason.Superseded, null))];
 
     private static bool HasCycle(IReadOnlyList<LifeEvent> members, IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index) =>

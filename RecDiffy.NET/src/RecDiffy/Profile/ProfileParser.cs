@@ -47,6 +47,7 @@ internal static class ProfileParser
                 Paths = ReadPaths(root),
                 SourceKeys = ReadSourceKeys(root),
                 Limits = ReadLimits(root),
+                Consolidation = ReadConsolidation(root),
             };
         }
     }
@@ -209,6 +210,51 @@ internal static class ProfileParser
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Array
             ? [.. value.EnumerateArray().Select(item => item.GetString() ?? "")]
             : [];
+
+    private static IReadOnlyDictionary<string, ConsolidationSide> ReadConsolidation(JsonElement root) =>
+        root.TryGetProperty("consolidation", out var node) && node.ValueKind == JsonValueKind.Object
+            ? node.EnumerateObject().ToImmutableDictionary(property => property.Name, property => ReadConsolidationSide(property.Value), StringComparer.Ordinal)
+            : ImmutableDictionary<string, ConsolidationSide>.Empty;
+
+    private static ConsolidationSide ReadConsolidationSide(JsonElement side) => new(
+        side.TryGetProperty("lifecycle", out var lifecycle)
+            ? new LifecyclePlan(
+                Optional(lifecycle, "action") ?? "EventAction",
+                Optional(lifecycle, "target") ?? "EventTarget",
+                Optional(lifecycle, "scope") ?? "Counterparty",
+                Optional(lifecycle, "corrTarget") ?? Optional(lifecycle, "corrPointsAt") ?? "CANC")
+            : null,
+        side.TryGetProperty("packages", out var packages) && packages.ValueKind == JsonValueKind.Array
+            ? [.. packages.EnumerateArray().Select(ReadPackage)]
+            : []);
+
+    private static PackagePlan ReadPackage(JsonElement package)
+    {
+        var aggregate = package.TryGetProperty("aggregate", out var fields) && fields.ValueKind == JsonValueKind.Object
+            ? fields.EnumerateObject().Select(property => ReadAggregate(property.Name, property.Value.GetString() ?? "")).ToArray()
+            : [];
+        return new PackagePlan(
+            Optional(package, "link") ?? "Parent_Link_ID",
+            Optional(package, "role") ?? "Leg_Structure",
+            Strings(package, "requiredRoles"),
+            aggregate);
+    }
+
+    private static FieldAggregate ReadAggregate(string field, string text) => text switch
+    {
+        "Same" => new FieldAggregate(field, AggregateKind.Same, null, null),
+        "Sum" => new FieldAggregate(field, AggregateKind.Sum, null, null),
+        _ when text.StartsWith("FromRole(", StringComparison.Ordinal) && text.EndsWith(')') =>
+            new FieldAggregate(field, AggregateKind.FromRole, text[9..^1], null),
+        _ when text.StartsWith("DifferenceByRole(", StringComparison.Ordinal) && text.EndsWith(')') => Difference(field, text[17..^1]),
+        _ => throw new ProfileCompileException([new ProfileError("InvalidParameter", $"Unknown aggregator '{text}'.")]),
+    };
+
+    private static FieldAggregate Difference(string field, string roles)
+    {
+        var parts = roles.Split(',');
+        return new FieldAggregate(field, AggregateKind.DifferenceByRole, parts[0], parts.Length > 1 ? parts[1] : null);
+    }
 
     private static string? Optional(JsonElement element, string name) =>
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
