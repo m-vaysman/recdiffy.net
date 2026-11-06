@@ -87,6 +87,7 @@ jobs:
         run: |
           dotnet add RecDiffy.NET/src/RecDiffy.Tests/RecDiffy.Tests.csproj package coverlet.collector --version 6.0.4
           dotnet add RecDiffy.NET/src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj package coverlet.collector --version 6.0.4
+          dotnet add RecDiffy.NET/src/RecDiffy.IO.Tests/RecDiffy.IO.Tests.csproj package coverlet.collector --version 6.0.4
 
       - name: Begin SonarQube analysis
         if: steps.secrets.outputs.configured == 'true'
@@ -125,6 +126,7 @@ jobs:
         run: |
           dotnet test src/RecDiffy.Tests/RecDiffy.Tests.csproj -c Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --results-directory TestResults
           dotnet test src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj -c Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --results-directory TestResults
+          dotnet test src/RecDiffy.IO.Tests/RecDiffy.IO.Tests.csproj -c Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --results-directory TestResults
 
       - name: End SonarQube analysis
         if: steps.secrets.outputs.configured == 'true'

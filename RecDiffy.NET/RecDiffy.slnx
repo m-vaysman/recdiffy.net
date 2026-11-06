@@ -8,5 +8,7 @@
     <Project Path="src/RecDiffy.Samples/RecDiffy.Samples.csproj" />
     <Project Path="src/RecDiffy.Excel/RecDiffy.Excel.csproj" />
     <Project Path="src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj" />
+    <Project Path="src/RecDiffy.IO/RecDiffy.IO.csproj" />
+    <Project Path="src/RecDiffy.IO.Tests/RecDiffy.IO.Tests.csproj" />
   </Folder>
 </Solution>

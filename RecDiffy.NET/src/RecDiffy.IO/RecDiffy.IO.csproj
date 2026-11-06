@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ProjectGuid>{17ED552C-21B5-49E2-8350-367CE14CA964}</ProjectGuid>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>RecDiffy.IO</RootNamespace>
+    <Description>CSV and Excel record sources for RecDiffy.NET, read through Sylvan.Data.Csv and Sylvan.Data.Excel.</Description>
+    <PackageTags>reconciliation;diff;matching;dotnet;csv;excel;xlsx</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="RecDiffy.IO.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RecDiffy\RecDiffy.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Sylvan.Data.Csv" Version="1.4.4" />
+    <PackageReference Include="Sylvan.Data.Excel" Version="0.5.8" />
+  </ItemGroup>
+
+</Project>

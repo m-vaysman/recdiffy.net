@@ -31,3 +31,7 @@ dotnet run --project src/RecDiffy.Samples/RecDiffy.Samples.csproj
 ## 6. Excel reports
 
 [ExcelReports.cs](ExcelReports.cs) calls `RecDiffyExcel.RunAndWrite` on a small book and street file with net cash. It writes one `.xlsx` per report to `recdiffy-samples/excel` under the temp folder and prints each file, or why a report was skipped (no lifecycle chains, allocations or tolerances in this data). The blotter, side-by-side, cash ladder, control totals and scorecard are written.
+
+## 8. Read CSV files
+
+[FileReaders.cs](FileReaders.cs) writes the warehouse data as two files under the temp folder: bins as comma-separated text with a header, and the book as pipe-separated text without one. It reads them with `RecDiffy.IO`'s `FileSources.FromCsv`, stating the header and delimiter for each, and maps the headerless book by position (`Column1` to `Column3`). The result is the same as example 1: one `Matched`, `ManyToOne`, `Exact` entry.
