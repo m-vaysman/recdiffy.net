@@ -51,6 +51,49 @@ public class EngineFindingsTests
         Assert.Equal(DeltaKind.None, currency.Delta.Kind);
     }
 
+    [Fact]
+    public void Side_by_side_still_counts_every_allocation_of_a_group()
+    {
+        var result = Run(Allocations, Block);
+        var cell = Assert.Single(result.BuildSideBySide(new SideBySideSpec(["Counterparty"], [], [new MeasureSpec("Quantity")], null)).Lines).Cells["Quantity"];
+
+        Assert.Equal(1000m, cell.Left);
+        Assert.Equal(1000m, cell.Right);
+        Assert.Equal(0m, cell.MatchedDelta);
+    }
+
+    [Fact]
+    public void Side_by_side_counts_an_unmatched_package_once()
+    {
+        var result = Run(
+            [Trade("L1", "DELTA", "SWAP-2", "PAY_FIXED", "500000", "3.5", "100.00", uti: "U9", package: "PKG-2", leg: "LEG_1_PAY"),
+             Trade("L2", "DELTA", "SWAP-2", "REC_FIXED", "500000", "3.2", "40.00", uti: "U9", package: "PKG-2", leg: "LEG_2_RECEIVE")],
+            []);
+        var cell = Assert.Single(result.BuildSideBySide(new SideBySideSpec(["Counterparty"], [], [new MeasureSpec("Quantity")], null)).Lines).Cells["Quantity"];
+
+        Assert.Equal(500_000m, cell.Left);
+        Assert.Equal(-500_000m, cell.LeftOnly);
+    }
+
+    [Fact]
+    public void Group_sum_projection_still_sums_the_conserved_fields()
+    {
+        var result = Run(Allocations, Block);
+        var left = result.Projection(Assert.Single(result.Entries).Id, Side.Left);
+
+        Assert.Equal(1000m, left["Quantity"].Number);
+        Assert.Equal(10000.00m, left["NetCash"].Number);
+    }
+
+    private static readonly Row[] Allocations =
+    [
+        Trade("A1", "GAMMA", "EQ-3", "BUY", "300", "10.00", "3000.00"),
+        Trade("A2", "GAMMA", "EQ-3", "BUY", "200", "10.00", "2000.00"),
+        Trade("A3", "GAMMA", "EQ-3", "BUY", "500", "10.00", "5000.00"),
+    ];
+
+    private static readonly Row[] Block = [Trade("B1", "GAMMA", "EQ-3", "BUY", "1000", "10.00", "10000.00")];
+
     private sealed record Row(string Id, string Counterparty, string Instrument, string Side, string Quantity, string Price, string NetCash, string? Uti, string? Package, string? Leg, string Currency);
 
     private static Row Trade(string id, string counterparty, string instrument, string side, string quantity, string price, string netCash, string? uti = null, string? package = null, string? leg = null, string currency = "USD") =>

@@ -27,7 +27,7 @@ internal static class ResultBuilder
             {
                 cancellation.ThrowIfCancellationRequested();
                 var plan = DiffPlan.From(jobs[index].Path, profile.Document.Fields, profile.Document.Midpoint);
-                built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan);
+                built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan, EqualByConstruction(jobs[index].Path, jobs[index].Group.PassId));
             }
         }
         else
@@ -39,7 +39,7 @@ internal static class ResultBuilder
                 index =>
                 {
                     var plan = DiffPlan.From(jobs[index].Path, profile.Document.Fields, profile.Document.Midpoint);
-                    built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan);
+                    built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan, EqualByConstruction(jobs[index].Path, jobs[index].Group.PassId));
                 });
         }
 
@@ -68,10 +68,10 @@ internal static class ResultBuilder
             left.Concat(right).SelectMany(row => row.Members.Select(member => (member, row.Context))).ToDictionary(pair => pair.member, pair => pair.Context));
     }
 
-    private static (ResultEntry Entry, RowContext Left, RowContext Right) Matched(string pathId, CommittedMatch group, DiffPlan plan)
+    private static (ResultEntry Entry, RowContext Left, RowContext Right) Matched(string pathId, CommittedMatch group, DiffPlan plan, IReadOnlySet<string> equal)
     {
-        var left = Aggregate(group.Left, plan);
-        var right = Aggregate(group.Right, plan);
+        var left = Aggregate(group.Left, plan, equal);
+        var right = Aggregate(group.Right, plan, equal);
         var diffs = FieldDiffer.Compare(left, right, plan);
         var outcome = diffs.Any(diff => diff.Outcome == FieldOutcome.Break)
             ? FieldOutcome.Break
@@ -157,12 +157,15 @@ internal static class ResultBuilder
         return new RowResult(member, disposition, row.Suppression, validity, row.Context.Diagnostics, disposition is Disposition.Quarantined ? null : linked);
     }
 
-    private static RowContext Aggregate(IReadOnlyList<ConsolidatedRow> rows, DiffPlan plan)
+    private static IReadOnlySet<string> EqualByConstruction(PathDeclaration path, string passId) =>
+        path.Passes.Where(pass => pass.Id == passId).SelectMany(pass => pass.Key.Concat(pass.Block).Except(pass.Conserve)).ToHashSet(StringComparer.Ordinal);
+
+    private static RowContext Aggregate(IReadOnlyList<ConsolidatedRow> rows, DiffPlan plan, IReadOnlySet<string> equal)
     {
         var seed = rows[0].Context;
         return rows.Count == 1
             ? seed
-            : plan.Steps.Where(step => step.Field.Type == FieldType.Decimal).Aggregate(seed, (current, step) =>
+            : plan.Steps.Where(step => step.Field.Type == FieldType.Decimal && equal.Contains(step.Field.Name) is false).Aggregate(seed, (current, step) =>
             {
                 if (rows.Any(row => row.Context.IsNull(step.Field.Name)))
                     return current.Write(step.Field.Name, CanonicalCell.Null(FieldType.Decimal), "aggregate", null, null);
@@ -260,6 +263,8 @@ public sealed class ReconciliationResult
     }
 
     public CanonicalRow Canonical(SourceRef row) => new(_rows[row]);
+
+    internal RowContext ConsolidatedItem(SourceRef row) => _rows[row];
 
     public IReadOnlyList<TraceStep> Trace(SourceRef row) => _rows[row].Traces;
 
