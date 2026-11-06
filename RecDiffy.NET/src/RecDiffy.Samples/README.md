@@ -27,3 +27,7 @@ dotnet run --project src/RecDiffy.Samples/RecDiffy.Samples.csproj
 ## 5. Reference data and the trading pack
 
 [TradingReference.cs](TradingReference.cs) registers the trading rules with `TradingRulePack.AddTo` and passes a `ReferenceDataSet`. The book side resolves the alias `BOFA_MLPF&S` and parses `12/06/2025` with the `BAML` date format. The street side resolves LEI `EL495T1V227XABYD2Q18`, parses `96-02+`, and takes the absolute quantity. Both sides resolve a buy. The canonical counterparty is `BAML`, the price is `96.078125`, and the entry is an exact match.
+
+## 6. Excel reports
+
+[ExcelReports.cs](ExcelReports.cs) calls `RecDiffyExcel.RunAndWrite` on a small book and street file with net cash. It writes one `.xlsx` per report to `recdiffy-samples/excel` under the temp folder and prints each file, or why a report was skipped (no lifecycle chains, allocations or tolerances in this data). The blotter, side-by-side, cash ladder, control totals and scorecard are written.

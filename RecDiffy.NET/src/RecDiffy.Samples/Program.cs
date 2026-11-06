@@ -11,6 +11,7 @@ public static class Program
             SideBySideReport.Run(),
             await AsyncRun.Run(),
             TradingReference.Run(),
+            ExcelReports.Run(),
         };
         return outcomes.All(outcome => outcome) ? 0 : 1;
     }

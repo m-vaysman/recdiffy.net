@@ -1,0 +1,7013 @@
+{
+ "BO1": [
+  {
+   "rank": 1,
+   "entry": "E-2342fcbf",
+   "oracleGroup": "G0230",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "LLY (ELI LILLY & CO COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "28655091.40",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "28655091.40",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 2,
+   "entry": "E-66cbc516",
+   "oracleGroup": "G0228",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "UBS",
+   "instrument": "JPM (JPMORGAN CHASE & CO COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "12629407.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "12629407.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 3,
+   "entry": "E-18025786",
+   "oracleGroup": "G0241",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "MSCO",
+   "instrument": "MCD (MCDONALD'S CORP COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "11050667.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "11050667.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 4,
+   "entry": "E-6f6d68d5",
+   "oracleGroup": "G0227",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "BARC",
+   "instrument": "MSFT (MICROSOFT CORP COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "9855244.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "9855244.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 5,
+   "entry": "E-580c4ed2",
+   "oracleGroup": "G0187",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "T 4.625 08/15/42 (US TREASURY N/B 4.625% 08/15/2042)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "9731080.90",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "9731080.90",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 6,
+   "entry": "E-6f027a74",
+   "oracleGroup": "G0208",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "MSCO",
+   "instrument": "T 4.125 02/15/40 (US TREASURY N/B 4.125% 02/15/2040)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "9488964.06",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "9488964.06",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 7,
+   "entry": "E-448e4f99",
+   "oracleGroup": "G0191",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "JPM",
+   "instrument": "T 4 05/15/26 (US TREASURY N/B 4.000% 05/15/2026)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "9460469.62",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "9460469.62",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 8,
+   "entry": "E-efc1b457",
+   "oracleGroup": "G0236",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "MCD (MCDONALD'S CORP COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "9411655.80",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "9411655.80",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 9,
+   "entry": "E-fda85af7",
+   "oracleGroup": "G0197",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "CITADEL",
+   "instrument": "CMCSA 5.125 10/14/50 (COMCAST CORP 5.125% DUE 10/14/2050)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "8414856.35",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "8414856.35",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 10,
+   "entry": "E-8601b158",
+   "oracleGroup": "G0193",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "CITI",
+   "instrument": "F 6.125 06/16/50 (FORD MOTOR CREDIT CO 6.125% DUE 06/16/2050)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "8410927.92",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "8410927.92",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 11,
+   "entry": "E-9c09ef54",
+   "oracleGroup": "G0195",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "MSCO",
+   "instrument": "CMCSA 7 01/19/38 (COMCAST CORP 7.000% DUE 01/19/2038)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "8370904.17",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "8370904.17",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 12,
+   "entry": "E-948db8e7",
+   "oracleGroup": "G0185",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "T 3.5 11/15/26 (US TREASURY N/B 3.500% 11/15/2026)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "7921755.56",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "7921755.56",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 13,
+   "entry": "E-191f6dc9",
+   "oracleGroup": "G0214",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "BARC",
+   "instrument": "TSLA (TESLA INC COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "7502002.20",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "7502002.20",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 14,
+   "entry": "E-c4e6db14",
+   "oracleGroup": "G0209",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "BARC",
+   "instrument": "T 4 08/15/50 (US TREASURY N/B 4.000% 08/15/2050)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "6532513.02",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "6532513.02",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 15,
+   "entry": "E-7581ee65",
+   "oracleGroup": "G0189",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "UBS",
+   "instrument": "GM 6.5 07/23/39 (GENERAL MOTORS FINANCIAL 6.500% DUE 07/23/2039)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "6311722.50",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "6311722.50",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 16,
+   "entry": "E-22ca4da8",
+   "oracleGroup": "G0237",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "CITI",
+   "instrument": "NVDA (NVIDIA CORP COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "6291054.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "6291054.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 17,
+   "entry": "E-3d6dee3c",
+   "oracleGroup": "G0192",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "CITI",
+   "instrument": "T 4.375 08/15/40 (US TREASURY N/B 4.375% 08/15/2040)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "5932095.31",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "5932095.31",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 18,
+   "entry": "E-2cee77c9",
+   "oracleGroup": "G0200",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "UBS",
+   "instrument": "ORCL 3.375 06/19/49 (ORACLE CORP 3.375% DUE 06/19/2049)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "5643782.81",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "5643782.81",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 19,
+   "entry": "E-4b42c0fe",
+   "oracleGroup": "G0188",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "T 2.75 02/15/37 (US TREASURY N/B 2.750% 02/15/2037)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "5537789.58",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "5537789.58",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 20,
+   "entry": "E-a753b903",
+   "oracleGroup": "G0152",
+   "status": "Past settle date",
+   "type": "Field break",
+   "counterparty": "JPM",
+   "instrument": "PEP (PEPSICO INC COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "SettleDate",
+   "ours": "2025-06-11",
+   "theirs": "2025-06-12",
+   "delta": "+1 days",
+   "ccy": "USD",
+   "impact": "5509795.20",
+   "action": "Align settlement date / SSI convention"
+  },
+  {
+   "rank": 21,
+   "entry": "E-dfd4db39",
+   "oracleGroup": "G0272",
+   "status": "Past settle date",
+   "type": "Unmatched theirs",
+   "counterparty": "CITI",
+   "instrument": "USU4EEUSUH06 (BOEING CO 4.875% DUE 05/07/2046)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "",
+   "theirs": "5260171.88",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "5260171.88",
+   "action": "DK: investigate alleged trade"
+  },
+  {
+   "rank": 22,
+   "entry": "E-42c4bafb",
+   "oracleGroup": "G0210",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "T 4 05/15/26 (US TREASURY N/B 4.000% 05/15/2026)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "5172945.31",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "5172945.31",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 23,
+   "entry": "E-2cd03c10",
+   "oracleGroup": "G0204",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "MSCO",
+   "instrument": "XOM 6.375 10/10/27 (EXXON MOBIL CORP 6.375% DUE 10/10/2027)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "5026072.19",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "5026072.19",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 24,
+   "entry": "E-ccfcba73",
+   "oracleGroup": "G0196",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "MSCO",
+   "instrument": "T 4.75 11/15/49 (US TREASURY N/B 4.750% 11/15/2049)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "4845197.92",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "4845197.92",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 25,
+   "entry": "E-a83ff2e5",
+   "oracleGroup": "G0151",
+   "status": "Past settle date",
+   "type": "Field break",
+   "counterparty": "CITI",
+   "instrument": "NVDA (NVIDIA CORP COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "SettleDate",
+   "ours": "2025-06-12",
+   "theirs": "2025-06-13",
+   "delta": "+1 days",
+   "ccy": "USD",
+   "impact": "4524844.80",
+   "action": "Align settlement date / SSI convention"
+  },
+  {
+   "rank": 26,
+   "entry": "E-a55492ed",
+   "oracleGroup": "G0234",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "UBS",
+   "instrument": "JNJ (JOHNSON & JOHNSON COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "4408905.60",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "4408905.60",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 27,
+   "entry": "E-27ca04c7",
+   "oracleGroup": "G0199",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "T 4.375 11/15/39 (US TREASURY N/B 4.375% 11/15/2039)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "4183038.89",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "4183038.89",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 28,
+   "entry": "E-f7bb0f5c",
+   "oracleGroup": "G0215",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "JPM",
+   "instrument": "XOM (EXXON MOBIL CORP COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "3853671.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "3853671.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 29,
+   "entry": "E-15f56d04",
+   "oracleGroup": "G0206",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "CITI",
+   "instrument": "CMCSA 3.875 06/28/36 (COMCAST CORP 3.875% DUE 06/28/2036)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "3513743.75",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "3513743.75",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 30,
+   "entry": "E-abb1bff2",
+   "oracleGroup": "G0270",
+   "status": "Past settle date",
+   "type": "Unmatched theirs",
+   "counterparty": "GSCO",
+   "instrument": "C6QFVNZD3 (KO EQUITY)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "",
+   "theirs": "3029830.90",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "3029830.90",
+   "action": "Set up security / map identifier, then DK review"
+  },
+  {
+   "rank": 31,
+   "entry": "E-4ad272ed",
+   "oracleGroup": "G0146",
+   "status": "Past settle date",
+   "type": "Field break",
+   "counterparty": "MSCO",
+   "instrument": "GOOGL (ALPHABET INC CL A COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "Quantity",
+   "ours": "71500",
+   "theirs": "57200",
+   "delta": "-14300",
+   "ccy": "USD",
+   "impact": "2573642.50",
+   "action": "Confirm fill quantity (partial fill?)"
+  },
+  {
+   "rank": 32,
+   "entry": "E-b67d85d2",
+   "oracleGroup": "G0211",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "CITADEL",
+   "instrument": "CMCSA 7.25 12/22/27 (COMCAST CORP 7.250% DUE 12/22/2027)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "2488995.83",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "2488995.83",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 33,
+   "entry": "E-b117b646",
+   "oracleGroup": "G0233",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "UBS",
+   "instrument": "AMD (ADVANCED MICRO DEVICES COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "2043569.70",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "2043569.70",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 34,
+   "entry": "E-848924b9",
+   "oracleGroup": "G0225",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "GE (GE AEROSPACE COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "2035633.10",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "2035633.10",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 35,
+   "entry": "E-ef1d3acb",
+   "oracleGroup": "G0229",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "MSCO",
+   "instrument": "BAC (BANK OF AMERICA CORP COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "1986038.50",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "1986038.50",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 36,
+   "entry": "E-e0d799bc",
+   "oracleGroup": "G0232",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "MSCO",
+   "instrument": "PEP (PEPSICO INC COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "1899471.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "1899471.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 37,
+   "entry": "E-12c0ed31",
+   "oracleGroup": "G0145",
+   "status": "Past settle date",
+   "type": "Field break",
+   "counterparty": "BAML",
+   "instrument": "T 4.625 05/15/39 (US TREASURY N/B 4.625% 05/15/2039)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "Quantity",
+   "ours": "8000000",
+   "theirs": "6400000",
+   "delta": "-1600000",
+   "ccy": "USD",
+   "impact": "1599515.56",
+   "action": "Confirm fill quantity (partial fill?)"
+  },
+  {
+   "rank": 38,
+   "entry": "E-8c878804",
+   "oracleGroup": "G0213",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "MSCO",
+   "instrument": "AAPL 7 06/27/38 (APPLE INC 7.000% DUE 06/27/2038)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "1584656.67",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "1584656.67",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 39,
+   "entry": "E-71cea5cb",
+   "oracleGroup": "G0205",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "MSCO",
+   "instrument": "T 4.375 05/15/42 (US TREASURY N/B 4.375% 05/15/2042)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "1524488.54",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "1524488.54",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 40,
+   "entry": "E-c10ffb46",
+   "oracleGroup": "G0219",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "UBS",
+   "instrument": "PEP (PEPSICO INC COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "1467050.40",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "1467050.40",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 41,
+   "entry": "E-5a33124c",
+   "oracleGroup": "G0226",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "CITADEL",
+   "instrument": "BAC (BANK OF AMERICA CORP COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "1280102.40",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "1280102.40",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 42,
+   "entry": "E-d3a11d9c",
+   "oracleGroup": "G0269",
+   "status": "Past settle date",
+   "type": "Unmatched theirs",
+   "counterparty": "CITI",
+   "instrument": "USSELHXHWT92 (VZ EQUITY)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "",
+   "theirs": "1158975.00",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "1158975.00",
+   "action": "DK: investigate alleged trade"
+  },
+  {
+   "rank": 43,
+   "entry": "E-69fa0c1b",
+   "oracleGroup": "G0271",
+   "status": "Past settle date",
+   "type": "Unmatched theirs",
+   "counterparty": "CITI",
+   "instrument": "USRS34SKIX46 (AT&T INC COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "",
+   "theirs": "962053.40",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "962053.40",
+   "action": "Set up security / map identifier, then DK review"
+  },
+  {
+   "rank": 44,
+   "entry": "E-9a40759b",
+   "oracleGroup": "G0184",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "CITI",
+   "instrument": "F 4 07/27/47 (FORD MOTOR CREDIT CO 4.000% DUE 07/27/2047)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "925586.67",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "925586.67",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 45,
+   "entry": "E-d75fd661",
+   "oracleGroup": "G0224",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "JPM",
+   "instrument": "BAC (BANK OF AMERICA CORP COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "626878.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "626878.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 46,
+   "entry": "E-262dbe9e",
+   "oracleGroup": "G0190",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "CITADEL",
+   "instrument": "BA 6.25 05/02/51 (BOEING CO 6.250% DUE 05/02/2051)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "497357.50",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "497357.50",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 47,
+   "entry": "E-c9300eb1",
+   "oracleGroup": "G0194",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "UBS",
+   "instrument": "AMZN 3.375 11/08/30 (AMAZON.COM INC 3.375% DUE 11/08/2030)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "262385.94",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "262385.94",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 48,
+   "entry": "E-d6e48618",
+   "oracleGroup": "G0140",
+   "status": "Past settle date",
+   "type": "Field break",
+   "counterparty": "MSCO",
+   "instrument": "PFE 4.5 01/24/36 (PFIZER INC 4.500% DUE 01/24/2036)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "Price",
+   "ours": "105.212",
+   "theirs": "99.98",
+   "delta": "-5.232",
+   "ccy": "USD",
+   "impact": "261600.00",
+   "action": "Confirm execution price with counterparty"
+  },
+  {
+   "rank": 49,
+   "entry": "E-5841594b",
+   "oracleGroup": "G0238",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "CITI",
+   "instrument": "HD (HOME DEPOT INC COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "227149.80",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "227149.80",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 50,
+   "entry": "E-af2d30e2",
+   "oracleGroup": "G0141",
+   "status": "Past settle date",
+   "type": "Field break",
+   "counterparty": "CITI",
+   "instrument": "TSLA (TESLA INC COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "Price",
+   "ours": "337.18",
+   "theirs": "349.31",
+   "delta": "12.13",
+   "ccy": "USD",
+   "impact": "169820.00",
+   "action": "Confirm execution price with counterparty"
+  },
+  {
+   "rank": 51,
+   "entry": "E-7f983357",
+   "oracleGroup": "G0153",
+   "status": "Past settle date",
+   "type": "Field break",
+   "counterparty": "JPM",
+   "instrument": "USD_SOFR_3Y (USD IRS 3Y FIXED VS SOFR)",
+   "asset": "Swap",
+   "side": "REC_FIXED",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-12",
+   "ageBD": 3,
+   "field": "SettleDate",
+   "ours": "2025-06-12",
+   "theirs": "2025-06-11",
+   "delta": "-1 days",
+   "ccy": "USD",
+   "impact": "47219.70",
+   "action": "Align settlement date / SSI convention"
+  },
+  {
+   "rank": 52,
+   "entry": "E-4095496c",
+   "oracleGroup": "G0155",
+   "status": "Past settle date",
+   "type": "Field break",
+   "counterparty": "JPM",
+   "instrument": "PFE 4.5 01/24/36 (PFIZER INC 4.500% DUE 01/24/2036)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "Fees",
+   "ours": "1800.00",
+   "theirs": "2250.00",
+   "delta": "450.00",
+   "ccy": "USD",
+   "impact": "450.00",
+   "action": "Check commission schedule"
+  },
+  {
+   "rank": 53,
+   "entry": "E-96c7db1f",
+   "oracleGroup": "G0156",
+   "status": "Past settle date",
+   "type": "Field break",
+   "counterparty": "BAML",
+   "instrument": "AMZN (AMAZON.COM INC COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-12",
+   "ageBD": 2,
+   "field": "Fees",
+   "ours": "45.00",
+   "theirs": "495.00",
+   "delta": "450.00",
+   "ccy": "USD",
+   "impact": "450.00",
+   "action": "Check commission schedule"
+  },
+  {
+   "rank": 54,
+   "entry": "E-c04af048",
+   "oracleGroup": "G0154",
+   "status": "Past settle date",
+   "type": "Field break",
+   "counterparty": "UBS",
+   "instrument": "C 5.75 11/10/27 (CITIGROUP INC 5.750% DUE 11/10/2027)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-11",
+   "ageBD": 3,
+   "field": "Fees",
+   "ours": "1187.50",
+   "theirs": "1637.50",
+   "delta": "450.00",
+   "ccy": "USD",
+   "impact": "450.00",
+   "action": "Check commission schedule"
+  },
+  {
+   "rank": 55,
+   "entry": "E-09a61c52",
+   "oracleGroup": "G0262",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "UBS",
+   "instrument": "EUR_ESTR_3Y (EUR IRS 3Y FIXED VS ESTR)",
+   "asset": "Swap",
+   "side": "PAY_FIXED",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-12",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "246031.90",
+   "theirs": "",
+   "delta": "",
+   "ccy": "EUR",
+   "impact": "246031.90",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 56,
+   "entry": "E-912ee61c",
+   "oracleGroup": "G0259",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "BAML",
+   "instrument": "EUR_ESTR_2Y (EUR IRS 2Y FIXED VS ESTR)",
+   "asset": "Swap",
+   "side": "REC_FIXED",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-12",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "105391.50",
+   "theirs": "",
+   "delta": "",
+   "ccy": "EUR",
+   "impact": "105391.50",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 57,
+   "entry": "E-87b1717d",
+   "oracleGroup": "G0260",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "EUR_ESTR_2Y (EUR IRS 2Y FIXED VS ESTR)",
+   "asset": "Swap",
+   "side": "PAY_FIXED",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-12",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "24297.90",
+   "theirs": "",
+   "delta": "",
+   "ccy": "EUR",
+   "impact": "24297.90",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 58,
+   "entry": "E-b98f8d88",
+   "oracleGroup": "G0265",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "BARC",
+   "instrument": "EUR_ESTR_3Y (EUR IRS 3Y FIXED VS ESTR)",
+   "asset": "Swap",
+   "side": "PAY_FIXED",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-12",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "10900.30",
+   "theirs": "",
+   "delta": "",
+   "ccy": "EUR",
+   "impact": "10900.30",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 59,
+   "entry": "E-affc5c47",
+   "oracleGroup": "G0267",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "BAML",
+   "instrument": "GBP_SONIA_30Y (GBP IRS 30Y FIXED VS SONIA)",
+   "asset": "Swap",
+   "side": "REC_FIXED",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-12",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "211762.20",
+   "theirs": "",
+   "delta": "",
+   "ccy": "GBP",
+   "impact": "211762.20",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 60,
+   "entry": "E-e1e94270",
+   "oracleGroup": "G0256",
+   "status": "Past settle date",
+   "type": "Unmatched ours",
+   "counterparty": "UBS",
+   "instrument": "GBP_SONIA_3Y (GBP IRS 3Y FIXED VS SONIA)",
+   "asset": "Swap",
+   "side": "REC_FIXED",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-06-12",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "125866.20",
+   "theirs": "",
+   "delta": "",
+   "ccy": "GBP",
+   "impact": "125866.20",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 61,
+   "entry": "E-e9e9664b",
+   "oracleGroup": "G0147",
+   "status": "Settles today",
+   "type": "Field break",
+   "counterparty": "BARC",
+   "instrument": "NFLX (NETFLIX INC COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "Quantity",
+   "ours": "54500",
+   "theirs": "43600",
+   "delta": "-10900",
+   "ccy": "USD",
+   "impact": "13224806.50",
+   "action": "Confirm fill quantity (partial fill?)"
+  },
+  {
+   "rank": 62,
+   "entry": "E-ad2cf30d",
+   "oracleGroup": "G0207",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "JPM",
+   "instrument": "F 4.625 02/09/43 (FORD MOTOR CREDIT CO 4.625% DUE 02/09/2043)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "10895702.78",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "10895702.78",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 63,
+   "entry": "E-e99e2870",
+   "oracleGroup": "G0150",
+   "status": "Settles today",
+   "type": "Field break",
+   "counterparty": "CITADEL",
+   "instrument": "AMZN 6.125 05/12/32 (AMAZON.COM INC 6.125% DUE 05/12/2032)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "SettleDate",
+   "ours": "2025-06-13",
+   "theirs": "2025-06-16",
+   "delta": "+3 days",
+   "ccy": "USD",
+   "impact": "10211780.90",
+   "action": "Align settlement date / SSI convention"
+  },
+  {
+   "rank": 64,
+   "entry": "E-38cbd51c",
+   "oracleGroup": "G0149",
+   "status": "Settles today",
+   "type": "Field break",
+   "counterparty": "GSCO",
+   "instrument": "T 4 08/15/50 (US TREASURY N/B 4.000% 08/15/2050)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "SettleDate",
+   "ours": "2025-06-13",
+   "theirs": "2025-06-16",
+   "delta": "+3 days",
+   "ccy": "USD",
+   "impact": "9250032.12",
+   "action": "Align settlement date / SSI convention"
+  },
+  {
+   "rank": 65,
+   "entry": "E-796ac465",
+   "oracleGroup": "G0240",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "CITADEL",
+   "instrument": "TSLA (TESLA INC COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "9040955.50",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "9040955.50",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 66,
+   "entry": "E-60ba1fcf",
+   "oracleGroup": "G0202",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "BAML",
+   "instrument": "VZ 5.875 05/09/32 (VERIZON COMMUNICATIONS 5.875% DUE 05/09/2032)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "8322928.85",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "8322928.85",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 67,
+   "entry": "E-ca65b50f",
+   "oracleGroup": "G0203",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "JPM",
+   "instrument": "XOM 6.5 12/04/49 (EXXON MOBIL CORP 6.500% DUE 12/04/2049)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "8179259.58",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "8179259.58",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 68,
+   "entry": "E-c3c37d1a",
+   "oracleGroup": "G0220",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "UBS",
+   "instrument": "UNH (UNITEDHEALTH GROUP COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "7963798.80",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "7963798.80",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 69,
+   "entry": "E-9ffb58dc",
+   "oracleGroup": "G0186",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "UBS",
+   "instrument": "BA 5.625 09/03/47 (BOEING CO 5.625% DUE 09/03/2047)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "7519011.25",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "7519011.25",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 70,
+   "entry": "E-87dec34f",
+   "oracleGroup": "G0231",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "JPM",
+   "instrument": "JNJ (JOHNSON & JOHNSON COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "4449231.50",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "4449231.50",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 71,
+   "entry": "E-cfa9b5c3",
+   "oracleGroup": "G0235",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "MCD (MCDONALD'S CORP COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "3310798.40",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "3310798.40",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 72,
+   "entry": "E-6af13f62",
+   "oracleGroup": "G0222",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "CITADEL",
+   "instrument": "MCD (MCDONALD'S CORP COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "3255390.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "3255390.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 73,
+   "entry": "E-d7000aa5",
+   "oracleGroup": "G0216",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "CITADEL",
+   "instrument": "XOM (EXXON MOBIL CORP COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "2774629.30",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "2774629.30",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 74,
+   "entry": "E-436d8225",
+   "oracleGroup": "G0198",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "CITADEL",
+   "instrument": "T 4 02/15/31 (US TREASURY N/B 4.000% 02/15/2031)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "2196807.81",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "2196807.81",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 75,
+   "entry": "E-0506b023",
+   "oracleGroup": "G0217",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "CITI",
+   "instrument": "SBUX (STARBUCKS CORP COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "2177428.50",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "2177428.50",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 76,
+   "entry": "E-117e5a13",
+   "oracleGroup": "G0201",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "BARC",
+   "instrument": "F 4.625 02/09/43 (FORD MOTOR CREDIT CO 4.625% DUE 02/09/2043)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "1939246.94",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "1939246.94",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 77,
+   "entry": "E-c037e051",
+   "oracleGroup": "G0221",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "BARC",
+   "instrument": "BA (BOEING CO COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "1890104.10",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "1890104.10",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 78,
+   "entry": "E-5842fb43",
+   "oracleGroup": "G0218",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "JPM",
+   "instrument": "VZ (VERIZON COMMUNICATIONS COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "1188470.50",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "1188470.50",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 79,
+   "entry": "E-b21f04da",
+   "oracleGroup": "G0212",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "UBS",
+   "instrument": "WMT 5 08/02/36 (WALMART INC 5.000% DUE 08/02/2036)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "964338.89",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "964338.89",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 80,
+   "entry": "E-735a53f8",
+   "oracleGroup": "G0223",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "CITI",
+   "instrument": "GE (GE AEROSPACE COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "619412.50",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "619412.50",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 81,
+   "entry": "E-ecf54f94",
+   "oracleGroup": "G0273",
+   "status": "Settles today",
+   "type": "Unmatched theirs",
+   "counterparty": "MSCO",
+   "instrument": "USUVIOJNHY61 (CMCSA 5.125 10/14/50 BOND)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "",
+   "theirs": "533768.40",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "533768.40",
+   "action": "DK: investigate alleged trade"
+  },
+  {
+   "rank": 82,
+   "entry": "E-ea0e0f31",
+   "oracleGroup": "G0239",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "BARC",
+   "instrument": "PFE (PFIZER INC COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "252984.80",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "252984.80",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 83,
+   "entry": "E-09de482a",
+   "oracleGroup": "G0144",
+   "status": "Settles today",
+   "type": "Field break",
+   "counterparty": "CITI",
+   "instrument": "XOM 6.625 02/14/50 (EXXON MOBIL CORP 6.625% DUE 02/14/2050)",
+   "asset": "Bond",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "Quantity",
+   "ours": "1000000",
+   "theirs": "800000",
+   "delta": "-200000",
+   "ccy": "USD",
+   "impact": "205776.94",
+   "action": "Confirm fill quantity (partial fill?)"
+  },
+  {
+   "rank": 84,
+   "entry": "E-60863865",
+   "oracleGroup": "G0263",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "USD_SOFR_2Y (USD IRS 2Y FIXED VS SOFR)",
+   "asset": "Swap",
+   "side": "PAY_FIXED",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-13",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "135922.40",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "135922.40",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 85,
+   "entry": "E-b6b4da37",
+   "oracleGroup": "G0266",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "JPM",
+   "instrument": "USD_SOFR_7Y (USD IRS 7Y FIXED VS SOFR)",
+   "asset": "Swap",
+   "side": "REC_FIXED",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-13",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "116256.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "116256.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 86,
+   "entry": "E-f55d6f6a",
+   "oracleGroup": "G0142",
+   "status": "Settles today",
+   "type": "Field break",
+   "counterparty": "BAML",
+   "instrument": "DIS (WALT DISNEY CO COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "Price",
+   "ours": "110.57",
+   "theirs": "112.7",
+   "delta": "2.13",
+   "ccy": "USD",
+   "impact": "63261.00",
+   "action": "Confirm execution price with counterparty"
+  },
+  {
+   "rank": 87,
+   "entry": "E-b5a14dda",
+   "oracleGroup": "G0139",
+   "status": "Settles today",
+   "type": "Field break",
+   "counterparty": "GSCO",
+   "instrument": "CMCSA 7 01/19/38 (COMCAST CORP 7.000% DUE 01/19/2038)",
+   "asset": "Bond",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "Price",
+   "ours": "96.572",
+   "theirs": "99.966",
+   "delta": "3.394",
+   "ccy": "USD",
+   "impact": "59395.00",
+   "action": "Confirm execution price with counterparty"
+  },
+  {
+   "rank": 88,
+   "entry": "E-54175597",
+   "oracleGroup": "G0264",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "USD_SOFR_3Y (USD IRS 3Y FIXED VS SOFR)",
+   "asset": "Swap",
+   "side": "REC_FIXED",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-13",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "19839.40",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "19839.40",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 89,
+   "entry": "E-26e22815",
+   "oracleGroup": "G0268",
+   "status": "Settles today",
+   "type": "Unmatched ours",
+   "counterparty": "CITI",
+   "instrument": "USD_SOFR_5Y (USD IRS 5Y FIXED VS SOFR)",
+   "asset": "Swap",
+   "side": "PAY_FIXED",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-13",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "18301.80",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "18301.80",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 90,
+   "entry": "E-b7403146",
+   "oracleGroup": "G0157",
+   "status": "Settles today",
+   "type": "Field break",
+   "counterparty": "CITADEL",
+   "instrument": "UNH (UNITEDHEALTH GROUP COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-13",
+   "ageBD": 1,
+   "field": "Fees",
+   "ours": "41.10",
+   "theirs": "491.10",
+   "delta": "450.00",
+   "ccy": "USD",
+   "impact": "450.00",
+   "action": "Check commission schedule"
+  },
+  {
+   "rank": 91,
+   "entry": "E-85a2e01b",
+   "oracleGroup": "G0248",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "GBPUSD (FX FORWARD GBP/USD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-30",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "15289440.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "15289440.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 92,
+   "entry": "E-2fb5ca7e",
+   "oracleGroup": "G0242",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "CITI",
+   "instrument": "NZDUSD (FX FORWARD NZD/USD)",
+   "asset": "Forward",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-08-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "11495380.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "11495380.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 93,
+   "entry": "E-b44c3aaf",
+   "oracleGroup": "G0244",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "UBS",
+   "instrument": "AUDUSD (FX FORWARD AUD/USD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-23",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "11354875.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "11354875.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 94,
+   "entry": "E-ab0a2fdf",
+   "oracleGroup": "G0245",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "JPM",
+   "instrument": "NZDUSD (FX FORWARD NZD/USD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-07-16",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "7272720.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "7272720.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 95,
+   "entry": "E-5e7634b2",
+   "oracleGroup": "G0243",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "BAML",
+   "instrument": "AUDUSD (FX FORWARD AUD/USD)",
+   "asset": "Forward",
+   "side": "SELL",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-09-10",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "6523700.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "6523700.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 96,
+   "entry": "E-c3a69502",
+   "oracleGroup": "G0246",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "BAML",
+   "instrument": "NZDUSD (FX FORWARD NZD/USD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-08-15",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "5460570.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "5460570.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 97,
+   "entry": "E-efc4768c",
+   "oracleGroup": "G0148",
+   "status": "Upcoming",
+   "type": "Field break",
+   "counterparty": "MSCO",
+   "instrument": "AUDUSD (FX FORWARD AUD/USD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-08-11",
+   "ageBD": 3,
+   "field": "Quantity",
+   "ours": "20000000",
+   "theirs": "16000000",
+   "delta": "-4000000",
+   "ccy": "USD",
+   "impact": "2594920.00",
+   "action": "Confirm fill quantity (partial fill?)"
+  },
+  {
+   "rank": 98,
+   "entry": "E-9cdb58ca",
+   "oracleGroup": "G0261",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "MSCO",
+   "instrument": "USD_SOFR_5Y (USD IRS 5Y FIXED VS SOFR)",
+   "asset": "Swap",
+   "side": "REC_FIXED",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-16",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "211558.40",
+   "theirs": "",
+   "delta": "",
+   "ccy": "USD",
+   "impact": "211558.40",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 99,
+   "entry": "E-b45951d2",
+   "oracleGroup": "G0158",
+   "status": "Upcoming",
+   "type": "Field break",
+   "counterparty": "UBS",
+   "instrument": "USD_SOFR_5Y (USD IRS 5Y FIXED VS SOFR)",
+   "asset": "Swap",
+   "side": "PAY_FIXED",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-16",
+   "ageBD": 1,
+   "field": "Fees",
+   "ours": "450.00",
+   "theirs": "900.00",
+   "delta": "450.00",
+   "ccy": "USD",
+   "impact": "450.00",
+   "action": "Check commission schedule"
+  },
+  {
+   "rank": 100,
+   "entry": "E-1cc44a84",
+   "oracleGroup": "G0258",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "BARC",
+   "instrument": "EUR_ESTR_3Y (EUR IRS 3Y FIXED VS ESTR)",
+   "asset": "Swap",
+   "side": "REC_FIXED",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-16",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "109802.10",
+   "theirs": "",
+   "delta": "",
+   "ccy": "EUR",
+   "impact": "109802.10",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 101,
+   "entry": "E-51235671",
+   "oracleGroup": "G0247",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "BARC",
+   "instrument": "EURGBP (FX FORWARD EUR/GBP)",
+   "asset": "Forward",
+   "side": "BUY",
+   "tradeDate": "2025-06-10",
+   "settleDate": "2025-12-09",
+   "ageBD": 3,
+   "field": "(whole trade)",
+   "ours": "21384500.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "GBP",
+   "impact": "21384500.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 102,
+   "entry": "E-d12a03e2",
+   "oracleGroup": "G0255",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "CITI",
+   "instrument": "EURGBP (FX FORWARD EUR/GBP)",
+   "asset": "Forward",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-09-15",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "17942610.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "GBP",
+   "impact": "17942610.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 103,
+   "entry": "E-4bc7e929",
+   "oracleGroup": "G0253",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "JPM",
+   "instrument": "EURGBP (FX FORWARD EUR/GBP)",
+   "asset": "Forward",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-23",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "11494305.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "GBP",
+   "impact": "11494305.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 104,
+   "entry": "E-cb00c32e",
+   "oracleGroup": "G0249",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "EURGBP (FX FORWARD EUR/GBP)",
+   "asset": "Forward",
+   "side": "SELL",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-27",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "8994720.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "GBP",
+   "impact": "8994720.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 105,
+   "entry": "E-58f92a7a",
+   "oracleGroup": "G0275",
+   "status": "Upcoming",
+   "type": "Unmatched theirs",
+   "counterparty": "JPM",
+   "instrument": "GBP_SONIA_2Y (Gbp Irs 2Y Fixed Vs Sonia)",
+   "asset": "Swap",
+   "side": "REC_FIXED",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-16",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "",
+   "theirs": "136452.30",
+   "delta": "",
+   "ccy": "GBP",
+   "impact": "136452.30",
+   "action": "Set up security / map identifier, then DK review"
+  },
+  {
+   "rank": 106,
+   "entry": "E-ebb4382f",
+   "oracleGroup": "G0257",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "CITI",
+   "instrument": "GBP_SONIA_10Y (GBP IRS 10Y FIXED VS SONIA)",
+   "asset": "Swap",
+   "side": "REC_FIXED",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-16",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "63270.60",
+   "theirs": "",
+   "delta": "",
+   "ccy": "GBP",
+   "impact": "63270.60",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 107,
+   "entry": "E-1db66f84",
+   "oracleGroup": "G0252",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "MSCO",
+   "instrument": "USDCHF (FX FORWARD USD/CHF)",
+   "asset": "Forward",
+   "side": "SELL",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-09-15",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "2043000.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "CHF",
+   "impact": "2043000.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 108,
+   "entry": "E-b230f42d",
+   "oracleGroup": "G0250",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "GSCO",
+   "instrument": "USDCAD (FX FORWARD USD/CAD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-06-20",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "28045435.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "CAD",
+   "impact": "28045435.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 109,
+   "entry": "E-7f007e67",
+   "oracleGroup": "G0274",
+   "status": "Upcoming",
+   "type": "Unmatched theirs",
+   "counterparty": "GSCO",
+   "instrument": "USDCAD (FX FORWARD USD/CAD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-08-15",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "",
+   "theirs": "5451840.00",
+   "delta": "",
+   "ccy": "CAD",
+   "impact": "5451840.00",
+   "action": "DK: investigate alleged trade"
+  },
+  {
+   "rank": 110,
+   "entry": "E-42f775ff",
+   "oracleGroup": "G0251",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "MSCO",
+   "instrument": "USDCAD (FX FORWARD USD/CAD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "tradeDate": "2025-06-11",
+   "settleDate": "2025-08-12",
+   "ageBD": 2,
+   "field": "(whole trade)",
+   "ours": "2049090.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "CAD",
+   "impact": "2049090.00",
+   "action": "Chase confirmation: not on street file"
+  },
+  {
+   "rank": 111,
+   "entry": "E-d42e3635",
+   "oracleGroup": "G0143",
+   "status": "Upcoming",
+   "type": "Field break",
+   "counterparty": "GSCO",
+   "instrument": "USDCAD (FX FORWARD USD/CAD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-06-30",
+   "ageBD": 1,
+   "field": "Price",
+   "ours": "1.36538",
+   "theirs": "1.35981",
+   "delta": "-0.00557",
+   "ccy": "CAD",
+   "impact": "33420.00",
+   "action": "Confirm execution price with counterparty"
+  },
+  {
+   "rank": 112,
+   "entry": "E-63aef6e4",
+   "oracleGroup": "G0254",
+   "status": "Upcoming",
+   "type": "Unmatched ours",
+   "counterparty": "CITI",
+   "instrument": "USDJPY (FX FORWARD USD/JPY)",
+   "asset": "Forward",
+   "side": "BUY",
+   "tradeDate": "2025-06-12",
+   "settleDate": "2025-12-15",
+   "ageBD": 1,
+   "field": "(whole trade)",
+   "ours": "791092500.00",
+   "theirs": "",
+   "delta": "",
+   "ccy": "JPY",
+   "impact": "791092500.00",
+   "action": "Chase confirmation: not on street file"
+  }
+ ],
+ "BO2": [
+  {
+   "entry": "E-b5a14dda",
+   "oracleGroup": "G0139",
+   "counterparty": "GSCO",
+   "instrument": "CMCSA 7 01/19/38 (COMCAST CORP 7.000% DUE 01/19/2038)",
+   "asset": "Bond",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "1750000",
+     "theirs": "1750000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "96.572",
+     "theirs": "99.966",
+     "state": "break",
+     "delta": "3.394"
+    },
+    "SettleDate": {
+     "ours": "2025-06-13",
+     "theirs": "2025-06-13",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "29944.44",
+     "theirs": "29944.44",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "350.00",
+     "theirs": "350.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "1720304.44",
+     "theirs": "1779699.44",
+     "state": "attributed",
+     "delta": "59395.00"
+    }
+   }
+  },
+  {
+   "entry": "E-d6e48618",
+   "oracleGroup": "G0140",
+   "counterparty": "MSCO",
+   "instrument": "PFE 4.5 01/24/36 (PFIZER INC 4.500% DUE 01/24/2036)",
+   "asset": "Bond",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "5000000",
+     "theirs": "5000000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "105.212",
+     "theirs": "99.98",
+     "state": "break",
+     "delta": "-5.232"
+    },
+    "SettleDate": {
+     "ours": "2025-06-11",
+     "theirs": "2025-06-11",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "72500.00",
+     "theirs": "72500.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "500.00",
+     "theirs": "500.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "5333600.00",
+     "theirs": "5072000.00",
+     "state": "attributed",
+     "delta": "-261600.00"
+    }
+   }
+  },
+  {
+   "entry": "E-af2d30e2",
+   "oracleGroup": "G0141",
+   "counterparty": "CITI",
+   "instrument": "TSLA (TESLA INC COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "14000",
+     "theirs": "14000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "337.18",
+     "theirs": "349.31",
+     "state": "break",
+     "delta": "12.13"
+    },
+    "SettleDate": {
+     "ours": "2025-06-12",
+     "theirs": "2025-06-12",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "28.00",
+     "theirs": "28.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "4720492.00",
+     "theirs": "4890312.00",
+     "state": "attributed",
+     "delta": "169820.00"
+    }
+   }
+  },
+  {
+   "entry": "E-f55d6f6a",
+   "oracleGroup": "G0142",
+   "counterparty": "BAML",
+   "instrument": "DIS (WALT DISNEY CO COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "29700",
+     "theirs": "29700",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "110.57",
+     "theirs": "112.7",
+     "state": "break",
+     "delta": "2.13"
+    },
+    "SettleDate": {
+     "ours": "2025-06-13",
+     "theirs": "2025-06-13",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "89.10",
+     "theirs": "89.10",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "3284018.10",
+     "theirs": "3347279.10",
+     "state": "attributed",
+     "delta": "63261.00"
+    }
+   }
+  },
+  {
+   "entry": "E-d42e3635",
+   "oracleGroup": "G0143",
+   "counterparty": "GSCO",
+   "instrument": "USDCAD (FX FORWARD USD/CAD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "ccy": "CAD",
+   "outcome": "Break",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "6000000",
+     "theirs": "6000000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "1.36538",
+     "theirs": "1.35981",
+     "state": "break",
+     "delta": "-0.00557"
+    },
+    "SettleDate": {
+     "ours": "2025-06-30",
+     "theirs": "2025-06-30",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "8192280.00",
+     "theirs": "8158860.00",
+     "state": "attributed",
+     "delta": "-33420.00"
+    }
+   }
+  },
+  {
+   "entry": "E-09de482a",
+   "oracleGroup": "G0144",
+   "counterparty": "CITI",
+   "instrument": "XOM 6.625 02/14/50 (EXXON MOBIL CORP 6.625% DUE 02/14/2050)",
+   "asset": "Bond",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P4",
+   "cells": {
+    "Quantity": {
+     "ours": "1000000",
+     "theirs": "800000",
+     "state": "break",
+     "delta": "-200000"
+    },
+    "Price": {
+     "ours": "102.415",
+     "theirs": "102.415",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-13",
+     "theirs": "2025-06-13",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "4784.72",
+     "theirs": "3827.78",
+     "state": "attributed",
+     "delta": "-956.94"
+    },
+    "Fees": {
+     "ours": "50.00",
+     "theirs": "40.00",
+     "state": "attributed",
+     "delta": "-10.00"
+    },
+    "NetCash": {
+     "ours": "1028884.72",
+     "theirs": "823107.78",
+     "state": "attributed",
+     "delta": "-205776.94"
+    }
+   }
+  },
+  {
+   "entry": "E-12c0ed31",
+   "oracleGroup": "G0145",
+   "counterparty": "BAML",
+   "instrument": "T 4.625 05/15/39 (US TREASURY N/B 4.625% 05/15/2039)",
+   "asset": "Bond",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P4",
+   "cells": {
+    "Quantity": {
+     "ours": "8000000",
+     "theirs": "6400000",
+     "state": "break",
+     "delta": "-1600000"
+    },
+    "Price": {
+     "ours": "97.75",
+     "theirs": "97.75",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-11",
+     "theirs": "2025-06-11",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "176777.78",
+     "theirs": "141422.22",
+     "state": "attributed",
+     "delta": "-35355.56"
+    },
+    "Fees": {
+     "ours": "800.00",
+     "theirs": "640.00",
+     "state": "attributed",
+     "delta": "-160.00"
+    },
+    "NetCash": {
+     "ours": "7997577.78",
+     "theirs": "6398062.22",
+     "state": "attributed",
+     "delta": "-1599515.56"
+    }
+   }
+  },
+  {
+   "entry": "E-4ad272ed",
+   "oracleGroup": "G0146",
+   "counterparty": "MSCO",
+   "instrument": "GOOGL (ALPHABET INC CL A COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P4",
+   "cells": {
+    "Quantity": {
+     "ours": "71500",
+     "theirs": "57200",
+     "state": "break",
+     "delta": "-14300"
+    },
+    "Price": {
+     "ours": "179.98",
+     "theirs": "179.98",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-12",
+     "theirs": "2025-06-12",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "357.50",
+     "theirs": "286.00",
+     "state": "attributed",
+     "delta": "-71.50"
+    },
+    "NetCash": {
+     "ours": "12868212.50",
+     "theirs": "10294570.00",
+     "state": "attributed",
+     "delta": "-2573642.50"
+    }
+   }
+  },
+  {
+   "entry": "E-e9e9664b",
+   "oracleGroup": "G0147",
+   "counterparty": "BARC",
+   "instrument": "NFLX (NETFLIX INC COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P4",
+   "cells": {
+    "Quantity": {
+     "ours": "54500",
+     "theirs": "43600",
+     "state": "break",
+     "delta": "-10900"
+    },
+    "Price": {
+     "ours": "1213.28",
+     "theirs": "1213.28",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-13",
+     "theirs": "2025-06-13",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "272.50",
+     "theirs": "218.00",
+     "state": "attributed",
+     "delta": "-54.50"
+    },
+    "NetCash": {
+     "ours": "66124032.50",
+     "theirs": "52899226.00",
+     "state": "attributed",
+     "delta": "-13224806.50"
+    }
+   }
+  },
+  {
+   "entry": "E-efc4768c",
+   "oracleGroup": "G0148",
+   "counterparty": "MSCO",
+   "instrument": "AUDUSD (FX FORWARD AUD/USD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "20000000",
+     "theirs": "16000000",
+     "state": "break",
+     "delta": "-4000000"
+    },
+    "Price": {
+     "ours": "0.64873",
+     "theirs": "0.64873",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-08-11",
+     "theirs": "2025-08-11",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "12974600.00",
+     "theirs": "10379680.00",
+     "state": "attributed",
+     "delta": "-2594920.00"
+    }
+   }
+  },
+  {
+   "entry": "E-38cbd51c",
+   "oracleGroup": "G0149",
+   "counterparty": "GSCO",
+   "instrument": "T 4 08/15/50 (US TREASURY N/B 4.000% 08/15/2050)",
+   "asset": "Bond",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "9250000",
+     "theirs": "9250000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "99.203125",
+     "theirs": "99.203125",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-13",
+     "theirs": "2025-06-16",
+     "state": "break",
+     "delta": "+3 days"
+    },
+    "Accrued": {
+     "ours": "76055.56",
+     "theirs": "76055.56",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "2312.50",
+     "theirs": "2312.50",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "9250032.12",
+     "theirs": "9250032.12",
+     "state": "same",
+     "delta": null
+    }
+   }
+  },
+  {
+   "entry": "E-e99e2870",
+   "oracleGroup": "G0150",
+   "counterparty": "CITADEL",
+   "instrument": "AMZN 6.125 05/12/32 (AMAZON.COM INC 6.125% DUE 05/12/2032)",
+   "asset": "Bond",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "9500000",
+     "theirs": "9500000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "106.94",
+     "theirs": "106.94",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-13",
+     "theirs": "2025-06-16",
+     "state": "break",
+     "delta": "+3 days"
+    },
+    "Accrued": {
+     "ours": "50105.90",
+     "theirs": "50105.90",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "2375.00",
+     "theirs": "2375.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "10211780.90",
+     "theirs": "10211780.90",
+     "state": "same",
+     "delta": null
+    }
+   }
+  },
+  {
+   "entry": "E-a83ff2e5",
+   "oracleGroup": "G0151",
+   "counterparty": "CITI",
+   "instrument": "NVDA (NVIDIA CORP COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "33600",
+     "theirs": "33600",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "134.67",
+     "theirs": "134.67",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-12",
+     "theirs": "2025-06-13",
+     "state": "break",
+     "delta": "+1 days"
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "67.20",
+     "theirs": "67.20",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "4524844.80",
+     "theirs": "4524844.80",
+     "state": "same",
+     "delta": null
+    }
+   }
+  },
+  {
+   "entry": "E-a753b903",
+   "oracleGroup": "G0152",
+   "counterparty": "JPM",
+   "instrument": "PEP (PEPSICO INC COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "41600",
+     "theirs": "41600",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "132.45",
+     "theirs": "132.45",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-11",
+     "theirs": "2025-06-12",
+     "state": "break",
+     "delta": "+1 days"
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "124.80",
+     "theirs": "124.80",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "5509795.20",
+     "theirs": "5509795.20",
+     "state": "same",
+     "delta": null
+    }
+   }
+  },
+  {
+   "entry": "E-7f983357",
+   "oracleGroup": "G0153",
+   "counterparty": "JPM",
+   "instrument": "USD_SOFR_3Y (USD IRS 3Y FIXED VS SOFR)",
+   "asset": "Swap",
+   "side": "REC_FIXED",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "41000000",
+     "theirs": "41000000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "4.2915",
+     "theirs": "4.2915",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-12",
+     "theirs": "2025-06-11",
+     "state": "break",
+     "delta": "-1 days"
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "307.50",
+     "theirs": null,
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "47219.70",
+     "theirs": "47219.70",
+     "state": "same",
+     "delta": null
+    }
+   }
+  },
+  {
+   "entry": "E-c04af048",
+   "oracleGroup": "G0154",
+   "counterparty": "UBS",
+   "instrument": "C 5.75 11/10/27 (CITIGROUP INC 5.750% DUE 11/10/2027)",
+   "asset": "Bond",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "4750000",
+     "theirs": "4750000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "96.125",
+     "theirs": "96.125",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-11",
+     "theirs": "2025-06-11",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "110767.36",
+     "theirs": "110767.36",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "1187.50",
+     "theirs": "1637.50",
+     "state": "break",
+     "delta": "450.00"
+    },
+    "NetCash": {
+     "ours": "4675517.36",
+     "theirs": "4675067.36",
+     "state": "attributed",
+     "delta": "-450.00"
+    }
+   }
+  },
+  {
+   "entry": "E-4095496c",
+   "oracleGroup": "G0155",
+   "counterparty": "JPM",
+   "instrument": "PFE 4.5 01/24/36 (PFIZER INC 4.500% DUE 01/24/2036)",
+   "asset": "Bond",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "9000000",
+     "theirs": "9000000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "98.58",
+     "theirs": "98.58",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-11",
+     "theirs": "2025-06-11",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "18000.00",
+     "theirs": "18000.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "1800.00",
+     "theirs": "2250.00",
+     "state": "break",
+     "delta": "450.00"
+    },
+    "NetCash": {
+     "ours": "8888400.00",
+     "theirs": "8887950.00",
+     "state": "attributed",
+     "delta": "-450.00"
+    }
+   }
+  },
+  {
+   "entry": "E-96c7db1f",
+   "oracleGroup": "G0156",
+   "counterparty": "BAML",
+   "instrument": "AMZN (AMAZON.COM INC COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "9000",
+     "theirs": "9000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "209.98",
+     "theirs": "209.98",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-12",
+     "theirs": "2025-06-12",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "45.00",
+     "theirs": "495.00",
+     "state": "break",
+     "delta": "450.00"
+    },
+    "NetCash": {
+     "ours": "1889865.00",
+     "theirs": "1890315.00",
+     "state": "attributed",
+     "delta": "450.00"
+    }
+   }
+  },
+  {
+   "entry": "E-b7403146",
+   "oracleGroup": "G0157",
+   "counterparty": "CITADEL",
+   "instrument": "UNH (UNITEDHEALTH GROUP COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "13700",
+     "theirs": "13700",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "299.44",
+     "theirs": "299.44",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-13",
+     "theirs": "2025-06-13",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "41.10",
+     "theirs": "491.10",
+     "state": "break",
+     "delta": "450.00"
+    },
+    "NetCash": {
+     "ours": "4102286.90",
+     "theirs": "4101836.90",
+     "state": "attributed",
+     "delta": "-450.00"
+    }
+   }
+  },
+  {
+   "entry": "E-b45951d2",
+   "oracleGroup": "G0158",
+   "counterparty": "UBS",
+   "instrument": "USD_SOFR_5Y (USD IRS 5Y FIXED VS SOFR)",
+   "asset": "Swap",
+   "side": "PAY_FIXED",
+   "ccy": "USD",
+   "outcome": "Break",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "45000000",
+     "theirs": "45000000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "4.2492",
+     "theirs": "4.2492",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-16",
+     "theirs": "2025-06-16",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "450.00",
+     "theirs": "900.00",
+     "state": "break",
+     "delta": "450.00"
+    },
+    "NetCash": {
+     "ours": "118476.00",
+     "theirs": "118926.00",
+     "state": "attributed",
+     "delta": "450.00"
+    }
+   }
+  },
+  {
+   "entry": "E-0651b7cf",
+   "oracleGroup": "G0121",
+   "counterparty": "JPM",
+   "instrument": "F 6.625 10/03/51 (FORD MOTOR CREDIT CO 6.625% DUE 10/03/2051)",
+   "asset": "Bond",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "4750000",
+     "theirs": "4750000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "90.515",
+     "theirs": "90.515",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-11",
+     "theirs": "2025-06-11",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "123252.60",
+     "theirs": "123251.58",
+     "state": "tolerance",
+     "delta": "-1.02"
+    },
+    "Fees": {
+     "ours": "712.50",
+     "theirs": "712.50",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "4423427.60",
+     "theirs": "4423426.58",
+     "state": "attributed",
+     "delta": "-1.02"
+    }
+   }
+  },
+  {
+   "entry": "E-b17a59fc",
+   "oracleGroup": "G0122",
+   "counterparty": "BARC",
+   "instrument": "F 6.625 10/03/51 (FORD MOTOR CREDIT CO 6.625% DUE 10/03/2051)",
+   "asset": "Bond",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "6500000",
+     "theirs": "6500000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "88.381",
+     "theirs": "88.381",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-13",
+     "theirs": "2025-06-13",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "114833.33",
+     "theirs": "114832.48",
+     "state": "tolerance",
+     "delta": "-0.85"
+    },
+    "Fees": {
+     "ours": "325.00",
+     "theirs": "325.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "5859273.33",
+     "theirs": "5859272.48",
+     "state": "attributed",
+     "delta": "-0.85"
+    }
+   }
+  },
+  {
+   "entry": "E-e9e6c50f",
+   "oracleGroup": "G0123",
+   "counterparty": "MSCO",
+   "instrument": "F 4 07/27/47 (FORD MOTOR CREDIT CO 4.000% DUE 07/27/2047)",
+   "asset": "Bond",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "1750000",
+     "theirs": "1750000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "107.477",
+     "theirs": "107.477",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-13",
+     "theirs": "2025-06-13",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "16527.78",
+     "theirs": "16527.17",
+     "state": "tolerance",
+     "delta": "-0.61"
+    },
+    "Fees": {
+     "ours": "87.50",
+     "theirs": "87.50",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "1897462.78",
+     "theirs": "1897462.17",
+     "state": "attributed",
+     "delta": "-0.61"
+    }
+   }
+  },
+  {
+   "entry": "E-ec3d0bb6",
+   "oracleGroup": "G0124",
+   "counterparty": "GSCO",
+   "instrument": "VZ 5.875 05/09/32 (VERIZON COMMUNICATIONS 5.875% DUE 05/09/2032)",
+   "asset": "Bond",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "7500000",
+     "theirs": "7500000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "102.029",
+     "theirs": "102.029",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-13",
+     "theirs": "2025-06-13",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "72213.54",
+     "theirs": "72214.47",
+     "state": "tolerance",
+     "delta": "0.93"
+    },
+    "Fees": {
+     "ours": "750.00",
+     "theirs": "750.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "7725138.54",
+     "theirs": "7725139.47",
+     "state": "attributed",
+     "delta": "0.93"
+    }
+   }
+  },
+  {
+   "entry": "E-62438e48",
+   "oracleGroup": "G0125",
+   "counterparty": "CITADEL",
+   "instrument": "CMCSA 7 01/19/38 (COMCAST CORP 7.000% DUE 01/19/2038)",
+   "asset": "Bond",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "3000000",
+     "theirs": "3000000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "103.181",
+     "theirs": "103.181",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-12",
+     "theirs": "2025-06-12",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "50166.67",
+     "theirs": "50165.73",
+     "state": "tolerance",
+     "delta": "-0.94"
+    },
+    "Fees": {
+     "ours": "300.00",
+     "theirs": "300.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "3145296.67",
+     "theirs": "3145295.73",
+     "state": "attributed",
+     "delta": "-0.94"
+    }
+   }
+  },
+  {
+   "entry": "E-305e8d2b",
+   "oracleGroup": "G0126",
+   "counterparty": "UBS",
+   "instrument": "CMCSA 3.875 06/28/36 (COMCAST CORP 3.875% DUE 06/28/2036)",
+   "asset": "Bond",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "250000",
+     "theirs": "250000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "93.498",
+     "theirs": "93.498",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-11",
+     "theirs": "2025-06-11",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "2206.60",
+     "theirs": "2207.44",
+     "state": "tolerance",
+     "delta": "0.84"
+    },
+    "Fees": {
+     "ours": "50.00",
+     "theirs": "50.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "236001.60",
+     "theirs": "236002.44",
+     "state": "attributed",
+     "delta": "0.84"
+    }
+   }
+  },
+  {
+   "entry": "E-6c9b2b6a",
+   "oracleGroup": "G0127",
+   "counterparty": "GSCO",
+   "instrument": "GBPUSD (FX FORWARD GBP/USD)",
+   "asset": "Forward",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "1000000",
+     "theirs": "1000000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "1.2705",
+     "theirs": "1.2706",
+     "state": "tolerance",
+     "delta": "0.0001"
+    },
+    "SettleDate": {
+     "ours": "2025-08-15",
+     "theirs": "2025-08-15",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "1270500.00",
+     "theirs": "1270600.00",
+     "state": "attributed",
+     "delta": "100.00"
+    }
+   }
+  },
+  {
+   "entry": "E-dcc751d2",
+   "oracleGroup": "G0128",
+   "counterparty": "CITI",
+   "instrument": "EURUSD (FX FORWARD EUR/USD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "550000",
+     "theirs": "550000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "1.08161",
+     "theirs": "1.08151",
+     "state": "tolerance",
+     "delta": "-0.0001"
+    },
+    "SettleDate": {
+     "ours": "2025-06-26",
+     "theirs": "2025-06-26",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "594885.50",
+     "theirs": "594830.50",
+     "state": "attributed",
+     "delta": "-55.00"
+    }
+   }
+  },
+  {
+   "entry": "E-f90669bb",
+   "oracleGroup": "G0129",
+   "counterparty": "JPM",
+   "instrument": "EURUSD (FX FORWARD EUR/USD)",
+   "asset": "Forward",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "400000",
+     "theirs": "400000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "1.08707",
+     "theirs": "1.08717",
+     "state": "tolerance",
+     "delta": "0.0001"
+    },
+    "SettleDate": {
+     "ours": "2025-08-11",
+     "theirs": "2025-08-11",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "434828.00",
+     "theirs": "434868.00",
+     "state": "attributed",
+     "delta": "40.00"
+    }
+   }
+  },
+  {
+   "entry": "E-920603c6",
+   "oracleGroup": "G0130",
+   "counterparty": "GSCO",
+   "instrument": "EURUSD (FX FORWARD EUR/USD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "450000",
+     "theirs": "450000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "1.08569",
+     "theirs": "1.08559",
+     "state": "tolerance",
+     "delta": "-0.0001"
+    },
+    "SettleDate": {
+     "ours": "2025-09-15",
+     "theirs": "2025-09-15",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "488560.50",
+     "theirs": "488515.50",
+     "state": "attributed",
+     "delta": "-45.00"
+    }
+   }
+  },
+  {
+   "entry": "E-e759183b",
+   "oracleGroup": "G0131",
+   "counterparty": "JPM",
+   "instrument": "AUDUSD (FX FORWARD AUD/USD)",
+   "asset": "Forward",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "400000",
+     "theirs": "400000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "0.65011",
+     "theirs": "0.65021",
+     "state": "tolerance",
+     "delta": "0.0001"
+    },
+    "SettleDate": {
+     "ours": "2025-09-11",
+     "theirs": "2025-09-11",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "260044.00",
+     "theirs": "260084.00",
+     "state": "attributed",
+     "delta": "40.00"
+    }
+   }
+  },
+  {
+   "entry": "E-6715523f",
+   "oracleGroup": "G0132",
+   "counterparty": "JPM",
+   "instrument": "AUDUSD (FX FORWARD AUD/USD)",
+   "asset": "Forward",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "800000",
+     "theirs": "800000",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "0.65239",
+     "theirs": "0.65229",
+     "state": "tolerance",
+     "delta": "-0.0001"
+    },
+    "SettleDate": {
+     "ours": "2025-07-14",
+     "theirs": "2025-07-14",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "NetCash": {
+     "ours": "521912.00",
+     "theirs": "521832.00",
+     "state": "attributed",
+     "delta": "-80.00"
+    }
+   }
+  },
+  {
+   "entry": "E-e686359f",
+   "oracleGroup": "G0133",
+   "counterparty": "GSCO",
+   "instrument": "MCD (MCDONALD'S CORP COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P2",
+   "cells": {
+    "Quantity": {
+     "ours": "42500",
+     "theirs": "42500",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "305.59",
+     "theirs": "305.59",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-11",
+     "theirs": "2025-06-11",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "212.50",
+     "theirs": "212.51",
+     "state": "tolerance",
+     "delta": "0.01"
+    },
+    "NetCash": {
+     "ours": "12987787.50",
+     "theirs": "12987787.51",
+     "state": "attributed",
+     "delta": "0.01"
+    }
+   }
+  },
+  {
+   "entry": "E-8b777937",
+   "oracleGroup": "G0134",
+   "counterparty": "CITI",
+   "instrument": "MCD (MCDONALD'S CORP COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "34700",
+     "theirs": "34700",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "291.36",
+     "theirs": "291.36",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-12",
+     "theirs": "2025-06-12",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "104.10",
+     "theirs": "104.07",
+     "state": "tolerance",
+     "delta": "-0.03"
+    },
+    "NetCash": {
+     "ours": "10110296.10",
+     "theirs": "10110296.07",
+     "state": "attributed",
+     "delta": "-0.03"
+    }
+   }
+  },
+  {
+   "entry": "E-7b9054a2",
+   "oracleGroup": "G0135",
+   "counterparty": "GSCO",
+   "instrument": "COST (COSTCO WHOLESALE CORP COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "13800",
+     "theirs": "13800",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "999.37",
+     "theirs": "999.37",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-13",
+     "theirs": "2025-06-13",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "41.40",
+     "theirs": "41.37",
+     "state": "tolerance",
+     "delta": "-0.03"
+    },
+    "NetCash": {
+     "ours": "13791347.40",
+     "theirs": "13791347.37",
+     "state": "attributed",
+     "delta": "-0.03"
+    }
+   }
+  },
+  {
+   "entry": "E-788559aa",
+   "oracleGroup": "G0136",
+   "counterparty": "BAML",
+   "instrument": "PG (PROCTER & GAMBLE CO COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "22500",
+     "theirs": "22500",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "165.35",
+     "theirs": "165.35",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-12",
+     "theirs": "2025-06-12",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "67.50",
+     "theirs": "67.48",
+     "state": "tolerance",
+     "delta": "-0.02"
+    },
+    "NetCash": {
+     "ours": "3720307.50",
+     "theirs": "3720307.52",
+     "state": "attributed",
+     "delta": "0.02"
+    }
+   }
+  },
+  {
+   "entry": "E-6ea4b223",
+   "oracleGroup": "G0137",
+   "counterparty": "MSCO",
+   "instrument": "PFE (PFIZER INC COM USD)",
+   "asset": "Equity",
+   "side": "SELL",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "45800",
+     "theirs": "45800",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "24.41",
+     "theirs": "24.41",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-12",
+     "theirs": "2025-06-12",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "137.40",
+     "theirs": "137.42",
+     "state": "tolerance",
+     "delta": "0.02"
+    },
+    "NetCash": {
+     "ours": "1117840.60",
+     "theirs": "1117840.58",
+     "state": "attributed",
+     "delta": "-0.02"
+    }
+   }
+  },
+  {
+   "entry": "E-9e26dfb8",
+   "oracleGroup": "G0138",
+   "counterparty": "BARC",
+   "instrument": "BAC (BANK OF AMERICA CORP COM USD)",
+   "asset": "Equity",
+   "side": "BUY",
+   "ccy": "USD",
+   "outcome": "WithinTolerance",
+   "pass_": "P1",
+   "cells": {
+    "Quantity": {
+     "ours": "1200",
+     "theirs": "1200",
+     "state": "same",
+     "delta": null
+    },
+    "Price": {
+     "ours": "44.1",
+     "theirs": "44.1",
+     "state": "same",
+     "delta": null
+    },
+    "SettleDate": {
+     "ours": "2025-06-13",
+     "theirs": "2025-06-13",
+     "state": "same",
+     "delta": null
+    },
+    "Accrued": {
+     "ours": "0.00",
+     "theirs": "0.00",
+     "state": "same",
+     "delta": null
+    },
+    "Fees": {
+     "ours": "2.40",
+     "theirs": "2.38",
+     "state": "tolerance",
+     "delta": "-0.02"
+    },
+    "NetCash": {
+     "ours": "52922.40",
+     "theirs": "52922.38",
+     "state": "attributed",
+     "delta": "-0.02"
+    }
+   }
+  }
+ ],
+ "BO3": [
+  {
+   "oracleGroup": "G0011",
+   "entry": "E-d3f966ff",
+   "why": "32nds price + BAML date text",
+   "outcome": "Exact",
+   "pass_": "P2",
+   "internalRaw": {
+    "Internal_Trade_ID": "OMS4152729",
+    "Counterparty_Code": "BAML",
+    "Ticker": "T 4.75 11/15/49",
+    "Trade_Date": "2025-06-10",
+    "Settle_Date": "2025-06-11",
+    "Side": "SELL",
+    "Quantity_Notional": "3000000",
+    "Clean_Price_Rate": "96.078125",
+    "Accrued_Interest": "17020.83",
+    "Commission_Fees": "600",
+    "Net_Settlement_Amount": "2898764.58"
+   },
+   "streetRaw": {
+    "Cpty_Report_ID": "BA-18777889",
+    "Reporting_Counterparty_Name": "BOFA_MLPF&S",
+    "Counterparty_LEI": "EL495T1V227XABYD2Q18",
+    "Primary_Security_ID": "91282CT68",
+    "Security_ID_Source": "CUSIP",
+    "Trade_Date": "10-JUN-2025",
+    "Value_Settle_Date": "11-JUN-2025",
+    "Dir_Ind": "SLD",
+    "Reported_Qty_Notional": "3000000",
+    "Exec_Price_Rate": "96-02+",
+    "Reported_Accrued_Int": "17020.83",
+    "Price_Quote_Convention": "32NDS_UST",
+    "Net_Cash_Amount": "2898764.58",
+    "Reporting_Perspective": "PB_CLIENT_VIEW"
+   },
+   "ours": {
+    "Counterparty": "BAML",
+    "Instrument": "US91282CT687",
+    "AssetClass": "Bond",
+    "TradeDate": "2025-06-10",
+    "SettleDate": "2025-06-11",
+    "Side": "SELL",
+    "Quantity": "3000000",
+    "Price": "96.078125",
+    "Currency": "USD",
+    "Accrued": "17020.83",
+    "Fees": "600.00",
+    "NetCash": "2898764.58"
+   },
+   "theirs": {
+    "Counterparty": "BAML",
+    "Instrument": "US91282CT687",
+    "AssetClass": "Bond",
+    "TradeDate": "2025-06-10",
+    "SettleDate": "2025-06-11",
+    "Side": "SELL",
+    "Quantity": "3000000",
+    "Price": "96.078125",
+    "Currency": "USD",
+    "Accrued": "17020.83",
+    "Fees": "600.00",
+    "NetCash": "2898764.58"
+   },
+   "diffs": [],
+   "trace": [
+    "dir code 'SLD'->SELL"
+   ]
+  },
+  {
+   "oracleGroup": "G0139",
+   "entry": "E-b5a14dda",
+   "why": "Price break",
+   "outcome": "Break",
+   "pass_": "P1",
+   "internalRaw": {
+    "Internal_Trade_ID": "OMS2827093",
+    "Counterparty_Code": "GSCO",
+    "Ticker": "CMCSA 7 01/19/38",
+    "Trade_Date": "2025-06-12",
+    "Settle_Date": "2025-06-13",
+    "Side": "BUY",
+    "Quantity_Notional": "1750000",
+    "Clean_Price_Rate": "96.572",
+    "Accrued_Interest": "29944.44",
+    "Commission_Fees": "350",
+    "Net_Settlement_Amount": "1720304.44"
+   },
+   "streetRaw": {
+    "Cpty_Report_ID": "GS-85339531",
+    "Reporting_Counterparty_Name": "GS_NY_PRIME",
+    "Counterparty_LEI": "SWU69BMJ17DGR1VWAZ34",
+    "Primary_Security_ID": "3GX62CKH6",
+    "Security_ID_Source": "CUSIP",
+    "Trade_Date": "2025-06-12",
+    "Value_Settle_Date": "2025-06-13",
+    "Dir_Ind": "B",
+    "Reported_Qty_Notional": "1750000",
+    "Exec_Price_Rate": "99.966",
+    "Reported_Accrued_Int": "29944.44",
+    "Price_Quote_Convention": "CLEAN_PCT_PAR",
+    "Net_Cash_Amount": "1779699.44",
+    "Reporting_Perspective": "PB_CLIENT_VIEW"
+   },
+   "ours": {
+    "Counterparty": "GSCO",
+    "Instrument": "US3GX62CKH63",
+    "AssetClass": "Bond",
+    "TradeDate": "2025-06-12",
+    "SettleDate": "2025-06-13",
+    "Side": "BUY",
+    "Quantity": "1750000",
+    "Price": "96.572",
+    "Currency": "USD",
+    "Accrued": "29944.44",
+    "Fees": "350.00",
+    "NetCash": "1720304.44"
+   },
+   "theirs": {
+    "Counterparty": "GSCO",
+    "Instrument": "US3GX62CKH63",
+    "AssetClass": "Bond",
+    "TradeDate": "2025-06-12",
+    "SettleDate": "2025-06-13",
+    "Side": "BUY",
+    "Quantity": "1750000",
+    "Price": "99.966",
+    "Currency": "USD",
+    "Accrued": "29944.44",
+    "Fees": "350.00",
+    "NetCash": "1779699.44"
+   },
+   "diffs": [
+    {
+     "field": "Price",
+     "left": "96.572",
+     "right": "99.966",
+     "delta": "3.394",
+     "outcome": "Break",
+     "attributedTo": [],
+     "derived": false
+    },
+    {
+     "field": "NetCash",
+     "left": "1720304.44",
+     "right": "1779699.44",
+     "delta": "59395.00",
+     "outcome": "Break",
+     "attributedTo": [
+      "Price"
+     ],
+     "derived": false
+    }
+   ],
+   "trace": [
+    "dir code 'B'->BUY"
+   ]
+  },
+  {
+   "oracleGroup": "G0144",
+   "entry": "E-09de482a",
+   "why": "Partial fill (quantity break)",
+   "outcome": "Break",
+   "pass_": "P4",
+   "internalRaw": {
+    "Internal_Trade_ID": "OMS3512650",
+    "Counterparty_Code": "CITI",
+    "Ticker": "XOM 6.625 02/14/50",
+    "Trade_Date": "2025-06-12",
+    "Settle_Date": "2025-06-13",
+    "Side": "SELL",
+    "Quantity_Notional": "1000000",
+    "Clean_Price_Rate": "102.415",
+    "Accrued_Interest": "4784.72",
+    "Commission_Fees": "50",
+    "Net_Settlement_Amount": "1028884.72"
+   },
+   "streetRaw": {
+    "Cpty_Report_ID": "CG-43060951",
+    "Reporting_Counterparty_Name": "CGMI_NY",
+    "Counterparty_LEI": "0PB5BKRQBJO09IN8BC95",
+    "Primary_Security_ID": "UST77KS39V09",
+    "Security_ID_Source": "ISIN",
+    "Trade_Date": "2025-06-12",
+    "Value_Settle_Date": "2025-06-13",
+    "Dir_Ind": "sell",
+    "Reported_Qty_Notional": "800000",
+    "Exec_Price_Rate": "102.415",
+    "Reported_Accrued_Int": "3827.78",
+    "Price_Quote_Convention": "CLEAN_PCT_PAR",
+    "Net_Cash_Amount": "823107.78",
+    "Reporting_Perspective": "PB_CLIENT_VIEW"
+   },
+   "ours": {
+    "Counterparty": "CITI",
+    "Instrument": "UST77KS39V09",
+    "AssetClass": "Bond",
+    "TradeDate": "2025-06-12",
+    "SettleDate": "2025-06-13",
+    "Side": "SELL",
+    "Quantity": "1000000",
+    "Price": "102.415",
+    "Currency": "USD",
+    "Accrued": "4784.72",
+    "Fees": "50.00",
+    "NetCash": "1028884.72"
+   },
+   "theirs": {
+    "Counterparty": "CITI",
+    "Instrument": "UST77KS39V09",
+    "AssetClass": "Bond",
+    "TradeDate": "2025-06-12",
+    "SettleDate": "2025-06-13",
+    "Side": "SELL",
+    "Quantity": "800000",
+    "Price": "102.415",
+    "Currency": "USD",
+    "Accrued": "3827.78",
+    "Fees": "40.00",
+    "NetCash": "823107.78"
+   },
+   "diffs": [
+    {
+     "field": "Quantity",
+     "left": "1000000",
+     "right": "800000",
+     "delta": "-200000",
+     "outcome": "Break",
+     "attributedTo": [],
+     "derived": false
+    },
+    {
+     "field": "Accrued",
+     "left": "4784.72",
+     "right": "3827.78",
+     "delta": "-956.94",
+     "outcome": "Break",
+     "attributedTo": [
+      "Quantity"
+     ],
+     "derived": false
+    },
+    {
+     "field": "Fees",
+     "left": "50.00",
+     "right": "40.00",
+     "delta": "-10.00",
+     "outcome": "Break",
+     "attributedTo": [
+      "Quantity"
+     ],
+     "derived": true
+    },
+    {
+     "field": "NetCash",
+     "left": "1028884.72",
+     "right": "823107.78",
+     "delta": "-205776.94",
+     "outcome": "Break",
+     "attributedTo": [
+      "Quantity",
+      "Accrued",
+      "Fees"
+     ],
+     "derived": false
+    }
+   ],
+   "trace": [
+    "dir code 'sell'->SELL"
+   ]
+  },
+  {
+   "oracleGroup": "G0149",
+   "entry": "E-38cbd51c",
+   "why": "Settle-date break",
+   "outcome": "Break",
+   "pass_": "P1",
+   "internalRaw": {
+    "Internal_Trade_ID": "OMS5874497",
+    "Counterparty_Code": "GSCO",
+    "Ticker": "T 4 08/15/50",
+    "Trade_Date": "2025-06-12",
+    "Settle_Date": "2025-06-13",
+    "Side": "SELL",
+    "Quantity_Notional": "9250000",
+    "Clean_Price_Rate": "99.203125",
+    "Accrued_Interest": "76055.56",
+    "Commission_Fees": "2312.5",
+    "Net_Settlement_Amount": "9250032.12"
+   },
+   "streetRaw": {
+    "Cpty_Report_ID": "GS-98359584",
+    "Reporting_Counterparty_Name": "GS_NY_PRIME",
+    "Counterparty_LEI": "SWU69BMJ17DGR1VWAZ34",
+    "Primary_Security_ID": "91282CQH7",
+    "Security_ID_Source": "CUSIP",
+    "Trade_Date": "2025-06-12",
+    "Value_Settle_Date": "2025-06-16",
+    "Dir_Ind": "S",
+    "Reported_Qty_Notional": "9250000",
+    "Exec_Price_Rate": "99.203125",
+    "Reported_Accrued_Int": "76055.56",
+    "Price_Quote_Convention": "CLEAN_PCT_PAR",
+    "Net_Cash_Amount": "9250032.12",
+    "Reporting_Perspective": "PB_CLIENT_VIEW"
+   },
+   "ours": {
+    "Counterparty": "GSCO",
+    "Instrument": "US91282CQH78",
+    "AssetClass": "Bond",
+    "TradeDate": "2025-06-12",
+    "SettleDate": "2025-06-13",
+    "Side": "SELL",
+    "Quantity": "9250000",
+    "Price": "99.203125",
+    "Currency": "USD",
+    "Accrued": "76055.56",
+    "Fees": "2312.50",
+    "NetCash": "9250032.12"
+   },
+   "theirs": {
+    "Counterparty": "GSCO",
+    "Instrument": "US91282CQH78",
+    "AssetClass": "Bond",
+    "TradeDate": "2025-06-12",
+    "SettleDate": "2025-06-16",
+    "Side": "SELL",
+    "Quantity": "9250000",
+    "Price": "99.203125",
+    "Currency": "USD",
+    "Accrued": "76055.56",
+    "Fees": "2312.50",
+    "NetCash": "9250032.12"
+   },
+   "diffs": [
+    {
+     "field": "SettleDate",
+     "left": "2025-06-13",
+     "right": "2025-06-16",
+     "delta": "+3 days",
+     "outcome": "Break",
+     "attributedTo": [],
+     "derived": false
+    }
+   ],
+   "trace": [
+    "dir code 'S'->SELL"
+   ]
+  },
+  {
+   "oracleGroup": "G0157",
+   "entry": "E-b7403146",
+   "why": "Fee break (fee inferred from net)",
+   "outcome": "Break",
+   "pass_": "P1",
+   "internalRaw": {
+    "Internal_Trade_ID": "OMS8313172",
+    "Counterparty_Code": "CITADEL",
+    "Ticker": "UNH",
+    "Trade_Date": "2025-06-12",
+    "Settle_Date": "2025-06-13",
+    "Side": "SELL",
+    "Quantity_Notional": "13700",
+    "Clean_Price_Rate": "299.44",
+    "Accrued_Interest": "0",
+    "Commission_Fees": "41.1",
+    "Net_Settlement_Amount": "4102286.9"
+   },
+   "streetRaw": {
+    "Cpty_Report_ID": "CS-27091166",
+    "Reporting_Counterparty_Name": "Citadel Securities LLC",
+    "Counterparty_LEI": "59X9FFWD1GPOFWDWZM35",
+    "Primary_Security_ID": "UNH",
+    "Security_ID_Source": "TICKER",
+    "Trade_Date": "20250612",
+    "Value_Settle_Date": "20250613",
+    "Dir_Ind": "",
+    "Reported_Qty_Notional": "-13700",
+    "Exec_Price_Rate": "299.44",
+    "Reported_Accrued_Int": "",
+    "Price_Quote_Convention": "PER_SHARE",
+    "Net_Cash_Amount": "4101836.9",
+    "Reporting_Perspective": "PB_CLIENT_VIEW"
+   },
+   "ours": {
+    "Counterparty": "CITADEL",
+    "Instrument": "USG6ZTPATD13",
+    "AssetClass": "Equity",
+    "TradeDate": "2025-06-12",
+    "SettleDate": "2025-06-13",
+    "Side": "SELL",
+    "Quantity": "13700",
+    "Price": "299.44",
+    "Currency": "USD",
+    "Accrued": "0.00",
+    "Fees": "41.10",
+    "NetCash": "4102286.90"
+   },
+   "theirs": {
+    "Counterparty": "CITADEL",
+    "Instrument": "USG6ZTPATD13",
+    "AssetClass": "Equity",
+    "TradeDate": "2025-06-12",
+    "SettleDate": "2025-06-13",
+    "Side": "SELL",
+    "Quantity": "13700",
+    "Price": "299.44",
+    "Currency": "USD",
+    "Accrued": "0.00",
+    "Fees": "491.10",
+    "NetCash": "4101836.90"
+   },
+   "diffs": [
+    {
+     "field": "Fees",
+     "left": "41.10",
+     "right": "491.10",
+     "delta": "450.00",
+     "outcome": "Break",
+     "attributedTo": [],
+     "derived": true
+    },
+    {
+     "field": "NetCash",
+     "left": "4102286.90",
+     "right": "4101836.90",
+     "delta": "-450.00",
+     "outcome": "Break",
+     "attributedTo": [
+      "Fees"
+     ],
+     "derived": false
+    }
+   ],
+   "trace": [
+    "blank dir, qty sign -> SELL"
+   ]
+  },
+  {
+   "oracleGroup": "G0127",
+   "entry": "E-6c9b2b6a",
+   "why": "FX rate within tolerance",
+   "outcome": "WithinTolerance",
+   "pass_": "P2",
+   "internalRaw": {
+    "Internal_Trade_ID": "OMS3145891",
+    "Counterparty_Code": "GSCO",
+    "Ticker": "GBPUSD",
+    "Trade_Date": "2025-06-12",
+    "Settle_Date": "2025-08-15",
+    "Side": "SELL",
+    "Quantity_Notional": "1000000",
+    "Clean_Price_Rate": "1.2705",
+    "Accrued_Interest": "0",
+    "Commission_Fees": "0",
+    "Net_Settlement_Amount": "1270500"
+   },
+   "streetRaw": {
+    "Cpty_Report_ID": "GS-69731809",
+    "Reporting_Counterparty_Name": "GS_NY_PRIME",
+    "Counterparty_LEI": "SWU69BMJ17DGR1VWAZ34",
+    "Primary_Security_ID": "GBPUSD",
+    "Security_ID_Source": "TICKER",
+    "Trade_Date": "2025-06-12",
+    "Value_Settle_Date": "2025-08-15",
+    "Dir_Ind": "S",
+    "Reported_Qty_Notional": "1000000",
+    "Exec_Price_Rate": "1.2706",
+    "Reported_Accrued_Int": "",
+    "Price_Quote_Convention": "FX_OUTRIGHT_RATE",
+    "Net_Cash_Amount": "1270600",
+    "Reporting_Perspective": "PB_CLIENT_VIEW"
+   },
+   "ours": {
+    "Counterparty": "GSCO",
+    "Instrument": "GBPUSD",
+    "AssetClass": "Forward",
+    "TradeDate": "2025-06-12",
+    "SettleDate": "2025-08-15",
+    "Side": "SELL",
+    "Quantity": "1000000",
+    "Price": "1.2705",
+    "Currency": "USD",
+    "Accrued": "0.00",
+    "Fees": "0.00",
+    "NetCash": "1270500.00"
+   },
+   "theirs": {
+    "Counterparty": "GSCO",
+    "Instrument": "GBPUSD",
+    "AssetClass": "Forward",
+    "TradeDate": "2025-06-12",
+    "SettleDate": "2025-08-15",
+    "Side": "SELL",
+    "Quantity": "1000000",
+    "Price": "1.2706",
+    "Currency": "USD",
+    "Accrued": "0.00",
+    "Fees": "0.00",
+    "NetCash": "1270600.00"
+   },
+   "diffs": [
+    {
+     "field": "Price",
+     "left": "1.2705",
+     "right": "1.2706",
+     "delta": "0.0001",
+     "outcome": "WithinTolerance",
+     "attributedTo": [],
+     "derived": false
+    },
+    {
+     "field": "NetCash",
+     "left": "1270500.00",
+     "right": "1270600.00",
+     "delta": "100.00",
+     "outcome": "WithinTolerance",
+     "attributedTo": [
+      "Price"
+     ],
+     "derived": false
+    }
+   ],
+   "trace": [
+    "dir code 'S'->SELL"
+   ]
+  },
+  {
+   "oracleGroup": "G0004",
+   "entry": "E-40f28df3",
+   "why": "Dealer view: side inverted, BARC date dd/MM/yyyy",
+   "outcome": "Exact",
+   "pass_": "P2",
+   "internalRaw": {
+    "Internal_Trade_ID": "OMS3008502",
+    "Counterparty_Code": "BARC",
+    "Ticker": "USDCHF",
+    "Trade_Date": "2025-06-11",
+    "Settle_Date": "2025-09-11",
+    "Side": "BUY",
+    "Quantity_Notional": "19500000",
+    "Clean_Price_Rate": "0.82019",
+    "Accrued_Interest": "0",
+    "Commission_Fees": "0",
+    "Net_Settlement_Amount": "15993705"
+   },
+   "streetRaw": {
+    "Cpty_Report_ID": "BC-51721586",
+    "Reporting_Counterparty_Name": "Barclays Bank PLC",
+    "Counterparty_LEI": "1HDNAU1VGN38H5FTZ187",
+    "Primary_Security_ID": "USDCHF",
+    "Security_ID_Source": "TICKER",
+    "Trade_Date": "11/06/2025",
+    "Value_Settle_Date": "11/09/2025",
+    "Dir_Ind": "S",
+    "Reported_Qty_Notional": "19500000",
+    "Exec_Price_Rate": "0.82019",
+    "Reported_Accrued_Int": "",
+    "Price_Quote_Convention": "FX_OUTRIGHT_RATE",
+    "Net_Cash_Amount": "15993705",
+    "Reporting_Perspective": "DEALER_BILATERAL_VIEW"
+   },
+   "ours": {
+    "Counterparty": "BARC",
+    "Instrument": "USDCHF",
+    "AssetClass": "Forward",
+    "TradeDate": "2025-06-11",
+    "SettleDate": "2025-09-11",
+    "Side": "BUY",
+    "Quantity": "19500000",
+    "Price": "0.82019",
+    "Currency": "CHF",
+    "Accrued": "0.00",
+    "Fees": "0.00",
+    "NetCash": "15993705.00"
+   },
+   "theirs": {
+    "Counterparty": "BARC",
+    "Instrument": "USDCHF",
+    "AssetClass": "Forward",
+    "TradeDate": "2025-06-11",
+    "SettleDate": "2025-09-11",
+    "Side": "BUY",
+    "Quantity": "19500000",
+    "Price": "0.82019",
+    "Currency": "CHF",
+    "Accrued": "0.00",
+    "Fees": "0.00",
+    "NetCash": "15993705.00"
+   },
+   "diffs": [],
+   "trace": [
+    "dir code 'S'->SELL",
+    "dealer flip"
+   ]
+  },
+  {
+   "oracleGroup": "G0019",
+   "entry": "E-99d6cd99",
+   "why": "Dirty price converted to clean",
+   "outcome": "Exact",
+   "pass_": "P1",
+   "internalRaw": {
+    "Internal_Trade_ID": "OMS1091827",
+    "Counterparty_Code": "CITI",
+    "Ticker": "C 7 11/07/50",
+    "Trade_Date": "2025-06-11",
+    "Settle_Date": "2025-06-12",
+    "Side": "BUY",
+    "Quantity_Notional": "3750000",
+    "Clean_Price_Rate": "98.755",
+    "Accrued_Interest": "54687.5",
+    "Commission_Fees": "562.5",
+    "Net_Settlement_Amount": "3758562.5"
+   },
+   "streetRaw": {
+    "Cpty_Report_ID": "CG-51174451",
+    "Reporting_Counterparty_Name": "CGMI_NY",
+    "Counterparty_LEI": "0PB5BKRQBJO09IN8BC95",
+    "Primary_Security_ID": "US8GIRYAFG95",
+    "Security_ID_Source": "ISIN",
+    "Trade_Date": "2025-06-11",
+    "Value_Settle_Date": "2025-06-12",
+    "Dir_Ind": "buy",
+    "Reported_Qty_Notional": "3750000",
+    "Exec_Price_Rate": "100.213333",
+    "Reported_Accrued_Int": "54687.5",
+    "Price_Quote_Convention": "DIRTY_PCT_PAR",
+    "Net_Cash_Amount": "3758562.5",
+    "Reporting_Perspective": "PB_CLIENT_VIEW"
+   },
+   "ours": {
+    "Counterparty": "CITI",
+    "Instrument": "US8GIRYAFG95",
+    "AssetClass": "Bond",
+    "TradeDate": "2025-06-11",
+    "SettleDate": "2025-06-12",
+    "Side": "BUY",
+    "Quantity": "3750000",
+    "Price": "98.755",
+    "Currency": "USD",
+    "Accrued": "54687.50",
+    "Fees": "562.50",
+    "NetCash": "3758562.50"
+   },
+   "theirs": {
+    "Counterparty": "CITI",
+    "Instrument": "US8GIRYAFG95",
+    "AssetClass": "Bond",
+    "TradeDate": "2025-06-11",
+    "SettleDate": "2025-06-12",
+    "Side": "BUY",
+    "Quantity": "3750000",
+    "Price": "98.755",
+    "Currency": "USD",
+    "Accrued": "54687.50",
+    "Fees": "562.50",
+    "NetCash": "3758562.50"
+   },
+   "diffs": [],
+   "trace": [
+    "dir code 'buy'->BUY"
+   ]
+  }
+ ],
+ "BO4": [
+  {
+   "oracleGroup": "G0179",
+   "entry": "E-3f492e44",
+   "counterparty": "CITADEL",
+   "instrument": "F 6.125 06/16/50 (FORD MOTOR CREDIT CO 6.125% DUE 06/16/2050)",
+   "bust": "PRICE",
+   "matchedInternal": "OMS9063540",
+   "internalPrice": "105.149",
+   "internalQty": "5250000",
+   "internalNet": "5619365.21",
+   "pass_": "P1",
+   "outcome": "Exact",
+   "rows": [
+    {
+     "report": "CS-39633954",
+     "action": "NEW",
+     "target": "",
+     "qty": "5250000",
+     "price": "102.604",
+     "settle": "2025-06-11",
+     "net": "5485752.71",
+     "disposition": "Superseded"
+    },
+    {
+     "report": "CS-74239776",
+     "action": "CANC",
+     "target": "CS-39633954",
+     "qty": "5250000",
+     "price": "102.604",
+     "settle": "2025-06-11",
+     "net": "5485752.71",
+     "disposition": "CancelEvent"
+    },
+    {
+     "report": "CS-36468090",
+     "action": "CORR",
+     "target": "CS-74239776",
+     "qty": "5250000",
+     "price": "105.149",
+     "settle": "2025-06-11",
+     "net": "5619365.21",
+     "disposition": "Survivor (matched)"
+    }
+   ]
+  },
+  {
+   "oracleGroup": "G0183",
+   "entry": "E-37bce175",
+   "counterparty": "MSCO",
+   "instrument": "USDJPY (FX FORWARD USD/JPY)",
+   "bust": "PRICE",
+   "matchedInternal": "OMS4743506",
+   "internalPrice": "143.101",
+   "internalQty": "21000000",
+   "internalNet": "3005121000.00",
+   "pass_": "P1",
+   "outcome": "Exact",
+   "rows": [
+    {
+     "report": "MS-46449585",
+     "action": "NEW",
+     "target": "",
+     "qty": "21000000",
+     "price": "145.534",
+     "settle": "2025-08-12",
+     "net": "3056214000.00",
+     "disposition": "Superseded"
+    },
+    {
+     "report": "MS-29398673",
+     "action": "CANC",
+     "target": "MS-46449585",
+     "qty": "21000000",
+     "price": "145.534",
+     "settle": "2025-08-12",
+     "net": "3056214000.00",
+     "disposition": "CancelEvent"
+    },
+    {
+     "report": "MS-16878886",
+     "action": "CORR",
+     "target": "MS-29398673",
+     "qty": "21000000",
+     "price": "143.101",
+     "settle": "2025-08-12",
+     "net": "3005121000.00",
+     "disposition": "Survivor (matched)"
+    }
+   ]
+  },
+  {
+   "oracleGroup": "G0181",
+   "entry": "E-b9852b37",
+   "counterparty": "UBS",
+   "instrument": "CSCO (CISCO SYSTEMS INC COM USD)",
+   "bust": "PRICE",
+   "matchedInternal": "OMS6945213",
+   "internalPrice": "63.71",
+   "internalQty": "26800",
+   "internalNet": "1707294.00",
+   "pass_": "P1",
+   "outcome": "Exact",
+   "rows": [
+    {
+     "report": "UB-16434830",
+     "action": "NEW",
+     "target": "",
+     "qty": "26800",
+     "price": "64.57",
+     "settle": "2025-06-12",
+     "net": "1730342.00",
+     "disposition": "Superseded"
+    },
+    {
+     "report": "UB-57575591",
+     "action": "CANC",
+     "target": "UB-16434830",
+     "qty": "26800",
+     "price": "64.57",
+     "settle": "2025-06-12",
+     "net": "1730342.00",
+     "disposition": "CancelEvent"
+    },
+    {
+     "report": "UB-72116007",
+     "action": "CORR",
+     "target": "UB-57575591",
+     "qty": "26800",
+     "price": "63.71",
+     "settle": "2025-06-12",
+     "net": "1707294.00",
+     "disposition": "Survivor (matched)"
+    }
+   ]
+  },
+  {
+   "oracleGroup": "G0180",
+   "entry": "E-6cce9060",
+   "counterparty": "BAML",
+   "instrument": "F 6.125 06/16/50 (FORD MOTOR CREDIT CO 6.125% DUE 06/16/2050)",
+   "bust": "QTY",
+   "matchedInternal": "OMS9319417",
+   "internalPrice": "101.579",
+   "internalQty": "6500000",
+   "internalNet": "6745427.36",
+   "pass_": "P2",
+   "outcome": "Exact",
+   "rows": [
+    {
+     "report": "BA-20306238",
+     "action": "NEW",
+     "target": "",
+     "qty": "8125000",
+     "price": "101.579",
+     "settle": "2025-06-11",
+     "net": "8431784.20",
+     "disposition": "Superseded"
+    },
+    {
+     "report": "BA-31753782",
+     "action": "CANC",
+     "target": "BA-20306238",
+     "qty": "8125000",
+     "price": "101.579",
+     "settle": "2025-06-11",
+     "net": "8431784.20",
+     "disposition": "CancelEvent"
+    },
+    {
+     "report": "BA-54801040",
+     "action": "CORR",
+     "target": "BA-31753782",
+     "qty": "6500000",
+     "price": "101.579",
+     "settle": "2025-06-11",
+     "net": "6745427.36",
+     "disposition": "Survivor (matched)"
+    }
+   ]
+  },
+  {
+   "oracleGroup": "G0182",
+   "entry": "E-1089d740",
+   "counterparty": "BAML",
+   "instrument": "BA (BOEING CO COM USD)",
+   "bust": "QTY",
+   "matchedInternal": "OMS2034966",
+   "internalPrice": "202.95",
+   "internalQty": "7100",
+   "internalNet": "1440923.70",
+   "pass_": "P2",
+   "outcome": "Exact",
+   "rows": [
+    {
+     "report": "BA-57383997",
+     "action": "NEW",
+     "target": "",
+     "qty": "8900",
+     "price": "202.95",
+     "settle": "2025-06-13",
+     "net": "1806228.30",
+     "disposition": "Superseded"
+    },
+    {
+     "report": "BA-67179938",
+     "action": "CANC",
+     "target": "BA-57383997",
+     "qty": "8900",
+     "price": "202.95",
+     "settle": "2025-06-13",
+     "net": "1806228.30",
+     "disposition": "CancelEvent"
+    },
+    {
+     "report": "BA-87201113",
+     "action": "CORR",
+     "target": "BA-67179938",
+     "qty": "7100",
+     "price": "202.95",
+     "settle": "2025-06-13",
+     "net": "1440923.70",
+     "disposition": "Survivor (matched)"
+    }
+   ]
+  }
+ ],
+ "BO5": [
+  {
+   "oracleGroup": "G0170",
+   "entry": "E-de0271c0",
+   "counterparty": "BAML",
+   "instrument": "AMZN 6.125 05/12/32 (AMAZON.COM INC 6.125% DUE 05/12/2032)",
+   "side": "BUY",
+   "block": {
+    "id": "BA-94002547",
+    "qty": "21000000",
+    "price": "105.318",
+    "net": "22604373.76"
+   },
+   "members": [
+    {
+     "id": "OMS2166031",
+     "book": "CREDIT_OPP",
+     "qty": "7300000",
+     "price": "105.318",
+     "net": "7857710.88"
+    },
+    {
+     "id": "OMS6040044",
+     "book": "STAT_ARB_EQ",
+     "qty": "5200000",
+     "price": "105.318",
+     "net": "5597273.50"
+    },
+    {
+     "id": "OMS9431855",
+     "book": "MACRO_RATES",
+     "qty": "8500000",
+     "price": "105.318",
+     "net": "9149389.38"
+    }
+   ],
+   "sumQty": "21000000",
+   "sumNet": "22604373.76",
+   "outcome": "Exact"
+  },
+  {
+   "oracleGroup": "G0165",
+   "entry": "E-b410cd3b",
+   "counterparty": "BAML",
+   "instrument": "INTC 3.25 04/01/46 (INTEL CORP 3.250% DUE 04/01/2046)",
+   "side": "SELL",
+   "block": {
+    "id": "BA-99401829",
+    "qty": "3000000",
+    "price": "93.794",
+    "net": "2848186.66"
+   },
+   "members": [
+    {
+     "id": "OMS2399146",
+     "book": "MACRO_RATES",
+     "qty": "1500000",
+     "price": "93.794",
+     "net": "1424093.33"
+    },
+    {
+     "id": "OMS6184835",
+     "book": "STAT_ARB_EQ",
+     "qty": "600000",
+     "price": "93.794",
+     "net": "569637.33"
+    },
+    {
+     "id": "OMS9706219",
+     "book": "CREDIT_OPP",
+     "qty": "900000",
+     "price": "93.794",
+     "net": "854456.00"
+    }
+   ],
+   "sumQty": "3000000",
+   "sumNet": "2848186.66",
+   "outcome": "Exact"
+  },
+  {
+   "oracleGroup": "G0169",
+   "entry": "E-d1e28911",
+   "counterparty": "BARC",
+   "instrument": "BA 6.25 05/02/51 (BOEING CO 6.250% DUE 05/02/2051)",
+   "side": "SELL",
+   "block": {
+    "id": "BC-40009687",
+    "qty": "21000000",
+    "price": "99.231",
+    "net": "21223918.33"
+   },
+   "members": [
+    {
+     "id": "OMS5907830",
+     "book": "CREDIT_OPP",
+     "qty": "5200000",
+     "price": "99.231",
+     "net": "5255446.44"
+    },
+    {
+     "id": "OMS7933343",
+     "book": "STAT_ARB_EQ",
+     "qty": "12600000",
+     "price": "99.231",
+     "net": "12734351.00"
+    },
+    {
+     "id": "OMS9307346",
+     "book": "MACRO_RATES",
+     "qty": "3200000",
+     "price": "99.231",
+     "net": "3234120.89"
+    }
+   ],
+   "sumQty": "21000000",
+   "sumNet": "21223918.33",
+   "outcome": "Exact"
+  },
+  {
+   "oracleGroup": "G0162",
+   "entry": "E-3eb5f1ff",
+   "counterparty": "BARC",
+   "instrument": "NVDA (NVIDIA CORP COM USD)",
+   "side": "SELL",
+   "block": {
+    "id": "BC-43132750",
+    "qty": "39000",
+    "price": "132.86",
+    "net": "5181345.00"
+   },
+   "members": [
+    {
+     "id": "OMS1154299",
+     "book": "STAT_ARB_EQ",
+     "qty": "15600",
+     "price": "132.86",
+     "net": "2072538.00"
+    },
+    {
+     "id": "OMS2806819",
+     "book": "CREDIT_OPP",
+     "qty": "13600",
+     "price": "132.86",
+     "net": "1806828.00"
+    },
+    {
+     "id": "OMS6234517",
+     "book": "MACRO_RATES",
+     "qty": "9800",
+     "price": "132.86",
+     "net": "1301979.00"
+    }
+   ],
+   "sumQty": "39000",
+   "sumNet": "5181345.00",
+   "outcome": "Exact"
+  },
+  {
+   "oracleGroup": "G0168",
+   "entry": "E-3e74cf5c",
+   "counterparty": "CITI",
+   "instrument": "XOM 6.375 10/10/27 (EXXON MOBIL CORP 6.375% DUE 10/10/2027)",
+   "side": "BUY",
+   "block": {
+    "id": "CG-37501217",
+    "qty": "27000000",
+    "price": "104.499",
+    "net": "28883373.75"
+   },
+   "members": [
+    {
+     "id": "OMS5841565",
+     "book": "CREDIT_OPP",
+     "qty": "5400000",
+     "price": "104.499",
+     "net": "5776674.75"
+    },
+    {
+     "id": "OMS8619867",
+     "book": "MACRO_RATES",
+     "qty": "12200000",
+     "price": "104.499",
+     "net": "13051005.92"
+    },
+    {
+     "id": "OMS8831593",
+     "book": "STAT_ARB_EQ",
+     "qty": "9400000",
+     "price": "104.499",
+     "net": "10055693.08"
+    }
+   ],
+   "sumQty": "27000000",
+   "sumNet": "28883373.75",
+   "outcome": "Exact"
+  },
+  {
+   "oracleGroup": "G0160",
+   "entry": "E-8d316779",
+   "counterparty": "CITI",
+   "instrument": "GE (GE AEROSPACE COM USD)",
+   "side": "BUY",
+   "block": {
+    "id": "CG-37582423",
+    "qty": "12000",
+    "price": "251.89",
+    "net": "3022704.00"
+   },
+   "members": [
+    {
+     "id": "OMS3235985",
+     "book": "MACRO_RATES",
+     "qty": "6000",
+     "price": "251.89",
+     "net": "1511352.00"
+    },
+    {
+     "id": "OMS7355311",
+     "book": "STAT_ARB_EQ",
+     "qty": "3000",
+     "price": "251.89",
+     "net": "755676.00"
+    },
+    {
+     "id": "OMS7836095",
+     "book": "CREDIT_OPP",
+     "qty": "3000",
+     "price": "251.89",
+     "net": "755676.00"
+    }
+   ],
+   "sumQty": "12000",
+   "sumNet": "3022704.00",
+   "outcome": "Exact"
+  },
+  {
+   "oracleGroup": "G0166",
+   "entry": "E-9c1d8b5f",
+   "counterparty": "CITADEL",
+   "instrument": "T 7.25 12/27/39 (AT&T INC 7.250% DUE 12/27/2039)",
+   "side": "BUY",
+   "block": {
+    "id": "CS-65200794",
+    "qty": "15000000",
+    "price": "88.071",
+    "net": "13588983.34"
+   },
+   "members": [
+    {
+     "id": "OMS8437033",
+     "book": "CREDIT_OPP",
+     "qty": "6800000",
+     "price": "88.071",
+     "net": "6160339.11"
+    },
+    {
+     "id": "OMS8823874",
+     "book": "MACRO_RATES",
+     "qty": "3000000",
+     "price": "88.071",
+     "net": "2717796.67"
+    },
+    {
+     "id": "OMS9658596",
+     "book": "STAT_ARB_EQ",
+     "qty": "5200000",
+     "price": "88.071",
+     "net": "4710847.56"
+    }
+   ],
+   "sumQty": "15000000",
+   "sumNet": "13588983.34",
+   "outcome": "Exact"
+  },
+  {
+   "oracleGroup": "G0167",
+   "entry": "E-9be3b19d",
+   "counterparty": "JPM",
+   "instrument": "ORCL 3.375 06/19/49 (ORACLE CORP 3.375% DUE 06/19/2049)",
+   "side": "BUY",
+   "block": {
+    "id": "JP-14179207",
+    "qty": "12000000",
+    "price": "99.782",
+    "net": "11994690.00"
+   },
+   "members": [
+    {
+     "id": "OMS1700115",
+     "book": "CREDIT_OPP",
+     "qty": "2400000",
+     "price": "99.782",
+     "net": "2398938.00"
+    },
+    {
+     "id": "OMS3134156",
+     "book": "STAT_ARB_EQ",
+     "qty": "4200000",
+     "price": "99.782",
+     "net": "4198141.50"
+    },
+    {
+     "id": "OMS6833950",
+     "book": "MACRO_RATES",
+     "qty": "5400000",
+     "price": "99.782",
+     "net": "5397610.50"
+    }
+   ],
+   "sumQty": "12000000",
+   "sumNet": "11994690.00",
+   "outcome": "Exact"
+  },
+  {
+   "oracleGroup": "G0164",
+   "entry": "E-b917ed9b",
+   "counterparty": "JPM",
+   "instrument": "PFE (PFIZER INC COM USD)",
+   "side": "SELL",
+   "block": {
+    "id": "JP-41812857",
+    "qty": "10000",
+    "price": "24.71",
+    "net": "247070.00"
+   },
+   "members": [
+    {
+     "id": "OMS4501346",
+     "book": "CREDIT_OPP",
+     "qty": "6000",
+     "price": "24.71",
+     "net": "148242.00"
+    },
+    {
+     "id": "OMS4681720",
+     "book": "STAT_ARB_EQ",
+     "qty": "2500",
+     "price": "24.71",
+     "net": "61767.50"
+    },
+    {
+     "id": "OMS8990048",
+     "book": "MACRO_RATES",
+     "qty": "1500",
+     "price": "24.71",
+     "net": "37060.50"
+    }
+   ],
+   "sumQty": "10000",
+   "sumNet": "247070.00",
+   "outcome": "Exact"
+  },
+  {
+   "oracleGroup": "G0159",
+   "entry": "E-d312e10d",
+   "counterparty": "JPM",
+   "instrument": "DIS (WALT DISNEY CO COM USD)",
+   "side": "BUY",
+   "block": {
+    "id": "JP-48051575",
+    "qty": "9000",
+    "price": "114",
+    "net": "1026045.00"
+   },
+   "members": [
+    {
+     "id": "OMS4003839",
+     "book": "CREDIT_OPP",
+     "qty": "1400",
+     "price": "114",
+     "net": "159607.00"
+    },
+    {
+     "id": "OMS4044414",
+     "book": "STAT_ARB_EQ",
+     "qty": "2200",
+     "price": "114",
+     "net": "250811.00"
+    },
+    {
+     "id": "OMS7849940",
+     "book": "MACRO_RATES",
+     "qty": "5400",
+     "price": "114",
+     "net": "615627.00"
+    }
+   ],
+   "sumQty": "9000",
+   "sumNet": "1026045.00",
+   "outcome": "Exact"
+  },
+  {
+   "oracleGroup": "G0163",
+   "entry": "E-d7dc1bd1",
+   "counterparty": "JPM",
+   "instrument": "SBUX (STARBUCKS CORP COM USD)",
+   "side": "BUY",
+   "block": {
+    "id": "JP-84663330",
+    "qty": "37000",
+    "price": "89.55",
+    "net": "3313461.00"
+   },
+   "members": [
+    {
+     "id": "OMS6565034",
+     "book": "MACRO_RATES",
+     "qty": "7400",
+     "price": "89.55",
+     "net": "662692.20"
+    },
+    {
+     "id": "OMS7095939",
+     "book": "CREDIT_OPP",
+     "qty": "13000",
+     "price": "89.55",
+     "net": "1164189.00"
+    },
+    {
+     "id": "OMS9063045",
+     "book": "STAT_ARB_EQ",
+     "qty": "16600",
+     "price": "89.55",
+     "net": "1486579.80"
+    }
+   ],
+   "sumQty": "37000",
+   "sumNet": "3313461.00",
+   "outcome": "Exact"
+  },
+  {
+   "oracleGroup": "G0161",
+   "entry": "E-14d98403",
+   "counterparty": "UBS",
+   "instrument": "NKE (NIKE INC CL B COM USD)",
+   "side": "SELL",
+   "block": {
+    "id": "UB-68449172",
+    "qty": "47000",
+    "price": "62.03",
+    "net": "2915316.00"
+   },
+   "members": [
+    {
+     "id": "OMS3999110",
+     "book": "MACRO_RATES",
+     "qty": "18800",
+     "price": "62.03",
+     "net": "1166126.40"
+    },
+    {
+     "id": "OMS5191697",
+     "book": "STAT_ARB_EQ",
+     "qty": "11800",
+     "price": "62.03",
+     "net": "731930.40"
+    },
+    {
+     "id": "OMS7759611",
+     "book": "CREDIT_OPP",
+     "qty": "16400",
+     "price": "62.03",
+     "net": "1017259.20"
+    }
+   ],
+   "sumQty": "47000",
+   "sumNet": "2915316.00",
+   "outcome": "Exact"
+  }
+ ],
+ "BO6": [
+  {
+   "settleDate": "2025-06-11",
+   "ccy": "USD",
+   "items": 65,
+   "ours": "1673753.50",
+   "theirs": "16738205.77",
+   "diff": "15064452.27",
+   "unmatchedOurs": "20787840.44",
+   "unmatchedTheirs": "-2121028.40",
+   "inGroup": "-3602359.77"
+  },
+  {
+   "settleDate": "2025-06-12",
+   "ccy": "USD",
+   "items": 68,
+   "ours": "35746555.52",
+   "theirs": "54422315.26",
+   "diff": "18675759.74",
+   "unmatchedOurs": "28432305.23",
+   "unmatchedTheirs": "-8290002.78",
+   "inGroup": "-1466542.71"
+  },
+  {
+   "settleDate": "2025-06-12",
+   "ccy": "EUR",
+   "items": 8,
+   "ours": "246570.60",
+   "theirs": "422409.20",
+   "diff": "175838.60",
+   "unmatchedOurs": "175838.60",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-06-12",
+   "ccy": "GBP",
+   "items": 5,
+   "ours": "857897.30",
+   "theirs": "520268.90",
+   "diff": "-337628.40",
+   "unmatchedOurs": "-337628.40",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-06-13",
+   "ccy": "USD",
+   "items": 62,
+   "ours": "-117735253.68",
+   "theirs": "-101513076.72",
+   "diff": "16222176.96",
+   "unmatchedOurs": "-1626570.66",
+   "unmatchedTheirs": "-533768.40",
+   "inGroup": "18382516.02"
+  },
+  {
+   "settleDate": "2025-06-13",
+   "ccy": "EUR",
+   "items": 5,
+   "ours": "505160.60",
+   "theirs": "505160.60",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-06-13",
+   "ccy": "GBP",
+   "items": 2,
+   "ours": "-110982.67",
+   "theirs": "-110982.67",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-06-16",
+   "ccy": "USD",
+   "items": 4,
+   "ours": "146803.45",
+   "theirs": "-1026953.73",
+   "diff": "-1173757.18",
+   "unmatchedOurs": "-211558.40",
+   "unmatchedTheirs": "0",
+   "inGroup": "-962198.78"
+  },
+  {
+   "settleDate": "2025-06-16",
+   "ccy": "EUR",
+   "items": 2,
+   "ours": "155346.60",
+   "theirs": "45544.50",
+   "diff": "-109802.10",
+   "unmatchedOurs": "-109802.10",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-06-16",
+   "ccy": "GBP",
+   "items": 4,
+   "ours": "40951.50",
+   "theirs": "114133.20",
+   "diff": "73181.70",
+   "unmatchedOurs": "-63270.60",
+   "unmatchedTheirs": "136452.30",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-06-20",
+   "ccy": "USD",
+   "items": 1,
+   "ours": "-12064715.00",
+   "theirs": "-12064715.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-06-20",
+   "ccy": "GBP",
+   "items": 1,
+   "ours": "9381570.00",
+   "theirs": "9381570.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-06-20",
+   "ccy": "CAD",
+   "items": 1,
+   "ours": "-28045435.00",
+   "theirs": "0",
+   "diff": "28045435.00",
+   "unmatchedOurs": "28045435.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "0"
+  },
+  {
+   "settleDate": "2025-06-20",
+   "ccy": "JPY",
+   "items": 1,
+   "ours": "2230775500.00",
+   "theirs": "2230775500.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-06-23",
+   "ccy": "USD",
+   "items": 1,
+   "ours": "-11354875.00",
+   "theirs": "0",
+   "diff": "11354875.00",
+   "unmatchedOurs": "11354875.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "0"
+  },
+  {
+   "settleDate": "2025-06-23",
+   "ccy": "GBP",
+   "items": 1,
+   "ours": "-11494305.00",
+   "theirs": "0",
+   "diff": "11494305.00",
+   "unmatchedOurs": "11494305.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "0"
+  },
+  {
+   "settleDate": "2025-06-26",
+   "ccy": "USD",
+   "items": 1,
+   "ours": "-594885.50",
+   "theirs": "-594830.50",
+   "diff": "55.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "55.00"
+  },
+  {
+   "settleDate": "2025-06-26",
+   "ccy": "CAD",
+   "items": 1,
+   "ours": "-17006750.00",
+   "theirs": "-17006750.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-06-27",
+   "ccy": "USD",
+   "items": 1,
+   "ours": "-23850.00",
+   "theirs": "-23850.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-06-27",
+   "ccy": "GBP",
+   "items": 1,
+   "ours": "8994720.00",
+   "theirs": "0",
+   "diff": "-8994720.00",
+   "unmatchedOurs": "-8994720.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "0"
+  },
+  {
+   "settleDate": "2025-06-27",
+   "ccy": "CAD",
+   "items": 1,
+   "ours": "21860160.00",
+   "theirs": "21860160.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-06-30",
+   "ccy": "USD",
+   "items": 1,
+   "ours": "-15289440.00",
+   "theirs": "0",
+   "diff": "15289440.00",
+   "unmatchedOurs": "15289440.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "0"
+  },
+  {
+   "settleDate": "2025-06-30",
+   "ccy": "CAD",
+   "items": 1,
+   "ours": "-8192280.00",
+   "theirs": "-8158860.00",
+   "diff": "33420.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "33420.00"
+  },
+  {
+   "settleDate": "2025-06-30",
+   "ccy": "JPY",
+   "items": 1,
+   "ours": "3365717000.00",
+   "theirs": "3365717000.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-07-14",
+   "ccy": "USD",
+   "items": 2,
+   "ours": "-9410862.00",
+   "theirs": "-9410782.00",
+   "diff": "80.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "80.00"
+  },
+  {
+   "settleDate": "2025-07-16",
+   "ccy": "USD",
+   "items": 2,
+   "ours": "849030.00",
+   "theirs": "8121750.00",
+   "diff": "7272720.00",
+   "unmatchedOurs": "7272720.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-07-16",
+   "ccy": "CAD",
+   "items": 1,
+   "ours": "-2737900.00",
+   "theirs": "-2737900.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-07-16",
+   "ccy": "JPY",
+   "items": 1,
+   "ours": "-1003555000.00",
+   "theirs": "-1003555000.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-08-11",
+   "ccy": "USD",
+   "items": 2,
+   "ours": "-12539772.00",
+   "theirs": "-9944812.00",
+   "diff": "2594960.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "2594960.00"
+  },
+  {
+   "settleDate": "2025-08-12",
+   "ccy": "USD",
+   "items": 1,
+   "ours": "11495380.00",
+   "theirs": "0",
+   "diff": "-11495380.00",
+   "unmatchedOurs": "-11495380.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "0"
+  },
+  {
+   "settleDate": "2025-08-12",
+   "ccy": "CAD",
+   "items": 1,
+   "ours": "-2049090.00",
+   "theirs": "0",
+   "diff": "2049090.00",
+   "unmatchedOurs": "2049090.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "0"
+  },
+  {
+   "settleDate": "2025-08-12",
+   "ccy": "JPY",
+   "items": 1,
+   "ours": "3005121000.00",
+   "theirs": "3005121000.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-08-15",
+   "ccy": "USD",
+   "items": 3,
+   "ours": "-8623555.00",
+   "theirs": "-3162885.00",
+   "diff": "5460670.00",
+   "unmatchedOurs": "5460570.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "100.00"
+  },
+  {
+   "settleDate": "2025-08-15",
+   "ccy": "CAD",
+   "items": 1,
+   "ours": "0",
+   "theirs": "-5451840.00",
+   "diff": "-5451840.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "-5451840.00",
+   "inGroup": "0"
+  },
+  {
+   "settleDate": "2025-09-10",
+   "ccy": "USD",
+   "items": 1,
+   "ours": "6523700.00",
+   "theirs": "0",
+   "diff": "-6523700.00",
+   "unmatchedOurs": "-6523700.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "0"
+  },
+  {
+   "settleDate": "2025-09-10",
+   "ccy": "CHF",
+   "items": 2,
+   "ours": "-23370535.00",
+   "theirs": "-23370535.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-09-11",
+   "ccy": "USD",
+   "items": 2,
+   "ours": "-12688556.00",
+   "theirs": "-12688516.00",
+   "diff": "40.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "40.00"
+  },
+  {
+   "settleDate": "2025-09-11",
+   "ccy": "CHF",
+   "items": 3,
+   "ours": "-16005595.00",
+   "theirs": "-16005595.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-09-11",
+   "ccy": "JPY",
+   "items": 1,
+   "ours": "214818000.00",
+   "theirs": "214818000.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-09-15",
+   "ccy": "USD",
+   "items": 1,
+   "ours": "-488560.50",
+   "theirs": "-488515.50",
+   "diff": "45.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "45.00"
+  },
+  {
+   "settleDate": "2025-09-15",
+   "ccy": "GBP",
+   "items": 1,
+   "ours": "17942610.00",
+   "theirs": "0",
+   "diff": "-17942610.00",
+   "unmatchedOurs": "-17942610.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "0"
+  },
+  {
+   "settleDate": "2025-09-15",
+   "ccy": "CHF",
+   "items": 1,
+   "ours": "2043000.00",
+   "theirs": "0",
+   "diff": "-2043000.00",
+   "unmatchedOurs": "-2043000.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "0"
+  },
+  {
+   "settleDate": "2025-09-15",
+   "ccy": "JPY",
+   "items": 1,
+   "ours": "-388000.00",
+   "theirs": "-388000.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-12-09",
+   "ccy": "USD",
+   "items": 2,
+   "ours": "-6152160.00",
+   "theirs": "-6152160.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-12-09",
+   "ccy": "GBP",
+   "items": 1,
+   "ours": "-21384500.00",
+   "theirs": "0",
+   "diff": "21384500.00",
+   "unmatchedOurs": "21384500.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "0"
+  },
+  {
+   "settleDate": "2025-12-15",
+   "ccy": "USD",
+   "items": 4,
+   "ours": "-8581865.00",
+   "theirs": "-8581865.00",
+   "diff": "0.00",
+   "unmatchedOurs": "0",
+   "unmatchedTheirs": "0",
+   "inGroup": "0.00"
+  },
+  {
+   "settleDate": "2025-12-15",
+   "ccy": "JPY",
+   "items": 1,
+   "ours": "-791092500.00",
+   "theirs": "0",
+   "diff": "791092500.00",
+   "unmatchedOurs": "791092500.00",
+   "unmatchedTheirs": "0",
+   "inGroup": "0"
+  }
+ ],
+ "MO1": {
+  "counterparties": [
+   "BAML",
+   "BARC",
+   "CITADEL",
+   "CITI",
+   "GSCO",
+   "JPM",
+   "MSCO",
+   "UBS"
+  ],
+  "assets": [
+   "Bond",
+   "Equity",
+   "Forward",
+   "Swap"
+  ],
+  "counts": {
+   "BAML|Bond": [
+    14,
+    9
+   ],
+   "BAML|Equity": [
+    9,
+    9
+   ],
+   "BAML|Forward": [
+    6,
+    4
+   ],
+   "BAML|Swap": [
+    8,
+    5
+   ],
+   "BARC|Bond": [
+    14,
+    10
+   ],
+   "BARC|Equity": [
+    12,
+    6
+   ],
+   "BARC|Forward": [
+    6,
+    5
+   ],
+   "BARC|Swap": [
+    2,
+    0
+   ],
+   "CITADEL|Bond": [
+    18,
+    12
+   ],
+   "CITADEL|Equity": [
+    11,
+    7
+   ],
+   "CITADEL|Forward": [
+    0,
+    0
+   ],
+   "CITADEL|Swap": [
+    0,
+    0
+   ],
+   "CITI|Bond": [
+    13,
+    8
+   ],
+   "CITI|Equity": [
+    13,
+    9
+   ],
+   "CITI|Forward": [
+    9,
+    5
+   ],
+   "CITI|Swap": [
+    4,
+    2
+   ],
+   "GSCO|Bond": [
+    13,
+    8
+   ],
+   "GSCO|Equity": [
+    12,
+    9
+   ],
+   "GSCO|Forward": [
+    12,
+    9
+   ],
+   "GSCO|Swap": [
+    5,
+    2
+   ],
+   "JPM|Bond": [
+    14,
+    9
+   ],
+   "JPM|Equity": [
+    19,
+    9
+   ],
+   "JPM|Forward": [
+    8,
+    5
+   ],
+   "JPM|Swap": [
+    9,
+    7
+   ],
+   "MSCO|Bond": [
+    9,
+    4
+   ],
+   "MSCO|Equity": [
+    9,
+    6
+   ],
+   "MSCO|Forward": [
+    8,
+    5
+   ],
+   "MSCO|Swap": [
+    6,
+    4
+   ],
+   "UBS|Bond": [
+    14,
+    9
+   ],
+   "UBS|Equity": [
+    12,
+    5
+   ],
+   "UBS|Forward": [
+    4,
+    3
+   ],
+   "UBS|Swap": [
+    7,
+    5
+   ]
+  }
+ },
+ "MO1face": [
+  {
+   "counterparty": "BAML",
+   "rowsOurs": 14,
+   "rowsTheirs": 9,
+   "ours": "72000000",
+   "theirs": "62150000",
+   "delta": "-9850000",
+   "leftOnly": "-8250000",
+   "rightOnly": "0",
+   "matchedDelta": "-1600000"
+  },
+  {
+   "counterparty": "BARC",
+   "rowsOurs": 14,
+   "rowsTheirs": 10,
+   "ours": "68250000",
+   "theirs": "60000000",
+   "delta": "-8250000",
+   "leftOnly": "-8250000",
+   "rightOnly": "0",
+   "matchedDelta": "0"
+  },
+  {
+   "counterparty": "CITADEL",
+   "rowsOurs": 18,
+   "rowsTheirs": 12,
+   "ours": "76500000",
+   "theirs": "63500000",
+   "delta": "-13000000",
+   "leftOnly": "-13000000",
+   "rightOnly": "0",
+   "matchedDelta": "0"
+  },
+  {
+   "counterparty": "CITI",
+   "rowsOurs": 13,
+   "rowsTheirs": 8,
+   "ours": "67750000",
+   "theirs": "52800000",
+   "delta": "-14950000",
+   "leftOnly": "-20000000",
+   "rightOnly": "5250000",
+   "matchedDelta": "-200000"
+  },
+  {
+   "counterparty": "GSCO",
+   "rowsOurs": 13,
+   "rowsTheirs": 8,
+   "ours": "86750000",
+   "theirs": "54250000",
+   "delta": "-32500000",
+   "leftOnly": "-32500000",
+   "rightOnly": "0",
+   "matchedDelta": "0"
+  },
+  {
+   "counterparty": "JPM",
+   "rowsOurs": 14,
+   "rowsTheirs": 9,
+   "ours": "75750000",
+   "theirs": "48750000",
+   "delta": "-27000000",
+   "leftOnly": "-27000000",
+   "rightOnly": "0",
+   "matchedDelta": "0"
+  },
+  {
+   "counterparty": "MSCO",
+   "rowsOurs": 9,
+   "rowsTheirs": 4,
+   "ours": "38500000",
+   "theirs": "8500000",
+   "delta": "-30000000",
+   "leftOnly": "-30500000",
+   "rightOnly": "500000",
+   "matchedDelta": "0"
+  },
+  {
+   "counterparty": "UBS",
+   "rowsOurs": 14,
+   "rowsTheirs": 9,
+   "ours": "64750000",
+   "theirs": "43750000",
+   "delta": "-21000000",
+   "leftOnly": "-21000000",
+   "rightOnly": "0",
+   "matchedDelta": "0"
+  }
+ ],
+ "MO2": {
+  "total": {
+   "rows": 500,
+   "rowsOurs": 300,
+   "rowsTheirs": 200,
+   "entries": 275,
+   "matched": 183,
+   "exact": 145,
+   "tol": 18,
+   "brk": 20,
+   "leftOnly": 85,
+   "rightOnly": 7,
+   "matchedRowsOurs": 215,
+   "suppressed": 10,
+   "byPass": {
+    "P1": 86,
+    "P2": 81,
+    "P3": 12,
+    "P4": 4
+   }
+  },
+  "byCounterparty": [
+   {
+    "counterparty": "BAML",
+    "matched": 27,
+    "exact": 23,
+    "tol": 1,
+    "brk": 3,
+    "leftOnly": 5,
+    "rightOnly": 0,
+    "rowsOurs": 37,
+    "rowsTheirs": 31,
+    "matchedRowsOurs": 32,
+    "matchRate": 0.8649,
+    "cleanRate": 0.8889
+   },
+   {
+    "counterparty": "BARC",
+    "matched": 21,
+    "exact": 18,
+    "tol": 2,
+    "brk": 1,
+    "leftOnly": 9,
+    "rightOnly": 0,
+    "rowsOurs": 34,
+    "rowsTheirs": 21,
+    "matchedRowsOurs": 25,
+    "matchRate": 0.7353,
+    "cleanRate": 0.9524
+   },
+   {
+    "counterparty": "CITADEL",
+    "matched": 19,
+    "exact": 16,
+    "tol": 1,
+    "brk": 2,
+    "leftOnly": 8,
+    "rightOnly": 0,
+    "rowsOurs": 29,
+    "rowsTheirs": 21,
+    "matchedRowsOurs": 21,
+    "matchRate": 0.7241,
+    "cleanRate": 0.8947
+   },
+   {
+    "counterparty": "CITI",
+    "matched": 21,
+    "exact": 16,
+    "tol": 2,
+    "brk": 3,
+    "leftOnly": 13,
+    "rightOnly": 3,
+    "rowsOurs": 39,
+    "rowsTheirs": 24,
+    "matchedRowsOurs": 26,
+    "matchRate": 0.6667,
+    "cleanRate": 0.8571
+   },
+   {
+    "counterparty": "GSCO",
+    "matched": 26,
+    "exact": 18,
+    "tol": 5,
+    "brk": 3,
+    "leftOnly": 15,
+    "rightOnly": 2,
+    "rowsOurs": 42,
+    "rowsTheirs": 28,
+    "matchedRowsOurs": 27,
+    "matchRate": 0.6429,
+    "cleanRate": 0.8846
+   },
+   {
+    "counterparty": "JPM",
+    "matched": 29,
+    "exact": 22,
+    "tol": 4,
+    "brk": 3,
+    "leftOnly": 10,
+    "rightOnly": 1,
+    "rowsOurs": 50,
+    "rowsTheirs": 30,
+    "matchedRowsOurs": 40,
+    "matchRate": 0.8,
+    "cleanRate": 0.8966
+   },
+   {
+    "counterparty": "MSCO",
+    "matched": 18,
+    "exact": 13,
+    "tol": 2,
+    "brk": 3,
+    "leftOnly": 12,
+    "rightOnly": 1,
+    "rowsOurs": 32,
+    "rowsTheirs": 21,
+    "matchedRowsOurs": 20,
+    "matchRate": 0.625,
+    "cleanRate": 0.8333
+   },
+   {
+    "counterparty": "UBS",
+    "matched": 22,
+    "exact": 19,
+    "tol": 1,
+    "brk": 2,
+    "leftOnly": 13,
+    "rightOnly": 0,
+    "rowsOurs": 37,
+    "rowsTheirs": 24,
+    "matchedRowsOurs": 24,
+    "matchRate": 0.6486,
+    "cleanRate": 0.9091
+   }
+  ]
+ },
+ "MO3": [
+  {
+   "stage": "Rows read",
+   "left": 300,
+   "right": 200,
+   "note": "Internal_Trades and Counterparty_Trades tabs"
+  },
+  {
+   "stage": "After lifecycle collapse",
+   "left": 300,
+   "right": 190,
+   "note": "5 NEW/CANC/CORR chains: 10 rows suppressed"
+  },
+  {
+   "stage": "Items after packages",
+   "left": 292,
+   "right": 190,
+   "note": "8 two-leg packages: 16 rows become 8 items"
+  },
+  {
+   "stage": "P1 shared UTI",
+   "left": -86,
+   "right": -86,
+   "note": "commits 86 groups"
+  },
+  {
+   "stage": "P2 natural key incl. quantity",
+   "left": -81,
+   "right": -81,
+   "note": "commits 81 groups"
+  },
+  {
+   "stage": "P3 group sum (N:1)",
+   "left": -36,
+   "right": -12,
+   "note": "commits 12 allocation groups: 36 internal rows against 12 street blocks"
+  },
+  {
+   "stage": "P4 reduced key (quantity breaks)",
+   "left": -4,
+   "right": -4,
+   "note": "commits 4 partial fills"
+  },
+  {
+   "stage": "Residue",
+   "left": 85,
+   "right": 7,
+   "note": "85 unmatched ours, 7 unmatched theirs"
+  }
+ ],
+ "MO4": {
+  "categories": [
+   "Price",
+   "Quantity",
+   "SettleDate",
+   "Fees",
+   "Unmatched ours",
+   "Unmatched theirs"
+  ],
+  "counterparties": [
+   "BAML",
+   "BARC",
+   "CITADEL",
+   "CITI",
+   "GSCO",
+   "JPM",
+   "MSCO",
+   "UBS"
+  ],
+  "counts": {
+   "BAML|Price": 1,
+   "BAML|Quantity": 1,
+   "BAML|SettleDate": 0,
+   "BAML|Fees": 1,
+   "BAML|Unmatched ours": 5,
+   "BAML|Unmatched theirs": 0,
+   "BARC|Price": 0,
+   "BARC|Quantity": 1,
+   "BARC|SettleDate": 0,
+   "BARC|Fees": 0,
+   "BARC|Unmatched ours": 9,
+   "BARC|Unmatched theirs": 0,
+   "CITADEL|Price": 0,
+   "CITADEL|Quantity": 0,
+   "CITADEL|SettleDate": 1,
+   "CITADEL|Fees": 1,
+   "CITADEL|Unmatched ours": 8,
+   "CITADEL|Unmatched theirs": 0,
+   "CITI|Price": 1,
+   "CITI|Quantity": 1,
+   "CITI|SettleDate": 1,
+   "CITI|Fees": 0,
+   "CITI|Unmatched ours": 13,
+   "CITI|Unmatched theirs": 3,
+   "GSCO|Price": 2,
+   "GSCO|Quantity": 0,
+   "GSCO|SettleDate": 1,
+   "GSCO|Fees": 0,
+   "GSCO|Unmatched ours": 15,
+   "GSCO|Unmatched theirs": 2,
+   "JPM|Price": 0,
+   "JPM|Quantity": 0,
+   "JPM|SettleDate": 2,
+   "JPM|Fees": 1,
+   "JPM|Unmatched ours": 10,
+   "JPM|Unmatched theirs": 1,
+   "MSCO|Price": 1,
+   "MSCO|Quantity": 2,
+   "MSCO|SettleDate": 0,
+   "MSCO|Fees": 0,
+   "MSCO|Unmatched ours": 12,
+   "MSCO|Unmatched theirs": 1,
+   "UBS|Price": 0,
+   "UBS|Quantity": 0,
+   "UBS|SettleDate": 0,
+   "UBS|Fees": 2,
+   "UBS|Unmatched ours": 13,
+   "UBS|Unmatched theirs": 0
+  }
+ },
+ "MO5": {
+  "categories": [
+   "Price",
+   "Quantity",
+   "SettleDate",
+   "Fees",
+   "Unmatched ours",
+   "Unmatched theirs"
+  ],
+  "ages": [
+   1,
+   2,
+   3
+  ],
+  "statuses": [
+   "Past settle date",
+   "Settles today",
+   "Upcoming"
+  ],
+  "age": {
+   "Price|1": 3,
+   "Price|2": 1,
+   "Price|3": 1,
+   "Quantity|1": 2,
+   "Quantity|2": 1,
+   "Quantity|3": 2,
+   "SettleDate|1": 2,
+   "SettleDate|2": 1,
+   "SettleDate|3": 2,
+   "Fees|1": 2,
+   "Fees|2": 1,
+   "Fees|3": 2,
+   "Unmatched ours|1": 29,
+   "Unmatched ours|2": 25,
+   "Unmatched ours|3": 31,
+   "Unmatched theirs|1": 3,
+   "Unmatched theirs|2": 2,
+   "Unmatched theirs|3": 2
+  },
+  "status": {
+   "Price|Past settle date": 2,
+   "Price|Settles today": 2,
+   "Price|Upcoming": 1,
+   "Quantity|Past settle date": 2,
+   "Quantity|Settles today": 2,
+   "Quantity|Upcoming": 1,
+   "SettleDate|Past settle date": 3,
+   "SettleDate|Settles today": 2,
+   "SettleDate|Upcoming": 0,
+   "Fees|Past settle date": 3,
+   "Fees|Settles today": 1,
+   "Fees|Upcoming": 1,
+   "Unmatched ours|Past settle date": 46,
+   "Unmatched ours|Settles today": 22,
+   "Unmatched ours|Upcoming": 17,
+   "Unmatched theirs|Past settle date": 4,
+   "Unmatched theirs|Settles today": 1,
+   "Unmatched theirs|Upcoming": 2
+  }
+ },
+ "MO6": [
+  {
+   "entry": "E-920603c6",
+   "oracleGroup": "G0130",
+   "counterparty": "GSCO",
+   "instrument": "EURUSD (FX FORWARD EUR/USD)",
+   "field": "Price",
+   "ours": "1.08569",
+   "theirs": "1.08559",
+   "delta": "-0.0001",
+   "tolerance": "0.0001",
+   "used": 1.0
+  },
+  {
+   "entry": "E-f90669bb",
+   "oracleGroup": "G0129",
+   "counterparty": "JPM",
+   "instrument": "EURUSD (FX FORWARD EUR/USD)",
+   "field": "Price",
+   "ours": "1.08707",
+   "theirs": "1.08717",
+   "delta": "0.0001",
+   "tolerance": "0.0001",
+   "used": 1.0
+  },
+  {
+   "entry": "E-dcc751d2",
+   "oracleGroup": "G0128",
+   "counterparty": "CITI",
+   "instrument": "EURUSD (FX FORWARD EUR/USD)",
+   "field": "Price",
+   "ours": "1.08161",
+   "theirs": "1.08151",
+   "delta": "-0.0001",
+   "tolerance": "0.0001",
+   "used": 1.0
+  },
+  {
+   "entry": "E-6c9b2b6a",
+   "oracleGroup": "G0127",
+   "counterparty": "GSCO",
+   "instrument": "GBPUSD (FX FORWARD GBP/USD)",
+   "field": "Price",
+   "ours": "1.2705",
+   "theirs": "1.2706",
+   "delta": "0.0001",
+   "tolerance": "0.0001",
+   "used": 1.0
+  },
+  {
+   "entry": "E-6715523f",
+   "oracleGroup": "G0132",
+   "counterparty": "JPM",
+   "instrument": "AUDUSD (FX FORWARD AUD/USD)",
+   "field": "Price",
+   "ours": "0.65239",
+   "theirs": "0.65229",
+   "delta": "-0.0001",
+   "tolerance": "0.0001",
+   "used": 1.0
+  },
+  {
+   "entry": "E-e759183b",
+   "oracleGroup": "G0131",
+   "counterparty": "JPM",
+   "instrument": "AUDUSD (FX FORWARD AUD/USD)",
+   "field": "Price",
+   "ours": "0.65011",
+   "theirs": "0.65021",
+   "delta": "0.0001",
+   "tolerance": "0.0001",
+   "used": 1.0
+  },
+  {
+   "entry": "E-0651b7cf",
+   "oracleGroup": "G0121",
+   "counterparty": "JPM",
+   "instrument": "F 6.625 10/03/51 (FORD MOTOR CREDIT CO 6.625% DUE 10/03/2051)",
+   "field": "Accrued",
+   "ours": "123252.60",
+   "theirs": "123251.58",
+   "delta": "-1.02",
+   "tolerance": "1.25",
+   "used": 0.816
+  },
+  {
+   "entry": "E-62438e48",
+   "oracleGroup": "G0125",
+   "counterparty": "CITADEL",
+   "instrument": "CMCSA 7 01/19/38 (COMCAST CORP 7.000% DUE 01/19/2038)",
+   "field": "Accrued",
+   "ours": "50166.67",
+   "theirs": "50165.73",
+   "delta": "-0.94",
+   "tolerance": "1.25",
+   "used": 0.752
+  },
+  {
+   "entry": "E-ec3d0bb6",
+   "oracleGroup": "G0124",
+   "counterparty": "GSCO",
+   "instrument": "VZ 5.875 05/09/32 (VERIZON COMMUNICATIONS 5.875% DUE 05/09/2032)",
+   "field": "Accrued",
+   "ours": "72213.54",
+   "theirs": "72214.47",
+   "delta": "0.93",
+   "tolerance": "1.25",
+   "used": 0.744
+  },
+  {
+   "entry": "E-b17a59fc",
+   "oracleGroup": "G0122",
+   "counterparty": "BARC",
+   "instrument": "F 6.625 10/03/51 (FORD MOTOR CREDIT CO 6.625% DUE 10/03/2051)",
+   "field": "Accrued",
+   "ours": "114833.33",
+   "theirs": "114832.48",
+   "delta": "-0.85",
+   "tolerance": "1.25",
+   "used": 0.68
+  },
+  {
+   "entry": "E-305e8d2b",
+   "oracleGroup": "G0126",
+   "counterparty": "UBS",
+   "instrument": "CMCSA 3.875 06/28/36 (COMCAST CORP 3.875% DUE 06/28/2036)",
+   "field": "Accrued",
+   "ours": "2206.60",
+   "theirs": "2207.44",
+   "delta": "0.84",
+   "tolerance": "1.25",
+   "used": 0.672
+  },
+  {
+   "entry": "E-8b777937",
+   "oracleGroup": "G0134",
+   "counterparty": "CITI",
+   "instrument": "MCD (MCDONALD'S CORP COM USD)",
+   "field": "Fees",
+   "ours": "104.10",
+   "theirs": "104.07",
+   "delta": "-0.03",
+   "tolerance": "0.05",
+   "used": 0.6
+  },
+  {
+   "entry": "E-7b9054a2",
+   "oracleGroup": "G0135",
+   "counterparty": "GSCO",
+   "instrument": "COST (COSTCO WHOLESALE CORP COM USD)",
+   "field": "Fees",
+   "ours": "41.40",
+   "theirs": "41.37",
+   "delta": "-0.03",
+   "tolerance": "0.05",
+   "used": 0.6
+  },
+  {
+   "entry": "E-e9e6c50f",
+   "oracleGroup": "G0123",
+   "counterparty": "MSCO",
+   "instrument": "F 4 07/27/47 (FORD MOTOR CREDIT CO 4.000% DUE 07/27/2047)",
+   "field": "Accrued",
+   "ours": "16527.78",
+   "theirs": "16527.17",
+   "delta": "-0.61",
+   "tolerance": "1.25",
+   "used": 0.488
+  },
+  {
+   "entry": "E-788559aa",
+   "oracleGroup": "G0136",
+   "counterparty": "BAML",
+   "instrument": "PG (PROCTER & GAMBLE CO COM USD)",
+   "field": "Fees",
+   "ours": "67.50",
+   "theirs": "67.48",
+   "delta": "-0.02",
+   "tolerance": "0.05",
+   "used": 0.4
+  },
+  {
+   "entry": "E-9e26dfb8",
+   "oracleGroup": "G0138",
+   "counterparty": "BARC",
+   "instrument": "BAC (BANK OF AMERICA CORP COM USD)",
+   "field": "Fees",
+   "ours": "2.40",
+   "theirs": "2.38",
+   "delta": "-0.02",
+   "tolerance": "0.05",
+   "used": 0.4
+  },
+  {
+   "entry": "E-6ea4b223",
+   "oracleGroup": "G0137",
+   "counterparty": "MSCO",
+   "instrument": "PFE (PFIZER INC COM USD)",
+   "field": "Fees",
+   "ours": "137.40",
+   "theirs": "137.42",
+   "delta": "0.02",
+   "tolerance": "0.05",
+   "used": 0.4
+  },
+  {
+   "entry": "E-e686359f",
+   "oracleGroup": "G0133",
+   "counterparty": "GSCO",
+   "instrument": "MCD (MCDONALD'S CORP COM USD)",
+   "field": "Fees",
+   "ours": "212.50",
+   "theirs": "212.51",
+   "delta": "0.01",
+   "tolerance": "0.05",
+   "used": 0.2
+  }
+ ],
+ "MO7": [
+  {
+   "oracleGroup": "G0011",
+   "entry": "E-d3f966ff",
+   "rows": "OMS4152729 / BA-18777889",
+   "result": "Matched, Exact",
+   "trail": [
+    [
+     "P1",
+     "NoKey",
+     "BAX8101307164 is a broker reference, not a UTI"
+    ],
+    [
+     "P2",
+     "Committed",
+     "(BAML, US91282CT687, Bond, 2025-06-10, SELL, 3000000.00)"
+    ]
+   ]
+  },
+  {
+   "oracleGroup": "G0159",
+   "entry": "E-d312e10d",
+   "rows": "OMS4044414 + OMS7849940 + OMS4003839 / JP-48051575",
+   "result": "Matched N:1, Exact",
+   "trail": [
+    [
+     "P1",
+     "Contest",
+     "3 internal rows and 1 street row share UTI \u20267CB88FD742: deferred"
+    ],
+    [
+     "P2",
+     "NoCandidate",
+     "street 9,000 vs 2,200 / 5,400 / 1,400"
+    ],
+    [
+     "P3",
+     "Committed",
+     "only subset conserving 9,000 and 1,026,045.00; search complete"
+    ]
+   ]
+  },
+  {
+   "oracleGroup": "G0144",
+   "entry": "E-09de482a",
+   "rows": "OMS3512650 / CG-43060951",
+   "result": "Matched, Break (Quantity)",
+   "trail": [
+    [
+     "P1",
+     "NoKey",
+     "CGX1302998639 is a broker reference"
+    ],
+    [
+     "P2",
+     "NoCandidate",
+     "1,000,000 vs 800,000"
+    ],
+    [
+     "P3",
+     "NoCandidate",
+     "block has one internal row"
+    ],
+    [
+     "P4",
+     "Committed",
+     "(CITI, UST77KS39V09, 2025-06-12, SELL)"
+    ]
+   ]
+  },
+  {
+   "oracleGroup": "G0171",
+   "entry": "E-abfbc018",
+   "rows": "OMS9369884 + OMS9929303 / JP-32003590",
+   "result": "Matched package, Exact",
+   "trail": [
+    [
+     "Stage 2",
+     "Package",
+     "legs PLK-158918 netted: 278,961.22 \u2212 259,124.12 = 19,837.10"
+    ],
+    [
+     "P1",
+     "Committed",
+     "shared UTI \u20265C616F4921"
+    ]
+   ]
+  },
+  {
+   "oracleGroup": "G0179",
+   "entry": "E-3f492e44",
+   "rows": "OMS9063540 / CS-36468090 (CORR)",
+   "result": "Matched after lifecycle collapse, Exact",
+   "trail": [
+    [
+     "Stage 2",
+     "Lifecycle",
+     "CS-39633954 NEW superseded; CS-74239776 CANC suppressed; CORR survives"
+    ],
+    [
+     "P1",
+     "Committed",
+     "shared UTI"
+    ]
+   ]
+  },
+  {
+   "oracleGroup": "G0184",
+   "entry": "E-9a40759b",
+   "rows": "OMS7586315 / \u2014",
+   "result": "LeftOnly",
+   "trail": [
+    [
+     "P1",
+     "NoKey",
+     "UTI_Exec_ID blank"
+    ],
+    [
+     "P2",
+     "NoCandidate",
+     "no street row on (CITI, US4T8CATZT44, Bond, 2025-06-10, SELL, 1000000.00)"
+    ],
+    [
+     "P3",
+     "NoCandidate",
+     "no street target in block"
+    ],
+    [
+     "P4",
+     "NoCandidate",
+     "no street row on (CITI, US4T8CATZT44, 2025-06-10, SELL)"
+    ],
+    [
+     "Hint",
+     "NearestCandidate",
+     "MS-58715991 shares the instrument but its counterparty is MSCO"
+    ]
+   ]
+  }
+ ]
+}
