@@ -19,7 +19,7 @@ internal static class MatchKeys
                 FieldType.Decimal => row.Values[field.Name].Number.ToString("F" + field.Scale, CultureInfo.InvariantCulture),
                 FieldType.Date => row.Values[field.Name].Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 FieldType.Symbol => row.Pool.Symbol(row.Values[field.Name].Interned),
-                FieldType.Identifier => row.Pool.Identifier(row.Values[field.Name].Interned).Value,
+                FieldType.Identifier => IdentifierText(row, field),
                 FieldType.Text => row.Values[field.Name].Text,
                 _ => null,
             };
@@ -32,6 +32,13 @@ internal static class MatchKeys
         && IsShared(leftScheme)
         && IsShared(rightScheme)
         && leftValue != rightValue;
+
+    // Pair keys keep the identifier scheme. A broker reference must not share a bucket with a shared-scheme reference.
+    private static string IdentifierText(RowContext row, FieldDeclaration field)
+    {
+        var identifier = row.Pool.Identifier(row.Values[field.Name].Interned);
+        return identifier.Scheme + "\u001e" + identifier.Value;
+    }
 
     private static (string? Scheme, string? Value) Identity(RowContext row, FieldDeclaration field) =>
         row.IsNull(field.Name)
