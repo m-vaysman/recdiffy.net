@@ -44,6 +44,7 @@ jobs:
 
       - name: Install LibreOffice
         uses: ./.github/actions/install-libreoffice
+        timeout-minutes: 4
 
       - name: Test Excel reports
         run: dotnet test RecDiffy.NET/src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj -c Release --no-build --no-restore

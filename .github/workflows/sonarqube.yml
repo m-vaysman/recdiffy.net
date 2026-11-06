@@ -118,6 +118,7 @@ jobs:
       - name: Install LibreOffice
         if: steps.secrets.outputs.configured == 'true'
         uses: ./.github/actions/install-libreoffice
+        timeout-minutes: 4
 
       - name: Test with OpenCover coverage
         if: steps.secrets.outputs.configured == 'true'

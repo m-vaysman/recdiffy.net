@@ -6,9 +6,6 @@ runs:
   steps:
     - name: Install LibreOffice Calc
       shell: bash
-      # Healthy installs finish in well under a minute. This only stops a
-      # stalled mirror from holding the job open.
-      timeout-minutes: 4
       run: |
         # Calc only. libreoffice-base-core depends on
         # "libreoffice-core | libreoffice-core-nogui", so installing
