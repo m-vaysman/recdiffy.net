@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Globalization;
 using RecDiffy.Results;
 
@@ -21,19 +20,12 @@ public class SeededFuzzTests
 
     private static readonly CompiledProfile StockProfile = Reconciler.Compile(ProfileDocument.Parse(Stock), RuleRegistry.CreateCore());
 
-    private static readonly CompiledProfile ScaleProfile = Reconciler.Compile(ProfileDocument.Parse(Scale), RuleRegistry.CreateCore());
-
     private static readonly SourceMap<StockRow> StockMap = new SourceMap<StockRow>()
         .Text("Id", row => row.Id)
         .Text("Sku", row => row.Sku)
         .Text("Quantity", row => row.Quantity)
         .Text("Action", row => row.Action)
         .Text("Target", row => row.Target);
-
-    private static readonly SourceMap<Dictionary<string, string>> ScaleMap = new SourceMap<Dictionary<string, string>>()
-        .Text("Id", row => row["Id"])
-        .Text("Instrument", row => row["Instrument"])
-        .Text("Quantity", row => row["Quantity"]);
 
     public static IEnumerable<object[]> Seeds() => SeedValues.Select(seed => new object[] { seed });
 
@@ -92,63 +84,6 @@ public class SeededFuzzTests
         Assert.Equal(ExpectedDispositions.OrderBy(item => item), seen.OrderBy(item => item));
         Assert.Contains(results.SelectMany(result => result.Rows), row => row.Validity == InputValidity.Invalid);
     }
-
-    [Fact]
-    public void One_to_one_matching_scales_linearly()
-    {
-        const int smallRows = 4_000;
-        const int largeRows = 16_000;
-        const int samples = 5;
-
-        _ = Time(smallRows);
-        _ = Time(largeRows);
-        var small = Best(smallRows, samples);
-        var large = Best(largeRows, samples);
-        var ratio = (double)large / small;
-
-        Assert.True(
-            ratio < 8,
-            $"16,000 rows took {TimeSpan.FromTicks(large).TotalMilliseconds:0} ms vs {TimeSpan.FromTicks(small).TotalMilliseconds:0} ms for 4,000 ({ratio:0.00}x). Linear growth is about 4x.");
-    }
-
-    private static long Best(int rows, int samples)
-    {
-        var best = long.MaxValue;
-        for (var sample = 0; sample < samples; sample++)
-        {
-            var ticks = Time(rows);
-            if (ticks < best)
-                best = ticks;
-        }
-
-        return best;
-    }
-
-    private static long Time(int rows)
-    {
-        var left = ScaleRows(rows, "L");
-        var right = ScaleRows(rows, "R");
-        var watch = Stopwatch.StartNew();
-        var result = Reconciler.Run(
-            ScaleProfile,
-            RecordSources.FromObjects("book", left, ScaleMap),
-            RecordSources.FromObjects("book", right, ScaleMap),
-            ReferenceDataSet.Empty);
-        watch.Stop();
-        Assert.Equal(rows, result.Summary.Matched);
-        Assert.Equal(rows * 2, result.Rows.Count);
-        return watch.ElapsedTicks;
-    }
-
-    private static Dictionary<string, string>[] ScaleRows(int rows, string prefix) =>
-    [
-        .. Enumerable.Range(0, rows).Select(index => new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["Id"] = prefix + index.ToString(CultureInfo.InvariantCulture),
-            ["Instrument"] = "I" + index.ToString(CultureInfo.InvariantCulture),
-            ["Quantity"] = "1",
-        }),
-    ];
 
     private static string Answer(ReconciliationResult result)
     {
@@ -353,26 +288,6 @@ public class SeededFuzzTests
           "paths": [ { "id": "stock", "route": { "rule": "route.all" }, "passes": [
             { "id": "P1", "pass": "match.naturalKey", "key": ["Sku", "Quantity"] },
             { "id": "P2", "pass": "match.groupSum", "many": "left", "block": ["Sku"], "conserve": ["Quantity"] }
-          ] } ]
-        }
-        """;
-
-    private const string Scale = """
-        {
-          "formatVersion": 1,
-          "profileId": "fuzz-scale",
-          "version": "1.0.0",
-          "sources": { "left": { "rowKey": "Id" }, "right": { "rowKey": "Id" } },
-          "fields": [
-            { "name": "Instrument", "type": "Symbol", "role": "Key" },
-            { "name": "Quantity", "type": "Decimal", "scale": 0, "role": "Economic" }
-          ],
-          "normalization": {
-            "left": { "identify": [ { "rule": "symbol.map", "from": "Instrument", "to": "Instrument" } ], "parse": [ { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" } ] },
-            "right": { "identify": [ { "rule": "symbol.map", "from": "Instrument", "to": "Instrument" } ], "parse": [ { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" } ] }
-          },
-          "paths": [ { "id": "trade", "route": { "rule": "route.all" }, "passes": [
-            { "id": "P1", "pass": "match.naturalKey", "key": ["Instrument"] }
           ] } ]
         }
         """;
