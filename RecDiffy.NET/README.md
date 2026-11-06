@@ -152,6 +152,28 @@ File.WriteAllText("warehouse.profile.json", built.Document.ToJson()); // the rev
 - **Trading rules** come from `RecDiffy.RulePacks.Trading` as extension methods (`ResolveLei`, `ResolveAlias`, `ResolveSide`, `AbsoluteQuantity`, `From32nds`). `TradeFields` holds the canonical trade field names.
 - **Check a file before reading it.** `ProfileCheck.AgainstHeaders(document, leftHeaders, rightHeaders)` lists every column the profile reads that a file lacks, with the closest header as a suggestion: `'Qty' not found in right; did you mean 'Quantity'?` Pass `TradingColumns.Parameters` when the profile uses trading rules, so their column parameters are checked too.
 
+### Reconcile your own objects
+
+When both sides are lists of your own types, `RecBuilder` reads column names from the members you select and field types from their types, and gives your objects back:
+
+```csharp
+var result = RecBuilder.Between(ledger, statement)
+    .MatchOn(entry => entry.Ref, line => line.Reference)          // pass P1
+    .ThenMatchOn(entry => entry.Date, line => line.Posted)        // pass P2, on what P1 left
+    .And(entry => entry.Amount, line => line.Amount)              // P2 matches on date and amount
+    .Compare(entry => entry.Amount, line => line.Amount, tolerance: 0.05m)
+    .Run();
+
+foreach (var match in result.Breaks)
+    Console.WriteLine($"{match.Left[0]} vs {match.Right[0]}");
+File.WriteAllText("ledger.profile.json", result.Profile.ToJson());
+```
+
+- **Passes:** each `MatchOn` or `ThenMatchOn` is a natural-key pass, tried in order.
+- **Field types:** `decimal`, `int` and `long` members are decimals; `DateOnly` and `DateTime` members are dates; a `string` is an identifier in a key and text otherwise. Other types are refused when selected.
+- **The result:** `Matched`, `Breaks`, `LeftOnly`, `RightOnly` and `Ambiguous` hold the objects you passed in, and `Result` holds the engine's full result.
+- **The profile:** `Profile` is an ordinary `ProfileDocument`. Its JSON, run with `RecordSources.FromObjects` on the same objects, gives the same result.
+
 ## Write Excel reports
 
 The separate `RecDiffy.Excel` package writes formatted back- and middle-office reports from a `ReconciliationResult`, one `.xlsx` file per report. Numbers on a report tab are formulas that link to the engine's output in the same file, every decomposition has a ✓/✗ check, and ageing is a formula on a named `AsOf` cell.

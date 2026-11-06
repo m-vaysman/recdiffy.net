@@ -13,6 +13,7 @@ public static class Program
             TradingReference.Run(),
             ExcelReports.Run(),
             BuiltProfile.Run(),
+            TypedReconciliation.Run(),
         };
         return outcomes.All(outcome => outcome) ? 0 : 1;
     }
