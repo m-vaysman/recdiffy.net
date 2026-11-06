@@ -153,11 +153,18 @@ internal static class ResultBuilder
             _ when alignment is Alignment.SearchIncomplete => Disposition.SearchIncomplete,
             _ => row.Context.Side == Side.Left ? Disposition.LeftOnly : Disposition.RightOnly,
         };
-        var validity = row.Quarantined || row.Context.Diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Invalid)
+        var diagnostics = DiagnosticsOf(row);
+        var validity = row.Quarantined || diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Invalid)
             ? InputValidity.Invalid
-            : row.Context.Diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Warning) ? InputValidity.ValidWithWarnings : InputValidity.Valid;
-        return new RowResult(member, disposition, row.Suppression, validity, row.Context.Diagnostics, disposition is Disposition.Quarantined ? null : linked);
+            : diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Warning) ? InputValidity.ValidWithWarnings : InputValidity.Valid;
+        return new RowResult(member, disposition, row.Suppression, validity, diagnostics, disposition is Disposition.Quarantined ? null : linked);
     }
+
+    // Package quarantine already records its code on the row context. Lifecycle quarantine keeps the code only on the consolidated row.
+    private static ImmutableList<Diagnostic> DiagnosticsOf(ConsolidatedRow row) =>
+        row.Code is { } code && row.Context.Diagnostics.Any(diagnostic => diagnostic.Code == code) is false
+            ? row.Context.Diagnostics.Add(new Diagnostic(code, DiagnosticSeverity.Invalid, "consolidation", null, null))
+            : row.Context.Diagnostics;
 
     private static IReadOnlySet<string> EqualByConstruction(PathDeclaration path, string passId) =>
         path.Passes.Where(pass => pass.Id == passId).SelectMany(pass => pass.Block.Except(pass.Conserve, StringComparer.Ordinal)).ToHashSet(StringComparer.Ordinal);
