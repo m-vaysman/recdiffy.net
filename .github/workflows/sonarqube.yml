@@ -1,0 +1,126 @@
+# Self-hosted SonarQube Community Build analysis.
+# Skips cleanly when SONAR_TOKEN / SONAR_HOST_URL secrets are absent (no server yet).
+# Stock Community Build analyzes the main branch only; install the community branch
+# plugin (or analyze only main) before relying on PR / dev results.
+# See https://github.com/m-vaysman/recdiffy.net/issues/101
+name: SonarQube
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+jobs:
+  sonarqube:
+    name: Analyze
+    runs-on: ubuntu-latest
+    # Fork PRs without secrets should not fail the suite.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Check Sonar secrets
+        id: secrets
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          if [ -z "$SONAR_TOKEN" ] || [ -z "$SONAR_HOST_URL" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "SONAR_TOKEN and/or SONAR_HOST_URL not set; skipping SonarQube analysis."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out
+        if: steps.secrets.outputs.configured == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        if: steps.secrets.outputs.configured == 'true'
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: RecDiffy.NET/global.json
+
+      - name: Set up JDK 21
+        if: steps.secrets.outputs.configured == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Cache SonarQube packages
+        if: steps.secrets.outputs.configured == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: sonar-${{ runner.os }}
+          restore-keys: sonar-${{ runner.os }}
+
+      - name: Cache NuGet packages
+        if: steps.secrets.outputs.configured == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('RecDiffy.NET/**/*.csproj', 'RecDiffy.NET/**/*.props', 'RecDiffy.NET/**/*.targets', 'RecDiffy.NET/global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Install SonarScanner
+        if: steps.secrets.outputs.configured == 'true'
+        run: |
+          dotnet tool install --global dotnet-sonarscanner
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Add Coverlet collector (CI workspace only)
+        if: steps.secrets.outputs.configured == 'true'
+        run: |
+          dotnet add RecDiffy.NET/src/RecDiffy.Tests/RecDiffy.Tests.csproj package coverlet.collector --version 6.0.4
+          dotnet add RecDiffy.NET/src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj package coverlet.collector --version 6.0.4
+
+      - name: Begin SonarQube analysis
+        if: steps.secrets.outputs.configured == 'true'
+        working-directory: RecDiffy.NET
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          dotnet sonarscanner begin \
+            /k:"m-vaysman_recdiffy.net" \
+            /n:"RecDiffy.NET" \
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.host.url="$SONAR_HOST_URL" \
+            /s:"$GITHUB_WORKSPACE/RecDiffy.NET/SonarQube.Analysis.xml" \
+            /d:sonar.cs.opencover.reportsPaths="$GITHUB_WORKSPACE/RecDiffy.NET/TestResults/**/coverage.opencover.xml" \
+            /d:sonar.dotnet.excludeTestProjects=true
+
+      - name: Restore
+        if: steps.secrets.outputs.configured == 'true'
+        run: dotnet restore RecDiffy.NET/RecDiffy.slnx
+
+      - name: Build
+        if: steps.secrets.outputs.configured == 'true'
+        # Do not pass -warnaserror here: the scanner begin step disables WarningsAsErrors.
+        run: dotnet build RecDiffy.NET/RecDiffy.slnx -c Release --no-restore --no-incremental
+
+      - name: Install LibreOffice
+        if: steps.secrets.outputs.configured == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libreoffice-calc-nogui
+
+      - name: Test with OpenCover coverage
+        if: steps.secrets.outputs.configured == 'true'
+        run: |
+          dotnet test RecDiffy.NET/src/RecDiffy.Tests/RecDiffy.Tests.csproj -c Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --results-directory RecDiffy.NET/TestResults
+          dotnet test RecDiffy.NET/src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj -c Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --results-directory RecDiffy.NET/TestResults
+
+      - name: End SonarQube analysis
+        if: steps.secrets.outputs.configured == 'true'
+        working-directory: RecDiffy.NET
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"

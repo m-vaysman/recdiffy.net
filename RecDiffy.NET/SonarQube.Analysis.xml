@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Shared SonarScanner for .NET analysis settings (loaded via /s:).
+  Do not put tokens or host URLs here — those come from GitHub secrets.
+  sonar-project.properties is NOT read by the .NET scanner.
+-->
+<SonarQubeAnalysisProperties xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                             xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
+  <!-- Docs, fixtures, logos, and reference workbooks are not product source. -->
+  <Property Name="sonar.exclusions">**/docs/**,**/resources/**,**/test-data/**,**/*.xlsx</Property>
+  <!-- Samples / benchmarks / AOT host / tests should not drag down coverage. -->
+  <Property Name="sonar.coverage.exclusions">**/RecDiffy.Samples/**,**/RecDiffy.Benchmarks/**,**/RecDiffy.AotHost/**,**/RecDiffy.Tests/**,**/RecDiffy.Excel.Tests/**,**/docs/**</Property>
+  <Property Name="sonar.cpd.exclusions">**/RecDiffy.Samples/**,**/RecDiffy.Benchmarks/**</Property>
+</SonarQubeAnalysisProperties>
