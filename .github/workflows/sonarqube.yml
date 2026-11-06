@@ -1,8 +1,8 @@
 # Self-hosted SonarQube Community Build analysis.
 # Skips cleanly when SONAR_TOKEN / SONAR_HOST_URL secrets are absent (no server yet).
-# Stock Community Build analyzes the main branch only; install the community branch
-# plugin (or analyze only main) before relying on PR / dev results.
-# See https://github.com/m-vaysman/recdiffy.net/issues/101
+# Stock Community Build analyzes the main branch only (no PR/branch analysis without
+# a matching community branch plugin). Prefer push-to-main or workflow_dispatch for
+# uploads until a 26.11-compatible plugin exists. See issue #101.
 name: SonarQube
 
 on:
@@ -10,6 +10,7 @@ on:
     branches: [main, dev]
   push:
     branches: [main, dev]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -20,9 +21,13 @@ jobs:
     runs-on: ubuntu-latest
     # Fork PRs without secrets should not fail the suite.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    defaults:
+      run:
+        working-directory: RecDiffy.NET
     steps:
       - name: Check Sonar secrets
         id: secrets
+        working-directory: .
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
@@ -71,23 +76,27 @@ jobs:
 
       - name: Install SonarScanner
         if: steps.secrets.outputs.configured == 'true'
+        working-directory: .
         run: |
           dotnet tool install --global dotnet-sonarscanner
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Add Coverlet collector (CI workspace only)
         if: steps.secrets.outputs.configured == 'true'
+        working-directory: .
         run: |
           dotnet add RecDiffy.NET/src/RecDiffy.Tests/RecDiffy.Tests.csproj package coverlet.collector --version 6.0.4
           dotnet add RecDiffy.NET/src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj package coverlet.collector --version 6.0.4
 
       - name: Begin SonarQube analysis
         if: steps.secrets.outputs.configured == 'true'
-        working-directory: RecDiffy.NET
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
+          # Do not set sonar.branch.name / sonar.pullrequest.* here.
+          # Stock Community Build only accepts main-branch analysis (no branch plugin for 26.11 yet).
+          # workflow_dispatch and push-to-main succeed; PR / push-to-dev may be rejected by the server.
           dotnet sonarscanner begin \
             /k:"m-vaysman_recdiffy.net" \
             /n:"RecDiffy.NET" \
@@ -99,15 +108,16 @@ jobs:
 
       - name: Restore
         if: steps.secrets.outputs.configured == 'true'
-        run: dotnet restore RecDiffy.NET/RecDiffy.slnx
+        run: dotnet restore RecDiffy.slnx
 
       - name: Build
         if: steps.secrets.outputs.configured == 'true'
         # Do not pass -warnaserror here: the scanner begin step disables WarningsAsErrors.
-        run: dotnet build RecDiffy.NET/RecDiffy.slnx -c Release --no-restore --no-incremental
+        run: dotnet build RecDiffy.slnx -c Release --no-restore --no-incremental
 
       - name: Install LibreOffice
         if: steps.secrets.outputs.configured == 'true'
+        working-directory: .
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends libreoffice-calc-nogui
@@ -115,12 +125,11 @@ jobs:
       - name: Test with OpenCover coverage
         if: steps.secrets.outputs.configured == 'true'
         run: |
-          dotnet test RecDiffy.NET/src/RecDiffy.Tests/RecDiffy.Tests.csproj -c Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --results-directory RecDiffy.NET/TestResults
-          dotnet test RecDiffy.NET/src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj -c Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --results-directory RecDiffy.NET/TestResults
+          dotnet test src/RecDiffy.Tests/RecDiffy.Tests.csproj -c Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --results-directory TestResults
+          dotnet test src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj -c Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --results-directory TestResults
 
       - name: End SonarQube analysis
         if: steps.secrets.outputs.configured == 'true'
-        working-directory: RecDiffy.NET
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
