@@ -120,6 +120,38 @@ A profile declares:
 
 Compile the profile once, then pass the compiled profile to reconciliation runs. Start with the warehouse profile in the sample above before adapting it to your own fields and source mappings.
 
+## Write a profile without JSON
+
+`ProfileBuilder` builds the same `ProfileDocument` that `ProfileDocument.Parse` reads. Column names are strings; fields, rules, passes and tolerances are methods. Each rule lands in its phase (identify, parse, derive, validate) whatever order you call it in.
+
+```csharp
+var built = ProfileBuilder.Create("warehouse", "1.0.0")
+    .RowKeys(left: "Id", right: "Id")
+    .Key("Sku", FieldType.Symbol)
+    .Economic("Quantity", FieldType.Decimal, scale: 0)
+    .Left(side => side.MapSymbol("Sku", "Sku").ParseDecimal("Quantity", "Quantity"))
+    .Right(side => side.MapSymbol("Sku", "Sku").ParseDecimal("Quantity", "Quantity"))
+    .Path("stock", path => path.GroupSum("P3", Side.Left, block: ["Sku"], conserve: ["Quantity"]))
+    .Build(RuleRegistry.CreateCore());
+
+if (!built.Succeeded)
+{
+    foreach (var problem in built.Problems)
+        Console.WriteLine($"{problem.Code} at {problem.Location}: {problem.Message}");
+    return;
+}
+
+var profile = Reconciler.Compile(built.Document, RuleRegistry.CreateCore());
+File.WriteAllText("warehouse.profile.json", built.Document.ToJson()); // the reviewed, versioned policy file
+```
+
+- **Builders never change.** Every method returns a new builder, so you can share one and branch from it. Each lambda overload also takes a value (`Left(SideBuilder)`, `Path(PathBuilder)`), so a program can drive the builder without lambdas.
+- **`Build()` reports problems as data.** Each problem has a stable code from `ProfileProblemCodes`, a message, and a location such as `paths[stock].passes[P3].block[0]`. `Build(registry)` also compiles the document, so a profile that builds also compiles.
+- **`ToJson()` writes the saved form.** It writes the keys `Parse` reads in a fixed order, with policy values such as midpoint and limits written out. Parsing it back gives an equal document and the same `ProfileHash`.
+- **`ProfileBuilder.From(document)`** loads an existing profile for editing.
+- **Trading rules** come from `RecDiffy.RulePacks.Trading` as extension methods (`ResolveLei`, `ResolveAlias`, `ResolveSide`, `AbsoluteQuantity`, `From32nds`). `TradeFields` holds the canonical trade field names.
+- **Check a file before reading it.** `ProfileCheck.AgainstHeaders(document, leftHeaders, rightHeaders)` lists every column the profile reads that a file lacks, with the closest header as a suggestion: `'Qty' not found in right; did you mean 'Quantity'?` Pass `TradingColumns.Parameters` when the profile uses trading rules, so their column parameters are checked too.
+
 ## Write Excel reports
 
 The separate `RecDiffy.Excel` package writes formatted back- and middle-office reports from a `ReconciliationResult`, one `.xlsx` file per report. Numbers on a report tab are formulas that link to the engine's output in the same file, every decomposition has a ✓/✗ check, and ageing is a formula on a named `AsOf` cell.
