@@ -75,7 +75,7 @@ internal static class FieldDiffer
                 outcomes[index],
                 Value(left, step.Field.Name),
                 Value(right, step.Field.Name),
-                new Delta(step.Field.Type == FieldType.Date ? DeltaKind.Days : DeltaKind.Number, score.Number, score.Days),
+                new Delta(step.Field.Type switch { FieldType.Date => DeltaKind.Days, FieldType.Decimal => DeltaKind.Number, _ => DeltaKind.None }, score.Number, score.Days),
                 new ToleranceId(step.Tolerance?.Kind ?? "Exact"),
                 new AttributionId(step.Attribution ?? ""),
                 Roots(step, outcomes, plan)));

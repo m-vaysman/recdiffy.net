@@ -24,9 +24,12 @@ internal static class SideBySideBuilder
     public static SideBySideView Build(ReconciliationResult result, SideBySideSpec spec)
     {
         var totals = new Dictionary<(string Row, string Column, string Measure), Bucket>();
+        var counted = new HashSet<object>(ReferenceEqualityComparer.Instance);
         foreach (var row in result.Rows)
         {
             if (row.Disposition is Disposition.Suppressed or Disposition.Quarantined or Disposition.Ambiguous or Disposition.SearchIncomplete)
+                continue;
+            if (counted.Add(result.ConsolidatedItem(row.Row)) is false)
                 continue;
             var canonical = result.Canonical(row.Row);
             if (spec.Filter is { } filter && canonical.Text(filter.Field) != filter.EqualsValue)
