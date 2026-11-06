@@ -5,8 +5,8 @@ using RecDiffy.Results;
 namespace RecDiffy.Excel.Tests;
 
 // Findings from the GROK_sniff review of #90. A dataset with an Equity-only route: Bond rows are never routed, one Equity row is excluded as
-// invalid (required Quantity missing), and one unmatched Equity row has no net cash. The engine shows the first three as LeftOnly or RightOnly
-// rows with no entry, so RunSummary does not count them (#92); the Excel reports must still list and count them.
+// invalid (required Quantity missing), and one unmatched Equity row has no net cash. Unrouted rows stay LeftOnly or RightOnly with no entry.
+// The invalid row is Quarantined. RunSummary does not count the unrouted rows (#92); the Excel reports must still list them.
 public class ReviewFindingsTests
 {
     private static readonly DateOnly AsOf = new(2026, 11, 4);
@@ -34,7 +34,7 @@ public class ReviewFindingsTests
         var result = Run.Value.Result;
         var orphans = result.Rows.Where(row => row.EntryId is null).Select(row => $"{row.Row.RowKey}:{row.Disposition}:{row.Validity}").Order(StringComparer.Ordinal).ToArray();
 
-        Assert.Equal(["L2:LeftOnly:Valid", "L4:LeftOnly:Invalid", "R2:RightOnly:Valid"], orphans);
+        Assert.Equal(["L2:LeftOnly:Valid", "L4:Quarantined:Invalid", "R2:RightOnly:Valid"], orphans);
         Assert.Equal(1, result.Summary.LeftOnly);
         Assert.Equal(0, result.Summary.RightOnly);
     }
@@ -81,7 +81,7 @@ public class ReviewFindingsTests
 
         var scorecard = books[ReportKind.Scorecard]["MO2_Scorecard"];
         decimal Tile(string label) => scorecard[Below(scorecard.Values.Where(cell => cell.Value == label).MinBy(cell => Row(cell.Address))!.Address)].Number!.Value;
-        Assert.Equal(3m, Tile("Unmatched ours"));
+        Assert.Equal(2m, Tile("Unmatched ours"));
         Assert.Equal(1m, Tile("Unmatched theirs"));
 
         var heatmap = books[ReportKind.BreakHeatmap]["MO4_BreakHeatmap"];

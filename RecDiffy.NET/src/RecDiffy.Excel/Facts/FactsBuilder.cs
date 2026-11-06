@@ -120,7 +120,7 @@ internal static class FactsBuilder
         OpenItem[] items =
         [
             .. entries.Select(entry => OpenItem(entry, diffsByEntry[entry.Id].ToArray(), map)).OfType<OpenItem>(),
-            .. rows.Where(row => row is { Entry: null, ItemLead: true, Row.Disposition: Disposition.LeftOnly or Disposition.RightOnly }).Select(row => Orphan(row, netCash)),
+            .. rows.Where(row => row is { Entry: null, ItemLead: true, Row.Disposition: Disposition.LeftOnly or Disposition.RightOnly or Disposition.Quarantined }).Select(row => Orphan(row, netCash)),
         ];
         var order = Ordering.Currencies(options.CurrencyOrder);
         return items
@@ -133,7 +133,9 @@ internal static class FactsBuilder
 
     private static OpenItem Orphan(RowFact row, bool netCash)
     {
-        var type = row.Row.Disposition is Disposition.LeftOnly ? "Unmatched ours" : "Unmatched theirs";
+        var type = row.Row.Disposition is Disposition.RightOnly || row is { Row.Disposition: Disposition.Quarantined, Source: "right" }
+            ? "Unmatched theirs"
+            : "Unmatched ours";
         var codes = string.Join(", ", row.Row.Diagnostics.Select(diagnostic => diagnostic.Code).Distinct(StringComparer.Ordinal));
         var action = row.Row.Validity is InputValidity.Invalid
             ? $"Fix the input row: the engine excluded it as invalid ({codes})"

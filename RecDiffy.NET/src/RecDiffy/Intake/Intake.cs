@@ -27,9 +27,16 @@ internal static class Intake
         IReadOnlyList<CompiledRule> rules,
         ReferenceDataSet reference,
         InstrumentMaster master) =>
-        [.. rows.Where(row => row.MissingKey).Select(QuarantineMissing), .. Collapse(rows.Where(row => row.MissingKey is false).ToArray()).Select(group => group.Conflict
-            ? Quarantine(group)
-            : new IntakeRow(group.Members, Warn(Apply(group.Row, rules, reference, master), group.Members.Count), false))];
+        [.. rows.Where(row => row.MissingKey).Select(QuarantineMissing), .. Collapse(rows.Where(row => row.MissingKey is false).ToArray()).Select(group => Normalize(group, rules, reference, master))];
+
+    private static IntakeRow Normalize(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, ReferenceDataSet reference, InstrumentMaster master) =>
+        group.Conflict ? Quarantine(group) : Accept(group, rules, reference, master);
+
+    private static IntakeRow Accept(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, ReferenceDataSet reference, InstrumentMaster master)
+    {
+        var context = Warn(Apply(group.Row, rules, reference, master), group.Members.Count);
+        return new IntakeRow(group.Members, context, context.Diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Invalid));
+    }
 
     private static RowContext Warn(RowContext row, int copies) =>
         copies > 1 ? row.Diagnose("DuplicateRowCollapsed", DiagnosticSeverity.Warning, "duplicates", null, row.RowKey) : row;

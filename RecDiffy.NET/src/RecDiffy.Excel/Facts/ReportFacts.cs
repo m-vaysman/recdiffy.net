@@ -70,7 +70,7 @@ internal enum DiffState
 }
 
 // An open item is an engine entry (a break, or an unmatched, ambiguous or search-incomplete entry) or a row the engine left without an entry:
-// unrouted, or excluded as Invalid before matching. Rows show those as LeftOnly or RightOnly, and they must not drop out of the blotter.
+// unrouted LeftOnly/RightOnly, or excluded as Invalid (Quarantined) before matching. They must not drop out of the blotter.
 internal sealed record OpenItem(EntryFact? Entry, RowFact? Row, string ItemType, string Category, DiffFact? Diff, decimal? Impact, string Action, FieldValue SettleDate)
 {
     public string Field => (Diff, Row) switch
