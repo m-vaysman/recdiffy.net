@@ -36,6 +36,10 @@ dotnet run --project src/RecDiffy.Samples/RecDiffy.Samples.csproj
 
 [BuiltProfile.cs](BuiltProfile.cs) builds the warehouse profile with `ProfileBuilder`, prints its JSON with `ToJson()`, and runs it: one `Matched`, `ManyToOne`, `Exact` entry, as in example 1. A misspelled pass field comes back as an `UndeclaredPassField` problem at `paths[typo].passes[P1].key[0]`. `ProfileCheck.AgainstHeaders` reports that a left file with a `Qty` column lacks `Quantity`, and suggests `Qty`.
 
+## 8. Read CSV files
+
+[FileReaders.cs](FileReaders.cs) writes the warehouse data as two files under the temp folder: bins as comma-separated text with a header, and the book as pipe-separated text without one. It reads them with `RecDiffy.IO`'s `FileSources.FromCsv`, stating the header and delimiter for each, and maps the headerless book by position (`Column1` to `Column3`). The result is the same as example 1: one `Matched`, `ManyToOne`, `Exact` entry.
+
 ## 9. Reconcile your own objects
 
 [TypedReconciliation.cs](TypedReconciliation.cs) reconciles a ledger against a bank statement, both lists of records, with `RecBuilder`. It matches on the reference first, then on date and amount, and compares amounts within 0.05. Two pairs are `Exact`, one is a `Break` (75.00 against 70.00), and `INV-5` is only in the ledger. The matched items are the original objects. It prints the profile's JSON.

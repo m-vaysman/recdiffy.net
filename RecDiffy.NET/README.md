@@ -199,6 +199,31 @@ foreach (var outcome in result.WriteAll("reports", options))
 
 Files are named `<ID>_<ReportName>_<profileId>_<asOf yyyy-MM-dd>.xlsx`. Reports read fields only through `FieldMap`; a report whose required roles are unmapped, or that has nothing to show, is skipped and the reason is returned. `RecDiffyExcel.RunAndWrite` runs the engine and writes in one call, and `WriteReport` writes one report to a stream. `Labels` replaces report wording with your own column names. The layout spec is in [docs/report-specs](docs/report-specs/README.md).
 
+## Read CSV and Excel files
+
+The separate `RecDiffy.IO` package reads delimited text and Excel workbooks (`.xlsx`, `.xlsb`, `.xls`) as record sources. Parsing is done by Mark Pflug's [Sylvan.Data.Csv](https://www.nuget.org/packages/Sylvan.Data.Csv) and [Sylvan.Data.Excel](https://www.nuget.org/packages/Sylvan.Data.Excel) (MIT, no further dependencies); the core `RecDiffy` package stays free of NuGet dependencies.
+
+```csharp
+using RecDiffy.IO;
+
+var left = FileSources.FromCsv("book", "book.csv", new CsvOptions { HasHeader = true, Delimiter = CsvDelimiter.Comma });
+var right = FileSources.FromExcel("street", "street.xlsx", new ExcelOptions { HasHeader = true, Sheet = ExcelSheet.Named("Trades") });
+var result = Reconciler.Run(profile, left, right, referenceData);
+```
+
+**Nothing is guessed.** Input files are expected to be correct; the readers do not detect, infer or repair anything.
+
+- **You state what the file is.** `HasHeader`, the CSV `Delimiter` and the Excel `Sheet` are required, so leaving one out does not compile. Delimiter detection is available only as `CsvDelimiter.DetectAutomatically`, chosen explicitly.
+- **With a header,** row 1 names the columns and every later row is data. A header row with an empty or repeated name is refused, with a message naming the columns.
+- **Without a header,** columns are named `Column1` to `ColumnN` and every row, including the first, is data, so profiles map columns by position.
+- **Excel data starts at cell A1** of the chosen sheet. Blank rows and columns are not skipped to find a table.
+- **Values pass through.** CSV cells reach the profile as text, so all parsing stays in the profile as policy. Excel cells keep the type the workbook stores: a number (as a double), a date, or text, so a text ID such as `00123` keeps its leading zeros.
+- **Each side is independent.** CSV against Excel, Excel against CSV, and a file against objects or another data reader all work.
+
+**Sheet numbers start at 1.** `ExcelSheet.Numbered(1)` is the first tab and `ExcelSheet.Numbered(2)` the second, because that is how users count tabs in Excel. This is intentional, not an off-by-one error. Hidden tabs count, in workbook order. Sheet 0, a number past the last tab, or a name that does not exist fails with a message that lists the sheets the workbook has; no other sheet is read instead. `FileSources.ExcelSheetNames(path)` lists them in tab order.
+
+A path is reopened for every run. A stream can be read once and stays open, because the caller owns it; give its `ExcelFormat` explicitly. `FileSources.PeekCsv` and `PeekExcel` return the headers and a seeded random sample of rows from across the whole file, the same sample for the same seed.
+
 ## Troubleshooting
 
 | Symptom | First thing to check |
@@ -223,6 +248,7 @@ Files are named `<ID>_<ReportName>_<profileId>_<asOf yyyy-MM-dd>.xlsx`. Reports 
 | [src/RecDiffy.AotHost](src/RecDiffy.AotHost) | Native AOT host |
 | [src/RecDiffy.Samples](src/RecDiffy.Samples) | Runnable demonstration of the application API |
 | [src/RecDiffy.Excel](src/RecDiffy.Excel) | Excel report writer (separate package) |
+| [src/RecDiffy.IO](src/RecDiffy.IO) | CSV and Excel file readers (separate package) |
 | [docs/report-specs](docs/report-specs) | Layout spec and reference workbooks for the Excel reports |
 | [docs/ARCHITECTURE-SPEC.md](docs/ARCHITECTURE-SPEC.md) | Detailed architecture and intended behavior; verify version-sensitive details against the code |
 
