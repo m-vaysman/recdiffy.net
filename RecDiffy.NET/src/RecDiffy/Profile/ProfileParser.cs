@@ -164,16 +164,17 @@ internal static class ProfileParser
         var absolute = DecimalOrNull(tolerance, "absolute");
         var relative = DecimalOrNull(tolerance, "relative");
         var attributed = Optional(tolerance, "attributed");
-        var kind = (absolute, relative, attributed, tolerance.TryGetProperty("days", out _)) switch
+        var days = tolerance.TryGetProperty("days", out var daysNode) && daysNode.TryGetInt32(out var parsed) ? parsed : (int?)null;
+        var kind = (absolute, relative, attributed, days) switch
         {
             (not null, not null, _, _) => "AbsoluteOrRelative",
             (not null, _, _, _) => "Absolute",
             (_, not null, _, _) => "Relative",
             (_, _, not null, _) => "Attributed",
-            (_, _, _, true) => "Days",
+            (_, _, _, not null) => "Days",
             _ => "Exact",
         };
-        return new ToleranceDeclaration(kind, absolute, relative, attributed, tolerance.TryGetProperty("when", out var when) ? ReadWhen(when) : null);
+        return new ToleranceDeclaration(kind, absolute, relative, attributed, tolerance.TryGetProperty("when", out var when) ? ReadWhen(when) : null, days);
     }
 
     private static decimal? DecimalOrNull(JsonElement element, string name) =>

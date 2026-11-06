@@ -217,7 +217,9 @@ internal static class ProfileCompiler
         foreach (var pair in diff.Fields.OrderBy(pair => pair.Key, StringComparer.Ordinal))
         {
             var tolerance = pair.Value.Tolerance;
-            yield return Pipe("diff", pair.Key, tolerance.Kind, Money(tolerance.Absolute), Money(tolerance.Relative), tolerance.Attributed, pair.Value.Attributed);
+            yield return tolerance.Days is { } days
+                ? Pipe("diff", pair.Key, tolerance.Kind, Money(tolerance.Absolute), Money(tolerance.Relative), tolerance.Attributed, pair.Value.Attributed, Text(days))
+                : Pipe("diff", pair.Key, tolerance.Kind, Money(tolerance.Absolute), Money(tolerance.Relative), tolerance.Attributed, pair.Value.Attributed);
             if (When("tolerance-when", tolerance.When) is { } toleranceWhen)
                 yield return toleranceWhen;
             if (When("applicable", pair.Value.ApplicableWhen) is { } applicable)
