@@ -302,7 +302,10 @@ internal sealed class OpenXmlWorkbookWriter : IWorkbookWriter
     private static string Clean(string text)
     {
         var valid = text.All(XmlConvertIsValid) ? text : new string([.. text.Select(character => XmlConvertIsValid(character) ? character : '�')]);
-        return valid.Length > MaxCellText ? valid[..MaxCellText] : valid;
+        if (valid.Length <= MaxCellText)
+            return valid;
+        var end = char.IsHighSurrogate(valid[MaxCellText - 1]) ? MaxCellText - 1 : MaxCellText;
+        return valid[..end];
     }
 
     private static bool XmlConvertIsValid(char character) =>
