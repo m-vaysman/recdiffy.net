@@ -9,12 +9,12 @@ internal static class Packages
         var active = rows.Where(row => row is { Quarantined: false, Suppression: null }).ToArray();
         var linked = active.Where(row => row.Context.Display(plan.LinkField) is not null).ToArray();
         var groups = linked.GroupBy(row => row.Context.Display(plan.LinkField)!, StringComparer.Ordinal);
-        var packed = groups.SelectMany(group => Build(group.ToArray(), plan)).ToDictionary(row => row.Context.Display(plan.LinkField) ?? row.Context.RowKey, StringComparer.Ordinal);
+        var packed = groups.SelectMany(group => Build(group.ToArray(), plan)).ToArray();
         var consumed = linked.Select(row => row.Context.RowKey).ToHashSet(StringComparer.Ordinal);
         return
         [
             .. rows.Where(row => consumed.Contains(row.Context.RowKey) is false),
-            .. packed.Values,
+            .. packed,
         ];
     }
 
@@ -111,7 +111,12 @@ internal static class Packages
     }
 
     private static IReadOnlyList<ConsolidatedRow> Quarantine(IReadOnlyList<ConsolidatedRow> members, string code) =>
-        [.. members.Select(member => member with { Quarantined = true, Code = code })];
+        [.. members.Select(member => member with
+        {
+            Quarantined = true,
+            Code = code,
+            Context = member.Context.Diagnose(code, DiagnosticSeverity.Invalid, "package", null, null),
+        })];
 
     private sealed record PackageProjection(RowContext Context, string? Failure);
 }
