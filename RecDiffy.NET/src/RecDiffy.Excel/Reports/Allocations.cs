@@ -22,7 +22,8 @@ internal static class Allocations
         [.. context.Facts.Entries
             .Where(entry => entry.IsMatched && entry.Entry.Composition.HasFlag(Composition.Package) is false)
             .Where(entry => entry.Entry.Composition.HasFlag(Composition.ManyToOne) || entry.Entry.Composition.HasFlag(Composition.OneToMany))
-            .Select(entry => entry.Entry.Right.Count == 1
+            // Member counts include duplicate copies collapsed into the block, so the block side is the composition, not Right.Count == 1.
+            .Select(entry => entry.Entry.Composition.HasFlag(Composition.ManyToOne)
                 ? new Group(entry, context.Facts.RowByRef[entry.Entry.Right[0]], "theirs", [.. entry.Entry.Left.Select(member => context.Facts.RowByRef[member])])
                 : new Group(entry, context.Facts.RowByRef[entry.Entry.Left[0]], "ours", [.. entry.Entry.Right.Select(member => context.Facts.RowByRef[member])]))];
 
