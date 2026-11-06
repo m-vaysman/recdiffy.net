@@ -118,6 +118,31 @@ A profile declares:
 
 Compile the profile once, then pass the compiled profile to reconciliation runs. Start with the warehouse profile in the sample above before adapting it to your own fields and source mappings.
 
+## Write Excel reports
+
+The separate `RecDiffy.Excel` package writes formatted back- and middle-office reports from a `ReconciliationResult`, one `.xlsx` file per report. Numbers on a report tab are formulas that link to the engine's output in the same file, every decomposition has a ✓/✗ check, and ageing is a formula on a named `AsOf` cell.
+
+```csharp
+using RecDiffy.Excel;
+
+var options = new ExcelReportOptions
+{
+    AsOf = new DateOnly(2025, 6, 13),
+    Profile = profile, // profile id, tolerances, pass order; also maps report roles to same-named fields
+    FieldMap = FieldMap.FromProfile(profile).With(ReportRole.Asset, "AssetClass"), // optional override
+};
+
+foreach (var outcome in result.WriteAll("reports", options))
+    Console.WriteLine(outcome.Written ? outcome.Path : $"{outcome.FileName} skipped: {outcome.SkipReason}");
+```
+
+| Office | Reports |
+|---|---|
+| Back office | BO1 ExceptionBlotter, BO2 SideBySideCompare, BO3 RawVsNormalized, BO4 LifecycleChains, BO5 Allocations, BO6 CashLadder |
+| Middle office | MO1 ControlTotals, MO2 Scorecard, MO3 CascadeFunnel, MO4 BreakHeatmap, MO5 Ageing, MO6 ToleranceUsage, MO7 AuditTrail |
+
+Files are named `<ID>_<ReportName>_<profileId>_<asOf yyyy-MM-dd>.xlsx`. Reports read fields only through `FieldMap`; a report whose required roles are unmapped, or that has nothing to show, is skipped and the reason is returned. `RecDiffyExcel.RunAndWrite` runs the engine and writes in one call, and `WriteReport` writes one report to a stream. `Labels` replaces report wording with your own column names. The layout spec is in [docs/report-specs](docs/report-specs/README.md).
+
 ## Troubleshooting
 
 | Symptom | First thing to check |
@@ -141,6 +166,8 @@ Compile the profile once, then pass the compiled profile to reconciliation runs.
 | [src/RecDiffy.Benchmarks](src/RecDiffy.Benchmarks) | Performance benchmarks |
 | [src/RecDiffy.AotHost](src/RecDiffy.AotHost) | Native AOT host |
 | [src/RecDiffy.Samples](src/RecDiffy.Samples) | Runnable demonstration of the application API |
+| [src/RecDiffy.Excel](src/RecDiffy.Excel) | Excel report writer (separate package) |
+| [docs/report-specs](docs/report-specs) | Layout spec and reference workbooks for the Excel reports |
 | [docs/ARCHITECTURE-SPEC.md](docs/ARCHITECTURE-SPEC.md) | Detailed architecture and intended behavior; verify version-sensitive details against the code |
 
 See the [Architecture Overview](https://github.com/m-vaysman/recdiffy.net/wiki/Architecture-Overview) for more background.
