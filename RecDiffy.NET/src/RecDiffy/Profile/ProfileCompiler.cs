@@ -32,7 +32,8 @@ internal static class ProfileCompiler
             pair => CompileSide(pair.Key, pair.Value, schema, document.Midpoint, registry),
             StringComparer.Ordinal);
         var pathErrors = ValidatePaths(document, schema, sides);
-        ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. scaleErrors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors];
+        var packageErrors = ValidatePackages(document);
+        ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. scaleErrors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors, .. packageErrors];
         return errors.Length == 0
             ? new CompileOutcome(new CompiledProfile(document.ProfileId, document.Version, document.FormatVersion, Hash(document), document, SideRules(sides, "left"), SideRules(sides, "right")), [])
             : new CompileOutcome(null, errors);
@@ -49,6 +50,18 @@ internal static class ProfileCompiler
         ("derive", RulePhase.Derive, normalization.Derive),
         ("validate", RulePhase.Validate, normalization.Validate),
     ];
+
+    private static IEnumerable<ProfileError> ValidatePackages(ProfileDocument document) =>
+        document.Consolidation.SelectMany(pair => pair.Value.Packages.SelectMany(package => package.Aggregates.SelectMany(aggregate =>
+            NamedRoles(aggregate).Where(role => package.RequiredRoles.Contains(role, StringComparer.Ordinal) is false).Select(role =>
+                new ProfileError("InvalidParameter", $"{pair.Key} aggregator '{aggregate.Field}' names role '{role}', which is not in requiredRoles.")))));
+
+    private static IEnumerable<string> NamedRoles(FieldAggregate aggregate) => aggregate.Kind switch
+    {
+        AggregateKind.FromRole when aggregate.Role is not null => [aggregate.Role],
+        AggregateKind.DifferenceByRole => new[] { aggregate.Role, aggregate.OtherRole }.OfType<string>(),
+        _ => [],
+    };
 
     private static IReadOnlyList<ProfileError> ValidatePaths(ProfileDocument document, FieldSchema schema, IReadOnlyDictionary<string, SideCompilation> sides)
     {
