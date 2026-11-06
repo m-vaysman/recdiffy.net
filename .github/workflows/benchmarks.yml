@@ -124,11 +124,15 @@ jobs:
         continue-on-error: true
         env:
           BENCHER_HOST: ${{ secrets.BENCHER_HOST }}
-          BENCHER_API_TOKEN: ${{ secrets.BENCHER_API_TOKEN }}
+          # The repo secret is still BENCHER_API_TOKEN. Bencher 0.6.16 rejects that
+          # value on --token because it is an API key, so the CLI receives it as --key.
+          BENCHER_API_KEY: ${{ secrets.BENCHER_API_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
+          # --key and --token are mutually exclusive, including via the environment.
+          Remove-Item Env:BENCHER_API_TOKEN -ErrorAction SilentlyContinue
           if ([string]::IsNullOrWhiteSpace($env:BENCHER_HOST)) { throw 'BENCHER_HOST secret is empty.' }
-          if ([string]::IsNullOrWhiteSpace($env:BENCHER_API_TOKEN)) { throw 'BENCHER_API_TOKEN secret is empty.' }
+          if ([string]::IsNullOrWhiteSpace($env:BENCHER_API_KEY)) { throw 'Repo secret BENCHER_API_TOKEN is empty.' }
 
           foreach ($measure in @(
               @{ Name = 'Allocated bytes'; Slug = 'allocated-bytes'; Units = 'bytes/op' },
@@ -136,7 +140,7 @@ jobs:
               @{ Name = 'Gen1 collections'; Slug = 'gen1-collections'; Units = 'collections/op' },
               @{ Name = 'Gen2 collections'; Slug = 'gen2-collections'; Units = 'collections/op' }
             )) {
-            & bencher measure create recdiffy --name $measure.Name --slug $measure.Slug --units $measure.Units --host $env:BENCHER_HOST --token $env:BENCHER_API_TOKEN
+            & bencher measure create recdiffy --name $measure.Name --slug $measure.Slug --units $measure.Units --host $env:BENCHER_HOST --key $env:BENCHER_API_KEY
             if ($LASTEXITCODE -ne 0) {
               Write-Host "measure create $($measure.Slug) exited $LASTEXITCODE; keeping an existing measure or letting the report create it."
             }
@@ -157,7 +161,7 @@ jobs:
             'run',
             '--project', 'recdiffy',
             '--host', $env:BENCHER_HOST,
-            '--token', $env:BENCHER_API_TOKEN,
+            '--key', $env:BENCHER_API_KEY,
             '--branch', $env:BENCH_BRANCH,
             '--hash', $env:BENCH_SHA,
             '--testbed', 'cobbler1',
@@ -229,8 +233,8 @@ jobs:
 
           function Redact([string]$text) {
             if ([string]::IsNullOrEmpty($text)) { return '' }
-            if (-not [string]::IsNullOrEmpty($env:BENCHER_API_TOKEN)) {
-              $text = $text.Replace($env:BENCHER_API_TOKEN, '***')
+            if (-not [string]::IsNullOrEmpty($env:BENCHER_API_KEY)) {
+              $text = $text.Replace($env:BENCHER_API_KEY, '***')
             }
             return $text
           }
