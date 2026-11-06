@@ -118,9 +118,34 @@ jobs:
       - name: Install LibreOffice
         if: steps.secrets.outputs.configured == 'true'
         working-directory: .
+        # Healthy installs finish in well under a minute. This only stops a
+        # stalled mirror from holding the job open.
+        timeout-minutes: 4
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libreoffice-calc-nogui
+          # Calc only. libreoffice-base-core depends on
+          # "libreoffice-core | libreoffice-core-nogui", so installing
+          # libreoffice-calc-nogui alone pulls the larger GUI core.
+          pkgs="libreoffice-core-nogui libreoffice-calc-nogui"
+          # ubuntu-latest tries azure.archive.ubuntu.com first. A mirror that
+          # trickles the debs never trips apt's idle timeout, so this step can
+          # sit for many minutes (actions/runner-images#14823). Bound it and
+          # retry from the next mirror.
+          drop_azure_mirror() {
+            if [ -f /etc/apt/apt-mirrors.txt ]; then
+              sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt
+            fi
+          }
+          if ! timeout --kill-after=15 45 sudo apt-get update; then
+            drop_azure_mirror
+            sudo apt-get update
+          fi
+          if ! timeout --kill-after=15 90 sudo apt-get install -y --no-install-recommends --download-only $pkgs; then
+            drop_azure_mirror
+            sleep 2
+            sudo apt-get install -y --no-install-recommends --download-only $pkgs
+          fi
+          sudo apt-get install -y --no-install-recommends $pkgs
+          command -v soffice
 
       - name: Test with OpenCover coverage
         if: steps.secrets.outputs.configured == 'true'
