@@ -63,7 +63,7 @@ public readonly record struct AttributionId(string Value);
 
 public readonly record struct Delta(DeltaKind Kind, decimal Number, int Days);
 
-public readonly record struct CanonicalValue(FieldType Type, bool IsNull, decimal Number, DateOnly Date, int Interned);
+public readonly record struct CanonicalValue(FieldType Type, bool IsNull, decimal Number, DateOnly Date, int Interned, string? Text = null);
 
 public readonly record struct FieldDiff(
     FieldId Field,
@@ -90,7 +90,7 @@ public readonly struct CanonicalRow
 
     public CanonicalValue this[string field] => _row.IsNull(field)
         ? new CanonicalValue(FieldType.Text, true, 0m, default, 0)
-        : new CanonicalValue(_row.Values[field].Type, false, _row.Values[field].Number, _row.Values[field].Date, _row.Values[field].Interned);
+        : new CanonicalValue(_row.Values[field].Type, false, _row.Values[field].Number, _row.Values[field].Date, _row.Values[field].Interned, _row.Display(field));
 
     public string Text(string field) => _row.Display(field) ?? "";
 }
