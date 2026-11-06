@@ -43,9 +43,7 @@ jobs:
         run: dotnet test RecDiffy.NET/src/RecDiffy.Tests/RecDiffy.Tests.csproj -c Release --no-build --no-restore
 
       - name: Install LibreOffice
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libreoffice-calc-nogui
+        uses: ./.github/actions/install-libreoffice
 
       - name: Test Excel reports
         run: dotnet test RecDiffy.NET/src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj -c Release --no-build --no-restore
