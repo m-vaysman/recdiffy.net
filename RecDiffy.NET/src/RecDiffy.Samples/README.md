@@ -31,3 +31,7 @@ dotnet run --project src/RecDiffy.Samples/RecDiffy.Samples.csproj
 ## 6. Excel reports
 
 [ExcelReports.cs](ExcelReports.cs) calls `RecDiffyExcel.RunAndWrite` on a small book and street file with net cash. It writes one `.xlsx` per report to `recdiffy-samples/excel` under the temp folder and prints each file, or why a report was skipped (no lifecycle chains, allocations or tolerances in this data). The blotter, side-by-side, cash ladder, control totals and scorecard are written.
+
+## 7. Write a profile without JSON
+
+[BuiltProfile.cs](BuiltProfile.cs) builds the warehouse profile with `ProfileBuilder`, prints its JSON with `ToJson()`, and runs it: one `Matched`, `ManyToOne`, `Exact` entry, as in example 1. A misspelled pass field comes back as an `UndeclaredPassField` problem at `paths[typo].passes[P1].key[0]`. `ProfileCheck.AgainstHeaders` reports that a left file with a `Qty` column lacks `Quantity`, and suggests `Qty`.
