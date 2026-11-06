@@ -144,10 +144,18 @@ public readonly struct DecimalComparer : IFieldComparer<decimal>
 {
     public FieldOutcome Compare(in decimal left, in decimal right, out Delta delta)
     {
-        var number = right - left;
+        var number = Difference(right, left);
         delta = new Delta(number == 0m ? DeltaKind.None : DeltaKind.Number, number, 0);
         return number == 0m ? FieldOutcome.Exact : FieldOutcome.Break;
     }
+
+    // right - left overflows when the operands have opposite signs and the magnitude exceeds decimal.MaxValue.
+    // The stand-in is one away from MinValue so a later absolute value does not overflow on negation.
+    private static decimal Difference(decimal right, decimal left) =>
+        left == right ? 0m
+        : left >= 0m
+            ? right < decimal.MinValue + left ? decimal.MinValue + 1m : right - left
+            : right > decimal.MaxValue + left ? decimal.MaxValue : right - left;
 }
 
 public readonly struct DateComparer : IFieldComparer<DateOnly>
