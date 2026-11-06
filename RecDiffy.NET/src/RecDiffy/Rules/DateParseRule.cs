@@ -6,7 +6,7 @@ internal sealed class DateParseRule(string from, string to, IReadOnlyList<string
 
     public RulePhase Phase => RulePhase.Parse;
 
-    public IReadOnlyList<FieldId> Reads { get; } = [];
+    public IReadOnlyList<FieldId> Reads { get; } = formatBy is null ? [] : [new FieldId(formatBy)];
 
     public IReadOnlyList<FieldId> Writes => [new FieldId(to)];
 
