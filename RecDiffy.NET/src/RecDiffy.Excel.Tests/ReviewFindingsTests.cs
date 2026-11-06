@@ -32,7 +32,7 @@ public class ReviewFindingsTests
     public void The_engine_shows_unrouted_and_invalid_rows_without_an_entry_and_leaves_them_out_of_the_summary()
     {
         var result = Run.Value.Result;
-        var orphans = result.Rows.Where(row => row.EntryId is null).Select(row => $"{row.Row.RowKey}:{row.Disposition}:{row.Validity}").Order().ToArray();
+        var orphans = result.Rows.Where(row => row.EntryId is null).Select(row => $"{row.Row.RowKey}:{row.Disposition}:{row.Validity}").Order(StringComparer.Ordinal).ToArray();
 
         Assert.Equal(["L2:LeftOnly:Valid", "L4:LeftOnly:Invalid", "R2:RightOnly:Valid"], orphans);
         Assert.Equal(1, result.Summary.LeftOnly);
@@ -44,7 +44,7 @@ public class ReviewFindingsTests
     {
         var byLabel = Items().ToDictionary(RowsOf, StringComparer.Ordinal);
 
-        Assert.Equal(["L2", "L3", "L4", "R2"], byLabel.Keys.Order());
+        Assert.Equal(["L2", "L3", "L4", "R2"], byLabel.Keys.Order(StringComparer.Ordinal), StringComparer.Ordinal);
         Assert.NotNull(byLabel["L3"].Entry);
         Assert.Equal(("Unmatched ours", "(not routed)"), (byLabel["L2"].ItemType, byLabel["L2"].Field));
         Assert.Equal(("Unmatched ours", "(excluded: invalid)"), (byLabel["L4"].ItemType, byLabel["L4"].Field));
@@ -75,7 +75,7 @@ public class ReviewFindingsTests
 
         var blotter = books[ReportKind.ExceptionBlotter]["BO1_ExceptionBlotter"];
         string[] labels = [.. Items().Select(item => item.Label).Order(StringComparer.Ordinal)];
-        Assert.Equal(labels, blotter.Values.Where(cell => cell.Address.StartsWith('B') && labels.Contains(cell.Value)).Select(cell => cell.Value!).Order(StringComparer.Ordinal));
+        Assert.Equal(labels, blotter.Values.Where(cell => cell.Address.StartsWith('B') && labels.Contains(cell.Value)).Select(cell => cell.Value!).Order(StringComparer.Ordinal), StringComparer.Ordinal);
         Assert.Contains(blotter.Values, cell => cell.Value == "(not routed)");
         Assert.Contains(blotter.Values, cell => cell.Value == "(excluded: invalid)");
 

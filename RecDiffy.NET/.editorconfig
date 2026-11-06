@@ -1,0 +1,18 @@
+root = true
+
+[*.cs]
+# Possible multiple enumeration of IEnumerable. Disabled by default in the SDK analyzers.
+dotnet_diagnostic.CA1851.severity = warning
+
+# String == and != are ordinal; string.Equals would break the switch expressions and patterns this repo uses.
+dotnet_diagnostic.MA0006.severity = none
+
+# Related types stay together (model, profile, workbook). One type per file fights that layout.
+dotnet_diagnostic.MA0048.severity = none
+
+# Sheet builders are linear; a 60-line cap would split them into noise.
+dotnet_diagnostic.MA0051.severity = none
+
+# JsonElement array and object enumerators are disposable structs whose Dispose is a no-op, and LINQ consumes them.
+[src/RecDiffy/Profile/ProfileParser.cs]
+dotnet_diagnostic.IDISP004.severity = none

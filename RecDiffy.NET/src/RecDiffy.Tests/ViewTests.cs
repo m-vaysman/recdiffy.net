@@ -59,7 +59,7 @@ public class ViewTests
             RecordSources.FromObjects("book", new[] { Row("R1", "1") }, Map()),
             ReferenceDataSet.Empty);
 
-        Assert.Contains("RecDiffy.Run", names);
+        Assert.Contains("RecDiffy.Run", names, StringComparer.Ordinal);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class ViewTests
         var serial = Reconciler.Run(profile, left, right, ReferenceDataSet.Empty, new RunOptions(1));
         var parallel = Reconciler.Run(profile, left, right, ReferenceDataSet.Empty, new RunOptions(8));
 
-        Assert.Equal(serial.Entries.Select(entry => entry.Id.Value), parallel.Entries.Select(entry => entry.Id.Value));
+        Assert.Equal(serial.Entries.Select(entry => entry.Id.Value), parallel.Entries.Select(entry => entry.Id.Value), StringComparer.Ordinal);
         Assert.Equal(serial.Summary, parallel.Summary);
     }
 
