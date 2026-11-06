@@ -22,15 +22,16 @@ public class ControlTotalsGoldenTests
             .Where(row => row.Disposition is not Disposition.Suppressed)
             .Select(row => FixtureV1.Result.Canonical(row.Row).Text("Currency"))
             .Where(currency => currency.Length > 0)
-            .Distinct()
+            .Distinct(StringComparer.Ordinal)
             .SelectMany(currency => FixtureV1.Result
                 .BuildSideBySide(new SideBySideSpec(["Counterparty"], ["Asset"], [new MeasureSpec("Quantity")], new FilterSpec("Currency", currency)))
                 .Lines.Select(line => (Key: $"{currency}|{line.Row}|{line.Column}", Cell: line.Cells["Quantity"])))
-            .ToDictionary(line => line.Key, line => line.Cell);
+            .ToDictionary(line => line.Key, line => line.Cell, StringComparer.Ordinal);
         var actual = Rows(tab, 5)
             .ToDictionary(
                 row => $"{row["A"]}|{row["B"]}|{row["C"]}",
-                row => new SideBySideCell(Number(row["D"]), Number(row["E"]), Number(row["F"]), Number(row["G"]), Number(row["H"]), Number(row["I"])));
+                row => new SideBySideCell(Number(row["D"]), Number(row["E"]), Number(row["F"]), Number(row["G"]), Number(row["H"]), Number(row["I"])),
+                StringComparer.Ordinal);
 
         Assert.Equal(expected.Count, actual.Count);
         Assert.All(expected, pair => Assert.Equal(pair.Value, actual[pair.Key]));
@@ -39,8 +40,8 @@ public class ControlTotalsGoldenTests
     [Fact]
     public void Engine_side_by_side_tab_equals_the_reference_workbook()
     {
-        var actual = Rows(Book.Read(Write())["Engine_SideBySide"], 5).ToDictionary(Key3, row => string.Join("|", Columns("D", "I").Select(column => Number(row[column]))));
-        var expected = Rows(Book.Read(ReferenceWorkbook)["Engine_SideBySide"], 5).ToDictionary(Key3, row => string.Join("|", Columns("D", "I").Select(column => Number(row[column]))));
+        var actual = Rows(Book.Read(Write())["Engine_SideBySide"], 5).ToDictionary(Key3, row => string.Join("|", Columns("D", "I").Select(column => Number(row[column]))), StringComparer.Ordinal);
+        var expected = Rows(Book.Read(ReferenceWorkbook)["Engine_SideBySide"], 5).ToDictionary(Key3, row => string.Join("|", Columns("D", "I").Select(column => Number(row[column]))), StringComparer.Ordinal);
 
         Assert.Equal(expected, actual);
     }
@@ -54,11 +55,11 @@ public class ControlTotalsGoldenTests
         var actual = Parts(recalculated[Sheet]);
         var expected = Parts(reference[ReferenceSheet]);
 
-        Assert.Equal(expected.Part1.Keys.Order(), actual.Part1.Keys.Order());
+        Assert.Equal(expected.Part1.Keys.Order(StringComparer.Ordinal), actual.Part1.Keys.Order(StringComparer.Ordinal));
         Assert.All(expected.Part1, pair => Assert.Equal(pair.Value, actual.Part1[pair.Key]));
-        Assert.Equal(expected.Part2.Keys.Order(), actual.Part2.Keys.Order());
+        Assert.Equal(expected.Part2.Keys.Order(StringComparer.Ordinal), actual.Part2.Keys.Order(StringComparer.Ordinal));
         Assert.All(expected.Part2, pair => Assert.Equal(pair.Value, actual.Part2[pair.Key]));
-        Assert.Equal(expected.Part3.Order(), actual.Part3.Order());
+        Assert.Equal(expected.Part3.Order(StringComparer.Ordinal), actual.Part3.Order(StringComparer.Ordinal));
     }
 
     private static string Write()
@@ -81,8 +82,8 @@ public class ControlTotalsGoldenTests
         var part2Rows = rows.Where(row => row.Number > part2 + 1 && row.Number < part3 && (row["C"].Length > 0 || row["B"].StartsWith("Subtotal", StringComparison.Ordinal)));
         var part3Rows = rows.Where(row => row.Number > part3 + 1 && row["H"].Length > 0);
         return new ControlParts(
-            part1Rows.ToDictionary(row => $"{row["A"]}|{row["B"]}", row => string.Join("|", Columns("C", "K").Select(column => row[column]))),
-            part2Rows.ToDictionary(row => $"{row["A"]}|{row["B"]}|{row["C"]}", row => string.Join("|", Columns("D", "Q").Select(column => row[column]))),
+            part1Rows.ToDictionary(row => $"{row["A"]}|{row["B"]}", row => string.Join("|", Columns("C", "K").Select(column => row[column])), StringComparer.Ordinal),
+            part2Rows.ToDictionary(row => $"{row["A"]}|{row["B"]}|{row["C"]}", row => string.Join("|", Columns("D", "Q").Select(column => row[column])), StringComparer.Ordinal),
             [.. part3Rows.Select(row => string.Join("|", row["B"], row["C"], row["F"], row["G"], row["H"], row["I"]))]);
     }
 
@@ -102,7 +103,7 @@ public class ControlTotalsGoldenTests
             .Where(cell => cell.Row >= first && cell.Value is { Length: > 0 })
             .GroupBy(cell => cell.Row)
             .OrderBy(group => group.Key)
-            .Select(group => new Row(group.Key, group.ToDictionary(cell => cell.Column, cell => Normalize(cell.Value!))));
+            .Select(group => new Row(group.Key, group.ToDictionary(cell => cell.Column, cell => Normalize(cell.Value!), StringComparer.Ordinal)));
 
     // Numbers compare as decimals so 26 and 26.0 agree.
     private static string Normalize(string value) =>

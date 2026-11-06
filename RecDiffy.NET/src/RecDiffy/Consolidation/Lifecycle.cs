@@ -51,7 +51,7 @@ internal static class Consolidation
         var events = rows.Select(row => ToEvent(row, plan)).OfType<LifeEvent>().ToArray();
         var index = events.ToDictionary(evt => (evt.Scope, evt.Id));
         var linked = Components(events, index);
-        var decided = linked.SelectMany(component => Decide(component, index, plan.CorrPointsAt)).ToDictionary(row => row.Context.RowKey);
+        var decided = linked.SelectMany(component => Decide(component, index, plan.CorrPointsAt)).ToDictionary(row => row.Context.RowKey, StringComparer.Ordinal);
         return [.. rows.Select(row => decided.TryGetValue(row.Context.RowKey, out var fate) ? fate : PassThrough(row))];
     }
 

@@ -16,10 +16,10 @@ public class IntakeTests
     [Fact]
     public void Does_not_treat_a_separator_inside_a_cell_as_another_cell()
     {
-        var split = new RawRecord(new SourceRef("left", "1", 0), new Dictionary<string, object?> { ["A"] = "x\u001fB=y" });
-        var pair = new RawRecord(new SourceRef("left", "2", 0), new Dictionary<string, object?> { ["A"] = "x", ["B"] = "y" });
+        var split = new RawRecord(new SourceRef("left", "1", 0), new Dictionary<string, object?>(StringComparer.Ordinal) { ["A"] = "x\u001fB=y" });
+        var pair = new RawRecord(new SourceRef("left", "2", 0), new Dictionary<string, object?>(StringComparer.Ordinal) { ["A"] = "x", ["B"] = "y" });
 
-        Assert.NotEqual(split.Fingerprint(), pair.Fingerprint());
+        Assert.NotEqual(split.Fingerprint(), pair.Fingerprint(), StringComparer.Ordinal);
     }
 
     [Fact]

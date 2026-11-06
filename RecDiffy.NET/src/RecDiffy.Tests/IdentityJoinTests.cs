@@ -14,7 +14,7 @@ public class IdentityJoinTests
         var crossed = Compose(Nasty, "Z");
         var other = Compose("A", "Z" + Nasty);
 
-        Assert.NotEqual(crossed, other);
+        Assert.NotEqual(crossed, other, StringComparer.Ordinal);
         Assert.Equal(crossed, Compose(Nasty, "Z"));
     }
 
@@ -28,7 +28,7 @@ public class IdentityJoinTests
             Event("NEW" + Nasty, "NEW", null, Nasty),
             Event("CANC" + Nasty, "CANC", "NEW" + Nasty, Nasty),
         };
-        var result = Consolidation.Run(rows, plan, null).ToDictionary(row => row.Context.RowKey);
+        var result = Consolidation.Run(rows, plan, null).ToDictionary(row => row.Context.RowKey, StringComparer.Ordinal);
 
         Assert.Null(result["CORR" + Nasty].Suppression);
         Assert.Equal(SuppressionReason.Superseded, result["NEW" + Nasty].Suppression);
@@ -38,11 +38,11 @@ public class IdentityJoinTests
     [Fact]
     public void Fingerprints_keep_an_adversarial_cell_apart_from_two_cells()
     {
-        var one = new RawRecord(new SourceRef("left", "1", 0), new Dictionary<string, object?> { ["A"] = Nasty });
-        var two = new RawRecord(new SourceRef("left", "2", 0), new Dictionary<string, object?> { ["A"] = "A", ["B"] = Nasty });
+        var one = new RawRecord(new SourceRef("left", "1", 0), new Dictionary<string, object?>(StringComparer.Ordinal) { ["A"] = Nasty });
+        var two = new RawRecord(new SourceRef("left", "2", 0), new Dictionary<string, object?>(StringComparer.Ordinal) { ["A"] = "A", ["B"] = Nasty });
 
-        Assert.NotEqual(one.Fingerprint(), two.Fingerprint());
-        Assert.Equal(one.Fingerprint(), new RawRecord(new SourceRef("left", "3", 0), new Dictionary<string, object?> { ["A"] = Nasty }).Fingerprint());
+        Assert.NotEqual(one.Fingerprint(), two.Fingerprint(), StringComparer.Ordinal);
+        Assert.Equal(one.Fingerprint(), new RawRecord(new SourceRef("left", "3", 0), new Dictionary<string, object?>(StringComparer.Ordinal) { ["A"] = Nasty }).Fingerprint());
     }
 
     [Fact]
@@ -62,8 +62,8 @@ public class IdentityJoinTests
         var split = Compile(JsonSerializer.Serialize(new[] { "Bond", "Swap" }));
         var nasty = Compile(JsonSerializer.Serialize(new[] { Nasty }));
 
-        Assert.NotEqual(glued.Hash, split.Hash);
-        Assert.NotEqual(nasty.Hash, split.Hash);
+        Assert.NotEqual(glued.Hash, split.Hash, StringComparer.Ordinal);
+        Assert.NotEqual(nasty.Hash, split.Hash, StringComparer.Ordinal);
         Assert.Equal(nasty.Hash, Compile(JsonSerializer.Serialize(new[] { Nasty })).Hash);
     }
 
@@ -86,7 +86,7 @@ public class IdentityJoinTests
         var view = result.BuildSideBySide(new SideBySideSpec(["Desk", "Book"], [], [new MeasureSpec("Quantity")], null));
 
         Assert.Equal(2, view.Lines.Count);
-        Assert.Equal(["1", "10"], view.Lines.Select(line => line.Cells["Quantity"].Left.ToString(System.Globalization.CultureInfo.InvariantCulture)).OrderBy(value => value, StringComparer.Ordinal));
+        Assert.Equal(["1", "10"], view.Lines.Select(line => line.Cells["Quantity"].Left.ToString(System.Globalization.CultureInfo.InvariantCulture)).OrderBy(value => value, StringComparer.Ordinal), StringComparer.Ordinal);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class IdentityJoinTests
             ["A"] = new("A", FieldType.Symbol, FieldRole.Key, 0),
             ["B"] = new("B", FieldType.Symbol, FieldRole.Key, 0),
         };
-        var row = RowContext.Create("row", Side.Left, new Dictionary<string, object?>());
+        var row = RowContext.Create("row", Side.Left, new Dictionary<string, object?>(StringComparer.Ordinal));
         row = Symbol(row, "A", first);
         row = Symbol(row, "B", second);
         return MatchKeys.Compose(new ActiveItem(0, Side.Left, new ConsolidatedRow([new SourceRef("left", "row", 0)], row, false, null, null)), ["A", "B"], schema);
@@ -138,7 +138,7 @@ public class IdentityJoinTests
 
     private static IntakeRow Event(string id, string action, string? target, string scope)
     {
-        var row = RowContext.Create(id, Side.Right, new Dictionary<string, object?>());
+        var row = RowContext.Create(id, Side.Right, new Dictionary<string, object?>(StringComparer.Ordinal));
         row = Symbol(row, "EventAction", action);
         row = Symbol(row, "Counterparty", scope);
         if (target is not null)

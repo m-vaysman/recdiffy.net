@@ -1,3 +1,4 @@
+using System.Globalization;
 using RecDiffy.RulePacks.Trading;
 using RecDiffy.Tests.Acceptance;
 
@@ -60,7 +61,7 @@ internal static class FixtureV1
 
     private static decimal? Decimal(IReadOnlyDictionary<string, object?> row, string column) =>
         row.TryGetValue(column, out var value) && value is decimal number ? number
-        : row.TryGetValue(column, out value) && decimal.TryParse(value?.ToString(), out var parsed) ? parsed
+        : row.TryGetValue(column, out value) && decimal.TryParse(value?.ToString(), CultureInfo.InvariantCulture, out var parsed) ? parsed
         : null;
 
     public static ReferenceDataSet Reference()
@@ -84,7 +85,7 @@ internal static class FixtureV1
             ["Driftwood Fund LP"] = "DRIFTWOOD",
             ["Driftwood HF"] = "DRIFTWOOD",
         };
-        return ReferenceDataSet.Create("fixture-v1", new DateOnly(2026, 11, 4), "fixture-v1", aliases, aliases, new Dictionary<string, string>());
+        return ReferenceDataSet.Create("fixture-v1", new DateOnly(2026, 11, 4), "fixture-v1", aliases, aliases, new Dictionary<string, string>(StringComparer.Ordinal));
     }
 
     public const string ProfileJson = """

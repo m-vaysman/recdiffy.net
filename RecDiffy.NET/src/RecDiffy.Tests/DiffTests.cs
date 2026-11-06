@@ -55,7 +55,7 @@ public class DiffTests
 
         Assert.Equal(FieldOutcome.Break, diffs.Single(diff => diff.Field.Name == "Quantity").Outcome);
         Assert.Equal("Quantity", Assert.Single(diffs.Single(diff => diff.Field.Name == "Fees").AttributedTo));
-        Assert.Contains("Quantity", diffs.Single(diff => diff.Field.Name == "NetCash").AttributedTo);
+        Assert.Contains("Quantity", diffs.Single(diff => diff.Field.Name == "NetCash").AttributedTo, StringComparer.Ordinal);
     }
 
     [Fact]

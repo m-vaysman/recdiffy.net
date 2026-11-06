@@ -182,8 +182,8 @@ public class ProfileCompileTests
         var tolerant = Reconciler.Compile(ProfileDocument.Parse(HashProfile("""["Sku"]""", """ , "diff": { "fields": { "Quantity": { "tolerance": { "absolute": "999999" } } } } """)), RuleRegistry.CreateCore());
         var again = Reconciler.Compile(ProfileDocument.Parse(HashProfile("""["Sku"]""")), RuleRegistry.CreateCore());
 
-        Assert.NotEqual(sku.Hash, quantity.Hash);
-        Assert.NotEqual(sku.Hash, tolerant.Hash);
+        Assert.NotEqual(sku.Hash, quantity.Hash, StringComparer.Ordinal);
+        Assert.NotEqual(sku.Hash, tolerant.Hash, StringComparer.Ordinal);
         Assert.Equal(sku.Hash, again.Hash);
     }
 
@@ -224,7 +224,7 @@ public class CanonicalTableTests
     {
         var table = RecordTable.FromRows(
             [new FieldDeclaration("Quantity", FieldType.Decimal, FieldRole.Economic, 2)],
-            [new Dictionary<string, CanonicalCell> { ["Quantity"] = CanonicalCell.FromDecimal(1.25m) }]);
+            [new Dictionary<string, CanonicalCell>(StringComparer.Ordinal) { ["Quantity"] = CanonicalCell.FromDecimal(1.25m) }]);
 
         Assert.Equal(1.25m, table.DecimalColumn("Quantity")[0]);
         Assert.False(table.IsNull(0, "Quantity"));
@@ -233,7 +233,7 @@ public class CanonicalTableTests
     [Fact]
     public void Parses_a_decimal_without_changing_the_input_row_object()
     {
-        var row = RowContext.Create("A", Side.Left, new Dictionary<string, object?> { ["Quantity"] = "1.005" });
+        var row = RowContext.Create("A", Side.Left, new Dictionary<string, object?>(StringComparer.Ordinal) { ["Quantity"] = "1.005" });
         var rule = new DecimalParseRule("Quantity", "Quantity", 2, MidpointMode.AwayFromZero);
         var updated = row;
         rule.Apply(ref updated);

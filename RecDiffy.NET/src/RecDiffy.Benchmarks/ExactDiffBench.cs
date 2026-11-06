@@ -31,7 +31,7 @@ public class ExactDiffBench
 
     private static RowContext Row(string id)
     {
-        var row = RowContext.Create(id, id == "L" ? Side.Left : Side.Right, new Dictionary<string, object?>());
+        var row = RowContext.Create(id, id == "L" ? Side.Left : Side.Right, new Dictionary<string, object?>(StringComparer.Ordinal));
         return row
             .Write("Quantity", CanonicalCell.FromDecimal(1_000_000m), "bench", null, null)
             .Write("Price", CanonicalCell.FromDecimal(102.234375m), "bench", null, null)

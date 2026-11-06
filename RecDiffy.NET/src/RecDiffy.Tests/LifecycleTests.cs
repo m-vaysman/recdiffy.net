@@ -26,7 +26,7 @@ public class LifecycleTests
             Event("CS-39633954", "NEW", null, 102.604m),
             Event("CS-74239776", "CANC", "CS-39633954", 102.604m),
         };
-        var result = Consolidation.Run(rows, Life, null).ToDictionary(row => row.Context.RowKey);
+        var result = Consolidation.Run(rows, Life, null).ToDictionary(row => row.Context.RowKey, StringComparer.Ordinal);
 
         Assert.Null(result["CS-36468090"].Suppression);
         Assert.False(result["CS-36468090"].Quarantined);
@@ -44,7 +44,7 @@ public class LifecycleTests
             Event("NEW" + separator + "1", "NEW", null, 1m, "ACME" + separator + "X"),
             Event("CANC" + separator + "1", "CANC", "NEW" + separator + "1", 1m, "ACME" + separator + "X"),
         };
-        var result = Consolidation.Run(rows, Life, null).ToDictionary(row => row.Context.RowKey);
+        var result = Consolidation.Run(rows, Life, null).ToDictionary(row => row.Context.RowKey, StringComparer.Ordinal);
 
         Assert.Null(result["CORR" + separator + "1"].Suppression);
         Assert.Equal(SuppressionReason.Superseded, result["NEW" + separator + "1"].Suppression);
