@@ -57,7 +57,7 @@ internal static class ResultBuilder
                 entries.Add(Open(item.Path.Id, cluster));
         }
         var entryByRow = Index(entries, left.Concat(right).ToArray());
-        var entryById = entries.GroupBy(entry => entry.Id).ToDictionary(group => group.Key, group => group.First());
+        var entryById = entries.ToDictionary(entry => entry.Id);
         var rows = left.Concat(right).SelectMany(row => row.Members.Select(member => Row(row, member, entryByRow, entryById))).ToArray();
         var summary = Summarize(entries, rows);
         return new ReconciliationResult(
