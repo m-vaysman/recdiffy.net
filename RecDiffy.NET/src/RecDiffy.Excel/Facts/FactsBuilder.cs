@@ -27,7 +27,7 @@ internal static class FactsBuilder
             .SelectMany(entry => entry.Entry.Diffs.Select(diff => (Entry: entry, Diff: diff)))
             .Select((pair, index) => Diff(result, map, options.Profile, pair.Entry, pair.Diff, index))
             .ToImmutableArray();
-        var openItems = OpenItems(entries, diffs, map, options).ToImmutableArray();
+        var openItems = OpenItems(entries, rows, diffs, map, options).ToImmutableArray();
         return new ReportFacts(entries, rows, diffs, openItems, Passes(result, options.Profile));
     }
 
@@ -113,18 +113,35 @@ internal static class FactsBuilder
         return [.. declared.Concat(committed).Distinct(StringComparer.Ordinal)];
     }
 
-    private static IEnumerable<OpenItem> OpenItems(ImmutableArray<EntryFact> entries, ImmutableArray<DiffFact> diffs, FieldMap map, ExcelReportOptions options)
+    private static IEnumerable<OpenItem> OpenItems(ImmutableArray<EntryFact> entries, ImmutableArray<RowFact> rows, ImmutableArray<DiffFact> diffs, FieldMap map, ExcelReportOptions options)
     {
         var diffsByEntry = diffs.ToLookup(diff => diff.Entry.Id, StringComparer.Ordinal);
-        var items = entries.Select(entry => OpenItem(entry, diffsByEntry[entry.Id].ToArray(), map)).OfType<OpenItem>().ToArray();
+        var netCash = map.IsMapped(ReportRole.NetCash);
+        OpenItem[] items =
+        [
+            .. entries.Select(entry => OpenItem(entry, diffsByEntry[entry.Id].ToArray(), map)).OfType<OpenItem>(),
+            .. rows.Where(row => row is { Entry: null, ItemLead: true, Row.Disposition: Disposition.LeftOnly or Disposition.RightOnly }).Select(row => Orphan(row, netCash)),
+        ];
         var order = Ordering.Currencies(options.CurrencyOrder);
         return items
             .OrderBy(item => Ordering.Status(item.SettleDate.Date, options.AsOf))
-            .ThenBy(item => order(item.Entry.Text(ReportRole.Currency)))
-            .ThenBy(item => item.Entry.Text(ReportRole.Currency), StringComparer.Ordinal)
+            .ThenBy(item => order(item.Text(ReportRole.Currency)))
+            .ThenBy(item => item.Text(ReportRole.Currency), StringComparer.Ordinal)
             .ThenByDescending(item => item.Impact ?? decimal.MinValue)
-            .ThenBy(item => item.Entry.Id, StringComparer.Ordinal);
+            .ThenBy(item => item.Key, StringComparer.Ordinal);
     }
+
+    private static OpenItem Orphan(RowFact row, bool netCash)
+    {
+        var type = row.Row.Disposition is Disposition.LeftOnly ? "Unmatched ours" : "Unmatched theirs";
+        var codes = string.Join(", ", row.Row.Diagnostics.Select(diagnostic => diagnostic.Code).Distinct(StringComparer.Ordinal));
+        var action = row.Row.Validity is InputValidity.Invalid
+            ? $"Fix the input row: the engine excluded it as invalid ({codes})"
+            : "Not routed to any matching path: check the profile routes";
+        return new OpenItem(null, row, type, type, null, netCash ? Abs(row.Values[ReportRole.NetCash].Number) : null, action, row.Values[ReportRole.SettleDate]);
+    }
+
+    private static decimal? Abs(decimal? value) => value is { } number ? Math.Abs(number) : null;
 
     private static OpenItem? OpenItem(EntryFact entry, DiffFact[] diffs, FieldMap map)
     {
@@ -145,18 +162,21 @@ internal static class FactsBuilder
     {
         var root = diffs.FirstOrDefault(diff => diff.Field == entry.RootFields.FirstOrDefault());
         var cashDiff = diffs.FirstOrDefault(diff => diff.Role is ReportRole.NetCash);
-        decimal? impact = (netCash, root?.Field == settleField) switch
+        var bothCash = entry.Ours[ReportRole.NetCash].Number is not null && entry.Theirs[ReportRole.NetCash].Number is not null;
+        decimal? impact = (netCash, root?.Field == settleField, cashDiff) switch
         {
-            (false, _) => null,
-            (true, true) => Math.Abs(entry.Ours[ReportRole.NetCash].Number ?? 0m),
-            _ => Math.Abs(cashDiff?.Delta ?? 0m),
+            (false, _, _) => null,
+            (true, true, _) => Abs(entry.Ours[ReportRole.NetCash].Number),
+            (true, false, { Ours.Number: not null, Theirs.Number: not null }) => Abs(cashDiff.Delta),
+            (true, false, null) when bothCash => 0m,
+            _ => null,
         };
         var field = root?.Field ?? "(whole trade)";
-        return new OpenItem(entry, "Field break", field, root, impact, Action(entry, BreakAction(root?.Role, field)), entry.Ours[ReportRole.SettleDate]);
+        return new OpenItem(entry, null, "Field break", field, root, impact, Action(entry, BreakAction(root?.Role, field)), entry.Ours[ReportRole.SettleDate]);
     }
 
     private static OpenItem Whole(EntryFact entry, string type, RoleValues side, bool netCash, string action) =>
-        new(entry, type, type, null, netCash ? Math.Abs(side[ReportRole.NetCash].Number ?? 0m) : null, Action(entry, action), side[ReportRole.SettleDate]);
+        new(entry, null, type, type, null, netCash ? Abs(side[ReportRole.NetCash].Number) : null, Action(entry, action), side[ReportRole.SettleDate]);
 
     private static string BreakAction(ReportRole? role, string field) => role switch
     {

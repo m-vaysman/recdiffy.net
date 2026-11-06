@@ -69,9 +69,25 @@ internal enum DiffState
     Attributed,
 }
 
-internal sealed record OpenItem(EntryFact Entry, string ItemType, string Category, DiffFact? Diff, decimal? Impact, string Action, FieldValue SettleDate)
+// An open item is an engine entry (a break, or an unmatched, ambiguous or search-incomplete entry) or a row the engine left without an entry:
+// unrouted, or excluded as Invalid before matching. Rows show those as LeftOnly or RightOnly, and they must not drop out of the blotter.
+internal sealed record OpenItem(EntryFact? Entry, RowFact? Row, string ItemType, string Category, DiffFact? Diff, decimal? Impact, string Action, FieldValue SettleDate)
 {
-    public string Field => Diff?.Field ?? "(whole trade)";
+    public string Field => (Diff, Row) switch
+    {
+        ({ } diff, _) => diff.Field,
+        (_, { Row.Validity: InputValidity.Invalid }) => "(excluded: invalid)",
+        (_, { }) => "(not routed)",
+        _ => "(whole trade)",
+    };
+
+    public string Key => Entry?.Id ?? $"(no entry) {Row!.Source}:{Row.Row.Row.RowKey}";
+
+    public string Label => Entry?.Short ?? Row!.Row.Row.RowKey;
+
+    public FieldValue Value(ReportRole role) => Entry?.Value(role) ?? Row!.Values[role];
+
+    public string Text(ReportRole role) => Value(role).Text;
 }
 
 internal sealed record ReportFacts(

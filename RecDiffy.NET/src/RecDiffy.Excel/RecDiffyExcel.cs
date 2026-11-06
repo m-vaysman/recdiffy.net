@@ -25,17 +25,23 @@ public static class RecDiffyExcel
         return new ReportOutcome(kind, composed.FileName, null, composed.SkipReason);
     }
 
-    /// <summary>Writes one file per selected report into a folder. Returns, for each report, the file path or the reason it was skipped.</summary>
-    public static IReadOnlyList<ReportOutcome> WriteAll(this ReconciliationResult result, string folder, ExcelReportOptions options)
+    /// <summary>
+    /// Writes one file per selected report into a folder. Returns, for each report, the file path or the reason it was skipped.
+    /// Cancellation is observed before each report is built and before each file is written.
+    /// </summary>
+    public static IReadOnlyList<ReportOutcome> WriteAll(this ReconciliationResult result, string folder, ExcelReportOptions options, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(folder);
         ArgumentNullException.ThrowIfNull(options);
+        cancellationToken.ThrowIfCancellationRequested();
         var context = Context(result, options);
-        var composed = Selected(options).Select(definition => Compose(context, definition)).ToArray();
+        var composed = Selected(options).Select(definition => Checked(cancellationToken, () => Compose(context, definition))).ToArray();
         if (composed.Any(item => item.Workbook is not null))
             Directory.CreateDirectory(folder);
-        return [.. composed.Select(item => item.Workbook is { } workbook ? Save(workbook, folder, item) : new ReportOutcome(item.Kind, item.FileName, null, item.SkipReason))];
+        return [.. composed.Select(item => item.Workbook is { } workbook
+            ? Checked(cancellationToken, () => Save(workbook, folder, item))
+            : new ReportOutcome(item.Kind, item.FileName, null, item.SkipReason))];
     }
 
     /// <summary>Runs <see cref="Reconciler.Run"/> and then <see cref="WriteAll"/>. The profile also supplies the profile id, tolerances and pass order.</summary>
@@ -45,7 +51,8 @@ public static class RecDiffyExcel
         RecordSource right,
         ReferenceDataSet reference,
         string folder,
-        ExcelReportOptions options)
+        ExcelReportOptions options,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(profile);
         ArgumentNullException.ThrowIfNull(left);
@@ -53,8 +60,8 @@ public static class RecDiffyExcel
         ArgumentNullException.ThrowIfNull(reference);
         ArgumentNullException.ThrowIfNull(folder);
         ArgumentNullException.ThrowIfNull(options);
-        var result = Reconciler.Run(profile, left, right, reference);
-        return result.WriteAll(folder, options with { Profile = options.Profile ?? profile });
+        var result = Reconciler.Run(profile, left, right, reference, null, cancellationToken);
+        return result.WriteAll(folder, options with { Profile = options.Profile ?? profile }, cancellationToken);
     }
 
     /// <summary>The file name a report is written to: &lt;ID&gt;_&lt;ReportName&gt;_&lt;profileId&gt;_&lt;asOf yyyy-MM-dd&gt;.xlsx.</summary>
@@ -62,8 +69,17 @@ public static class RecDiffyExcel
     {
         ArgumentNullException.ThrowIfNull(profileId);
         var info = ReportCatalogue.Of(kind);
-        var safe = new string([.. profileId.Select(character => Path.GetInvalidFileNameChars().Contains(character) || char.IsWhiteSpace(character) ? '-' : character)]);
-        return $"{info.Id}_{info.Name}_{safe}_{asOf.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}.xlsx";
+        return $"{info.Id}_{info.Name}_{SafeSegment(profileId)}_{asOf.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}.xlsx";
+    }
+
+    // A profile id becomes one file-name segment that is the same on every OS: characters Windows forbids in a file name (a superset of what
+    // Linux and macOS forbid), control characters and whitespace become '-', runs of dots and dashes collapse, and leading or trailing dots and
+    // dashes are trimmed, so an id such as "../../tmp" cannot read like a path. Path.GetInvalidFileNameChars is not used: it differs by OS.
+    internal static string SafeSegment(string profileId)
+    {
+        var replaced = new string([.. profileId.Select(character => character is '<' or '>' or ':' or '"' or '/' or '\\' or '|' or '?' or '*' || char.IsControl(character) || char.IsWhiteSpace(character) ? '-' : character)]);
+        var collapsed = System.Text.RegularExpressions.Regex.Replace(System.Text.RegularExpressions.Regex.Replace(replaced, @"\.{2,}", "-"), "-{2,}", "-");
+        return collapsed.Trim('-', '.') is { Length: > 0 } safe ? safe : "profile";
     }
 
     internal sealed record Composed(ReportKind Kind, string FileName, Workbook? Workbook, string? SkipReason);
@@ -101,6 +117,12 @@ public static class RecDiffyExcel
 
     private static IEnumerable<ReportDefinition> Selected(ExcelReportOptions options) =>
         (options.Reports ?? Enum.GetValues<ReportKind>()).Distinct().Select(ReportRegistry.Of);
+
+    private static T Checked<T>(CancellationToken cancellationToken, Func<T> step)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return step();
+    }
 
     private static ReportOutcome Save(Workbook workbook, string folder, Composed item)
     {

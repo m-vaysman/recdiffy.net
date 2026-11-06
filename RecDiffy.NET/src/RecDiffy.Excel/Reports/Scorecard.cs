@@ -17,6 +17,7 @@ internal static class Scorecard
         var source = rows.Range("source");
         var rowCounterparty = rows.Range("counterparty");
         var disposition = rows.Range("disposition");
+        var lead = rows.Range("itemLead");
         var id = entries.Range("entryId");
         var alignment = entries.Range("alignment");
         var outcome = entries.Range("outcome");
@@ -34,8 +35,8 @@ internal static class Scorecard
             ("Auto-match rate", $"IF({leftRows}=0,0,COUNTIFS({source},\"left\",{disposition},\"Matched\")/{leftRows})", Formats.Percent),
             ("Clean-match rate", $"IF({matched}=0,0,(COUNTIF({outcome},\"Exact\")+COUNTIF({outcome},\"WithinTolerance\"))/{matched})", Formats.Percent),
             ("Breaks", $"COUNTIF({outcome},\"Break\")", Formats.Count),
-            ("Unmatched ours", $"COUNTIF({alignment},\"LeftOnly\")", Formats.Count),
-            ("Unmatched theirs", $"COUNTIF({alignment},\"RightOnly\")", Formats.Count),
+            ("Unmatched ours", $"COUNTIFS({source},\"left\",{disposition},\"LeftOnly\",{lead},1)", Formats.Count),
+            ("Unmatched theirs", $"COUNTIFS({source},\"right\",{disposition},\"RightOnly\",{lead},1)", Formats.Count),
             ("Ambiguous", $"COUNTIF({alignment},\"Ambiguous\")", Formats.Count),
         ];
         var r0 = ReportSheet.Body;
@@ -83,8 +84,8 @@ internal static class Scorecard
                     .PutFormula(row, 5, Entries(outcome, "Exact"), Styles.Number(Formats.Count))
                     .PutFormula(row, 6, Entries(outcome, "WithinTolerance"), Styles.Number(Formats.Count))
                     .PutFormula(row, 7, Entries(outcome, "Break"), Styles.Number(Formats.Count))
-                    .PutFormula(row, 8, Entries(alignment, "LeftOnly"), Styles.Number(Formats.Count))
-                    .PutFormula(row, 9, Entries(alignment, "RightOnly"), Styles.Number(Formats.Count))
+                    .PutFormula(row, 8, $"COUNTIFS({source},\"left\",{rowCounterparty},$A{row},{disposition},\"LeftOnly\",{lead},1)", Styles.Number(Formats.Count))
+                    .PutFormula(row, 9, $"COUNTIFS({source},\"right\",{rowCounterparty},$A{row},{disposition},\"RightOnly\",{lead},1)", Styles.Number(Formats.Count))
                     .PutFormula(row, 10, Entries(alignment, "Ambiguous"), Styles.Number(Formats.Count))
                     .PutFormula(row, 11, $"IF(B{row}=0,0,COUNTIFS({source},\"left\",{rowCounterparty},$A{row},{disposition},\"Matched\")/B{row})", Styles.Number(Formats.Percent))
                     .PutFormula(row, 12, $"IF(D{row}=0,0,(E{row}+F{row})/D{row})", Styles.Number(Formats.Percent));
@@ -93,7 +94,7 @@ internal static class Scorecard
             .Fold(Enumerable.Range(2, 9), (current, column, _) => current.PutFormula(last + 1, column, $"SUM({Address.Column(column)}{first}:{Address.Column(column)}{last})", Styles.Total with { Format = Formats.Count }))
             .PutFormula(last + 1, 11, $"IF(AND(B{last + 1}={leftRows},C{last + 1}=COUNTIF({source},\"right\"),D{last + 1}={matched}),\"✓\",\"✗\")", Styles.Total with { Align = HorizontalAlign.Center })
             .Put(last + 1, 12, null, Styles.Total)
-            .Put(last + 3, 1, "Every number on this tab is a formula over Result_Entries and Result_Rows. Auto-match rate = internal rows in matched entries ÷ internal rows. Clean-match rate = (exact + within tolerance) ÷ matched entries. An entry counts under the counterparty of its projection.", Styles.Note)
+            .Put(last + 3, 1, "Every number on this tab is a formula over Result_Entries and Result_Rows. Auto-match rate = internal rows in matched entries ÷ internal rows. Clean-match rate = (exact + within tolerance) ÷ matched entries. Unmatched counts are items from Result_Rows, so rows the engine left without an entry (not routed, or excluded as invalid) are included; a package counts once. Entry counts use the counterparty of the entry's projection.", Styles.Note)
             .Rule(new DataBarRule(new CellRange(first, 11, last, 11), "60A5FA", 0m, 1m))
             .Rule(new CellIsRule(new CellRange(first, 12, last, 12), CellOperator.GreaterThanOrEqual, ["0.95"], new DiffStyle(Palette.OkText, true, false, Palette.Ok)))
             .Rule(new CellIsRule(new CellRange(first, 12, last, 12), CellOperator.Between, ["0.85", "0.9499999"], Styles.Amber))
