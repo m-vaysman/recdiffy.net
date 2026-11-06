@@ -282,6 +282,7 @@ public sealed class ReconciliationResult
         FieldType.Decimal => value.Number.ToString(CultureInfo.InvariantCulture),
         FieldType.Date when value.IsNull => "",
         FieldType.Date => value.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+        FieldType.Symbol or FieldType.Identifier => value.IsNull ? "" : value.Text ?? "",
         _ => "",
     };
 }

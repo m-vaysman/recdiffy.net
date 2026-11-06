@@ -229,7 +229,7 @@ internal static class FieldDiffer
 
     private static CanonicalValue Value(RowContext row, string field) => row.IsNull(field)
         ? new CanonicalValue(FieldType.Text, true, 0m, default, 0)
-        : new CanonicalValue(row.Values[field].Type, false, row.Values[field].Number, row.Values[field].Date, row.Values[field].Interned);
+        : new CanonicalValue(row.Values[field].Type, false, row.Values[field].Number, row.Values[field].Date, row.Values[field].Interned, row.Display(field));
 
     private static decimal Abs(decimal value) => value < 0m ? -value : value;
 
