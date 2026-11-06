@@ -9,7 +9,7 @@ on:
   pull_request:
     branches: [main, dev]
   push:
-    branches: [main, dev]
+    branches: [main, dev, feature/101-sonarqube]
   workflow_dispatch:
 
 permissions:
