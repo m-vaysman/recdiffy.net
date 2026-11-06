@@ -1,0 +1,51 @@
+Run_Info!A1	How this report was produced
+Run_Info!A3	As-of date
+Run_Info!B3	46330
+Run_Info!C3	Named cell AsOf. Ageing and settlement status are formulas on it: change it to re-age the report.
+Run_Info!A5	Title
+Run_Info!B5	fixture-v1 acceptance run
+Run_Info!A6	Report
+Run_Info!B6	MO1 Control totals (MO1_ControlTotals)
+Run_Info!A7	Profile id
+Run_Info!B7	fixture-v1
+Run_Info!A8	Profile version
+Run_Info!B8	1.0.0
+Run_Info!A9	Profile hash
+Run_Info!B9	e67015bb11a50941960676fb289f921a72235f0f2285926cfbc8335e5a0a6ec7
+Run_Info!A10	Reference data
+Run_Info!B10	fixture-v1
+Run_Info!A11	Reference hash
+Run_Info!B11	fixture-v1
+Run_Info!A12	Engine version
+Run_Info!B12	1.0.0.0
+Run_Info!A13	Writer
+Run_Info!B13	RecDiffy.Excel 1.0.0.0
+Run_Info!A14	Rows read: left
+Run_Info!B14	300
+Run_Info!A15	Rows read: right
+Run_Info!B15	200
+Run_Info!A16	Result entries
+Run_Info!B16	310
+Run_Info!A18	RunSummary
+Run_Info!A19	Field
+Run_Info!B19	Value
+Run_Info!A20	Matched
+Run_Info!B20	170
+Run_Info!A21	Exact
+Run_Info!B21	140
+Run_Info!A22	WithinTolerance
+Run_Info!B22	0
+Run_Info!A23	Break
+Run_Info!B23	30
+Run_Info!A24	LeftOnly
+Run_Info!B24	110
+Run_Info!A25	RightOnly
+Run_Info!B25	20
+Run_Info!A26	Ambiguous
+Run_Info!B26	10
+Run_Info!A27	SearchIncomplete
+Run_Info!B27	0
+Run_Info!A28	Quarantined
+Run_Info!B28	0
+Run_Info!A29	Suppressed
+Run_Info!B29	0
