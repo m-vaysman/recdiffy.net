@@ -137,9 +137,10 @@ internal static class FieldDiffer
         var scaledLeft = left.Values[step.Field.Name].Date;
         var scaledRight = right.Values[step.Field.Name].Date;
         Dates.Compare(in scaledLeft, in scaledRight, out var delta);
-        return delta.Days == 0
-            ? new FieldScore(FieldOutcome.Exact, 0m, 0)
-            : new FieldScore(FieldOutcome.Break, 0m, delta.Days);
+        if (delta.Days == 0)
+            return new FieldScore(FieldOutcome.Exact, 0m, 0);
+        var allowed = step.Tolerance is { Kind: "Days", Days: { } days } ? days : 0;
+        return new FieldScore(Math.Abs(delta.Days) <= allowed ? FieldOutcome.WithinTolerance : FieldOutcome.Break, 0m, delta.Days);
     }
 
     private static FieldScore Text(string? left, string? right) =>

@@ -39,7 +39,7 @@ public sealed record PassDeclaration(
     string? Many,
     int? MaxGroupSize);
 
-public sealed record ToleranceDeclaration(string Kind, decimal? Absolute, decimal? Relative, string? Attributed, WhenClause? When);
+public sealed record ToleranceDeclaration(string Kind, decimal? Absolute, decimal? Relative, string? Attributed, WhenClause? When, int? Days = null);
 
 public sealed record FieldDiffDeclaration(ToleranceDeclaration Tolerance, string? Attributed, WhenClause? ApplicableWhen);
 
