@@ -3,7 +3,7 @@ using RecDiffy.RulePacks.Trading;
 
 namespace RecDiffy.Tests;
 
-// Issue #91: row dispositions, the run summary, and entry membership do not depend on input order.
+// Issue #91: dispositions, validity, diagnostics, summary, and entry classification do not depend on input order.
 public class OrderIndependenceTests
 {
     private static readonly int[] Seeds = [.. Enumerable.Range(1, 25)];
@@ -24,7 +24,7 @@ public class OrderIndependenceTests
         Assert.Contains(baseline.Rows, row => row.Disposition == Disposition.RightOnly);
         Assert.Contains(baseline.Rows, row => row.Disposition == Disposition.Ambiguous);
 
-        AssertSameOrder(baseline, seed => Run(profile, Shuffle(left, seed), Shuffle(right, seed), FixtureMap(), FixtureReference()));
+        AssertSameOrder(baseline, left, right, (shuffledLeft, shuffledRight) => Run(profile, shuffledLeft, shuffledRight, FixtureMap(), FixtureReference()));
     }
 
     [Fact]
@@ -34,21 +34,32 @@ public class OrderIndependenceTests
         var baseline = Run(profile, PathsLeft, PathsRight, PathsMap(), ReferenceDataSet.Empty);
         AssertPaths(baseline);
 
-        AssertSameOrder(baseline, seed => Run(profile, Shuffle(PathsLeft, seed), Shuffle(PathsRight, seed), PathsMap(), ReferenceDataSet.Empty));
+        AssertSameOrder(baseline, PathsLeft, PathsRight, (shuffledLeft, shuffledRight) => Run(profile, shuffledLeft, shuffledRight, PathsMap(), ReferenceDataSet.Empty));
     }
 
-    private static void AssertSameOrder(ReconciliationResult baseline, Func<int, ReconciliationResult> run)
+    private static void AssertSameOrder<T>(
+        ReconciliationResult baseline,
+        IReadOnlyList<T> left,
+        IReadOnlyList<T> right,
+        Func<IReadOnlyList<T>, IReadOnlyList<T>, ReconciliationResult> run)
     {
-        var mismatches = Seeds
-            .SelectMany(seed => Mismatches(baseline, run(seed), seed))
+        var shuffled = Seeds.SelectMany(seed => new (string Name, IReadOnlyList<T> Left, IReadOnlyList<T> Right)[]
+        {
+            ($"both seed {seed}", Shuffle(left, seed), Shuffle(right, seed)),
+            ($"left seed {seed}", Shuffle(left, seed), right),
+            ($"right seed {seed}", left, Shuffle(right, seed)),
+        });
+        var mismatches = shuffled
+            .SelectMany(item => Mismatches(baseline, run(item.Left, item.Right), item.Name))
+            .Concat(Mismatches(baseline, run(Reverse(left), Reverse(right)), "reverse"))
             .ToArray();
         Assert.True(mismatches.Length == 0, string.Join(Environment.NewLine, mismatches));
     }
 
-    private static IEnumerable<string> Mismatches(ReconciliationResult baseline, ReconciliationResult shuffled, int seed)
+    private static IEnumerable<string> Mismatches(ReconciliationResult baseline, ReconciliationResult shuffled, string name)
     {
         if (baseline.Summary != shuffled.Summary)
-            yield return $"seed {seed}: summary {shuffled.Summary} vs {baseline.Summary}";
+            yield return $"{name}: summary {shuffled.Summary} vs {baseline.Summary}";
 
         var expected = Fingerprint(baseline);
         var actual = Fingerprint(shuffled);
@@ -57,28 +68,35 @@ public class OrderIndependenceTests
             expected.TryGetValue(key, out var baselineDisposition);
             actual.TryGetValue(key, out var shuffledDisposition);
             if (baselineDisposition != shuffledDisposition)
-                yield return $"seed {seed}: {key.Source}/{key.RowKey} disposition [{shuffledDisposition}] baseline [{baselineDisposition}]";
+                yield return $"{name}: {key.Source}/{key.RowKey} [{shuffledDisposition}] baseline [{baselineDisposition}]";
         }
 
         var baselineEntries = Entries(baseline);
         var shuffledEntries = Entries(shuffled);
         if (baselineEntries != shuffledEntries)
-            yield return $"seed {seed}: entries differ{Environment.NewLine}baseline:{Environment.NewLine}{baselineEntries}{Environment.NewLine}shuffled:{Environment.NewLine}{shuffledEntries}";
+            yield return $"{name}: entries differ{Environment.NewLine}baseline:{Environment.NewLine}{baselineEntries}{Environment.NewLine}shuffled:{Environment.NewLine}{shuffledEntries}";
     }
 
     private static Dictionary<RowIdentity, string> Fingerprint(ReconciliationResult result) =>
         result.Rows
             .GroupBy(row => new RowIdentity(row.Row.Source, row.Row.RowKey))
-            .ToDictionary(
-                group => group.Key,
-                group => string.Join(",", group.Select(row => row.Disposition.ToString()).OrderBy(name => name, StringComparer.Ordinal)));
+            .ToDictionary(group => group.Key, group => string.Join(",", group.Select(RowToken).OrderBy(token => token, StringComparer.Ordinal)));
+
+    private static string RowToken(RowResult row) =>
+        $"{row.Disposition}/{row.Validity}/{string.Join("+", row.Diagnostics.Select(diagnostic => diagnostic.Code).OrderBy(code => code, StringComparer.Ordinal))}";
 
     private static string Entries(ReconciliationResult result) =>
+        string.Join(Environment.NewLine, result.Entries.Select(EntryLine).OrderBy(line => line, StringComparer.Ordinal));
+
+    private static string EntryLine(ResultEntry entry) =>
+        $"{entry.Id} {entry.Alignment} {entry.Outcome} {entry.PathId} {entry.Composition} {Members(entry.Left)} | {Members(entry.Right)} {Diffs(entry)}";
+
+    private static string Diffs(ResultEntry entry) =>
         string.Join(
-            Environment.NewLine,
-            result.Entries
-                .Select(entry => $"{entry.Id} {Members(entry.Left)} | {Members(entry.Right)}")
-                .OrderBy(line => line, StringComparer.Ordinal));
+            ",",
+            entry.Diffs
+                .Select(diff => $"{diff.Field.Name}:{diff.Outcome}:{diff.Delta.Kind}:{diff.Delta.Number}:{diff.Delta.Days}")
+                .OrderBy(text => text, StringComparer.Ordinal));
 
     private static string Members(IReadOnlyList<SourceRef> members) =>
         string.Join(",", members.Select(member => $"{member.Source}:{member.RowKey}").OrderBy(text => text, StringComparer.Ordinal));
@@ -126,6 +144,8 @@ public class OrderIndependenceTests
         SourceMap<T> map,
         ReferenceDataSet reference) =>
         Reconciler.Run(profile, RecordSources.FromObjects("left", left, map), RecordSources.FromObjects("right", right, map), reference);
+
+    private static T[] Reverse<T>(IReadOnlyList<T> rows) => [.. rows.Reverse()];
 
     private static T[] Shuffle<T>(IReadOnlyList<T> rows, int seed)
     {
