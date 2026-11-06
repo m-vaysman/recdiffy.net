@@ -49,11 +49,18 @@ internal static class Consolidation
     private static IReadOnlyList<ConsolidatedRow> Collapse(IReadOnlyList<IntakeRow> rows, LifecyclePlan plan)
     {
         var events = rows.Select(row => ToEvent(row, plan)).OfType<LifeEvent>().ToArray();
-        var index = events.ToDictionary(evt => (evt.Scope, evt.Id));
-        var linked = Components(events, index);
+        var index = events.GroupBy(evt => (evt.Scope, evt.Id)).ToDictionary(group => group.Key, Representative);
+        var linked = Components([.. index.Values], index);
         var decided = linked.SelectMany(component => Decide(component, index, plan.CorrPointsAt)).ToDictionary(row => row.Context.RowKey, StringComparer.Ordinal);
         return [.. rows.Select(row => decided.TryGetValue(row.Context.RowKey, out var fate) ? fate : PassThrough(row))];
     }
+
+    private static LifeEvent Representative(IGrouping<(string Scope, string Id), LifeEvent> group) =>
+        group.Count() is 1
+            ? group.First()
+            : group.FirstOrDefault(evt => evt.Row.Quarantined) is { } quarantined
+                ? quarantined
+                : group.First() with { Row = group.First().Row with { Quarantined = true } };
 
     private static LifeEvent? ToEvent(IntakeRow row, LifecyclePlan plan) =>
         row.Context.Display(plan.ActionField) is { } action
