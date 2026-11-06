@@ -145,13 +145,16 @@ internal sealed class DataReaderSource(Func<IDataReader> open, TabularOptions op
                 return [];
         }
 
+        // Column names come from the reader, before any row is read, so every row it returns is data.
+        var names = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToArray();
+        if (names is not ["", ..])
+            return ReadBody(reader, sideName, rowKey, names, cancellation);
+
+        // A reader that names no columns keeps its header in its first row. This path predates the fix for #116 and is kept as it was.
         if (reader.Read() is false)
             return [];
 
-        var headers = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToArray();
-        if (headers[0] is "")
-            headers = [.. Enumerable.Range(0, reader.FieldCount).Select(index => reader.GetValue(index)?.ToString() ?? "")];
-
+        var headers = Enumerable.Range(0, reader.FieldCount).Select(index => reader.GetValue(index)?.ToString() ?? "").ToArray();
         return ReadBody(reader, sideName, rowKey, headers, cancellation);
     }
 
