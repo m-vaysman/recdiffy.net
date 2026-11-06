@@ -72,11 +72,12 @@ public static class RecDiffyExcel
         return $"{info.Id}_{info.Name}_{SafeSegment(profileId)}_{asOf.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}.xlsx";
     }
 
-    // A profile id becomes one file-name segment: path and invalid characters become '-', runs of dots and dashes collapse,
-    // and leading or trailing dots and dashes are trimmed, so an id such as "../../tmp" cannot read like a path.
+    // A profile id becomes one file-name segment that is the same on every OS: characters Windows forbids in a file name (a superset of what
+    // Linux and macOS forbid), control characters and whitespace become '-', runs of dots and dashes collapse, and leading or trailing dots and
+    // dashes are trimmed, so an id such as "../../tmp" cannot read like a path. Path.GetInvalidFileNameChars is not used: it differs by OS.
     internal static string SafeSegment(string profileId)
     {
-        var replaced = new string([.. profileId.Select(character => Path.GetInvalidFileNameChars().Contains(character) || character is '/' or '\\' || char.IsWhiteSpace(character) ? '-' : character)]);
+        var replaced = new string([.. profileId.Select(character => character is '<' or '>' or ':' or '"' or '/' or '\\' or '|' or '?' or '*' || char.IsControl(character) || char.IsWhiteSpace(character) ? '-' : character)]);
         var collapsed = System.Text.RegularExpressions.Regex.Replace(System.Text.RegularExpressions.Regex.Replace(replaced, @"\.{2,}", "-"), "-{2,}", "-");
         return collapsed.Trim('-', '.') is { Length: > 0 } safe ? safe : "profile";
     }

@@ -95,6 +95,7 @@ public class ReviewFindingsTests
     [InlineData("   ", "MO2_Scorecard_profile_2026-11-04.xlsx")]
     [InlineData("v1..2", "MO2_Scorecard_v1-2_2026-11-04.xlsx")]
     [InlineData("C:\\reports\\desk", "MO2_Scorecard_C-reports-desk_2026-11-04.xlsx")]
+    [InlineData("desk:2026|v1*?<>\"", "MO2_Scorecard_desk-2026-v1_2026-11-04.xlsx")]
     [InlineData("fixture-v1", "MO2_Scorecard_fixture-v1_2026-11-04.xlsx")]
     public void A_profile_id_becomes_one_clean_file_name_segment(string profileId, string expected) =>
         Assert.Equal(expected, RecDiffyExcel.FileName(ReportKind.Scorecard, profileId, AsOf));
