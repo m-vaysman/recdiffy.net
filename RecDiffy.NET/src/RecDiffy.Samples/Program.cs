@@ -12,6 +12,7 @@ public static class Program
             await AsyncRun.Run().ConfigureAwait(false),
             TradingReference.Run(),
             ExcelReports.Run(),
+            BuiltProfile.Run(),
         };
         return outcomes.All(outcome => outcome) ? 0 : 1;
     }
