@@ -13,12 +13,67 @@ public static class BmfReport
     {
         ArgumentNullException.ThrowIfNull(resultsDirectory);
         ArgumentNullException.ThrowIfNull(outputPath);
-        var documents = Directory.EnumerateFiles(resultsDirectory, "*-report.json")
-            .Where(path => Path.GetFileName(path).EndsWith("-report.json", StringComparison.Ordinal))
-            .OrderBy(path => path, StringComparer.Ordinal)
-            .Select(File.ReadAllText);
-        File.WriteAllText(outputPath, FromDocuments(documents));
+        var directory = Path.GetFullPath(resultsDirectory);
+        Console.WriteLine($"BenchmarkDotNet results: {directory}");
+        if (!Directory.Exists(directory))
+        {
+            var listing = Listing(Path.GetDirectoryName(directory));
+            Console.WriteLine(listing);
+            throw new InvalidOperationException($"BenchmarkDotNet results directory does not exist: {directory}{Environment.NewLine}{listing}");
+        }
+
+        var reports = ChooseReports(directory);
+        if (reports.Count == 0)
+        {
+            var listing = Listing(directory);
+            Console.WriteLine(listing);
+            throw new InvalidOperationException($"No BenchmarkDotNet JSON reports in {directory}{Environment.NewLine}{listing}");
+        }
+
+        foreach (var report in reports)
+            Console.WriteLine($"Reading {report}");
+
+        File.WriteAllText(outputPath, FromDocuments(reports.Select(File.ReadAllText)));
+        Console.WriteLine($"Wrote {Path.GetFullPath(outputPath)}");
     }
+
+    // BenchmarkDotNet 0.15 writes --exporters json as *-report-full-compressed.json.
+    // Older builds use *-report.json. One file per benchmark type, preferring the 0.15 name.
+    private static IReadOnlyList<string> ChooseReports(string directory)
+    {
+        var chosen = new Dictionary<string, (int Rank, string Path)>(StringComparer.OrdinalIgnoreCase);
+        foreach (var path in Directory.EnumerateFiles(directory))
+        {
+            if (Match(Path.GetFileName(path)) is not (var stem, var rank))
+                continue;
+            if (!chosen.TryGetValue(stem, out var existing) || rank < existing.Rank)
+                chosen[stem] = (rank, path);
+        }
+
+        return [.. chosen.Values.Select(item => item.Path).OrderBy(path => path, StringComparer.Ordinal)];
+    }
+
+    private static (string Stem, int Rank)? Match(string fileName) => fileName switch
+    {
+        _ when Cut(fileName, "-report-full-compressed.json") is { } stem => (stem, 0),
+        _ when Cut(fileName, "-report-full.json") is { } stem => (stem, 1),
+        _ when Cut(fileName, "-report-brief-compressed.json") is { } stem => (stem, 3),
+        _ when Cut(fileName, "-report-brief.json") is { } stem => (stem, 4),
+        _ when Cut(fileName, "-report.json") is { } stem => (stem, 2),
+        _ => null,
+    };
+
+    private static string? Cut(string fileName, string suffix) =>
+        fileName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase) ? fileName[..^suffix.Length] : null;
+
+    private static string Listing(string? directory) =>
+        directory is null || !Directory.Exists(directory)
+            ? "(directory does not exist)"
+            : Directory.EnumerateFileSystemEntries(directory).OrderBy(path => path, StringComparer.Ordinal).ToArray() switch
+            {
+                [] => "(empty directory)",
+                var entries => string.Join(Environment.NewLine, entries),
+            };
 
     public static string FromDocuments(IEnumerable<string> documents)
     {
