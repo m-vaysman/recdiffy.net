@@ -91,6 +91,20 @@ public class SyntheticReportTests
         Assert.Contains(sheet.Values, cell => cell.Value == "GBP");
     }
 
+    [LibreOfficeFact]
+    public void Control_totals_count_a_package_once_and_add_its_merged_leg_back_to_tie_out_to_the_file()
+    {
+        var sheet = Recalculated.Value[ReportKind.ControlTotals]["MO1_ControlTotals"];
+        var legs = new string([.. sheet.Values.Single(cell => cell.Value is { } text && text.StartsWith("Package legs merged into one item ours", StringComparison.Ordinal)).Address.TakeWhile(char.IsLetter)]);
+        var row = Row(sheet.Values.Single(cell => cell.Address.StartsWith('B') && cell.Value == "DELTA").Address);
+        var tie = sheet.Values.Where(cell => Row(cell.Address) == row && cell.Formula is not null && cell.Value is "✓" or "✗").Select(cell => cell.Value).ToArray();
+
+        Assert.Equal(1_000_000m, sheet[$"D{row}"].Number);
+        Assert.Equal(1_000_000m, sheet[$"{legs}{row}"].Number);
+        Assert.All(tie, value => Assert.Equal("✓", value));
+        Assert.Equal(2, tie.Length);
+    }
+
     [Fact]
     public void Run_and_write_runs_the_engine_and_writes_every_report()
     {
