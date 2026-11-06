@@ -1,0 +1,86 @@
+{
+  "title": "Reconciliation Views for Back and Middle Office",
+  "subtitle": "Thirteen ways trade reconciliation results are laid out for operations and control, each shown on real results from the RecDiffy test dataset, with a prompt that produces the layout from returned reconciliation data.",
+  "dataNote": "Sample data: test-data/trade-reconciliation-dataset/claude-sonnet-5.5 (300 internal rows, 200 counterparty rows). Results were produced by an analysis script that applies the RecDiffy revised specification (passes P1 to P4, Sonnet tolerances, half-even rounding); they are not output of the RecDiffy engine. All 275 result entries agree with the dataset's oracle, including each break's root field. As-of date for ageing and settlement status: 2025-06-13. Amounts are in each trade's own currency and are never added across currencies.",
+  "preamble": "You will receive the output of a RecDiffy.NET reconciliation run as JSON.\n\nentries[]: one per result entry. Fields: entryId; alignment (Matched, LeftOnly, RightOnly, Ambiguous, SearchIncomplete); composition (OneToOne or ManyToOne, with Package or LifecycleCollapsed flags); outcome (Exact, WithinTolerance, Break, NotCompared); committedBy (the pass that matched it); left[] and right[] (row keys); suppressedRight[] (superseded and cancel rows of a lifecycle chain); leftProjection and rightProjection (canonical fields: Counterparty, Instrument, AssetClass, TradeDate, SettleDate, Side, Quantity, Price, Currency, Accrued, Fees, NetCash); instrumentLabel; diffs[] (field, left, right, delta = right minus left, outcome, attributedTo[], derived); rootFields[] (breaks only); diagnostics[].\nrows[]: one per input row: source (left = internal, right = counterparty), rowKey, disposition, entryId.\nmeta: dataset, asOf, profile.\n\nRules: amounts are decimal strings; compute with exact decimals, never floating point. NetCash is unsigned; its direction comes from Side (BUY and PAY_FIXED pay cash, SELL and REC_FIXED receive it). Never add amounts in different currencies, and never convert currencies unless FX rates are supplied. 'Ours' is the left (internal) side and 'theirs' the right (counterparty) side. Use meta.asOf as today's date. Show every number exactly as it appears in the data; do not invent rows.",
+  "views": [
+    {
+      "id": "BO1", "office": "Back office", "name": "Exception blotter", "sheet": "BO1_Exception_Blotter",
+      "users": "Trade support, settlements", "question": "What do I fix first today?", "cadence": "Intraday, every run",
+      "about": "One line per open item, ranked by settlement urgency and cash at stake. The working queue of an operations team.",
+      "prompt": "Build an exception blotter with one line per open item. Open items are entries with outcome Break (one line, using the first value of rootFields as the field) and entries with alignment LeftOnly or RightOnly (one line each, field '(whole trade)').\nColumns: Rank, Entry, Status, Item type (Field break, Unmatched ours, Unmatched theirs), Counterparty, Instrument, Asset, Side, Trade date, Settle date, Age (business days from trade date to asOf), Field, Ours, Theirs, Delta, Ccy, Impact, Suggested action.\nStatus: 'Past settle date' if the settle date is before asOf, 'Settles today' if equal, otherwise 'Upcoming'.\nImpact: the full NetCash for a SettleDate break or an unmatched item; otherwise the absolute NetCash delta.\nSort by status (past, today, upcoming), then currency (USD, EUR, GBP, CHF, CAD, JPY), then impact descending. Do not rank across currencies.\nSuggested action by field: Price, confirm the execution price; Quantity, confirm the fill quantity; SettleDate, align the settlement date or SSI; Fees, check the commission schedule; Unmatched ours, chase the confirmation; Unmatched theirs, DK and investigate; add 'set up the security' when diagnostics include UnresolvedInstrument.\nFormatting: freeze the header row and the first two columns; show Status as a coloured label (past red, today amber, upcoming grey); right-align amounts with thousands separators and 2 decimals; autofilter on every column; above the table, a count of items by status and by item type."
+    },
+    {
+      "id": "BO2", "office": "Back office", "name": "Side-by-side field compare", "sheet": "BO2_Side_by_Side",
+      "users": "Reconciliations team", "question": "Exactly which fields disagree on each matched pair?", "cadence": "Every run",
+      "about": "The classic Excel layout: our value and theirs next to each other for every field, with only the disagreeing cells coloured.",
+      "prompt": "Build a side-by-side compare of every Matched entry whose outcome is not Exact.\nOne row per entry: Entry, Counterparty, Instrument, Side, Outcome, Pass, then a pair of columns (Ours, Theirs) for each of Quantity, Price, SettleDate, Accrued, Fees and NetCash, taken from leftProjection and rightProjection, and a final Delta NetCash column.\nUse a two-row header: the field name merged above its Ours and Theirs columns.\nColour the Theirs cell from that field's diff: red fill for outcome Break with an empty attributedTo (a root break); amber fill for WithinTolerance; grey italic text for a diff with attributedTo (a consequence of another field); no fill when the field has no diff. Mark derived values (derived = true) with a superscript d.\nSort breaks first, then by entry. Add a one-line legend above the header and freeze the header and the first two columns."
+    },
+    {
+      "id": "BO3", "office": "Back office", "name": "Raw versus normalized, stacked", "sheet": "BO3_Raw_vs_Normalized",
+      "users": "Operations, onboarding a new counterparty feed", "question": "Why did these match when the raw values look different?", "cadence": "On query, feed onboarding",
+      "about": "Three lines per pair: our row as received, their row as received, and their row after normalization. Explains 32nds prices, dirty prices, dealer-view sides and per-broker date formats.",
+      "prompt": "Input: the selected Matched entries plus, for each of their rows, the raw cells and the normalization trace (ReconciliationResult.Raw and ReconciliationResult.Trace).\nFor each entry, draw a card with three aligned lines: (1) our row as received, (2) their row as received, including Price_Quote_Convention and Reporting_Perspective, (3) their row after normalization (rightProjection), with columns aligned to line 1.\nBelow the card, list each normalization step that changed a value (rule: raw to canonical), then each diff (field, ours, theirs, delta, outcome).\nOn line 3, colour a cell red if it is a root break and amber if it is within tolerance; leave matching cells plain even when the raw text differs.\nHead each card with the entry, the pass that matched it and a one-line reason it is interesting (for example '32nds price and BAML date text')."
+    },
+    {
+      "id": "BO4", "office": "Back office", "name": "Lifecycle chain", "sheet": "BO4_Lifecycle_Chains",
+      "users": "Trade support", "question": "Which version of the trade is live, and what changed?", "cadence": "On query",
+      "about": "NEW, CANC and CORR rows drawn as a chain, with the survivor and the internal trade it matched.",
+      "prompt": "For each entry whose composition includes LifecycleCollapsed, draw its chain: the superseded NEW, the CANC event and the surviving CORR, in link order (follow each row's target reference, not row order).\nFor each chain row show report ID, action, target, quantity, price, settle date, net cash and disposition. Then show the internal row it matched, the pass and the outcome.\nHighlight the fields that changed between NEW and CORR, and state in one line what the correction fixed (for example 'price bust 102.604 to 105.149').\nIndent chain rows under a chain header; show superseded and cancel rows in grey with strike-through; show the survivor in bold."
+    },
+    {
+      "id": "BO5", "office": "Back office", "name": "Block and allocations", "sheet": "BO5_Allocations",
+      "users": "Allocations desk, trade support", "question": "Do the allocations add up to the street block?", "cadence": "Every run",
+      "about": "Each street block with the internal allocations that sum to it, and a check line.",
+      "prompt": "For each entry with composition ManyToOne and no Package flag, show the street block as a header line (report ID, quantity, price, net cash) and the internal allocations beneath it (row key, book, quantity, price, net cash).\nAdd a totals line that sums the allocations' Quantity and NetCash, and a check column that shows a tick when each sum equals the block's value exactly, or a cross and the difference otherwise.\nIndent the allocation lines, bold the block and totals lines, and outline-group the allocation lines so they can be collapsed."
+    },
+    {
+      "id": "BO6", "office": "Back office", "name": "Settlement cash ladder", "sheet": "BO6_Cash_Ladder",
+      "users": "Settlements, cash management", "question": "How much cash moves each day, and how much of it is in doubt?", "cadence": "Daily, start of day",
+      "about": "Expected cash by settle date and currency, ours against theirs, with the difference split into its causes.",
+      "prompt": "Build a settlement cash ladder by SettleDate and Currency. Sign NetCash by Side: receive positive, pay negative.\nFor each date and currency: number of items, our expected cash, their expected cash, difference (theirs minus ours), and the difference split into: unmatched ours (minus our cash on LeftOnly entries), unmatched theirs (their cash on RightOnly entries), and differences inside matched entries (a settle-date break moves cash from one date to another).\nThe three parts must add up to the difference on every line; flag any line where they do not.\nSort by date, then currency. Never total across currencies. Shade dates before asOf, and colour non-zero differences red."
+    },
+    {
+      "id": "MO1", "office": "Middle office", "name": "Control-total pivot", "sheet": "MO1_Control_Totals",
+      "users": "Product control, reconciliation owners", "question": "Do our totals agree with the street by counterparty and product?", "cadence": "Daily, before detail review",
+      "about": "The wiki's Excel side-by-side pattern: a two-sided pivot of totals, with each difference split into unmatched rows and in-group differences.",
+      "prompt": "Build a two-sided pivot (control totals).\nPart 1: rows Counterparty, columns AssetClass; each cell shows our row count and their row count after lifecycle collapse (exclude Suppressed rows), and the difference.\nPart 2: for USD bonds, face amount (Quantity) by counterparty: ours, theirs, difference, and the difference split into unmatched ours (negative), unmatched theirs, and quantity differences inside matched entries. The three parts must add up to the difference; add a totals row.\nColour cells whose difference is non-zero, and bold the largest absolute difference."
+    },
+    {
+      "id": "MO2", "office": "Middle office", "name": "Match-quality scorecard", "sheet": "MO2_Scorecard",
+      "users": "Operations control, management", "question": "How good is matching, overall and by counterparty?", "cadence": "Daily, weekly trend",
+      "about": "KPI tiles for the run and a table of match and clean-match rates by counterparty.",
+      "prompt": "Build a match-quality scorecard.\nTop: KPI tiles for rows read (ours, theirs), result entries, matched entries, auto-match rate (internal rows in matched entries divided by internal rows), clean-match rate ((Exact plus WithinTolerance) divided by matched), breaks, unmatched ours, unmatched theirs, and commits by pass (count of committedBy values).\nBelow: one row per counterparty with internal rows, counterparty rows, matched, exact, within tolerance, breaks, unmatched ours, unmatched theirs, auto-match rate and clean-match rate.\nShow rates as percentages with one decimal; add data bars on auto-match rate; colour clean-match rate green at 95% or more, amber from 85% to 95%, red below 85%."
+    },
+    {
+      "id": "MO3", "office": "Middle office", "name": "Cascade funnel", "sheet": "MO3_Cascade_Funnel",
+      "users": "Reconciliation owners, audit", "question": "How did the engine reach these results?", "cadence": "Per run, on change of profile",
+      "about": "A waterfall from rows read to residue: consolidation steps, then what each pass committed, in pass order.",
+      "prompt": "Show how the matching cascade consumed the population as a waterfall, separately for ours and theirs: rows read; after lifecycle collapse (rows with disposition Suppressed removed); items after package consolidation; then the items consumed by each pass in order (P1, P2, P3, P4, from committedBy; a package is one item, and each allocation in an N:1 group is one item); ending with the residue (LeftOnly and RightOnly entries).\nLabel each bar with its count and a one-line note; draw residue bars in a contrasting colour.\nCheck that items minus all pass consumption equals the residue on each side, and show the check."
+    },
+    {
+      "id": "MO4", "office": "Middle office", "name": "Break heatmap", "sheet": "MO4_Break_Heatmap",
+      "users": "Risk, counterparty management", "question": "Where are breaks concentrated?", "cadence": "Daily, weekly trend",
+      "about": "Counterparty by break category, coloured by count of open items.",
+      "prompt": "Build a break heatmap: rows Counterparty, columns break category (Price, Quantity, SettleDate and Fees from rootFields, then Unmatched ours and Unmatched theirs from alignment). Each cell is the count of open items.\nShade cells on a single-hue scale from blank at zero to darkest at the maximum; add row and column totals; sort counterparties by total, descending."
+    },
+    {
+      "id": "MO5", "office": "Middle office", "name": "Ageing and settlement status", "sheet": "MO5_Ageing",
+      "users": "Operational risk", "question": "How old are open items, and have they reached settlement?", "cadence": "Daily",
+      "about": "Open items by category, aged in business days since trade date, with their settlement status at the as-of date.",
+      "prompt": "Age open items (breaks and unmatched entries) in business days from trade date to asOf, in buckets 1, 2, 3 and 4 or more.\nRows: break category (Price, Quantity, SettleDate, Fees, Unmatched ours, Unmatched theirs). Columns: the age buckets, then settlement status (past settle date, settles today, upcoming).\nShade older buckets darker, colour the past-settle-date column red when non-zero, and add totals."
+    },
+    {
+      "id": "MO6", "office": "Middle office", "name": "Tolerance usage", "sheet": "MO6_Tolerance_Usage",
+      "users": "Control, tolerance governance", "question": "Are tolerances hiding drift?", "cadence": "Weekly, tolerance review",
+      "about": "Every within-tolerance difference, with the share of its tolerance it used.",
+      "prompt": "List every tolerated difference: for each Matched entry with outcome WithinTolerance, each diff with outcome WithinTolerance and an empty attributedTo. Columns: entry, counterparty, instrument, field, ours, theirs, delta, tolerance (from the profile in meta), and percent of tolerance used (absolute delta divided by tolerance).\nSort by percent used, descending. Render percent used as a bar from 0% to 100% with a marker at 100%. Flag items at exactly 100%: they sit on the boundary, which is inclusive."
+    },
+    {
+      "id": "MO7", "office": "Middle office", "name": "Match audit trail", "sheet": "MO7_Audit_Trail",
+      "users": "Audit, compliance, reconciliation owners", "question": "Why was this matched, or not?", "cadence": "On query",
+      "about": "For one entry, the decision path through consolidation and each pass, ending in the commit or the final disposition.",
+      "prompt": "For the selected entries, show the explanation trail: consolidation steps first (Lifecycle, Package), then one line per pass the item reached (pass, verdict, key or detail), ending with the committing pass or the final disposition, then any hints (for example NearestCandidate).\nVerdicts: Committed, NoKey, NoCandidate, Vetoed, Contest, SearchIncomplete.\nDraw it as a vertical timeline: committed step green, contest amber, no key or no candidate grey, hints in italics. Head each trail with the entry, its rows and its result."
+    }
+  ]
+}
