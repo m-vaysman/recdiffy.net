@@ -33,7 +33,7 @@ internal static class BreakHeatmap
         var items = DataTabs.OpenItems(context);
         var categories = Categories(context);
         var counterparties = context.Facts.OpenItems
-            .GroupBy(item => item.Entry.Text(ReportRole.Counterparty), StringComparer.Ordinal)
+            .GroupBy(item => item.Text(ReportRole.Counterparty), StringComparer.Ordinal)
             .OrderByDescending(group => group.Count())
             .ThenBy(group => group.Key, StringComparer.Ordinal)
             .Select(group => group.Key)
