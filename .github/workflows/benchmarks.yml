@@ -1,0 +1,191 @@
+# Continuous benchmarks on the dedicated COBBLER1 runner.
+# No pull_request or pull_request_target: this repo is public and the runner
+# is self-hosted, so untrusted fork code must never execute on COBBLER1.
+# Push to dev/main and workflow_dispatch only.
+#
+# Bencher CLI 0.6.x (installed on the runner, not in this job):
+# --start-point is the canonical flag; --branch-start-point is an alias.
+# --error-on-alert is the canonical flag; --err is an alias.
+# The c_sharp_dot_net adapter reads BenchmarkDotNet JSON (--exporters json)
+# and names each benchmark "{Namespace}.{Method}". It ignores Parameters, so
+# this job appends a non-empty Parameters string to Method before upload.
+# That keeps CascadeScaleBench Rows=100000 and Rows=200000 as separate series
+# without changing what BenchmarkDotNet measures.
+#
+# Default BenchmarkDotNet job (no Short/Dry). CascadeScaleBench matches
+# 100k and 200k rows, so a run can be long. timeout-minutes is the Actions
+# maximum of 360.
+name: Benchmarks
+
+on:
+  push:
+    branches: [dev, main]
+    paths:
+      - "RecDiffy.NET/**"
+      - ".github/workflows/benchmarks.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cobbler1-benchmarks
+  cancel-in-progress: false
+
+jobs:
+  benchmark:
+    name: Benchmark
+    runs-on: [self-hosted, cobbler1-bench]
+    timeout-minutes: 360
+    defaults:
+      run:
+        shell: powershell
+        working-directory: RecDiffy.NET/src/RecDiffy.Benchmarks
+    env:
+      BENCH_BRANCH: ${{ github.ref_name }}
+      BENCH_SHA: ${{ github.sha }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          clean: true
+
+      - name: Verify .NET SDK
+        run: |
+          dotnet --version
+          if ($LASTEXITCODE -ne 0) { throw "dotnet --version failed with exit code $LASTEXITCODE" }
+
+      - name: Verify Bencher CLI
+        run: |
+          bencher --version
+          if ($LASTEXITCODE -ne 0) { throw "bencher --version failed with exit code $LASTEXITCODE" }
+
+      - name: Clean BenchmarkDotNet artifacts
+        run: |
+          $artifacts = Join-Path (Get-Location) 'BenchmarkDotNet.Artifacts'
+          if (Test-Path -LiteralPath $artifacts) {
+            Remove-Item -LiteralPath $artifacts -Recurse -Force
+          }
+
+      - name: Run benchmarks
+        run: |
+          $ErrorActionPreference = 'Stop'
+          dotnet run -c Release -- --filter '*' --exporters json --artifacts .\BenchmarkDotNet.Artifacts
+          if ($LASTEXITCODE -ne 0) {
+            throw "dotnet run failed with exit code $LASTEXITCODE"
+          }
+
+      - name: Upload to Bencher
+        env:
+          BENCHER_HOST: ${{ secrets.BENCHER_HOST }}
+          BENCHER_API_TOKEN: ${{ secrets.BENCHER_API_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ([string]::IsNullOrWhiteSpace($env:BENCHER_HOST)) { throw 'BENCHER_HOST secret is empty.' }
+          if ([string]::IsNullOrWhiteSpace($env:BENCHER_API_TOKEN)) { throw 'BENCHER_API_TOKEN secret is empty.' }
+
+          function ConvertTo-BencherJson([object]$Value) {
+            if ($null -eq $Value) { return 'null' }
+            if ($Value -is [string]) { return ($Value | ConvertTo-Json -Compress) }
+            if ($Value -is [bool]) { if ($Value) { return 'true' } else { return 'false' } }
+            $culture = [System.Globalization.CultureInfo]::InvariantCulture
+            if ($Value -is [sbyte] -or $Value -is [byte] -or $Value -is [int16] -or $Value -is [uint16] -or $Value -is [int32] -or $Value -is [uint32] -or $Value -is [int64] -or $Value -is [uint64]) {
+              return [System.Convert]::ToString($Value, $culture)
+            }
+            # Whole-valued floats must stay JSON integers. The adapter reads
+            # MemoryDiagnoser counters as integers, and serde rejects 184.0.
+            if ($Value -is [single] -or $Value -is [double] -or $Value -is [decimal]) {
+              $asDecimal = [decimal]$Value
+              if ($asDecimal -eq [decimal]::Truncate($asDecimal)) {
+                return [System.Convert]::ToString([decimal]::Truncate($asDecimal), $culture)
+              }
+              return [System.Convert]::ToString($Value, $culture)
+            }
+            if ($Value -is [System.Management.Automation.PSCustomObject]) {
+              $props = New-Object System.Collections.Generic.List[string]
+              foreach ($prop in $Value.PSObject.Properties) {
+                $name = $prop.Name | ConvertTo-Json -Compress
+                $props.Add(('{0}:{1}' -f $name, (ConvertTo-BencherJson $prop.Value)))
+              }
+              return '{' + ($props -join ',') + '}'
+            }
+            if ($Value -is [System.Collections.IEnumerable]) {
+              $items = New-Object System.Collections.Generic.List[string]
+              foreach ($item in $Value) { $items.Add((ConvertTo-BencherJson $item)) }
+              return '[' + ($items -join ',') + ']'
+            }
+            return ($Value | ConvertTo-Json -Compress)
+          }
+
+          $resultsDir = Join-Path (Get-Location) 'BenchmarkDotNet.Artifacts\results'
+          $reports = @(Get-ChildItem -LiteralPath $resultsDir -Filter '*-report.json' -File | Sort-Object Name)
+          if ($reports.Count -eq 0) { throw "No BenchmarkDotNet JSON reports in $resultsDir" }
+
+          $combined = $null
+          $benchmarks = New-Object System.Collections.Generic.List[object]
+          foreach ($report in $reports) {
+            Write-Host "Reading $($report.FullName)"
+            $doc = Get-Content -Raw -LiteralPath $report.FullName | ConvertFrom-Json
+            if ($null -eq $combined) { $combined = $doc }
+            foreach ($benchmark in @($doc.Benchmarks)) {
+              $parameters = [string]$benchmark.Parameters
+              if (-not [string]::IsNullOrWhiteSpace($parameters)) {
+                $benchmark.Method = '{0}({1})' -f [string]$benchmark.Method, $parameters
+              }
+              $stats = $benchmark.Statistics
+              if ($null -eq $stats) { throw "Missing Statistics in $($report.Name) method $($benchmark.Method)" }
+              foreach ($field in @('Mean', 'StandardDeviation', 'Median', 'InterquartileRange')) {
+                if ($null -eq $stats.PSObject.Properties[$field]) {
+                  throw "Missing Statistics.$field in $($report.Name) method $($benchmark.Method)"
+                }
+              }
+              $benchmarks.Add($benchmark)
+            }
+          }
+          if ($benchmarks.Count -eq 0) { throw 'BenchmarkDotNet reports contained no benchmarks.' }
+
+          $names = foreach ($benchmark in $benchmarks) {
+            $method = [string]$benchmark.Method
+            $namespace = [string]$benchmark.Namespace
+            if ([string]::IsNullOrWhiteSpace($namespace)) { $method } else { "$namespace.$method" }
+          }
+          $duplicates = @($names | Group-Object | Where-Object { $_.Count -gt 1 })
+          if ($duplicates.Count -gt 0) {
+            throw ("Duplicate Bencher benchmark names: " + (($duplicates | ForEach-Object { $_.Name }) -join ', '))
+          }
+          Write-Host 'Bencher benchmark names:'
+          $names | ForEach-Object { Write-Host "  $_" }
+
+          $combined.Benchmarks = $benchmarks.ToArray()
+          $out = Join-Path (Get-Location) 'BenchmarkDotNet.Artifacts\bencher-report.json'
+          $utf8 = New-Object System.Text.UTF8Encoding $false
+          [System.IO.File]::WriteAllText($out, (ConvertTo-BencherJson $combined), $utf8)
+          Write-Host "Wrote $out"
+
+          $bencherArgs = @(
+            'run',
+            '--project', 'recdiffy',
+            '--host', $env:BENCHER_HOST,
+            '--token', $env:BENCHER_API_TOKEN,
+            '--branch', $env:BENCH_BRANCH,
+            '--hash', $env:BENCH_SHA,
+            '--testbed', 'cobbler1',
+            '--adapter', 'c_sharp_dot_net',
+            '--threshold-measure', 'latency',
+            '--threshold-test', 't_test',
+            '--threshold-max-sample-size', '64',
+            '--threshold-upper-boundary', '0.99',
+            '--thresholds-reset',
+            '--error-on-alert',
+            '--file', $out
+          )
+          # dev is tracked from main. Other refs (including workflow_dispatch
+          # on a topic branch) upload as their own branch with the same threshold.
+          if ($env:BENCH_BRANCH -eq 'dev') {
+            $bencherArgs += @('--start-point', 'main', '--start-point-clone-thresholds')
+          }
+
+          & bencher @bencherArgs
+          if ($LASTEXITCODE -ne 0) {
+            throw "bencher run failed with exit code $LASTEXITCODE"
+          }
