@@ -15,6 +15,8 @@ public class SeededFuzzTests
         Disposition.LeftOnly,
         Disposition.RightOnly,
         Disposition.Quarantined,
+        Disposition.Suppressed,
+        Disposition.SearchIncomplete,
     ];
 
     private static readonly CompiledProfile StockProfile = Reconciler.Compile(ProfileDocument.Parse(Stock), RuleRegistry.CreateCore());
@@ -24,7 +26,9 @@ public class SeededFuzzTests
     private static readonly SourceMap<StockRow> StockMap = new SourceMap<StockRow>()
         .Text("Id", row => row.Id)
         .Text("Sku", row => row.Sku)
-        .Text("Quantity", row => row.Quantity);
+        .Text("Quantity", row => row.Quantity)
+        .Text("Action", row => row.Action)
+        .Text("Target", row => row.Target);
 
     private static readonly SourceMap<Dictionary<string, string>> ScaleMap = new SourceMap<Dictionary<string, string>>()
         .Text("Id", row => row["Id"])
@@ -58,6 +62,7 @@ public class SeededFuzzTests
             .Select(group => group.Key)
             .ToArray();
         Assert.Empty(shared);
+        Assert.Equal(result.Entries.Count, result.Entries.Select(entry => entry.Id).Distinct().Count());
         Assert.Empty(result.Entries
             .SelectMany(entry => entry.Left.Concat(entry.Right))
             .Select(member => (member.Source, member.RowKey))
@@ -151,7 +156,7 @@ public class SeededFuzzTests
             .Select(row => string.Join('\u001f', [row.Row.Source, row.Row.RowKey, row.Disposition.ToString(), row.Validity.ToString(), row.EntryId?.ToString() ?? ""]))
             .OrderBy(line => line, StringComparer.Ordinal);
         var entries = result.Entries
-            .Select(entry => string.Join('\u001f', [entry.Id.ToString(), entry.Alignment.ToString(), entry.Composition.ToString(), entry.Outcome.ToString(), Members(entry.Left), Members(entry.Right), Diffs(entry)]))
+            .Select(entry => string.Join('\u001f', [entry.Id.ToString(), entry.PathId, entry.Alignment.ToString(), entry.Composition.ToString(), entry.Outcome.ToString(), Members(entry.Left), Members(entry.Right), Diffs(entry)]))
             .OrderBy(line => line, StringComparer.Ordinal);
         return string.Join('\n', rows) + "\n--\n" + string.Join('\n', entries) + "\n--\n" + result.Summary;
     }
@@ -163,7 +168,7 @@ public class SeededFuzzTests
         string.Join(
             ",",
             entry.Diffs
-                .Select(diff => diff.Field.Name + ":" + diff.Outcome + ":" + diff.Delta.Number.ToString(CultureInfo.InvariantCulture) + ":" + diff.Delta.Days.ToString(CultureInfo.InvariantCulture))
+                .Select(diff => diff.Field.Name + ":" + diff.Outcome + ":" + diff.Delta.Kind + ":" + diff.Delta.Number.ToString(CultureInfo.InvariantCulture) + ":" + diff.Delta.Days.ToString(CultureInfo.InvariantCulture))
                 .OrderBy(text => text, StringComparer.Ordinal));
 
     private enum Mode
@@ -176,11 +181,13 @@ public class SeededFuzzTests
         Invalid,
         DuplicateConflict,
         IdenticalDuplicate,
+        Lifecycle,
+        Crowd,
     }
 
     private static readonly Mode[] Modes = Enum.GetValues<Mode>();
 
-    private readonly record struct StockRow(string Id, string Sku, string Quantity);
+    private readonly record struct StockRow(string Id, string Sku, string Quantity, string? Action = null, string? Target = null);
 
     private sealed record Draft(int LeftId, int RightId, StockRow[] Left, StockRow[] Right)
     {
@@ -234,6 +241,8 @@ public class SeededFuzzTests
             Mode.Invalid => Invalid(leftId, rightId, sku, random),
             Mode.DuplicateConflict => Conflict(leftId, rightId, sku),
             Mode.IdenticalDuplicate => Identical(leftId, rightId, sku, random),
+            Mode.Lifecycle => Lifecycle(leftId, rightId, sku, random),
+            Mode.Crowd => Crowd(leftId, rightId, sku),
             _ => throw new InvalidOperationException($"Unhandled population mode {mode}."),
         };
 
@@ -284,6 +293,24 @@ public class SeededFuzzTests
         return new Emitted(leftId + 1, rightId, [row, row], []);
     }
 
+    // NEW, then CANC of the NEW, then CORR of the CANC on the right: the CORR survives and matches the left row; NEW and CANC are Suppressed.
+    private static Emitted Lifecycle(int leftId, int rightId, string sku, Random random)
+    {
+        var quantity = Qty(random);
+        var created = Row(rightId, "R", sku, "500") with { Action = "NEW" };
+        var cancelled = Row(rightId + 1, "R", sku, "500") with { Action = "CANC", Target = created.Id };
+        var corrected = Row(rightId + 2, "R", sku, quantity) with { Action = "CORR", Target = cancelled.Id };
+        return new Emitted(leftId + 1, rightId + 3, [Row(leftId, "L", sku, quantity)], [created, cancelled, corrected]);
+    }
+
+    // More group-sum candidates in one block than limits.maxBlockItems allows (6), and no one-to-one match: the block is SearchIncomplete.
+    private static Emitted Crowd(int leftId, int rightId, string sku) =>
+        new(
+            leftId + 7,
+            rightId + 1,
+            [.. Enumerable.Range(0, 7).Select(offset => Row(leftId + offset, "L", sku, (offset + 1).ToString(CultureInfo.InvariantCulture)))],
+            [Row(rightId, "R", sku, "1000")]);
+
     private static StockRow Row(int id, string side, string sku, string quantity) =>
         new(side + id.ToString(CultureInfo.InvariantCulture), sku, quantity);
 
@@ -310,12 +337,19 @@ public class SeededFuzzTests
           "sources": { "left": { "rowKey": "Id" }, "right": { "rowKey": "Id" } },
           "fields": [
             { "name": "Sku", "type": "Symbol", "role": "Key" },
-            { "name": "Quantity", "type": "Decimal", "scale": 0, "role": "Economic" }
+            { "name": "Quantity", "type": "Decimal", "scale": 0, "role": "Economic" },
+            { "name": "Action", "type": "Text", "role": "Lifecycle" },
+            { "name": "Target", "type": "Text", "role": "Lifecycle" }
           ],
           "normalization": {
             "left": { "identify": [ { "rule": "symbol.map", "from": "Sku", "to": "Sku" } ], "parse": [ { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" } ] },
-            "right": { "identify": [ { "rule": "symbol.map", "from": "Sku", "to": "Sku" } ], "parse": [ { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" } ] }
+            "right": {
+              "identify": [ { "rule": "symbol.map", "from": "Sku", "to": "Sku" }, { "rule": "text.copy", "from": "Action", "to": "Action" }, { "rule": "text.copy", "from": "Target", "to": "Target" } ],
+              "parse": [ { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" } ]
+            }
           },
+          "consolidation": { "right": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Sku", "corrTarget": "CANC" } } },
+          "limits": { "maxBlockItems": 6 },
           "paths": [ { "id": "stock", "route": { "rule": "route.all" }, "passes": [
             { "id": "P1", "pass": "match.naturalKey", "key": ["Sku", "Quantity"] },
             { "id": "P2", "pass": "match.groupSum", "many": "left", "block": ["Sku"], "conserve": ["Quantity"] }
