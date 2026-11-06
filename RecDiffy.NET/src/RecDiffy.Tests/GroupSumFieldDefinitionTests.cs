@@ -3,6 +3,7 @@ using RecDiffy.Results;
 namespace RecDiffy.Tests;
 
 // A field in a group-sum pass's block is equal across the group by construction, so its projection keeps it instead of summing it.
+// A group-sum pass forms its groups from block only; its key is not used, so a key field is not equal by construction.
 public class GroupSumFieldDefinitionTests
 {
     [Fact]
@@ -16,11 +17,23 @@ public class GroupSumFieldDefinitionTests
         Assert.Equal(FieldOutcome.Exact, entry.Outcome);
     }
 
+    [Fact]
+    public void A_group_sum_pass_key_does_not_change_how_the_projection_combines_a_field()
+    {
+        var keyed = Run(block: """["Counterparty", "Instrument", "TradeDate", "Side"]""", key: """["FixedRate"]""");
+        var unkeyed = Run(block: """["Counterparty", "Instrument", "TradeDate", "Side"]""");
+        var keyedEntry = Assert.Single(keyed.Entries);
+        var unkeyedEntry = Assert.Single(unkeyed.Entries);
+
+        Assert.Equal(unkeyed.Projection(unkeyedEntry.Id, Side.Left)["FixedRate"].Number, keyed.Projection(keyedEntry.Id, Side.Left)["FixedRate"].Number);
+        Assert.Equal(unkeyedEntry.Outcome, keyedEntry.Outcome);
+    }
+
     private sealed record Row(string Id, string Quantity, string Rate, string NetCash);
 
-    private static ReconciliationResult Run(string block)
+    private static ReconciliationResult Run(string block, string key = "[]")
     {
-        var profile = Reconciler.Compile(ProfileDocument.Parse(Profile(block)), RuleRegistry.CreateCore());
+        var profile = Reconciler.Compile(ProfileDocument.Parse(Profile(block, key)), RuleRegistry.CreateCore());
         Row[] allocations = [new("A1", "300", "4.25", "3000.00"), new("A2", "200", "4.25", "2000.00"), new("A3", "500", "4.25", "5000.00")];
         Row[] street = [new("B1", "1000", "4.25", "10000.00")];
         return Reconciler.Run(profile, RecordSources.FromObjects("ours", allocations, Map()), RecordSources.FromObjects("theirs", street, Map()), ReferenceDataSet.Empty);
@@ -53,7 +66,7 @@ public class GroupSumFieldDefinitionTests
         }
         """;
 
-    private static string Profile(string block) => $$"""
+    private static string Profile(string block, string key) => $$"""
         {
           "formatVersion": 1,
           "profileId": "group-sum-rate",
@@ -70,7 +83,7 @@ public class GroupSumFieldDefinitionTests
           ],
           "normalization": { "left": {{Normalization}}, "right": {{Normalization}} },
           "paths": [ { "id": "trades", "route": { "rule": "route.all" }, "passes": [
-            { "id": "P3", "pass": "match.groupSum", "many": "left", "block": {{block}}, "conserve": ["Quantity", "NetCash"] }
+            { "id": "P3", "pass": "match.groupSum", "many": "left", "key": {{key}}, "block": {{block}}, "conserve": ["Quantity", "NetCash"] }
           ] } ]
         }
         """;
