@@ -23,14 +23,22 @@ internal static class LifecycleChains
     private static ImmutableArray<Chain> Chains(ReportContext context) =>
         [.. context.Facts.Entries
             .Where(entry => entry.Entry.Composition.HasFlag(Composition.LifecycleCollapsed))
-            .Select(entry => ChainOf(context, entry))
-            .OfType<Chain>()];
+            .SelectMany(entry => ChainsOf(context, entry))];
 
-    private static Chain? ChainOf(ReportContext context, EntryFact entry)
+    // A matched entry can collapse a chain on each side. Each side with a suppressed row is its own chain.
+    private static IEnumerable<Chain> ChainsOf(ReportContext context, EntryFact entry)
     {
         var linked = context.Facts.RowsByEntry[entry.Id].ToArray();
-        var source = linked.FirstOrDefault(row => row.Row.Suppression is not null)?.Source;
-        if (source is null)
+        foreach (var source in new[] { "left", "right" })
+        {
+            if (ChainOf(context, entry, linked, source) is { } chain)
+                yield return chain;
+        }
+    }
+
+    private static Chain? ChainOf(ReportContext context, EntryFact entry, RowFact[] linked, string source)
+    {
+        if (linked.Any(row => row.Source == source && row.Row.Suppression is not null) is false)
             return null;
         var members = (source == "left" ? entry.Entry.Left : entry.Entry.Right).Select(member => context.Facts.RowByRef[member]).ToArray();
         var chain = linked.Where(row => row.Source == source && row.Row.Suppression is not null).Concat(members.Where(row => row.Values[ReportRole.LifecycleAction].Text.Length > 0)).Distinct().ToArray();
