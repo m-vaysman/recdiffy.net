@@ -35,6 +35,49 @@ public class BmfReportTests
     }
 
     [Fact]
+    public void Reads_the_full_compressed_json_from_benchmarkdotnet_0_15()
+    {
+        using var directory = new TempDirectory();
+        File.WriteAllText(
+            Path.Combine(directory.Path, "RecDiffy.Benchmarks.CascadeScaleBench-report-full-compressed.json"),
+            Report("CascadeScaleBench", "Match", "Rows=1000", mean: 1_000_000d, spread: 0, allocated: 32, gen0: 1, gen1: 0, gen2: 0));
+        File.WriteAllText(Path.Combine(directory.Path, "RecDiffy.Benchmarks.CascadeScaleBench-report.html"), "<html></html>");
+        var output = Path.Combine(directory.Path, "bencher.bmf.json");
+
+        BmfReport.Write(directory.Path, output);
+
+        using var document = JsonDocument.Parse(File.ReadAllText(output));
+        Assert.Equal(32, document.RootElement.GetProperty("RecDiffy.Benchmarks.CascadeScaleBench.Match(Rows=1000)").GetProperty("allocated-bytes").GetProperty("value").GetDouble());
+    }
+
+    [Fact]
+    public void Uses_one_report_when_brief_and_full_json_both_exist()
+    {
+        using var directory = new TempDirectory();
+        var json = Report("CascadeScaleBench", "Match", "Rows=10", mean: 1, spread: 0, allocated: 8, gen0: 0, gen1: 0, gen2: 0);
+        File.WriteAllText(Path.Combine(directory.Path, "RecDiffy.Benchmarks.CascadeScaleBench-report.json"), json);
+        File.WriteAllText(Path.Combine(directory.Path, "RecDiffy.Benchmarks.CascadeScaleBench-report-full-compressed.json"), json);
+        var output = Path.Combine(directory.Path, "bencher.bmf.json");
+
+        BmfReport.Write(directory.Path, output);
+
+        using var document = JsonDocument.Parse(File.ReadAllText(output));
+        Assert.Equal(8, document.RootElement.GetProperty("RecDiffy.Benchmarks.CascadeScaleBench.Match(Rows=10)").GetProperty("allocated-bytes").GetProperty("value").GetDouble());
+    }
+
+    [Fact]
+    public void Names_the_files_present_when_no_json_report_matches()
+    {
+        using var directory = new TempDirectory();
+        File.WriteAllText(Path.Combine(directory.Path, "notes.txt"), "not a report");
+        var output = Path.Combine(directory.Path, "bencher.bmf.json");
+
+        var error = Assert.Throws<InvalidOperationException>(() => BmfReport.Write(directory.Path, output));
+
+        Assert.Contains("notes.txt", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Rejects_two_reports_that_collapse_to_one_name()
     {
         var report = Report("CascadeScaleBench", "Match", "Rows=10", mean: 1, spread: 0, allocated: 1, gen0: 0, gen1: 0, gen2: 0);
@@ -62,4 +105,13 @@ public class BmfReportTests
           ]
         }
         """;
+
+    private sealed class TempDirectory : IDisposable
+    {
+        public TempDirectory() => Path = Directory.CreateTempSubdirectory("bmf-report-").FullName;
+
+        public string Path { get; }
+
+        public void Dispose() => Directory.Delete(Path, recursive: true);
+    }
 }

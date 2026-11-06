@@ -9,10 +9,12 @@
 # is intentionally omitted: a regression must not fail this job. The upload step
 # is continue-on-error so a Bencher outage does not fail the job either.
 # This workflow is not a pull request check and is not a required status check.
-# BenchmarkDotNet JSON (Statistics + Memory) is converted to Bencher Metric
-# Format and uploaded once with --adapter json, so latency, allocated-bytes,
-# gen collections, and throughput share one report. The C# adapter ignores
-# allocations and Parameters; the converter keeps Rows and degree in the name.
+# BenchmarkDotNet 0.15 --exporters json writes *-report-full-compressed.json.
+# BmfReport reads that file (and older *-report.json names) into one Bencher
+# Metric Format upload, so latency, allocated-bytes, gen collections, and
+# throughput share one report. The converter keeps Rows and degree in the name.
+# Conversion and upload are continue-on-error: a converter or Bencher failure
+# is recorded in the job summary and does not fail the job.
 #
 # Scaled benches use BenchScale (1_000 and 4_000 rows per side) and one warmup
 # plus three target iterations. timeout-minutes is the Actions maximum of 360.
@@ -71,16 +73,50 @@ jobs:
       - name: Run benchmarks
         run: |
           $ErrorActionPreference = 'Stop'
-          dotnet run -c Release -- --filter '*' --exporters json --artifacts .\BenchmarkDotNet.Artifacts
+          $artifacts = Join-Path (Get-Location) 'BenchmarkDotNet.Artifacts'
+          Write-Host "BenchmarkDotNet artifacts: $artifacts"
+          dotnet run -c Release -- --filter '*' --exporters json --artifacts "$artifacts"
           if ($LASTEXITCODE -ne 0) {
             throw "dotnet run failed with exit code $LASTEXITCODE"
           }
 
       - name: Write Bencher metric report
+        continue-on-error: true
         run: |
           $ErrorActionPreference = 'Stop'
-          dotnet run -c Release --no-build -- --bmf .\BenchmarkDotNet.Artifacts\results .\BenchmarkDotNet.Artifacts\bencher.bmf.json
-          if ($LASTEXITCODE -ne 0) {
+          function Add-JobSummary([string]$markdown) {
+            $summaryPath = $env:GITHUB_STEP_SUMMARY
+            if ([string]::IsNullOrWhiteSpace($summaryPath)) { return }
+            $encoding = New-Object System.Text.UTF8Encoding $false
+            [System.IO.File]::AppendAllText($summaryPath, ($markdown.TrimEnd() + "`n"), $encoding)
+          }
+          $artifacts = Join-Path (Get-Location) 'BenchmarkDotNet.Artifacts'
+          $results = Join-Path $artifacts 'results'
+          $bmf = Join-Path $artifacts 'bencher.bmf.json'
+          Write-Host "BenchmarkDotNet artifacts: $artifacts"
+          Write-Host "BenchmarkDotNet results: $results"
+          & dotnet run -c Release --no-build -- --bmf "$results" "$bmf"
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $bmf)) {
+            $listing = if (Test-Path -LiteralPath $results) {
+              @(Get-ChildItem -LiteralPath $results -Force | ForEach-Object { $_.FullName }) -join "`n"
+            } elseif (Test-Path -LiteralPath $artifacts) {
+              "results directory is missing.`n" + (@(Get-ChildItem -LiteralPath $artifacts -Recurse -Force | ForEach-Object { $_.FullName }) -join "`n")
+            } else {
+              "artifacts directory is missing: $artifacts"
+            }
+            if ([string]::IsNullOrWhiteSpace($listing)) { $listing = '(empty directory)' }
+            $markdown = @(
+              '## Bencher metric report'
+              ''
+              "Conversion failed (exit $LASTEXITCODE). The upload is skipped. This step does not fail the job."
+              ''
+              $results
+              ''
+              '```'
+              $listing
+              '```'
+            ) -join "`n"
+            Add-JobSummary $markdown
             throw "BMF conversion failed with exit code $LASTEXITCODE"
           }
 
@@ -107,7 +143,15 @@ jobs:
           }
 
           $out = Join-Path (Get-Location) 'BenchmarkDotNet.Artifacts\bencher.bmf.json'
-          if (-not (Test-Path -LiteralPath $out)) { throw "Missing $out" }
+          if (-not (Test-Path -LiteralPath $out)) {
+            $summaryPath = $env:GITHUB_STEP_SUMMARY
+            if (-not [string]::IsNullOrWhiteSpace($summaryPath)) {
+              $encoding = New-Object System.Text.UTF8Encoding $false
+              [System.IO.File]::AppendAllText($summaryPath, "## Bencher`n`nUpload skipped. ``$out`` was not written.`n", $encoding)
+            }
+            Write-Host "Bencher upload skipped; $out was not written."
+            exit 0
+          }
 
           $bencherArgs = @(
             'run',
