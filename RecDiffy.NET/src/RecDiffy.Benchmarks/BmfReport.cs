@@ -29,8 +29,11 @@ public static class BmfReport
             using var parsed = JsonDocument.Parse(document);
             if (!parsed.RootElement.TryGetProperty("Benchmarks", out var benchmarks) || benchmarks.ValueKind != JsonValueKind.Array)
                 continue;
-            foreach (var benchmark in benchmarks.EnumerateArray())
-                Add(root, benchmark);
+            using (var items = benchmarks.EnumerateArray())
+            {
+                while (items.MoveNext())
+                    Add(root, items.Current);
+            }
         }
 
         return root.Count == 0
