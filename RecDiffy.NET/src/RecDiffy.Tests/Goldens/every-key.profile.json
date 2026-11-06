@@ -1,0 +1,506 @@
+{
+  "formatVersion": 1,
+  "profileId": "every-key",
+  "version": "2.3.4",
+  "rounding": {
+    "midpoint": "AwayFromZero"
+  },
+  "sources": {
+    "left": {
+      "rowKey": "Internal_Trade_ID"
+    },
+    "right": {
+      "rowKey": "Cpty_Report_ID"
+    }
+  },
+  "fields": [
+    {
+      "name": "Counterparty",
+      "type": "Identifier",
+      "role": "Key"
+    },
+    {
+      "name": "Instrument",
+      "type": "Identifier",
+      "role": "Key"
+    },
+    {
+      "name": "AssetClass",
+      "type": "Symbol",
+      "role": "Key"
+    },
+    {
+      "name": "TradeDate",
+      "type": "Date",
+      "role": "Key"
+    },
+    {
+      "name": "Side",
+      "type": "Symbol",
+      "role": "Key"
+    },
+    {
+      "name": "Quantity",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2
+    },
+    {
+      "name": "Price",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 6
+    },
+    {
+      "name": "Accrued",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2
+    },
+    {
+      "name": "Fees",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2
+    },
+    {
+      "name": "NetCash",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2
+    },
+    {
+      "name": "Uti",
+      "type": "Identifier",
+      "role": "Identity"
+    },
+    {
+      "name": "Action",
+      "type": "Symbol",
+      "role": "Lifecycle"
+    },
+    {
+      "name": "Target",
+      "type": "Text",
+      "role": "Lifecycle"
+    },
+    {
+      "name": "Book",
+      "type": "Symbol",
+      "role": "Lifecycle"
+    },
+    {
+      "name": "Link",
+      "type": "Text",
+      "role": "Package"
+    },
+    {
+      "name": "Leg",
+      "type": "Symbol",
+      "role": "Package"
+    },
+    {
+      "name": "Note",
+      "type": "Text",
+      "role": "Text",
+      "scale": 3
+    }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        {
+          "rule": "party.resolveAlias",
+          "from": "Cpty",
+          "to": "Counterparty"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "Asset",
+          "to": "AssetClass"
+        },
+        {
+          "rule": "identifier.map",
+          "from": "Isin",
+          "to": "Instrument",
+          "scheme": "ISIN"
+        },
+        {
+          "rule": "identifier.map",
+          "from": "Uti",
+          "to": "Uti",
+          "scheme": "UTI"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "Event",
+          "to": "Action"
+        },
+        {
+          "rule": "text.copy",
+          "from": "Prior",
+          "to": "Target"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "Desk",
+          "to": "Book"
+        },
+        {
+          "rule": "text.copy",
+          "from": "Parent",
+          "to": "Link"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "LegRole",
+          "to": "Leg"
+        },
+        {
+          "rule": "text.copy",
+          "from": "Comment",
+          "to": "Note"
+        }
+      ],
+      "parse": [
+        {
+          "rule": "date.parse",
+          "from": "Trade_Date",
+          "to": "TradeDate",
+          "formats": [
+            "yyyy-MM-dd"
+          ]
+        },
+        {
+          "rule": "decimal.parse",
+          "from": "Px",
+          "to": "Price"
+        },
+        {
+          "rule": "decimal.parse",
+          "from": "Accrued_Int",
+          "to": "Accrued"
+        },
+        {
+          "rule": "decimal.parse",
+          "from": "Fee",
+          "to": "Fees"
+        },
+        {
+          "rule": "decimal.parse",
+          "from": "Cash",
+          "to": "NetCash"
+        }
+      ],
+      "derive": [
+        {
+          "rule": "side.resolve",
+          "code": "Dir",
+          "quantity": "Qty"
+        },
+        {
+          "rule": "quantity.absolute",
+          "from": "Qty",
+          "to": "Quantity"
+        }
+      ]
+    },
+    "right": {
+      "identify": [
+        {
+          "rule": "party.resolveLei",
+          "from": "Counterparty_LEI",
+          "to": "Counterparty"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "Asset",
+          "to": "AssetClass",
+          "map": {
+            "BD": "Bond",
+            "EQ": "Equity"
+          },
+          "passthrough": "false"
+        },
+        {
+          "rule": "identifier.map",
+          "from": "Isin",
+          "to": "Instrument",
+          "scheme": "ISIN",
+          "scope": "global"
+        },
+        {
+          "rule": "identifier.map",
+          "from": "Uti",
+          "to": "Uti",
+          "scheme": "UTI"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "Event",
+          "to": "Action"
+        },
+        {
+          "rule": "text.copy",
+          "from": "Prior",
+          "to": "Target"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "Desk",
+          "to": "Book"
+        },
+        {
+          "rule": "text.copy",
+          "from": "Parent",
+          "to": "Link"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "LegRole",
+          "to": "Leg"
+        },
+        {
+          "rule": "text.copy",
+          "from": "Comment",
+          "to": "Note"
+        }
+      ],
+      "parse": [
+        {
+          "rule": "date.parse",
+          "from": "Trade_Date",
+          "to": "TradeDate",
+          "formats": [
+            "dd/MM/yyyy",
+            "yyyy-MM-dd"
+          ]
+        },
+        {
+          "rule": "price.from32nds",
+          "from": "Px",
+          "to": "Price",
+          "when": {
+            "field": "Convention",
+            "equals": "32NDS"
+          }
+        },
+        {
+          "rule": "decimal.parse",
+          "from": "Px",
+          "to": "Price",
+          "when": {
+            "field": "Convention",
+            "notEquals": "32NDS"
+          }
+        },
+        {
+          "rule": "decimal.parse",
+          "from": "Qty",
+          "to": "Quantity"
+        },
+        {
+          "rule": "decimal.parse",
+          "from": "Accrued_Int",
+          "to": "Accrued",
+          "when": {
+            "field": "AssetClass",
+            "in": [
+              "Bond",
+              "Swap"
+            ]
+          }
+        },
+        {
+          "rule": "decimal.parse",
+          "from": "Fee",
+          "to": "Fees"
+        },
+        {
+          "rule": "decimal.parse",
+          "from": "Cash",
+          "to": "NetCash"
+        }
+      ],
+      "derive": [
+        {
+          "rule": "side.resolve",
+          "asset": "AssetClass",
+          "code": "Dir_Ind",
+          "invertWhen": "DEALER",
+          "perspective": "View",
+          "quantity": "Qty"
+        }
+      ],
+      "validate": [
+        {
+          "rule": "required.present",
+          "fields": [
+            "Counterparty",
+            "TradeDate"
+          ]
+        }
+      ]
+    }
+  },
+  "consolidation": {
+    "left": {
+      "packages": [
+        {
+          "link": "Link",
+          "role": "Leg",
+          "requiredRoles": [
+            "PAY",
+            "REC"
+          ],
+          "aggregate": {
+            "Quantity": "Same",
+            "NetCash": "Sum",
+            "Price": "FromRole(PAY)",
+            "Accrued": "DifferenceByRole(PAY,REC)",
+            "Fees": "DifferenceByRole(PAY)"
+          }
+        },
+        {
+          "link": "Link",
+          "role": "Leg"
+        }
+      ]
+    },
+    "right": {
+      "lifecycle": {
+        "action": "Action",
+        "target": "Target",
+        "scope": "Book",
+        "corrTarget": "NEW"
+      }
+    }
+  },
+  "paths": [
+    {
+      "id": "bonds",
+      "route": {
+        "rule": "route.byField",
+        "field": "AssetClass",
+        "equals": "Bond"
+      },
+      "passes": [
+        {
+          "id": "P1",
+          "pass": "match.sharedRef",
+          "key": [
+            "Uti"
+          ]
+        },
+        {
+          "id": "P3",
+          "pass": "match.groupSum",
+          "block": [
+            "Counterparty",
+            "Instrument",
+            "TradeDate",
+            "Side",
+            "Price"
+          ],
+          "conserve": [
+            "Quantity",
+            "NetCash"
+          ],
+          "many": "left",
+          "maxGroupSize": 12
+        },
+        {
+          "id": "P4",
+          "pass": "match.reducedKey",
+          "key": [
+            "Counterparty",
+            "Instrument",
+            "TradeDate",
+            "Side"
+          ]
+        }
+      ],
+      "diff": {
+        "fields": {
+          "Accrued": {
+            "tolerance": {
+              "absolute": 1.25,
+              "relative": 0.001
+            },
+            "attributed": "trading.proRataToQuantity",
+            "applicableWhen": {
+              "field": "AssetClass",
+              "in": [
+                "Bond",
+                "Swap"
+              ]
+            }
+          },
+          "Fees": {
+            "applicableWhen": {
+              "field": "AssetClass",
+              "notEquals": "Swap"
+            }
+          },
+          "NetCash": {
+            "tolerance": {
+              "attributed": "trading.netCash"
+            }
+          },
+          "Price": {
+            "tolerance": {
+              "absolute": 1.20,
+              "when": {
+                "field": "AssetClass",
+                "equals": "Bond"
+              }
+            }
+          },
+          "Quantity": {
+            "tolerance": {
+              "relative": 0.00010
+            }
+          },
+          "TradeDate": {
+            "tolerance": {
+              "when": {
+                "field": "AssetClass",
+                "equals": "Bond"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "rest",
+      "route": {
+        "rule": "route.byField",
+        "field": "AssetClass",
+        "equals": "Equity"
+      },
+      "passes": [
+        {
+          "id": "P2",
+          "pass": "match.naturalKey",
+          "key": [
+            "Counterparty",
+            "Instrument",
+            "TradeDate",
+            "Side",
+            "Quantity"
+          ]
+        }
+      ],
+      "diff": {
+        "fields": {}
+      }
+    }
+  ],
+  "limits": {
+    "maxGroupSize": 12,
+    "maxBlockItems": 20,
+    "maxTargetsPerComponent": 6,
+    "maxNodesPerTarget": 100000
+  }
+}
