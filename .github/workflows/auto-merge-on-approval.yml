@@ -1,0 +1,46 @@
+# Auto-enable GitHub native auto-merge (rebase) when a PR into `dev` is approved.
+#
+# Prerequisites (must be true for this to land PRs):
+# 1. Repository setting "Allow auto-merge" is on.
+# 2. Rebase merging is allowed in repository settings.
+# 3. A ruleset (or branch protection) on `dev` that requires a pull request,
+#    at least one approving review, and the required status checks (today's
+#    PR check names into `dev` are typically `build` from CI and `Analyze`
+#    from SonarQube — configure those as required on the `dev` ruleset).
+# 4. Optional repo secret AUTO_MERGE_TOKEN: a fine-grained PAT or GitHub App
+#    installation token with contents:write and pull-requests:write. Prefer
+#    this over the default GITHUB_TOKEN, because merges performed with
+#    GITHUB_TOKEN do not trigger further push workflows on `dev` (CI / Sonar /
+#    Bencher). If unset, the workflow falls back to github.token.
+# 5. GitHub forbids approving your own pull request; someone else must approve.
+#
+# This workflow only *queues* auto-merge. GitHub itself merges only after the
+# required approvals and required checks have passed.
+
+name: Auto-merge on approval
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  enable-auto-merge:
+    if: >
+      github.event.review.state == 'approved' &&
+      github.event.pull_request.base.ref == 'dev' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable auto-merge (rebase)
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_MERGE_TOKEN || github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: gh pr merge "$PR" --auto --rebase --repo "$GITHUB_REPOSITORY"
