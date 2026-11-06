@@ -36,10 +36,20 @@ internal static class DateParsing
         null or "" => Parsed.Blank,
         DateOnly date => Parsed.Of(date),
         DateTime date => Parsed.Of(DateOnly.FromDateTime(date)),
-        double serial => Parsed.Of(DateOnly.FromDateTime(DateTime.FromOADate(serial))),
+        double serial when TryFromOADate(serial, out var date) => Parsed.Of(date),
         string text => ParseText(text, formats) is { } date ? Parsed.Of(date) : Parsed.Failed,
         _ => Parsed.Failed,
     };
+
+    // FromOADate throws ArgumentException outside (-657435, 2958466), including NaN.
+    private static bool TryFromOADate(double serial, out DateOnly date)
+    {
+        date = default;
+        if (double.IsFinite(serial) is false || serial <= -657435.0d || serial >= 2958466.0d)
+            return false;
+        date = DateOnly.FromDateTime(DateTime.FromOADate(serial));
+        return true;
+    }
 
     private static DateOnly? ParseText(string text, IReadOnlyList<string> formats) =>
         formats.Count == 0
