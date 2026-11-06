@@ -14,9 +14,8 @@
 # gen collections, and throughput share one report. The C# adapter ignores
 # allocations and Parameters; the converter keeps Rows and degree in the name.
 #
-# CascadeScaleBench and ExactDiffBench keep the default job. ExecutionModeBench
-# uses one warmup and three iterations at 10k and 100k rows. timeout-minutes
-# is the Actions maximum of 360.
+# Scaled benches use BenchScale (1_000 and 4_000 rows per side) and one warmup
+# plus three target iterations. timeout-minutes is the Actions maximum of 360.
 name: Benchmarks
 
 on:

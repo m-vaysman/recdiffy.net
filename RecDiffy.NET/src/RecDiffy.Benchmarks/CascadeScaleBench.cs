@@ -4,9 +4,10 @@ using RecDiffy.Rules;
 namespace RecDiffy.Benchmarks;
 
 [MemoryDiagnoser]
+[SimpleJob(launchCount: BenchScale.LaunchCount, warmupCount: BenchScale.WarmupCount, iterationCount: BenchScale.IterationCount)]
 public class CascadeScaleBench
 {
-    [Params(100_000, 200_000)]
+    [Params(BenchScale.Small, BenchScale.Large)]
     public int Rows { get; set; }
 
     private ConsolidatedRow[] _left = null!;

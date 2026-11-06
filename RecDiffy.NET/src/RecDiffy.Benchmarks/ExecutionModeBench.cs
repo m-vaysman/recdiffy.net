@@ -6,9 +6,9 @@ namespace RecDiffy.Benchmarks;
 
 // Same one-to-one natural-key workload through the public entry points.
 // MaxDegreeOfParallelism parallelizes result building (field comparison), not cascade matching.
-// One warmup and three target iterations keep 10k/100k from multiplying the default job.
+// Sizes and the short job live in BenchScale.
 [MemoryDiagnoser]
-[SimpleJob(launchCount: 1, warmupCount: 1, iterationCount: 3)]
+[SimpleJob(launchCount: BenchScale.LaunchCount, warmupCount: BenchScale.WarmupCount, iterationCount: BenchScale.IterationCount)]
 public class ExecutionModeBench
 {
     private const string Profile = """
@@ -52,7 +52,7 @@ public class ExecutionModeBench
         .Text("Quantity", row => row.Quantity)
         .Text("Price", row => row.Price);
 
-    [Params(10_000, 100_000)]
+    [Params(BenchScale.Small, BenchScale.Large)]
     public int Rows { get; set; }
 
     private TradeRow[] _left = null!;
