@@ -216,7 +216,7 @@ public class VerificationTests
     }
 
     private static DiffPlan AccruedPlan(decimal tolerance) => DiffPlan.From(
-        new PathDeclaration("trade", new RouteDeclaration("route.all", null, null), [], new DiffDeclaration(new Dictionary<string, FieldDiffDeclaration>
+        new PathDeclaration("trade", new RouteDeclaration("route.all", null, null), [], new DiffDeclaration(new Dictionary<string, FieldDiffDeclaration>(StringComparer.Ordinal)
         {
             ["Accrued"] = new(new ToleranceDeclaration("Absolute", tolerance, null, null, null), null, null),
         })),
@@ -238,13 +238,13 @@ public class VerificationTests
 
     private static RowContext Money(decimal accrued)
     {
-        var row = RowContext.Create("row", Side.Left, new Dictionary<string, object?>());
+        var row = RowContext.Create("row", Side.Left, new Dictionary<string, object?>(StringComparer.Ordinal));
         return row.Write("Accrued", CanonicalCell.FromDecimal(accrued), "test", null, null);
     }
 
     private static RowContext Row(string asset, decimal price, decimal accrued)
     {
-        var row = RowContext.Create(asset, Side.Left, new Dictionary<string, object?>());
+        var row = RowContext.Create(asset, Side.Left, new Dictionary<string, object?>(StringComparer.Ordinal));
         var (pool, id) = row.Pool.InternSymbol(asset);
         return row.WithPool(pool)
             .Write("AssetClass", CanonicalCell.FromInterned(FieldType.Symbol, id), "test", null, asset)

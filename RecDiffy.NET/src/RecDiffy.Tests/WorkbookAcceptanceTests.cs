@@ -1,3 +1,4 @@
+using System.Globalization;
 using RecDiffy.Results;
 using RecDiffy.RulePacks.Trading;
 
@@ -91,7 +92,7 @@ public class WorkbookAcceptanceTests
 
     private static decimal? Decimal(IReadOnlyDictionary<string, object?> row, string column) =>
         row.TryGetValue(column, out var value) && value is decimal number ? number
-        : row.TryGetValue(column, out value) && decimal.TryParse(value?.ToString(), out var parsed) ? parsed
+        : row.TryGetValue(column, out value) && decimal.TryParse(value?.ToString(), CultureInfo.InvariantCulture, out var parsed) ? parsed
         : null;
 
     private static ReferenceDataSet V1Reference()
@@ -115,7 +116,7 @@ public class WorkbookAcceptanceTests
             ["Driftwood Fund LP"] = "DRIFTWOOD",
             ["Driftwood HF"] = "DRIFTWOOD",
         };
-        return ReferenceDataSet.Create("fixture-v1", new DateOnly(2026, 11, 4), "fixture-v1", aliases, aliases, new Dictionary<string, string>());
+        return ReferenceDataSet.Create("fixture-v1", new DateOnly(2026, 11, 4), "fixture-v1", aliases, aliases, new Dictionary<string, string>(StringComparer.Ordinal));
     }
 
     private static string FindRepo()

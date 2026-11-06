@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using RecDiffy.Excel.Facts;
 using RecDiffy.Excel.Model;
 using RecDiffy.Excel.Reports;
@@ -78,7 +79,7 @@ public static class RecDiffyExcel
     internal static string SafeSegment(string profileId)
     {
         var replaced = new string([.. profileId.Select(character => character is '<' or '>' or ':' or '"' or '/' or '\\' or '|' or '?' or '*' || char.IsControl(character) || char.IsWhiteSpace(character) ? '-' : character)]);
-        var collapsed = System.Text.RegularExpressions.Regex.Replace(System.Text.RegularExpressions.Regex.Replace(replaced, @"\.{2,}", "-"), "-{2,}", "-");
+        var collapsed = Regex.Replace(Regex.Replace(replaced, @"\.{2,}", "-", RegexOptions.None, TimeSpan.FromSeconds(1)), "-{2,}", "-", RegexOptions.None, TimeSpan.FromSeconds(1));
         return collapsed.Trim('-', '.') is { Length: > 0 } safe ? safe : "profile";
     }
 
@@ -109,7 +110,7 @@ public static class RecDiffyExcel
         ImmutableArray<Sheet> sheets =
         [
             body.Sheet,
-            .. body.DataTabs.DistinctBy(tab => tab.Name).Select(tab => tab.Sheet),
+            .. body.DataTabs.DistinctBy(tab => tab.Name, StringComparer.Ordinal).Select(tab => tab.Sheet),
             DataTabs.RunInfo(context, definition.Info),
         ];
         return new Workbook(sheets, [new DefinedName(DataTabs.AsOfName, DataTabs.AsOfReference)]);

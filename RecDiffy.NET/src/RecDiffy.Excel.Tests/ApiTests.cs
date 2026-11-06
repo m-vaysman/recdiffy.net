@@ -37,7 +37,7 @@ public class ApiTests
     [Fact]
     public void Applies_label_overrides_to_headings_and_columns()
     {
-        var options = FixtureV1.Options() with { Labels = new Dictionary<string, string> { ["Counterparty"] = "Cpty", ["Control totals"] = "Book-to-street totals" } };
+        var options = FixtureV1.Options() with { Labels = new Dictionary<string, string>(StringComparer.Ordinal) { ["Counterparty"] = "Cpty", ["Control totals"] = "Book-to-street totals" } };
         using var stream = new MemoryStream();
         var outcome = FixtureV1.Result.WriteReport(ReportKind.ControlTotals, stream, options);
         Assert.True(outcome.Written, outcome.SkipReason);

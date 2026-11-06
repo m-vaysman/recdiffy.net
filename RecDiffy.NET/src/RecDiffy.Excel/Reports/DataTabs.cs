@@ -109,7 +109,7 @@ internal static class DataTabs
             DataColumn<RowFact>.Of("cashSign", row => CashSign(row, paying), Formats.Integer, 8),
             DataColumn<RowFact>.Of("diagnostics", row => string.Join("; ", row.Row.Diagnostics.Select(diagnostic => diagnostic.Code)), width: 20),
         ];
-        var letters = columns.Select((column, index) => (column.Key, Letter: Address.Column(index + 1))).ToImmutableDictionary(pair => pair.Key, pair => pair.Letter);
+        var letters = columns.Select((column, index) => (column.Key, Letter: Address.Column(index + 1))).ToImmutableDictionary(pair => pair.Key, pair => pair.Letter, StringComparer.Ordinal);
         var netCash = letters[RoleKey(ReportRole.NetCash)];
         var sign = letters["cashSign"];
         var signed = new DataColumn<RowFact>(

@@ -85,7 +85,7 @@ public class SyntheticReportTests
     public void Cash_ladder_moves_a_settle_date_break_between_dates_and_ties_out()
     {
         var sheet = Recalculated.Value[ReportKind.CashLadder]["BO6_CashLadder"];
-        var checks = Workbooks.Checks(new Book(["BO6_CashLadder"], new Dictionary<string, IReadOnlyDictionary<string, BookCell>> { ["BO6_CashLadder"] = sheet }, new Dictionary<string, string>())).ToArray();
+        var checks = Workbooks.Checks(new Book(["BO6_CashLadder"], new Dictionary<string, IReadOnlyDictionary<string, BookCell>>(StringComparer.Ordinal) { ["BO6_CashLadder"] = sheet }, new Dictionary<string, string>(StringComparer.Ordinal))).ToArray();
         Assert.NotEmpty(checks);
         Assert.All(checks, check => Assert.Equal("✓", check.Cell.Value));
         Assert.Contains(sheet.Values, cell => cell.Value == "GBP");

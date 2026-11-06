@@ -9,7 +9,7 @@ public static class Program
             FirstReconciliation.Run(),
             ResultReading.Run(),
             SideBySideReport.Run(),
-            await AsyncRun.Run(),
+            await AsyncRun.Run().ConfigureAwait(false),
             TradingReference.Run(),
             ExcelReports.Run(),
         };
