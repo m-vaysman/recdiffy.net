@@ -1,0 +1,356 @@
+using System.Collections.Immutable;
+using System.Globalization;
+using RecDiffy.Results;
+using RecDiffy.Rules;
+
+namespace RecDiffy;
+
+internal sealed record ReadyProposal(MatchProposal Proposal, string Block);
+
+// A row belongs to one block. Evaluate rewrites only blocks that contained a removed row.
+internal sealed record GroupIndex(
+    string PassId,
+    IReadOnlyList<string> Block,
+    IReadOnlyList<string> Conserve,
+    Side Many,
+    int MaxGroup,
+    MatchWorkspace Workspace,
+    ImmutableDictionary<string, ImmutableArray<int>> Blocks,
+    ImmutableDictionary<int, string> BlockOf,
+    ImmutableDictionary<string, ImmutableArray<Decision>> Decisions,
+    ImmutableDictionary<string, ImmutableList<ReadyProposal>> Ready,
+    ImmutableSortedSet<string> ReadyOrder) : PassIndex(PassId)
+{
+    public override ImmutableHashSet<int> WorkspaceFree => Workspace.Free;
+
+    public override IReadOnlyList<MatchProposal> ReadyProposals =>
+        [.. ReadyOrder.SelectMany(key => Ready[key].Select(ready => ready.Proposal))];
+
+    public override MatchProposal? NextReady() =>
+        ReadyOrder.IsEmpty || ReadyOrder.Min is not { } key ? null : Ready[key][0].Proposal;
+
+    public static (GroupIndex Index, MatchCounters Counters) Create(
+        string passId,
+        IReadOnlyList<string> block,
+        IReadOnlyList<string> conserve,
+        Side many,
+        int maxGroup,
+        MatchWorkspace workspace,
+        MatchCounters counters)
+    {
+        var placed = Placed(workspace, block);
+        var blocks = placed.GroupBy(row => row.Key, StringComparer.Ordinal)
+            .ToImmutableDictionary(group => group.Key, group => group.Select(row => row.Index).ToImmutableArray(), StringComparer.Ordinal);
+        var blockOf = placed.ToImmutableDictionary(row => row.Index, row => row.Key);
+        var seeded = new GroupIndex(
+            passId,
+            block,
+            conserve,
+            many,
+            maxGroup,
+            workspace,
+            blocks,
+            blockOf,
+            ImmutableDictionary.Create<string, ImmutableArray<Decision>>(StringComparer.Ordinal),
+            ImmutableDictionary.Create<string, ImmutableList<ReadyProposal>>(StringComparer.Ordinal),
+            ImmutableSortedSet.Create<string>(StringComparer.Ordinal));
+        return EvaluateAll(seeded, seeded.Blocks.Keys.OrderBy(key => key, StringComparer.Ordinal), counters.Built(), false);
+    }
+
+    public override (PassIndex Index, MatchCounters Counters) Release(IReadOnlyList<int> taken, MatchCounters counters)
+    {
+        var dirty = taken.Where(BlockOf.ContainsKey).Select(index => BlockOf[index]).Distinct(StringComparer.Ordinal);
+        var removed = taken.Aggregate(this, (state, index) => state.Without(index));
+        return EvaluateAll(removed, dirty, counters, true);
+    }
+
+    private static (GroupIndex Index, MatchCounters Counters) EvaluateAll(GroupIndex index, IEnumerable<string> keys, MatchCounters counters, bool dirty)
+    {
+        var current = index;
+        foreach (var key in keys)
+        {
+            index.Workspace.Cancellation.ThrowIfCancellationRequested();
+            var evaluated = current.Evaluate(key, counters, dirty);
+            current = evaluated.Index;
+            counters = evaluated.Counters;
+        }
+
+        return (current, counters);
+    }
+
+    public override IReadOnlyList<ResidueCluster> Residue() =>
+        [.. Decisions.SelectMany(pair => pair.Value.SelectMany(decision => FromDecision(decision)))];
+
+    private (GroupIndex Index, MatchCounters Counters) Evaluate(string key, MatchCounters counters, bool dirty)
+    {
+        var dropped = Drop(key);
+        if (dropped.Blocks.TryGetValue(key, out var members) is false || members.IsEmpty)
+            return (dropped with { Decisions = dropped.Decisions.Remove(key), Blocks = dropped.Blocks.Remove(key) }, counters);
+
+        var items = members.OrderBy(index => index).Select(index => Workspace.Items[index]).ToArray();
+        var components = Couple(items);
+        return PostComponents(dropped, key, components, counters, dirty);
+    }
+
+    private (GroupIndex Index, MatchCounters Counters) PostComponents(
+        GroupIndex dropped,
+        string key,
+        IEnumerable<Component> components,
+        MatchCounters counters,
+        bool dirty)
+    {
+        var index = dropped with { Decisions = dropped.Decisions.SetItem(key, []) };
+        foreach (var component in components)
+        {
+            var decided = index.Decide(component, counters.SawComponent(), dirty);
+            var stored = index with { Decisions = index.Decisions.SetItem(key, index.Decisions[key].Add(decided.Decision)) };
+            index = decided.Decision is { Kind: DecisionKind.Commit }
+                ? decided.Decision.Commits.Aggregate(stored, (current, proposal) => current.Add(key, proposal))
+                : stored;
+            counters = decided.Counters;
+        }
+
+        return (index, counters);
+    }
+
+    private GroupIndex Without(int index) =>
+        BlockOf.TryGetValue(index, out var key) is false
+            ? this
+            : this with { Blocks = Blocks.SetItem(key, Blocks[key].Remove(index)), BlockOf = BlockOf.Remove(index) };
+
+    private GroupIndex Drop(string blockKey) =>
+        Ready.Keys.Aggregate(this, (state, key) =>
+        {
+            var kept = state.Ready[key].RemoveAll(ready => ready.Block == blockKey);
+            return kept.IsEmpty
+                ? state with { Ready = state.Ready.Remove(key), ReadyOrder = state.ReadyOrder.Remove(key) }
+                : state with { Ready = state.Ready.SetItem(key, kept) };
+        });
+
+    private GroupIndex Add(string blockKey, MatchProposal proposal) =>
+        Ready.TryGetValue(proposal.Key, out var list)
+            ? this with { Ready = Ready.SetItem(proposal.Key, list.Add(new ReadyProposal(proposal, blockKey))) }
+            : this with
+            {
+                Ready = Ready.SetItem(proposal.Key, [new ReadyProposal(proposal, blockKey)]),
+                ReadyOrder = ReadyOrder.Add(proposal.Key),
+            };
+
+    private (Decision Decision, MatchCounters Counters) Decide(Component component, MatchCounters counters, bool dirty) =>
+        component.Targets.Length > Workspace.Limits.MaxTargetsPerComponent || component.Eligible.Length > Workspace.Limits.MaxBlockItems
+            ? (Decision.Blocked([.. component.Targets, .. component.Eligible]), counters)
+            : Outcome(component, SearchTargets(component, counters, dirty));
+
+    private (ImmutableArray<(int Target, TargetSearch Search)> Rows, MatchCounters Counters) SearchTargets(Component component, MatchCounters counters, bool dirty)
+    {
+        var rows = ImmutableArray<(int Target, TargetSearch Search)>.Empty;
+        foreach (var target in component.Targets)
+        {
+            var searched = Search(target, component, counters, dirty);
+            rows = rows.Add((target, searched.Result));
+            counters = searched.Counters;
+        }
+
+        return (rows, counters);
+    }
+
+    private (Decision Decision, MatchCounters Counters) Outcome(Component component, (ImmutableArray<(int Target, TargetSearch Search)> Rows, MatchCounters Counters) searched)
+    {
+        var searches = searched.Rows;
+        var overlap = searches.Where(pair => pair.Search.State is SearchState.Unique).Select(pair => pair.Search.DrawnItems).ToArray();
+        var shared = overlap.SelectMany(items => items).GroupBy(item => item).Any(group => group.Count() > 1);
+        var contest = searches.Any(pair => pair.Search.State is SearchState.Contest) || shared;
+        var incomplete = searches.Any(pair => pair.Search.State is SearchState.Incomplete);
+        var decision = (contest, incomplete) switch
+        {
+            (false, false) => Decision.Ready([.. searches.Where(pair => pair.Search.State is SearchState.Unique).Select(pair => ProposalFor(pair.Target, pair.Search.DrawnItems))]),
+            (true, true) => Decision.Mixed(
+                [.. searches.Where(pair => pair.Search.State is SearchState.Contest or SearchState.Unique).SelectMany(pair => new[] { pair.Target }.Concat(pair.Search.DrawnItems)), .. searches.Where(pair => pair.Search.State is SearchState.Incomplete).SelectMany(pair => pair.Search.DrawnItems)],
+                [.. searches.Where(pair => pair.Search.State is SearchState.Incomplete).SelectMany(pair => EligibleFor(pair.Target, component).Except(pair.Search.DrawnItems))]),
+            (true, false) => Decision.Contested([.. searches.Where(pair => pair.Search.State is not SearchState.None).SelectMany(pair => new[] { pair.Target }.Concat(pair.Search.DrawnItems))]),
+            _ => Decision.Exhausted([.. component.Targets, .. component.Eligible]),
+        };
+        return (decision, searched.Counters);
+    }
+
+    private MatchProposal ProposalFor(int target, int[] drawn) =>
+        Many is Side.Left
+            ? new MatchProposal(drawn, [target], Workspace.Items[target].Row.Context.RowKey)
+            : new MatchProposal([target], drawn, Workspace.Items[target].Row.Context.RowKey);
+
+    private (TargetSearch Result, MatchCounters Counters) Search(int target, Component component, MatchCounters counters, bool dirty) =>
+        Conserved(Workspace.Items[target].Row.Context) is not { } values
+            ? (new TargetSearch(SearchState.None, []), counters)
+            : (
+                SubsetSearch.Search(Classes(target, component), values, MaxGroup, Workspace.Limits.MaxNodesPerTarget, Workspace.Cancellation),
+                counters.SawSearch(dirty));
+
+    private ConservedClass[] Classes(int target, Component component) =>
+        [.. EligibleFor(target, component)
+            .Select(index => (Index: index, Values: Conserved(Workspace.Items[index].Row.Context)))
+            .Where(pair => pair.Values is not null)
+            .GroupBy(pair => string.Join('\u001f', pair.Values!.Select(value => value.ToString(CultureInfo.InvariantCulture))), StringComparer.Ordinal)
+            .Select(group => new ConservedClass(group.First().Values!, [.. group.Select(pair => pair.Index)]))
+            .OrderByDescending(cls => cls.Values[0])
+            .ThenBy(cls => string.Join('\u001f', cls.Values.Select(value => value.ToString(CultureInfo.InvariantCulture))), StringComparer.Ordinal)];
+
+    private decimal[]? Conserved(RowContext row)
+    {
+        var numbers = Conserve.Select(field => row.IsNull(field) ? (decimal?)null : row.Values[field].Number).ToArray();
+        return numbers.Any(number => number is null) ? null : [.. numbers.Select(number => number.GetValueOrDefault())];
+    }
+
+    private IEnumerable<Component> Couple(IReadOnlyList<ActiveItem> blockItems)
+    {
+        Workspace.Cancellation.ThrowIfCancellationRequested();
+        var targets = blockItems.Where(item => item.Side != Many).Select(item => item.Index).OrderBy(index => index).ToArray();
+        var manyItems = blockItems.Where(item => item.Side == Many).Select(item => item.Index).ToArray();
+        var census = Census.Collect(manyItems, ClaimOf, Workspace.Cancellation);
+        return targets.Aggregate(ImmutableList<Draft>.Empty, (components, target) => Merge(components, target, census))
+            .Select(draft => Finish(draft, census));
+    }
+
+    private MatchKeys.SharedClaim ClaimOf(int index) =>
+        MatchKeys.Claim(Workspace.Items[index].Row.Context, Workspace.SharedField, Workspace.Schema);
+
+    private ImmutableList<Draft> Merge(ImmutableList<Draft> components, int target, Census census)
+    {
+        Workspace.Cancellation.ThrowIfCancellationRequested();
+        var claim = ClaimOf(target);
+        var joined = components.Where(component => Intersects(component, claim, census)).ToArray();
+        var kept = components.Where(component => joined.Contains(component) is false);
+        var values = joined.Aggregate(
+            claim.Wildcard || claim.Value is null ? ImmutableHashSet.Create<string>(StringComparer.Ordinal) : ImmutableHashSet.Create(StringComparer.Ordinal, claim.Value),
+            (set, component) => set.Union(component.Values));
+        var merged = new Draft(
+            [.. joined.SelectMany(component => component.Targets), target],
+            claim.Wildcard || joined.Any(component => component.WildcardTarget),
+            values);
+        return [.. kept, merged];
+    }
+
+    private static bool Intersects(Draft draft, MatchKeys.SharedClaim claim, Census census) =>
+        NonEmpty(claim, census) && Occupied(draft, census) && (draft.WildcardTarget || claim.Wildcard || census.Wildcards.Length > 0 || (claim.Value is { } value && draft.Values.Contains(value) && census.Has(value)));
+
+    private static bool Occupied(Draft draft, Census census) =>
+        (draft.WildcardTarget && census.Many.Length > 0) || census.Wildcards.Length > 0 || draft.Values.Any(census.Has);
+
+    private static bool NonEmpty(MatchKeys.SharedClaim claim, Census census) =>
+        claim.Wildcard ? census.Many.Length > 0 : census.Wildcards.Length > 0 || (claim.Value is { } value && census.Has(value));
+
+    private Component Finish(Draft draft, Census census)
+    {
+        var eligible = Union(draft, census);
+        var blocked = draft.Targets.Length > Workspace.Limits.MaxTargetsPerComponent || eligible.Length > Workspace.Limits.MaxBlockItems;
+        return new Component(
+            draft.Targets,
+            eligible,
+            blocked ? ImmutableDictionary<int, int[]>.Empty : draft.Targets.ToImmutableDictionary(target => target, target => ListFor(ClaimOf(target), census)));
+    }
+
+    private int[] Union(Draft draft, Census census)
+    {
+        var seen = new HashSet<int>();
+        var result = new List<int>();
+        var emitted = new HashSet<string>(StringComparer.Ordinal);
+        var covered = false;
+        foreach (var target in draft.Targets)
+        {
+            Workspace.Cancellation.ThrowIfCancellationRequested();
+            var claim = ClaimOf(target);
+            if (claim.Wildcard)
+            {
+                if (covered)
+                    continue;
+                foreach (var item in census.Many)
+                    if (seen.Add(item))
+                        result.Add(item);
+                covered = true;
+                continue;
+            }
+
+            if (covered || claim.Value is not { } value || emitted.Add(value) is false)
+                continue;
+            foreach (var item in census.For(value))
+                if (seen.Add(item))
+                    result.Add(item);
+        }
+
+        return [.. result];
+    }
+
+    private static int[] ListFor(MatchKeys.SharedClaim claim, Census census) =>
+        claim.Wildcard ? census.Many : claim.Value is { } value ? census.For(value) : [];
+
+    private sealed record Draft(int[] Targets, bool WildcardTarget, ImmutableHashSet<string> Values);
+
+    private sealed record Census(int[] Many, int[] Wildcards, ImmutableDictionary<string, int[]> Buckets)
+    {
+        public bool Has(string value) => Buckets.TryGetValue(value, out var rows) && rows.Length > 0;
+
+        public int[] For(string value) => Merge(Wildcards, Buckets.GetValueOrDefault(value) ?? []);
+
+        public static Census Collect(int[] many, Func<int, MatchKeys.SharedClaim> claim, CancellationToken cancellation)
+        {
+            var wildcards = new List<int>();
+            var buckets = new Dictionary<string, List<int>>(StringComparer.Ordinal);
+            foreach (var item in many)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                var row = claim(item);
+                if (row.Wildcard)
+                {
+                    wildcards.Add(item);
+                    continue;
+                }
+
+                if (buckets.TryGetValue(row.Value!, out var list) is false)
+                    buckets[row.Value!] = list = [];
+                list.Add(item);
+            }
+
+            return new(many, [.. wildcards], buckets.ToImmutableDictionary(pair => pair.Key, pair => pair.Value.ToArray(), StringComparer.Ordinal));
+        }
+
+        private static int[] Merge(int[] left, int[] right)
+        {
+            var merged = new int[left.Length + right.Length];
+            var i = 0;
+            var j = 0;
+            var n = 0;
+            while (i < left.Length && j < right.Length)
+                merged[n++] = left[i] <= right[j] ? left[i++] : right[j++];
+            while (i < left.Length)
+                merged[n++] = left[i++];
+            while (j < right.Length)
+                merged[n++] = right[j++];
+            return merged;
+        }
+    }
+
+    private static int[] EligibleFor(int target, Component component) => component.ByTarget[target];
+
+    private IEnumerable<ResidueCluster> FromDecision(Decision decision) => decision.Kind switch
+    {
+        DecisionKind.Contest => [new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows(decision.Contest))],
+        DecisionKind.Incomplete => [new ResidueCluster(Alignment.SearchIncomplete, decision.Code, PassId, Rows(decision.Incomplete))],
+        DecisionKind.Split =>
+        [
+            new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows(decision.Contest)),
+            new ResidueCluster(Alignment.SearchIncomplete, decision.Code, PassId, Rows(decision.Incomplete)),
+        ],
+        _ => [],
+    };
+
+    private IReadOnlyList<ConsolidatedRow> Rows(IEnumerable<int> indexes) =>
+        [.. indexes.Distinct().Select(index => Workspace.Items[index].Row)];
+
+    private static IReadOnlyList<BlockedRow> Placed(MatchWorkspace workspace, IReadOnlyList<string> block) =>
+        [.. workspace.Free
+            .Select(index => MatchKeys.Compose(workspace.Items[index], block, workspace.Schema) is { } key ? new BlockedRow(index, key) : null)
+            .OfType<BlockedRow>()];
+
+    private sealed record BlockedRow(int Index, string Key);
+
+    private sealed record Component(int[] Targets, int[] Eligible, ImmutableDictionary<int, int[]> ByTarget);
+}
