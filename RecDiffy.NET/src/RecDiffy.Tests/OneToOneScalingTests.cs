@@ -1,0 +1,84 @@
+using System.Diagnostics;
+using System.Globalization;
+
+namespace RecDiffy.Tests;
+
+// Issue #99: building row dispositions must stay linear. One-to-one matching on a unique instrument, 4,000 rows per side against 16,000,
+// after a warmup, best of several runs. Linear growth is about 4x and quadratic about 16x; the test fails at 8x or more.
+// Moved from #98 (seeded fuzz) so the engine change and its proof ship together.
+public class OneToOneScalingTests
+{
+    private static readonly CompiledProfile ScaleProfile = Reconciler.Compile(ProfileDocument.Parse(Scale), RuleRegistry.CreateCore());
+
+    private static readonly SourceMap<Dictionary<string, string>> ScaleMap = new SourceMap<Dictionary<string, string>>()
+        .Text("Id", row => row["Id"])
+        .Text("Instrument", row => row["Instrument"])
+        .Text("Quantity", row => row["Quantity"]);
+
+    [Fact]
+    public void One_to_one_matching_scales_linearly()
+    {
+        const int smallRows = 4_000;
+        const int largeRows = 16_000;
+        const int samples = 5;
+
+        _ = Time(smallRows);
+        _ = Time(largeRows);
+        var small = Best(smallRows, samples);
+        var large = Best(largeRows, samples);
+        var ratio = (double)large / small;
+
+        Assert.True(
+            ratio < 8,
+            $"16,000 rows took {TimeSpan.FromTicks(large).TotalMilliseconds:0} ms vs {TimeSpan.FromTicks(small).TotalMilliseconds:0} ms for 4,000 ({ratio:0.00}x). Linear growth is about 4x.");
+    }
+
+    private static long Best(int rows, int samples) =>
+        Enumerable.Range(0, samples).Select(_ => Time(rows)).Min();
+
+    private static long Time(int rows)
+    {
+        var left = ScaleRows(rows, "L");
+        var right = ScaleRows(rows, "R");
+        var watch = Stopwatch.StartNew();
+        var result = Reconciler.Run(
+            ScaleProfile,
+            RecordSources.FromObjects("book", left, ScaleMap),
+            RecordSources.FromObjects("book", right, ScaleMap),
+            ReferenceDataSet.Empty);
+        watch.Stop();
+        Assert.Equal(rows, result.Summary.Matched);
+        Assert.Equal(rows * 2, result.Rows.Count);
+        return watch.ElapsedTicks;
+    }
+
+    private static Dictionary<string, string>[] ScaleRows(int rows, string prefix) =>
+    [
+        .. Enumerable.Range(0, rows).Select(index => new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["Id"] = prefix + index.ToString(CultureInfo.InvariantCulture),
+            ["Instrument"] = "I" + index.ToString(CultureInfo.InvariantCulture),
+            ["Quantity"] = "1",
+        }),
+    ];
+
+    private const string Scale = """
+        {
+          "formatVersion": 1,
+          "profileId": "fuzz-scale",
+          "version": "1.0.0",
+          "sources": { "left": { "rowKey": "Id" }, "right": { "rowKey": "Id" } },
+          "fields": [
+            { "name": "Instrument", "type": "Symbol", "role": "Key" },
+            { "name": "Quantity", "type": "Decimal", "scale": 0, "role": "Economic" }
+          ],
+          "normalization": {
+            "left": { "identify": [ { "rule": "symbol.map", "from": "Instrument", "to": "Instrument" } ], "parse": [ { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" } ] },
+            "right": { "identify": [ { "rule": "symbol.map", "from": "Instrument", "to": "Instrument" } ], "parse": [ { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" } ] }
+          },
+          "paths": [ { "id": "trade", "route": { "rule": "route.all" }, "passes": [
+            { "id": "P1", "pass": "match.naturalKey", "key": ["Instrument"] }
+          ] } ]
+        }
+        """;
+}
