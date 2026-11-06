@@ -5,7 +5,10 @@
 #
 # Bencher CLI 0.6.x (installed on the runner, not in this job):
 # --start-point is the canonical flag; --branch-start-point is an alias.
-# --error-on-alert is the canonical flag; --err is an alias.
+# Thresholds are sent so the dashboard can record alerts. --error-on-alert / --err
+# is intentionally omitted: a regression must not fail this job. The upload step
+# is continue-on-error so a Bencher outage does not fail the job either.
+# This workflow is not a pull request check and is not a required status check.
 # The c_sharp_dot_net adapter reads BenchmarkDotNet JSON (--exporters json)
 # and names each benchmark "{Namespace}.{Method}". It ignores Parameters, so
 # this job appends a non-empty Parameters string to Method before upload.
@@ -76,6 +79,7 @@ jobs:
           }
 
       - name: Upload to Bencher
+        continue-on-error: true
         env:
           BENCHER_HOST: ${{ secrets.BENCHER_HOST }}
           BENCHER_API_TOKEN: ${{ secrets.BENCHER_API_TOKEN }}
@@ -176,16 +180,146 @@ jobs:
             '--threshold-max-sample-size', '64',
             '--threshold-upper-boundary', '0.99',
             '--thresholds-reset',
-            '--error-on-alert',
+            '--format', 'json',
+            '--quiet',
             '--file', $out
           )
           # dev is tracked from main. Other refs (including workflow_dispatch
           # on a topic branch) upload as their own branch with the same threshold.
+          # No --error-on-alert: Bencher still stores alerts, and this step does not fail for them.
           if ($env:BENCH_BRANCH -eq 'dev') {
             $bencherArgs += @('--start-point', 'main', '--start-point-clone-thresholds')
           }
 
-          & bencher @bencherArgs
-          if ($LASTEXITCODE -ne 0) {
-            throw "bencher run failed with exit code $LASTEXITCODE"
+          $invokeError = $null
+          $bencherExit = 0
+          $stdout = ''
+          $stderr = ''
+          try {
+            $command = Get-Command bencher -ErrorAction Stop
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName = $command.Source
+            $psi.UseShellExecute = $false
+            $psi.RedirectStandardOutput = $true
+            $psi.RedirectStandardError = $true
+            $psi.CreateNoWindow = $true
+            # Windows PowerShell 5.1 runs on .NET Framework, which may not have these properties.
+            $utf8Encoding = New-Object System.Text.UTF8Encoding $false
+            $stdoutEncoding = $psi.GetType().GetProperty('StandardOutputEncoding')
+            $stderrEncoding = $psi.GetType().GetProperty('StandardErrorEncoding')
+            if ($stdoutEncoding) { $stdoutEncoding.SetValue($psi, $utf8Encoding, $null) }
+            if ($stderrEncoding) { $stderrEncoding.SetValue($psi, $utf8Encoding, $null) }
+            $quoted = foreach ($arg in $bencherArgs) {
+              if ($null -eq $arg) { '""' }
+              elseif ($arg -match '[\s"]') { '"' + ($arg -replace '"', '\"') + '"' }
+              else { $arg }
+            }
+            $psi.Arguments = $quoted -join ' '
+            $process = New-Object System.Diagnostics.Process
+            $process.StartInfo = $psi
+            [void]$process.Start()
+            $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+            $stderrTask = $process.StandardError.ReadToEndAsync()
+            $process.WaitForExit()
+            $stdout = $stdoutTask.Result
+            $stderr = $stderrTask.Result
+            $bencherExit = $process.ExitCode
+          } catch {
+            $invokeError = $_.Exception.Message
+            $bencherExit = 1
+          }
+
+          function Redact([string]$text) {
+            if ([string]::IsNullOrEmpty($text)) { return '' }
+            if (-not [string]::IsNullOrEmpty($env:BENCHER_API_TOKEN)) {
+              $text = $text.Replace($env:BENCHER_API_TOKEN, '***')
+            }
+            return $text
+          }
+
+          $stderr = Redact $stderr
+          $stdout = Redact $stdout
+          if (-not [string]::IsNullOrWhiteSpace($stderr)) {
+            Write-Host $stderr
+          }
+
+          $report = $null
+          $parsed = $false
+          if (-not [string]::IsNullOrWhiteSpace($stdout)) {
+            try {
+              $report = $stdout | ConvertFrom-Json
+              $parsed = $true
+            } catch {
+              $report = $null
+            }
+          }
+
+          $dashboard = 'https://bench.cobblerhill.net/perf/recdiffy'
+          $summary = New-Object System.Collections.Generic.List[string]
+          $summary.Add('## Bencher')
+          $summary.Add('')
+          $summary.Add('Informational only. Alerts are recorded on the dashboard and do not fail this job.')
+          $summary.Add('')
+          $summary.Add("[recdiffy benchmarks]($dashboard)")
+          $summary.Add('')
+          $summary.Add(('Branch `{0}`, testbed `cobbler1`.' -f $env:BENCH_BRANCH))
+
+          if ($bencherExit -ne 0 -or $invokeError) {
+            $summary.Add('')
+            $summary.Add('Upload did not succeed. The dashboard was not updated by this run. This step does not fail the job.')
+            if ($invokeError) { $summary.Add(''); $summary.Add((Redact $invokeError)) }
+            $tail = @($stderr -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Last 15)
+            if ($tail.Count -gt 0) {
+              $summary.Add('')
+              $summary.Add('```')
+              foreach ($line in $tail) { $summary.Add($line) }
+              $summary.Add('```')
+            }
+          } else {
+            $summary.Add('')
+            if (-not $parsed) {
+              $summary.Add('Upload succeeded. Alert details were not parsed from the report; see the dashboard.')
+            } else {
+              $alertTotal = 0
+              if ($report.counts -and $report.counts.alerts) {
+                $alertTotal = [int]$report.counts.alerts.total
+              }
+              $alertRows = @()
+              if ($report.alerts) { $alertRows = @($report.alerts) }
+              if ($alertTotal -eq 0) {
+                $summary.Add('No alerts.')
+              } else {
+                $summary.Add("$alertTotal alert(s).")
+                $summary.Add('')
+                $summary.Add('| Benchmark | Status | Value |')
+                $summary.Add('| --- | --- | --- |')
+                $shown = 0
+                foreach ($alert in $alertRows) {
+                  if ($null -eq $alert -or $shown -ge 30) { continue }
+                  $name = [string]$alert.benchmark.name
+                  $status = [string]$alert.status
+                  $value = [string]$alert.value
+                  $name = $name -replace '\|', '/' -replace '\r|\n', ' '
+                  $status = $status -replace '\|', '/' -replace '\r|\n', ' '
+                  $value = $value -replace '\|', '/' -replace '\r|\n', ' '
+                  $summary.Add("| $name | $status | $value |")
+                  $shown++
+                }
+                $hidden = $alertTotal - $shown
+                if ($hidden -gt 0) {
+                  $summary.Add('')
+                  $summary.Add("$hidden more alert(s) are on the dashboard.")
+                }
+              }
+            }
+          }
+
+          $summaryPath = $env:GITHUB_STEP_SUMMARY
+          if (-not [string]::IsNullOrWhiteSpace($summaryPath)) {
+            $summaryEncoding = New-Object System.Text.UTF8Encoding $false
+            [System.IO.File]::AppendAllText($summaryPath, (($summary -join "`n") + "`n"), $summaryEncoding)
+          }
+
+          if ($bencherExit -ne 0 -or $invokeError) {
+            throw "bencher run failed with exit code $bencherExit. The upload step continues on error, so this does not fail the job."
           }
