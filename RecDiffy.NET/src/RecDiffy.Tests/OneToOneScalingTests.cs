@@ -6,6 +6,8 @@ namespace RecDiffy.Tests;
 // Issue #99: building row dispositions must stay linear. One-to-one matching on a unique instrument, 4,000 rows per side against 16,000,
 // after a warmup, best of several runs. Linear growth is about 4x and quadratic about 16x; the test fails at 8x or more.
 // Moved from #98 (seeded fuzz) so the engine change and its proof ship together.
+// Runs in its own non-parallel collection: other tests competing for the CPU would distort the timings.
+[Collection(nameof(TimingCollection))]
 public class OneToOneScalingTests
 {
     private static readonly CompiledProfile ScaleProfile = Reconciler.Compile(ProfileDocument.Parse(Scale), RuleRegistry.CreateCore());
@@ -82,3 +84,6 @@ public class OneToOneScalingTests
         }
         """;
 }
+
+[CollectionDefinition(nameof(TimingCollection), DisableParallelization = true)]
+public sealed class TimingCollection;
