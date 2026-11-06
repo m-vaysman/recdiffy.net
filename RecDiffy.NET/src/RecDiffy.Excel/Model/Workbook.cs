@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 
 namespace RecDiffy.Excel.Model;
 
@@ -17,10 +18,12 @@ internal sealed record BlankContent : CellContent
     public static BlankContent Instance { get; } = new();
 }
 
+[StructLayout(LayoutKind.Sequential)]
 internal readonly record struct CellAddress(int Row, int Column);
 
 internal sealed record Cell(CellContent Content, CellStyle Style);
 
+[StructLayout(LayoutKind.Sequential)]
 internal readonly record struct CellRange(int FirstRow, int FirstColumn, int LastRow, int LastColumn)
 {
     public string A1 => $"{Address.Column(FirstColumn)}{FirstRow}:{Address.Column(LastColumn)}{LastRow}";

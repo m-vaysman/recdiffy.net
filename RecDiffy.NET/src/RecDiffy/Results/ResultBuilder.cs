@@ -160,7 +160,7 @@ internal static class ResultBuilder
     }
 
     private static IReadOnlySet<string> EqualByConstruction(PathDeclaration path, string passId) =>
-        path.Passes.Where(pass => pass.Id == passId).SelectMany(pass => pass.Block.Except(pass.Conserve)).ToHashSet(StringComparer.Ordinal);
+        path.Passes.Where(pass => pass.Id == passId).SelectMany(pass => pass.Block.Except(pass.Conserve, StringComparer.Ordinal)).ToHashSet(StringComparer.Ordinal);
 
     private static RowContext Aggregate(IReadOnlyList<ConsolidatedRow> rows, DiffPlan plan, IReadOnlySet<string> equal)
     {

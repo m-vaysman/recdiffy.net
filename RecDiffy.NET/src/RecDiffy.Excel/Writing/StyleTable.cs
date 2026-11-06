@@ -39,13 +39,13 @@ internal sealed class StyleTable
             .. workbook.Sheets.SelectMany(sheet => sheet.Cells.Values.Select(cell => cell.Style)).Where(style => style != defaultStyle).Distinct(),
         ];
         ImmutableArray<FontKey> fonts = [.. styles.Select(Font).Distinct()];
-        ImmutableArray<string> fills = [.. styles.Select(style => style.Fill).OfType<string>().Distinct()];
-        ImmutableArray<string> formats = [.. styles.Select(style => style.Format).OfType<string>().Where(format => format is not "General").Distinct()];
+        ImmutableArray<string> fills = [.. styles.Select(style => style.Fill).OfType<string>().Distinct(StringComparer.Ordinal)];
+        ImmutableArray<string> formats = [.. styles.Select(style => style.Format).OfType<string>().Where(format => format is not "General").Distinct(StringComparer.Ordinal)];
         ImmutableArray<DiffStyle> differentials = [.. workbook.Sheets.SelectMany(sheet => sheet.Rules).Select(Differential).OfType<DiffStyle>().Distinct()];
 
         var fontIndex = fonts.Select((font, index) => (font, index)).ToImmutableDictionary(pair => pair.font, pair => (uint)pair.index);
-        var fillIndex = fills.Select((fill, index) => (fill, index)).ToImmutableDictionary(pair => pair.fill, pair => (uint)(pair.index + 2));
-        var formatIndex = formats.Select((format, index) => (format, index)).ToImmutableDictionary(pair => pair.format, pair => (uint)(FirstCustomFormat + pair.index));
+        var fillIndex = fills.Select((fill, index) => (fill, index)).ToImmutableDictionary(pair => pair.fill, pair => (uint)(pair.index + 2), StringComparer.Ordinal);
+        var formatIndex = formats.Select((format, index) => (format, index)).ToImmutableDictionary(pair => pair.format, pair => (uint)(FirstCustomFormat + pair.index), StringComparer.Ordinal);
 
         var stylesheet = new Stylesheet(
             new NumberingFormats(formats.Select(format => new NumberingFormat { NumberFormatId = formatIndex[format], FormatCode = format })) { Count = (uint)formats.Length },

@@ -1,5 +1,6 @@
 bin/
 obj/
+BenchmarkDotNet.Artifacts/
 
 # Test-data Python generator/verify scripts (keep on disk; stop GitHub linguist counting them as primary language)
 RecDiffy.NET/test-data/**/*.py

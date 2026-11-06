@@ -17,7 +17,7 @@ public static class AsyncRun
             profile,
             RecordSources.FromObjects("bins", Stream(Bins), Map()),
             RecordSources.FromObjects("book", Stream(Book), Map()),
-            ReferenceDataSet.Empty);
+            ReferenceDataSet.Empty).ConfigureAwait(false);
         SampleReport.Result(asynchronous);
         var same = synchronous.Summary == asynchronous.Summary;
         Console.WriteLine(same ? "async summary matches the synchronous run" : "async summary differs from the synchronous run");

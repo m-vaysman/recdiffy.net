@@ -9,7 +9,7 @@ internal static class Packages
         var active = rows.Where(row => row is { Quarantined: false, Suppression: null }).ToArray();
         var linked = active.Where(row => row.Context.Display(plan.LinkField) is not null).ToArray();
         var groups = linked.GroupBy(row => row.Context.Display(plan.LinkField)!, StringComparer.Ordinal);
-        var packed = groups.SelectMany(group => Build(group.ToArray(), plan)).ToDictionary(row => row.Context.Display(plan.LinkField) ?? row.Context.RowKey);
+        var packed = groups.SelectMany(group => Build(group.ToArray(), plan)).ToDictionary(row => row.Context.Display(plan.LinkField) ?? row.Context.RowKey, StringComparer.Ordinal);
         var consumed = linked.Select(row => row.Context.RowKey).ToHashSet(StringComparer.Ordinal);
         return
         [
@@ -47,7 +47,7 @@ internal static class Packages
         };
 
     private static PackageProjection Same(PackageProjection projection, string field, IReadOnlyList<ConsolidatedRow> members) =>
-        members.Select(member => member.Context.Display(field)).Distinct().Count() <= 1
+        members.Select(member => member.Context.Display(field)).Distinct(StringComparer.Ordinal).Count() <= 1
             ? projection with { Context = Copy(projection.Context, field, members[0].Context) }
             : projection with { Failure = "PackageInconsistent" };
 

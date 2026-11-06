@@ -117,10 +117,8 @@ jobs:
 
       - name: Install LibreOffice
         if: steps.secrets.outputs.configured == 'true'
-        working-directory: .
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libreoffice-calc-nogui
+        uses: ./.github/actions/install-libreoffice
+        timeout-minutes: 4
 
       - name: Test with OpenCover coverage
         if: steps.secrets.outputs.configured == 'true'

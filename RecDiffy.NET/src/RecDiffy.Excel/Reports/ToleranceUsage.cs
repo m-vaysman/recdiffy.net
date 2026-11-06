@@ -27,7 +27,7 @@ internal static class ToleranceUsage
 
     private static string Declared(CompiledProfile profile) =>
         string.Join("  ·  ", profile.Document.Paths
-            .SelectMany(path => (path.Diff?.Fields ?? new Dictionary<string, FieldDiffDeclaration>()).Select(field => (Path: path.Id, Field: field.Key, field.Value.Tolerance)))
+            .SelectMany(path => (path.Diff?.Fields ?? new Dictionary<string, FieldDiffDeclaration>(StringComparer.Ordinal)).Select(field => (Path: path.Id, Field: field.Key, field.Value.Tolerance)))
             .Where(item => item.Tolerance.Kind is "Absolute" or "Relative" or "AbsoluteOrRelative")
             .Select(item => $"{item.Field} ({item.Path}): " + item.Tolerance.Kind switch
             {

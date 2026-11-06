@@ -45,7 +45,8 @@ public class CascadeTests
         Assert.Equal("R-same", match.Right[0].Context.RowKey);
         Assert.Equal(
             ["L-slash", "L-split", "R-other", "R-slash"],
-            report.Residue.SelectMany(cluster => cluster.Rows).Select(row => row.Context.RowKey).OrderBy(key => key, StringComparer.Ordinal));
+            report.Residue.SelectMany(cluster => cluster.Rows).Select(row => row.Context.RowKey).OrderBy(key => key, StringComparer.Ordinal),
+            StringComparer.Ordinal);
     }
 
     [Fact]
@@ -66,7 +67,7 @@ public class CascadeTests
         var broken = Delimited.Join('\n', ["a\r", "b"]);
         var plain = Delimited.Join('\n', ["a", "b"]);
 
-        Assert.NotEqual(plain, broken.Replace("\r\n", "\n", StringComparison.Ordinal));
+        Assert.NotEqual(plain, broken.Replace("\r\n", "\n", StringComparison.Ordinal), StringComparer.Ordinal);
     }
 
     [Fact]
@@ -310,8 +311,8 @@ public class CascadeTests
             SearchLimits.Default with { MaxBlockItems = 3 });
 
         Assert.Equal(2, report.Committed.Count);
-        Assert.Equal(["A1", "A2"], report.Committed.Single(match => match.Right[0].Context.RowKey == "RA").Left.Select(row => row.Context.RowKey).OrderBy(key => key, StringComparer.Ordinal));
-        Assert.Equal(["B1", "B2"], report.Committed.Single(match => match.Right[0].Context.RowKey == "RB").Left.Select(row => row.Context.RowKey).OrderBy(key => key, StringComparer.Ordinal));
+        Assert.Equal(["A1", "A2"], report.Committed.Single(match => match.Right[0].Context.RowKey == "RA").Left.Select(row => row.Context.RowKey).OrderBy(key => key, StringComparer.Ordinal), StringComparer.Ordinal);
+        Assert.Equal(["B1", "B2"], report.Committed.Single(match => match.Right[0].Context.RowKey == "RB").Left.Select(row => row.Context.RowKey).OrderBy(key => key, StringComparer.Ordinal), StringComparer.Ordinal);
     }
 
     [Fact]

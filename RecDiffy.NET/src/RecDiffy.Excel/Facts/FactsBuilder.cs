@@ -192,11 +192,23 @@ internal static class FactsBuilder
     };
 
     private static string Action(EntryFact entry, string action) =>
-        entry.Diagnostics.Where(code => UnresolvedCodes.Contains(code)).ToArray() switch
+        entry.Diagnostics.Where(IsUnresolved).ToArray() switch
         {
             [] => action,
             var codes => $"Set up reference data ({string.Join(", ", codes)}), then: {action}",
         };
+
+    // ImmutableArray.Contains has no comparer overload; Enumerable.Contains(comparer) boxes the enumerator.
+    private static bool IsUnresolved(string code)
+    {
+        foreach (var known in UnresolvedCodes)
+        {
+            if (string.Equals(known, code, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
+    }
 }
 
 internal static class Ordering
