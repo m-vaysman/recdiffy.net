@@ -145,12 +145,14 @@ internal sealed class DataReaderSource(Func<IDataReader> open, TabularOptions op
                 return [];
         }
 
-        if (reader.Read() is false)
-            return [];
-
         var headers = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToArray();
+        // Named columns are already the header. Consuming a row here drops the first data record.
         if (headers[0] is "")
+        {
+            if (reader.Read() is false)
+                return [];
             headers = [.. Enumerable.Range(0, reader.FieldCount).Select(index => reader.GetValue(index)?.ToString() ?? "")];
+        }
 
         return ReadBody(reader, sideName, rowKey, headers, cancellation);
     }
