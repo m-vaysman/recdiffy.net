@@ -35,3 +35,7 @@ dotnet run --project src/RecDiffy.Samples/RecDiffy.Samples.csproj
 ## 7. Write a profile without JSON
 
 [BuiltProfile.cs](BuiltProfile.cs) builds the warehouse profile with `ProfileBuilder`, prints its JSON with `ToJson()`, and runs it: one `Matched`, `ManyToOne`, `Exact` entry, as in example 1. A misspelled pass field comes back as an `UndeclaredPassField` problem at `paths[typo].passes[P1].key[0]`. `ProfileCheck.AgainstHeaders` reports that a left file with a `Qty` column lacks `Quantity`, and suggests `Qty`.
+
+## 9. Reconcile your own objects
+
+[TypedReconciliation.cs](TypedReconciliation.cs) reconciles a ledger against a bank statement, both lists of records, with `RecBuilder`. It matches on the reference first, then on date and amount, and compares amounts within 0.05. Two pairs are `Exact`, one is a `Break` (75.00 against 70.00), and `INV-5` is only in the ledger. The matched items are the original objects. It prints the profile's JSON.
