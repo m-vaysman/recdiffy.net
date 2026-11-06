@@ -18,6 +18,8 @@ internal static class ControlTotals
         _ => null,
         Build);
 
+    private sealed record AddBack(string Ours, string Theirs, Func<string, string, string> Sum);
+
     private sealed record Block(string Currency, int Band, int First, ImmutableArray<(int Row, int Line, SideBySideLine Value)> Lines, int Subtotal);
 
     public static IReadOnlyList<SideBySideBlock> EngineBlocks(ReportContext context)
@@ -124,18 +126,35 @@ internal static class ControlTotals
                 return (state.Blocks.Add(built), built.Subtotal + 1, state.Line + lines.Length);
             }).Blocks;
         var p2Last = blocks.IsEmpty ? p2Head : blocks[^1].Subtotal;
-        var extra = others ? 2 : 0;
+        var lead = rows.Range("itemLead");
+        string Sum(string side, string criteria, IEnumerable<string> states, string narrow = "") =>
+            string.Join("+", states.Select(state => $"SUMIFS({quantity},{source},\"{side}\",{disposition},\"{state}\"{narrow},{criteria})"));
+        var packages = context.Facts.Rows.Any(row => row is { ItemLead: false, Row.Disposition: Disposition.Matched or Disposition.LeftOnly or Disposition.RightOnly });
+        ImmutableArray<AddBack> addBacks =
+        [
+            .. others
+                ? [new AddBack(
+                    "Suppressed, quarantined, search incomplete ours (not in totals)",
+                    "Suppressed, quarantined, search incomplete theirs (not in totals)",
+                    (side, criteria) => Sum(side, criteria, ["Suppressed", "Quarantined", "SearchIncomplete"]))]
+                : Array.Empty<AddBack>(),
+            .. packages
+                ? [new AddBack(
+                    "Package legs merged into one item ours (not in totals)",
+                    "Package legs merged into one item theirs (not in totals)",
+                    (side, criteria) => Sum(side, criteria, ["Matched", "LeftOnly", "RightOnly"], $",{lead},0"))]
+                : Array.Empty<AddBack>(),
+        ];
+        var extra = 2 * addBacks.Length;
         var fileOurs = 15 + extra;
         var fileTheirs = 16 + extra;
         var tie = 17 + extra;
         var span = Span + extra;
-        ImmutableArray<int> summed = [4, 5, 6, 7, 8, 9, 11, 12, 13, 14, .. others ? [15, 16] : Array.Empty<int>(), fileOurs, fileTheirs];
+        ImmutableArray<int> summed = [4, 5, 6, 7, 8, 9, 11, 12, 13, 14, .. Enumerable.Range(15, extra), fileOurs, fileTheirs];
         string Col(int column) => Address.Column(column);
-        string Tie(int row) => others
-            ? $"IF(AND({Col(fileOurs)}{row}=D{row}+M{row}+O{row},{Col(fileTheirs)}{row}=E{row}+N{row}+P{row}),\"✓\",\"✗\")"
-            : $"IF(AND({Col(fileOurs)}{row}=D{row}+M{row},{Col(fileTheirs)}{row}=E{row}+N{row}),\"✓\",\"✗\")";
-        string OtherSum(string side, string criteria) =>
-            string.Join("+", new[] { "Suppressed", "Quarantined", "SearchIncomplete" }.Select(state => $"SUMIFS({quantity},{source},\"{side}\",{disposition},\"{state}\",{criteria})"));
+        string Parts(int row, int first) => string.Concat(addBacks.Select((_, index) => $"+{Col(first + 2 * index)}{row}"));
+        string Tie(int row) =>
+            $"IF(AND({Col(fileOurs)}{row}=D{row}+M{row}{Parts(row, 15)},{Col(fileTheirs)}{row}=E{row}+N{row}{Parts(row, 16)}),\"✓\",\"✗\")";
 
         var part2 = part1
             .Put(p2Title, 1, context.Label("Part 2 · Quantity side-by-side by currency (engine BuildSideBySide), with the difference decomposed and tied back to the files"), Styles.Section)
@@ -143,9 +162,9 @@ internal static class ControlTotals
                 [
                     "Currency", "Counterparty", "Asset", "Ours", "Theirs", "Δ (theirs − ours)", "Unmatched ours", "Unmatched theirs", "Inside matched", "Check",
                     "Inside matched: currency split", "Inside matched: field differences", "Ambiguous ours (not in totals)", "Ambiguous theirs (not in totals)",
-                    .. others ? ["Suppressed, quarantined, search incomplete ours (not in totals)", "Suppressed, quarantined, search incomplete theirs (not in totals)"] : Array.Empty<string>(),
+                    .. addBacks.SelectMany(addBack => new[] { addBack.Ours, addBack.Theirs }),
                     "File total ours", "File total theirs", "Tie-out",
-                ]), height: others ? 66 : 42)
+                ]), height: addBacks.IsEmpty ? 42 : 66)
             .Fold(blocks, (sheet, block, _) => sheet
                 .Put(block.Band, 1, $"{block.Currency}  ·  totals in {block.Currency} only", Styles.Band)
                 .Merge(block.Band, 1, block.Band, span)
@@ -169,7 +188,9 @@ internal static class ControlTotals
                         .PutFormula(row, 12, $"I{row}-K{row}", Styles.Number(Formats.Quantity))
                         .PutFormula(row, 13, $"SUMIFS({quantity},{source},\"left\",{disposition},\"Ambiguous\",{criteria})", Styles.Number(Formats.Quantity))
                         .PutFormula(row, 14, $"SUMIFS({quantity},{source},\"right\",{disposition},\"Ambiguous\",{criteria})", Styles.Number(Formats.Quantity))
-                        .Fold(others ? ["left", "right"] : Array.Empty<string>(), (cells, side, position) => cells.PutFormula(row, 15 + position, OtherSum(side, criteria), Styles.Number(Formats.Quantity)))
+                        .Fold(addBacks, (cells, addBack, index) => cells
+                            .PutFormula(row, 15 + 2 * index, addBack.Sum("left", criteria), Styles.Number(Formats.Quantity))
+                            .PutFormula(row, 16 + 2 * index, addBack.Sum("right", criteria), Styles.Number(Formats.Quantity)))
                         .PutFormula(row, fileOurs, $"SUMIFS({quantity},{source},\"left\",{criteria})", Styles.Number(Formats.Quantity))
                         .PutFormula(row, fileTheirs, $"SUMIFS({quantity},{source},\"right\",{criteria})", Styles.Number(Formats.Quantity))
                         .PutFormula(row, tie, Tie(row), Styles.Check);
@@ -195,9 +216,11 @@ internal static class ControlTotals
         [
             "Reading the engine view:",
             "• Each row is placed in the currency block of its own currency. A matched pair booked in one currency but reported in another puts our quantity in one block and theirs in the other, so both blocks show an \"inside matched\" amount that is really one currency break. Column K separates that from genuine field differences.",
-            others
-                ? "• The engine leaves Ambiguous, SearchIncomplete, Quarantined and Suppressed rows out of BuildSideBySide, so its Ours and Theirs do not equal the file totals. Columns M to S add them back and tie each line to the files."
-                : "• The engine leaves Ambiguous rows out of BuildSideBySide, so its Ours and Theirs do not equal the file totals. Columns M to Q add them back and tie each line to the files.",
+            (others, packages) switch
+            {
+                (false, false) => "• The engine leaves Ambiguous rows out of BuildSideBySide, so its Ours and Theirs do not equal the file totals. Columns M to Q add them back and tie each line to the files.",
+                _ => $"• The engine leaves Ambiguous, SearchIncomplete, Quarantined and Suppressed rows out of BuildSideBySide and counts a package once, not once per leg, so its Ours and Theirs do not equal the file totals. Columns M to {Col(fileTheirs)} add them back and tie each line to the files.",
+            },
         ];
         var part3 = part2
             .Put(p3Title, 1, context.Label("Part 3 · Matched pairs whose two sides carry different currencies (their halves sit in different currency blocks above)"), Styles.Section)
@@ -228,7 +251,7 @@ internal static class ControlTotals
                 .Height(notesRow + index, index == 0 ? 15 : 28));
 
         var sheet = part3
-            .Widths([14, 16, 12, 15, 15, 16, 15, 15, 15, 11, 15, 15, 15, 15, .. others ? [17.0, 17.0] : Array.Empty<double>(), 15, 15, 8])
+            .Widths([14, 16, 12, 15, 15, 16, 15, 15, 15, 11, 15, 15, 15, 15, .. Enumerable.Repeat(17.0, extra), 15, 15, 8])
             .FreezeAt(p1First, 1)
             .Rule(new ExpressionRule(new CellRange(p2Head + 1, 6, p2Last, 6), $"AND(ISNUMBER(F{p2Head + 1}),F{p2Head + 1}<>0)", Styles.Red))
             .CheckRules(new CellRange(p1First, checkColumn, p1Total, checkColumn))

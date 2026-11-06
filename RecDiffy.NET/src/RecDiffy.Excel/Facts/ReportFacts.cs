@@ -47,12 +47,10 @@ internal sealed record DiffFact(
 {
     public string Field => Diff.Field.Name;
 
-    // Text fields carry no meaningful delta (the engine reports 0 for a text break).
-    public decimal? Delta => (Ours.Number ?? Theirs.Number, Ours.Date ?? Theirs.Date, Diff.Delta.Kind) switch
+    public decimal? Delta => Diff.Delta.Kind switch
     {
-        (null, null, _) => null,
-        (_, _, DeltaKind.Number) => Diff.Delta.Number,
-        (_, _, DeltaKind.Days) => Diff.Delta.Days,
+        DeltaKind.Number => Diff.Delta.Number,
+        DeltaKind.Days => Diff.Delta.Days,
         _ => null,
     };
 
