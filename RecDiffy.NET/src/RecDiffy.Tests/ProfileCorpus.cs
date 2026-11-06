@@ -6,7 +6,7 @@ namespace RecDiffy.Tests;
 
 // Every profile JSON in the repository lives as a C# raw string literal. This finds them by reading the source,
 // so a profile added anywhere under src joins the round-trip tests without registering itself.
-internal static partial class ProfileCorpus
+internal static class ProfileCorpus
 {
     // Parameterized templates take their holes from method arguments. These are the values their own tests pass.
     private static readonly Dictionary<string, string[]> Arguments = new(StringComparer.Ordinal)
@@ -58,7 +58,7 @@ internal static partial class ProfileCorpus
     {
         if (!literal.Interpolated)
             return [literal.Body];
-        var holes = Hole().Matches(literal.Body).Select(match => match.Groups["name"].Value).Distinct(StringComparer.Ordinal).ToArray();
+        var holes = Hole.Matches(literal.Body).Select(match => match.Groups["name"].Value).Distinct(StringComparer.Ordinal).ToArray();
         return holes.Aggregate(
             (IEnumerable<string>)[literal.Body],
             (bodies, hole) => bodies.SelectMany(body => Values(hole, constants, literal).Select(value => body.Replace("{{" + hole + "}}", value, StringComparison.Ordinal))));
@@ -96,17 +96,16 @@ internal static partial class ProfileCorpus
             var indent = lines[end][..(lines[end].Length - lines[end].TrimStart().Length)];
             var body = string.Join('\n', lines[(index + 1)..end].Select(content => content.StartsWith(indent, StringComparison.Ordinal) ? content[indent.Length..] : content.TrimStart()));
             var prefix = line[..open];
-            yield return new Literal(index + 1, prefix.EndsWith('$'), Declared().Match(prefix) is { Success: true } match ? match.Groups["name"].Value : null, body);
+            yield return new Literal(index + 1, prefix.EndsWith('$'), Declared.Match(prefix) is { Success: true } match ? match.Groups["name"].Value : null, body);
             lines[end] = lines[end].TrimStart()[3..];
             index = end;
         }
     }
 
-    [GeneratedRegex(@"\{\{(?<name>\w+)\}\}", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
-    private static partial Regex Hole();
+    // Plain Regex, not [GeneratedRegex]: the Sonar scanner strips analyzers, source generators included, from test projects.
+    private static readonly Regex Hole = new(@"\{\{(?<name>\w+)\}\}", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture, TimeSpan.FromSeconds(1));
 
-    [GeneratedRegex(@"(?<name>\w+)\s*(=>|=)\s*\$*$", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
-    private static partial Regex Declared();
+    private static readonly Regex Declared = new(@"(?<name>\w+)\s*(=>|=)\s*\$*$", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture, TimeSpan.FromSeconds(1));
 
     private sealed record Literal(int Line, bool Interpolated, string? Name, string Body);
 }
