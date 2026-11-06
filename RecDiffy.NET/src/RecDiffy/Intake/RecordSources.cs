@@ -182,8 +182,10 @@ internal sealed class DataReaderSource(Func<IDataReader> open, TabularOptions op
         string text when string.IsNullOrWhiteSpace(text) => null,
         string text => text.Trim(),
         DateTime date => DateOnly.FromDateTime(date),
-        double number => Rounding.FromDouble(number),
-        float number => Rounding.FromDouble(number),
+        double number when Rounding.TryFromDouble(number, out var parsed) => parsed,
+        float number when Rounding.TryFromDouble(number, out var parsed) => parsed,
+        double number => number.ToString(CultureInfo.InvariantCulture),
+        float number => number.ToString(CultureInfo.InvariantCulture),
         decimal or int or long => value,
         _ => value.ToString(),
     };

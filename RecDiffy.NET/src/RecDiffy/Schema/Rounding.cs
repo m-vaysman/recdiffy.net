@@ -12,6 +12,10 @@ internal static class Rounding
             _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unknown midpoint mode."),
         });
 
-    public static decimal FromDouble(double value) =>
-        decimal.Parse(value.ToString("R", CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture);
+    public static bool TryFromDouble(double value, out decimal number)
+    {
+        number = 0m;
+        return double.IsFinite(value)
+            && decimal.TryParse(value.ToString("R", CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture, out number);
+    }
 }

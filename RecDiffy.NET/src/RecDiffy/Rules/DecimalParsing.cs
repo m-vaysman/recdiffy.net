@@ -26,8 +26,8 @@ internal static class DecimalParsing
     {
         null or "" => Parsed.Blank,
         decimal value => Parsed.Of(value),
-        double value => Parsed.Of(Rounding.FromDouble(value)),
-        float value => Parsed.Of(Rounding.FromDouble(value)),
+        double value when Rounding.TryFromDouble(value, out var number) => Parsed.Of(number),
+        float value when Rounding.TryFromDouble(value, out var number) => Parsed.Of(number),
         int value => Parsed.Of(value),
         long value => Parsed.Of(value),
         string text when decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed) => Parsed.Of(parsed),
