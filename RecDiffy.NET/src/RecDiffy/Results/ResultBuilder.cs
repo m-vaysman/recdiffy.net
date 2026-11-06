@@ -57,7 +57,8 @@ internal static class ResultBuilder
                 entries.Add(Open(item.Path.Id, cluster));
         }
         var entryByRow = Index(entries, left.Concat(right).ToArray());
-        var rows = left.Concat(right).SelectMany(row => row.Members.Select(member => Row(row, member, entryByRow, entries))).ToArray();
+        var entryById = entries.GroupBy(entry => entry.Id).ToDictionary(group => group.Key, group => group.First());
+        var rows = left.Concat(right).SelectMany(row => row.Members.Select(member => Row(row, member, entryByRow, entryById))).ToArray();
         var summary = Summarize(entries, rows);
         return new ReconciliationResult(
             new RunInfo(profile.Hash, reference.Id, reference.ContentHash, EngineVersion()),
@@ -139,16 +140,17 @@ internal static class ResultBuilder
         return map;
     }
 
-    private static RowResult Row(ConsolidatedRow row, SourceRef member, IReadOnlyDictionary<SourceRef, GroupId> entryByRow, IReadOnlyList<ResultEntry> entries)
+    private static RowResult Row(ConsolidatedRow row, SourceRef member, IReadOnlyDictionary<SourceRef, GroupId> entryByRow, IReadOnlyDictionary<GroupId, ResultEntry> entries)
     {
         var linked = entryByRow.TryGetValue(member, out var entryId) ? entryId : (GroupId?)null;
+        var alignment = linked is { } id ? entries[id].Alignment : (Alignment?)null;
         var disposition = row switch
         {
             { Quarantined: true } => Disposition.Quarantined,
             { Suppression: not null } => Disposition.Suppressed,
-            _ when linked is not null && entries.First(entry => entry.Id == linked.Value).Alignment is Alignment.Matched => Disposition.Matched,
-            _ when linked is not null && entries.First(entry => entry.Id == linked.Value).Alignment is Alignment.Ambiguous => Disposition.Ambiguous,
-            _ when linked is not null && entries.First(entry => entry.Id == linked.Value).Alignment is Alignment.SearchIncomplete => Disposition.SearchIncomplete,
+            _ when alignment is Alignment.Matched => Disposition.Matched,
+            _ when alignment is Alignment.Ambiguous => Disposition.Ambiguous,
+            _ when alignment is Alignment.SearchIncomplete => Disposition.SearchIncomplete,
             _ => row.Context.Side == Side.Left ? Disposition.LeftOnly : Disposition.RightOnly,
         };
         var validity = row.Quarantined || row.Context.Diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Invalid)
