@@ -12,7 +12,7 @@ public sealed record RuleRegistry
     public static RuleRegistry CreateCore() =>
         new RuleRegistry()
             .Register("decimal.parse", RulePhase.Parse, ["from", "to"], (call, schema, midpoint) =>
-                new DecimalParseRule(call.Strings["from"], call.Strings["to"], schema.Scale(call.Strings["to"]), midpoint))
+                new ParseDecimalRule(call.Strings["from"], call.Strings["to"], schema.Scale(call.Strings["to"]), midpoint))
             .Register("date.parse", RulePhase.Parse, ["from", "to"], (call, _, _) =>
                 new DateParseRule(
                     call.Strings["from"],

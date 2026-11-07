@@ -2,6 +2,9 @@ using System.Globalization;
 
 namespace RecDiffy.Rules;
 
+// Replaced by ParseDecimalRule (found in #150). decimal.TryParse with NumberStyles.Number takes a comma anywhere as a
+// thousands separator, so "1,5" reads as 15 and "1234,5" as 12345, with no diagnostic. Kept unchanged; delete when agreed.
+[Obsolete("Replaced by ParseDecimalRule: reads a decimal comma as a thousands separator, so \"1,5\" is 15. See #150.")]
 internal static class DecimalParsing
 {
     public static RowContext Apply(RowContext row, string from, string to, int scale, MidpointMode midpoint, string ruleId)
