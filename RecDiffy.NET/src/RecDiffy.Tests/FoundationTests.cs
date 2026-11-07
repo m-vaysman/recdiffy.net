@@ -234,7 +234,9 @@ public class CanonicalTableTests
     public void Parses_a_decimal_without_changing_the_input_row_object()
     {
         var row = RowContext.Create("A", Side.Left, new Dictionary<string, object?>(StringComparer.Ordinal) { ["Quantity"] = "1.005" });
+#pragma warning disable CS0618 // DecimalParseRule is obsolete; this test still covers it.
         var rule = new DecimalParseRule("Quantity", "Quantity", 2, MidpointMode.AwayFromZero);
+#pragma warning restore CS0618
         var updated = row;
         rule.Apply(ref updated);
 

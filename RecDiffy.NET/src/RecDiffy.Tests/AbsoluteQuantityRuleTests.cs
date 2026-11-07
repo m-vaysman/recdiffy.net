@@ -118,6 +118,8 @@ public class AbsoluteQuantityRuleTests
     [InlineData("double", "-2.5")]
     [InlineData("float", "-2.5")]
     [InlineData("text", "-1,000.50")]
+    [InlineData("text", "1,5")]
+    [InlineData("text", "1234,5")]
     [InlineData("text", "")]
     [InlineData("null", "")]
     [InlineData("text", "abc")]
@@ -128,7 +130,7 @@ public class AbsoluteQuantityRuleTests
     {
         var value = RawValue.Of(kind, raw);
         var parsed = Row(value);
-        new DecimalParseRule("Qty", "Parsed", 4, MidpointMode.ToEven).Apply(ref parsed);
+        DecimalParse().Apply(ref parsed);
         var absolute = Apply(Row(value));
 
         Assert.Equal(parsed.Values["Parsed"].IsNull, absolute.Values["Quantity"].IsNull);
@@ -178,6 +180,19 @@ public class AbsoluteQuantityRuleTests
         return TradingRulePack.AddTo(RuleRegistry.CreateCore()).TryGet("quantity.absolute", out var registration)
             ? registration.Create(call, new FieldSchema([]), MidpointMode.ToEven)
             : throw new InvalidOperationException("quantity.absolute is not registered.");
+    }
+
+    private static INormalizationRule DecimalParse()
+    {
+        var call = new RuleCall(
+            "decimal.parse",
+            null,
+            new Dictionary<string, string>(StringComparer.Ordinal) { ["from"] = "Qty", ["to"] = "Parsed" },
+            new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal),
+            new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal));
+        return RuleRegistry.CreateCore().TryGet("decimal.parse", out var registration)
+            ? registration.Create(call, new FieldSchema([new FieldDeclaration("Parsed", FieldType.Decimal, FieldRole.Economic, 4)]), MidpointMode.ToEven)
+            : throw new InvalidOperationException("decimal.parse is not registered.");
     }
 
     private static RowContext Row(object? quantity) =>
