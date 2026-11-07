@@ -18,6 +18,44 @@ A reconciliation runs through:
 
 Matching determines which records belong together. Comparison determines whether their field values agree.
 
+## See it work: two files, two readers, one reconciliation
+
+The broker emails a CSV of confirmations. Your order system exports its blotter to Excel. Read each with any reader you like, then let `RecBuilder` line them up:
+
+![The broker's CSV and the blotter workbook side by side, with the differences highlighted](docs/typed-reconciliation/images/finance-files.svg)
+
+```csharp
+var confirms = ReadConfirms("broker-confirms.csv");  // reader 1: Sylvan.Data.Csv
+var blotter = ReadBlotter("blotter.xlsx");           // reader 2: Sylvan.Data.Excel
+
+var result = RecBuilder.Between(confirms, blotter)
+    .MatchOn(confirm => confirm.TradeRef, trade => trade.TradeId)
+    .ThenMatchOn(confirm => confirm.Isin, trade => trade.Isin)
+        .And(confirm => confirm.TradeDate, trade => trade.ExecutedOn)
+        .And(confirm => confirm.Side, trade => trade.BuySell)
+    .Compare(confirm => confirm.Quantity, trade => trade.Qty)
+    .Compare(confirm => confirm.Price, trade => trade.AvgPrice, tolerance: 0.0001m)
+    .Compare(confirm => confirm.NetAmount, trade => trade.NetConsideration, tolerance: 0.01m)
+    .Run();
+```
+
+```text
+Matched 4 (2 with breaks) | Ambiguous 0 | Left only 1 | Right only 1
+
+  Exact             C-1001 ↔ T-5001
+  Within tolerance  C-1002 ↔ T-5002
+                      NetAmount: 206050.00 vs 206049.99
+  Break             C-1003 ↔ T-5003
+                      Quantity: 250 vs 200
+                      NetAmount: 61450.00 vs 49160
+  Break             C-1004 ↔ T-5004
+                      TradeRef: (blank) vs T-5004
+  Left only         C-1005
+  Right only        T-5006
+```
+
+Every bucket holds your own `BrokerConfirm` and `BlotterTrade` objects. RecDiffy doesn't read the files here: [Sylvan](https://github.com/MarkPflug/Sylvan) does, and any reader that gives you objects works. The [full walkthrough](docs/typed-reconciliation/README.md) covers the two readers, the mapping line by line, and examples from logistics, retail and healthcare billing.
+
 ## Prerequisites
 
 - .NET SDK **10.0.403**, or a compatible version permitted by [global.json](RecDiffy.NET/global.json).
