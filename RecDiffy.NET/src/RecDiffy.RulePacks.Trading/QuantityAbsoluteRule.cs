@@ -2,6 +2,9 @@ using RecDiffy.Rules;
 
 namespace RecDiffy.RulePacks.Trading;
 
+// Replaced by AbsoluteQuantityRule (#147). This reader takes only decimal and text, so an int or long quantity
+// becomes a null with no diagnostic, and so does unreadable text. Kept unchanged and unregistered; delete when agreed.
+[Obsolete("Replaced by AbsoluteQuantityRule: drops int and long raw quantities and writes a silent null for unreadable text. See #147.")]
 internal static class QuantityAbsolute
 {
     public static RowContext Apply(RowContext row, string from, string to, string ruleId)
@@ -20,6 +23,8 @@ internal static class QuantityAbsolute
     }
 }
 
+// Replaced by AbsoluteQuantityRule (#147). quantity.absolute is registered to the new rule; nothing creates this one.
+[Obsolete("Replaced by AbsoluteQuantityRule: drops int and long raw quantities and writes a silent null for unreadable text. See #147.")]
 internal sealed class QuantityAbsoluteRule(string from, string to) : INormalizationRule
 {
     public string RuleId => "quantity.absolute";
