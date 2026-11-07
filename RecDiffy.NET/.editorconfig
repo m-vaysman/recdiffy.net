@@ -13,6 +13,12 @@ dotnet_diagnostic.MA0048.severity = none
 # Sheet builders are linear; a 60-line cap would split them into noise.
 dotnet_diagnostic.MA0051.severity = none
 
+# `x is false` is a deliberate pattern-matching style here, not a boolean-literal comparison.
+dotnet_diagnostic.RCS1049.severity = none
+
+# Naming every literal argument adds noise; name arguments only where the call site needs it.
+dotnet_diagnostic.MA0003.severity = none
+
 # JsonElement array and object enumerators are disposable structs whose Dispose is a no-op, and LINQ consumes them.
 [src/RecDiffy/Profile/ProfileParser.cs]
 dotnet_diagnostic.IDISP004.severity = none
