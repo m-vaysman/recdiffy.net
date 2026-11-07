@@ -16,13 +16,29 @@ public class NumberReadTests
     [InlineData("int", "-2147483648", "-2147483648")]
     [InlineData("long", "-9223372036854775808", "-9223372036854775808")]
     [InlineData("long", "9223372036854775807", "9223372036854775807")]
-    public void A_number_of_every_intake_type_is_read(string kind, string raw, string expected)
-    {
-        var read = RawValue.Of(kind, raw).CanBeNumber();
+    public void A_number_of_every_intake_type_is_read(string kind, string raw, string expected) =>
+        Assert.Equal(NumberRead.Of(RawValue.Number(expected)), RawValue.Of(kind, raw).CanBeNumber());
 
-        Assert.Equal(NumberKind.Value, read.Kind);
-        Assert.Equal(RawValue.Number(expected), read.Value);
-    }
+    [Theory]
+    [InlineData("1,5")]
+    [InlineData("12,34")]
+    [InlineData("1,50")]
+    [InlineData("1234,5")]
+    [InlineData("1,2345")]
+    [InlineData(",123")]
+    [InlineData("1,,234")]
+    [InlineData("1.234,5")]
+    public void A_comma_that_does_not_group_thousands_fails(string raw) =>
+        Assert.Equal(NumberRead.Failed, raw.CanBeNumber());
+
+    [Theory]
+    [InlineData("1,234.5", "1234.5")]
+    [InlineData("-1,000.50", "-1000.50")]
+    [InlineData("12,345,678", "12345678")]
+    [InlineData(" 1,234 ", "1234")]
+    [InlineData("999", "999")]
+    public void A_comma_that_groups_thousands_is_read(string raw, string expected) =>
+        Assert.Equal(NumberRead.Of(RawValue.Number(expected)), raw.CanBeNumber());
 
     [Theory]
     [InlineData("null", "")]

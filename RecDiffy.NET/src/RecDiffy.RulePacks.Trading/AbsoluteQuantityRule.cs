@@ -19,7 +19,7 @@ internal sealed class AbsoluteQuantityRule(string from, string to) : INormalizat
     {
         var raw = row.Raw.TryGetValue(from, out var value) ? value : null;
         var rawText = raw?.ToString();
-        var earlier = row.Values.TryGetValue(from, out var cell) && !cell.IsNull ? cell.Number : (decimal?)null;
+        var earlier = row.Values.TryGetValue(from, out var cell) && cell is { IsNull: false, Type: FieldType.Decimal } ? cell.Number : (decimal?)null;
         return raw.CanBeNumber().Convert(
             value: quantity => WriteAbsolute(row, quantity, rawText),
             missing: () => earlier is { } quantity ? WriteAbsolute(row, quantity, rawText) : WriteNull(row, rawText),

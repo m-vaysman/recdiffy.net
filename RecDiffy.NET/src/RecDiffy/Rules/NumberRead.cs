@@ -9,8 +9,18 @@ internal enum NumberKind
     Failed,
 }
 
-internal readonly record struct NumberRead(NumberKind Kind, decimal Value)
+internal readonly record struct NumberRead
 {
+    private readonly decimal _value;
+
+    private NumberRead(NumberKind kind, decimal value)
+    {
+        Kind = kind;
+        _value = value;
+    }
+
+    public NumberKind Kind { get; }
+
     public static NumberRead Missing { get; } = new(NumberKind.Missing, 0m);
 
     public static NumberRead Failed { get; } = new(NumberKind.Failed, 0m);
@@ -24,7 +34,7 @@ internal readonly record struct NumberRead(NumberKind Kind, decimal Value)
         ArgumentNullException.ThrowIfNull(failed);
         return Kind switch
         {
-            NumberKind.Value => value(Value),
+            NumberKind.Value => value(_value),
             NumberKind.Missing => missing(),
             _ => failed(),
         };
@@ -41,7 +51,13 @@ internal static class Numbers
         long value => NumberRead.Of(value),
         double value when Rounding.TryFromDouble(value, out var number) => NumberRead.Of(number),
         float value when Rounding.TryFromDouble(value, out var number) => NumberRead.Of(number),
-        string text when decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed) => NumberRead.Of(parsed),
+        string text when GroupsThousands(text) && decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed) => NumberRead.Of(parsed),
         _ => NumberRead.Failed,
     };
+
+    private static bool GroupsThousands(string text)
+    {
+        var groups = text.Split('.')[0].Trim().Trim('+', '-').Trim().Split(',');
+        return groups is [_] || (groups[0].Length is >= 1 and <= 3 && groups.Skip(1).All(group => group.Length == 3));
+    }
 }

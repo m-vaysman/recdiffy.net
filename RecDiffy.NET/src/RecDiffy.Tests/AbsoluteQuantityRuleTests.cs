@@ -50,6 +50,8 @@ public class AbsoluteQuantityRuleTests
     [Theory]
     [InlineData("text", "abc")]
     [InlineData("text", "1,000.5x")]
+    [InlineData("text", "1,5")]
+    [InlineData("text", "1234,5")]
     [InlineData("bool", "true")]
     [InlineData("date", "2026-01-02")]
     [InlineData("double", "NaN")]
@@ -71,6 +73,42 @@ public class AbsoluteQuantityRuleTests
 
         Assert.Equal(CanonicalCell.FromDecimal(5m), row.Values["Quantity"]);
         Assert.Empty(row.Diagnostics);
+    }
+
+    [Theory]
+    [InlineData("text")]
+    [InlineData("date")]
+    public void An_earlier_value_that_is_not_a_number_is_not_read_as_zero(string kind)
+    {
+        var earlier = kind switch
+        {
+            "text" => CanonicalCell.FromText("abc"),
+            _ => CanonicalCell.FromDate(new DateOnly(2026, 1, 2)),
+        };
+
+        var row = Apply(Row("abc").Write("Qty", earlier, "text.copy", "abc", "abc"));
+
+        Assert.True(row.Values["Quantity"].IsNull);
+        Assert.Equal("DecimalParse", Assert.Single(row.Diagnostics).Code);
+    }
+
+    [Theory]
+    [InlineData(typeof(byte), "255")]
+    [InlineData(typeof(short), "-32768")]
+    [InlineData(typeof(uint), "4294967295")]
+    [InlineData(typeof(ulong), "18446744073709551615")]
+    public void Other_integer_columns_from_a_data_reader_are_read(Type type, string value)
+    {
+        using var table = new DataTable { Locale = CultureInfo.InvariantCulture };
+#pragma warning disable IDISP004 // The table owns the columns it adds.
+        table.Columns.Add("Id", typeof(string));
+        table.Columns.Add("Qty", type);
+#pragma warning restore IDISP004
+        table.Rows.Add("1", Convert.ChangeType(value, type, CultureInfo.InvariantCulture));
+
+        var result = Run(RecordSources.FromDataReader("left", table.CreateDataReader, new TabularOptions()));
+
+        Assert.Equal(decimal.Abs(RawValue.Number(value)), result.Canonical(Assert.Single(result.Rows).Row)["Quantity"].Number);
     }
 
     [Theory]
