@@ -311,8 +311,6 @@ public static class ProfileWriter
     private static void WriteTolerance(Utf8JsonWriter writer, string field, ToleranceDeclaration tolerance)
     {
         var expected = KindOf(tolerance);
-        if (tolerance.Kind is "Days")
-            throw new NotSupportedException($"Field '{field}' has a days tolerance, which this version cannot write: the document does not store the number of days.");
         if (tolerance.Kind != expected)
             throw new ArgumentException($"Field '{field}' tolerance kind '{tolerance.Kind}' does not match its values, which read as '{expected}'.", nameof(tolerance));
         if (tolerance is { Kind: "Exact", When: null })
@@ -324,6 +322,8 @@ public static class ProfileWriter
             writer.WriteNumber("relative", relative);
         if (tolerance.Attributed is { } attributed)
             writer.WriteString("attributed", attributed);
+        if (tolerance.Days is { } days)
+            writer.WriteNumber("days", days);
         if (tolerance.When is { } when)
             WriteWhen(writer, "when", when);
         writer.WriteEndObject();
@@ -336,6 +336,7 @@ public static class ProfileWriter
         { Absolute: not null } => "Absolute",
         { Relative: not null } => "Relative",
         { Attributed: not null } => "Attributed",
+        { Days: not null } => "Days",
         _ => "Exact",
     };
 

@@ -158,7 +158,7 @@ internal static class ProfileShape
             foreach (var (field, diff) in Sorted(path.Diff?.Fields ?? new Dictionary<string, FieldDiffDeclaration>(StringComparer.Ordinal)))
             {
                 var tolerance = diff.Tolerance;
-                yield return $"paths[{index}].diff[{field}]={tolerance.Kind}|abs={Number(tolerance.Absolute)}|rel={Number(tolerance.Relative)}|tolAttr={tolerance.Attributed ?? "<null>"}|tolWhen={When(tolerance.When)}|attr={diff.Attributed ?? "<null>"}|applicable={When(diff.ApplicableWhen)}";
+                yield return $"paths[{index}].diff[{field}]={tolerance.Kind}|abs={Number(tolerance.Absolute)}|rel={Number(tolerance.Relative)}|days={tolerance.Days?.ToString(CultureInfo.InvariantCulture) ?? "<null>"}|tolAttr={tolerance.Attributed ?? "<null>"}|tolWhen={When(tolerance.When)}|attr={diff.Attributed ?? "<null>"}|applicable={When(diff.ApplicableWhen)}";
             }
         }
     }

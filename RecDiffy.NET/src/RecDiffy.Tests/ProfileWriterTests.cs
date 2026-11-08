@@ -95,12 +95,14 @@ public class ProfileWriterTests
     }
 
     [Fact]
-    public void A_days_tolerance_is_refused_because_the_document_has_no_day_count()
+    public void A_days_tolerance_round_trips()
     {
         var document = ProfileDocument.Parse(Minimal.Replace("\"route\": { \"rule\": \"route.all\" }", "\"route\": { \"rule\": \"route.all\" }, \"diff\": { \"fields\": { \"Day\": { \"tolerance\": { \"days\": 2 } } } }", StringComparison.Ordinal));
+        var written = document.ToJson();
 
-        var failure = Assert.Throws<NotSupportedException>(() => document.ToJson());
-        Assert.Contains("'Day'", failure.Message, StringComparison.Ordinal);
+        Assert.Contains("\"days\": 2", written, StringComparison.Ordinal);
+        Assert.Equal(2, ProfileDocument.Parse(written).Paths[0].Diff!.Fields["Day"].Tolerance.Days);
+        Assert.Equal(ProfileShape.Of(document), ProfileShape.Of(ProfileDocument.Parse(written)));
     }
 
     [Fact]
