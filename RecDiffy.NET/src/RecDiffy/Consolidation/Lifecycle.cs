@@ -43,10 +43,17 @@ internal static class Consolidation
         return package is null ? collapsed : Packages.Pack(collapsed, package);
     }
 
-    // Every quarantined intake row is recorded as DuplicateConflict, including a missing key.
-    // Result building adds that code when the context lacks it.
+    // A quarantined intake row keeps its own reason as its code, so result building adds no code the row does not
+    // already report. Each diagnostic is written once, by the stage that owns it (spec v3 §3.4; #173).
     private static ConsolidatedRow PassThrough(IntakeRow row) =>
-        new(row.Members, row.Context, row.Quarantined, null, row.Quarantined ? "DuplicateConflict" : null);
+        new(row.Members, row.Context, row.Quarantined, null, row.Quarantined ? Reason(row.Context) : null);
+
+    private static string? Reason(RowContext context) =>
+        context.Diagnostics.FirstOrDefault(diagnostic => diagnostic.Severity == DiagnosticSeverity.Invalid)?.Code;
+
+    // Conflicting copies of one event share their chain's fate, but each stays its own row, so every copy is accounted for once.
+    private static ConsolidatedRow Own(ConsolidatedRow fate, IntakeRow row) =>
+        fate.Members.Intersect(row.Members).Any() ? fate : fate with { Members = row.Members, Context = row.Context };
 
     private static IReadOnlyList<ConsolidatedRow> Collapse(IReadOnlyList<IntakeRow> rows, LifecyclePlan plan)
     {
@@ -54,7 +61,7 @@ internal static class Consolidation
         var index = events.GroupBy(evt => (evt.Scope, evt.Id)).ToDictionary(group => group.Key, Representative);
         var linked = Components([.. index.Values], index);
         var decided = linked.SelectMany(component => Decide(component, index, plan.CorrPointsAt)).ToDictionary(row => row.Context.RowKey, StringComparer.Ordinal);
-        return [.. rows.Select(row => decided.TryGetValue(row.Context.RowKey, out var fate) ? fate : PassThrough(row))];
+        return [.. rows.Select(row => decided.TryGetValue(row.Context.RowKey, out var fate) ? Own(fate, row) : PassThrough(row))];
     }
 
     // Several events for one scope and id keep a quarantined copy when one exists.

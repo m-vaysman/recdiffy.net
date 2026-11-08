@@ -32,7 +32,7 @@ public class AdversarialQuarantineCodeTests
         }
         """;
 
-    [Theory(Skip = "🔴 #173 (#174 C): every intake quarantine also reports DuplicateConflict")]
+    [Theory]
     [InlineData("L1", "abc", "2025-06-11", "DecimalParse")]
     [InlineData("L1", "100", "11/06/2025", "DateParse")]
     [InlineData("", "100", "2025-06-11", "MissingKey")]
