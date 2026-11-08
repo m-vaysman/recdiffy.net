@@ -92,6 +92,7 @@ internal static class CascadeMatcher
         return (next, counters);
     }
 
+    // The earliest pass that still claims a row keeps it. Later residue clusters lose rows already claimed.
     private static (ImmutableHashSet<int> Claimed, ImmutableList<ResidueCluster> Clusters) FoldResidue(
         ImmutableList<PassIndex> indexes,
         FrozenDictionary<ConsolidatedRow, int> rowIndex,
@@ -115,14 +116,18 @@ internal static class CascadeMatcher
         return (claimed, clusters);
     }
 
+    // The earliest pass with a ready proposal commits next. A later pass waits.
     private static (PassIndex Index, MatchProposal Proposal)? Next(ImmutableList<PassIndex> indexes) =>
         indexes.Select(index => (Index: index, Proposal: index.NextReady())).FirstOrDefault(pair => pair.Proposal is not null) is { Proposal: { } proposal } pair
             ? (pair.Index, proposal)
             : null;
 
+    // An Invalid diagnostic keeps the row out even when the quarantine flag is clear. A warning stays in.
     private static ActiveItem[] Items(IReadOnlyList<ConsolidatedRow> left, IReadOnlyList<ConsolidatedRow> right) =>
         [.. left.Concat(right).Where(row => row is { Quarantined: false, Suppression: null } && row.Context.Diagnostics.All(diagnostic => diagnostic.Severity != DiagnosticSeverity.Invalid)).Select((row, index) => new ActiveItem(index, row.Context.Side, row))];
 
+    // An empty sharedRef key becomes Counterparty and TradeRef, with the veto flag off.
+    // Any many value other than "right" puts the many rows on the left.
     private static CascadePass Create(PassDeclaration pass, SearchLimits limits) => pass.Pass switch
     {
         "match.sharedRef" => new PairPass(pass.Id, pass.Key.Count is 0 ? ["Counterparty", "TradeRef"] : pass.Key, false, limits.MaxGroupSize),

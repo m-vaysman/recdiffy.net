@@ -43,6 +43,8 @@ internal static class Consolidation
         return package is null ? collapsed : Packages.Pack(collapsed, package);
     }
 
+    // Every quarantined intake row is recorded as DuplicateConflict, including a missing key.
+    // Result building adds that code when the context lacks it.
     private static ConsolidatedRow PassThrough(IntakeRow row) =>
         new(row.Members, row.Context, row.Quarantined, null, row.Quarantined ? "DuplicateConflict" : null);
 
@@ -55,6 +57,8 @@ internal static class Consolidation
         return [.. rows.Select(row => decided.TryGetValue(row.Context.RowKey, out var fate) ? fate : PassThrough(row))];
     }
 
+    // Several events for one scope and id keep a quarantined copy when one exists.
+    // Otherwise the first copy is kept and marked quarantined.
     private static LifeEvent Representative(IGrouping<(string Scope, string Id), LifeEvent> group) =>
         group.Count() is 1
             ? group.First()
@@ -62,6 +66,7 @@ internal static class Consolidation
                 ? quarantined
                 : group.First() with { Row = group.First().Row with { Quarantined = true } };
 
+    // A blank action is not an event. The row stays on the pass-through path.
     private static LifeEvent? ToEvent(IntakeRow row, LifecyclePlan plan) =>
         row.Context.Display(plan.ActionField) is { } action
             ? new LifeEvent(
@@ -128,6 +133,8 @@ internal static class Consolidation
             },
         };
 
+    // A cancel is never a survivor. It removes its target; the cancel row itself is suppressed later as a cancel
+    // event.
     private static IReadOnlyList<LifeEvent> Survivors(
         IReadOnlyList<LifeEvent> members,
         IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index,
@@ -147,6 +154,8 @@ internal static class Consolidation
             (var target, _) => target,
         };
 
+    // Only the survivor carries the lineage of every member.
+    // A cancel is suppressed as a cancel event; every other non-survivor is superseded.
     private static IReadOnlyList<ConsolidatedRow> Assign(
         IReadOnlyList<LifeEvent> members,
         string survivorId,

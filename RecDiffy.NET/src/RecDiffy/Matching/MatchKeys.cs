@@ -11,6 +11,7 @@ internal static class MatchKeys
         return parts.Any(part => part is null) ? null : Delimited.Join('\u001f', parts.Select(part => part!));
     }
 
+    // Decimal key text is fixed-point at the field scale, so 1.5 and 1.50 at scale 2 share a key.
     public static string? Text(RowContext row, FieldDeclaration field) =>
         row.IsNull(field.Name)
             ? null
@@ -24,6 +25,7 @@ internal static class MatchKeys
                 _ => null,
             };
 
+    // A broker scheme never vetoes, and a missing value never vetoes. Two shared schemes veto when the values differ.
     public static bool Vetoed(ActiveItem left, ActiveItem right, string? sharedField, IReadOnlyDictionary<string, FieldDeclaration> schema) =>
         sharedField is not null
         && schema.TryGetValue(sharedField, out var field)
@@ -34,6 +36,7 @@ internal static class MatchKeys
         && leftValue != rightValue;
 
     // Pair keys keep the identifier scheme. A broker reference must not share a bucket with a shared-scheme reference.
+    // Scheme and value are joined with a record separator, so a value cannot collide with the next key field.
     private static string IdentifierText(RowContext row, FieldDeclaration field)
     {
         var identifier = row.Pool.Identifier(row.Values[field.Name].Interned);
@@ -50,11 +53,13 @@ internal static class MatchKeys
                 _ => ("shared", Text(row, field)),
             };
 
+    // The comparison is ordinal. "Broker" still counts as shared.
     private static bool IsShared(string scheme) => scheme is not "broker";
 
     public readonly record struct SharedClaim(bool Wildcard, string? Value);
 
     // The bucket is the value alone. Vetoed compares values across every non-broker scheme, so ISIN "X" and CUSIP "X" are one component.
+    // A broker scheme, a null value, or a missing shared field comes back as a wildcard.
     public static SharedClaim Claim(RowContext row, string? sharedField, IReadOnlyDictionary<string, FieldDeclaration> schema)
     {
         if (sharedField is null || schema.TryGetValue(sharedField, out var field) is false)

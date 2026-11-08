@@ -6,6 +6,8 @@ internal sealed class DateParseRule(string from, string to, IReadOnlyList<string
 
     public RulePhase Phase => RulePhase.Parse;
 
+    // formatBy is a canonical field, so it is a read.
+    // The source column stays out; listing it makes compile report FieldReadBeforeWrite.
     public IReadOnlyList<FieldId> Reads { get; } = formatBy is null ? [] : [new FieldId(formatBy)];
 
     public IReadOnlyList<FieldId> Writes => [new FieldId(to)];

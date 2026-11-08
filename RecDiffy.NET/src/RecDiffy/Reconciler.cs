@@ -97,6 +97,7 @@ internal static class RunPipeline
         return result;
     }
 
+    // The package argument stays null. Each package is applied afterwards, and passing one here would pack twice.
     private static IReadOnlyList<ConsolidatedRow> Consolidate(CompiledProfile profile, string side, IReadOnlyList<IntakeRow> rows)
     {
         var plan = profile.Document.Consolidation.TryGetValue(side, out var found) ? found : null;
@@ -126,6 +127,8 @@ internal static class RunPipeline
         return null;
     }
 
+    // An unknown route rule matches no row. Compile rejects that rule; a document that skipped compile drops the
+    // path.
     private static bool OnRoute(RouteDeclaration route, ConsolidatedRow row, IReadOnlyDictionary<string, FieldDeclaration> schema) =>
         route.Rule switch
         {

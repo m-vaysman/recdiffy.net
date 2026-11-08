@@ -40,6 +40,8 @@ public sealed class SideBuilder
         Add(RulePhase.Parse, "decimal.parse", Columns(from, to), null, null, when);
 
     /// <summary>Maps a column to a symbol. Values missing from <paramref name="map"/> pass through unless <paramref name="passthrough"/> is false.</summary>
+    // passthrough true is omitted, because a missing parameter means on.
+    // Only false is written, and an empty map is omitted.
     public SideBuilder MapSymbol(string from, string to, IReadOnlyDictionary<string, string>? map = null, bool passthrough = true, WhenClause? when = null)
     {
         var strings = passthrough ? Columns(from, to) : Columns(from, to, ("passthrough", "false"));

@@ -6,6 +6,7 @@ namespace RecDiffy;
 
 internal static class ProfileParser
 {
+    // Only JsonException becomes InvalidJson. A wrong JSON type after the root is accepted throws from the reader.
     public static ProfileDocument Parse(string json)
     {
         JsonDocument document;
@@ -55,6 +56,7 @@ internal static class ProfileParser
     private static IEnumerable<ProfileError> Require(JsonElement element, string name) =>
         element.TryGetProperty(name, out _) ? [] : [new ProfileError("MissingParameter", $"{name} is required.")];
 
+    // A missing rounding block is ToEven.
     private static MidpointMode ReadMidpoint(JsonElement root) =>
         root.TryGetProperty("rounding", out var rounding) && rounding.TryGetProperty("midpoint", out var midpoint)
             ? midpoint.GetString() switch
@@ -74,6 +76,7 @@ internal static class ProfileParser
         ParseEnum<FieldRole>(field.GetProperty("role").GetString(), "role"),
         field.TryGetProperty("scale", out var scale) ? scale.GetInt32() : 0);
 
+    // The match is case-sensitive. "decimal" is rejected; the name has to be Decimal.
     private static TEnum ParseEnum<TEnum>(string? text, string name) where TEnum : struct =>
         Enum.TryParse<TEnum>(text, out var parsed)
             ? parsed
@@ -96,6 +99,7 @@ internal static class ProfileParser
             ? [.. rules.EnumerateArray().Select(ReadRule)]
             : [];
 
+    // A null argument is dropped. It is not stored as an empty string.
     private static RuleCall ReadRule(JsonElement rule)
     {
         var arguments = rule.EnumerateObject().Where(property => property.Name is not ("rule" or "when")).ToArray();
@@ -113,6 +117,7 @@ internal static class ProfileParser
                     StringComparer.Ordinal));
     }
 
+    // A number keeps its JSON spelling, so 1.10 stays 1.10. False becomes the ordinal string "false".
     private static string Scalar(JsonElement value) => value.ValueKind switch
     {
         JsonValueKind.String => value.GetString() ?? "",
@@ -159,6 +164,8 @@ internal static class ProfileParser
         Optional(field, "attributed"),
         field.TryGetProperty("applicableWhen", out var when) ? ReadWhen(when) : null);
 
+    // Kind is the first hit among both bounds, absolute, relative, attributed, then days.
+    // A days value beside an absolute bound stays stored and does not set the kind.
     private static ToleranceDeclaration ReadTolerance(JsonElement tolerance)
     {
         var absolute = DecimalOrNull(tolerance, "absolute");
@@ -177,6 +184,7 @@ internal static class ProfileParser
         return new ToleranceDeclaration(kind, absolute, relative, attributed, tolerance.TryGetProperty("when", out var when) ? ReadWhen(when) : null, days);
     }
 
+    // A non-numeric value is treated as absent, so the kind falls through to whatever remains.
     private static decimal? DecimalOrNull(JsonElement element, string name) =>
         element.TryGetProperty(name, out var value)
             ? value.ValueKind switch
@@ -187,6 +195,7 @@ internal static class ProfileParser
             }
             : null;
 
+    // A source with no rowKey stores an empty string, and the run then uses the row ordinal.
     private static IReadOnlyDictionary<string, string> ReadSourceKeys(JsonElement root) =>
         root.TryGetProperty("sources", out var sources) && sources.ValueKind is JsonValueKind.Object
             ? sources.EnumerateObject().ToDictionary(
@@ -217,6 +226,7 @@ internal static class ProfileParser
             ? node.EnumerateObject().ToImmutableDictionary(property => property.Name, property => ReadConsolidationSide(property.Value), StringComparer.Ordinal)
             : ImmutableDictionary<string, ConsolidationSide>.Empty;
 
+    // corrTarget wins when both names are present. The default, when neither is present, is CANC.
     private static ConsolidationSide ReadConsolidationSide(JsonElement side) => new(
         side.TryGetProperty("lifecycle", out var lifecycle)
             ? new LifecyclePlan(
@@ -251,12 +261,14 @@ internal static class ProfileParser
         _ => throw new ProfileCompileException([new ProfileError("InvalidParameter", $"Unknown aggregator '{text}'.")]),
     };
 
+    // The split is not trimmed. A space after the comma is part of the second role.
     private static FieldAggregate Difference(string field, string roles)
     {
         var parts = roles.Split(',');
         return new FieldAggregate(field, AggregateKind.DifferenceByRole, parts[0], parts.Length > 1 ? parts[1] : null);
     }
 
+    // Only a JSON string counts. A number in that slot is absent.
     private static string? Optional(JsonElement element, string name) =>
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
 }

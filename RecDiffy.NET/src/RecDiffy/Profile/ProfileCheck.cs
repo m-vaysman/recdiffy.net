@@ -65,6 +65,7 @@ public static class ProfileCheck
         return [.. columns, .. when];
     }
 
+    // The same missing column is reported once, at the first place the profile reads it.
     private static IEnumerable<MissingColumn> Missing(Side side, IEnumerable<(string Column, string Location)> reads, IReadOnlyCollection<string> headers)
     {
         var present = headers.ToHashSet(StringComparer.Ordinal);
@@ -120,6 +121,7 @@ internal static class HeaderSimilarity
     private static string Letters(string text) =>
         new([.. text.Where(char.IsLetterOrDigit).Select(character => char.ToUpperInvariant(character))]);
 
+    // The candidate must be strictly shorter. An equal letter sequence is handled as rank 0.
     private static bool Subsequence(string shorter, string longer)
     {
         var position = 0;

@@ -12,6 +12,7 @@ internal static class Rounding
             _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unknown midpoint mode."),
         });
 
+    // The round-trip format is parsed back. A non-finite double fails and leaves number at zero.
     public static bool TryFromDouble(double value, out decimal number)
     {
         number = 0m;

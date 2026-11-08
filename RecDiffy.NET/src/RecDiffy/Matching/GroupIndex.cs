@@ -26,6 +26,7 @@ internal sealed record GroupIndex(
     public override IReadOnlyList<MatchProposal> ReadyProposals =>
         [.. ReadyOrder.SelectMany(key => Ready[key].Select(ready => ready.Proposal))];
 
+    // The first proposal under the ordinal-smallest key commits next. Further proposals on that key wait.
     public override MatchProposal? NextReady() =>
         ReadyOrder.IsEmpty || ReadyOrder.Min is not { } key ? null : Ready[key][0].Proposal;
 
@@ -136,6 +137,7 @@ internal sealed record GroupIndex(
                 ReadyOrder = ReadyOrder.Add(proposal.Key),
             };
 
+    // The block limits count targets and eligible rows, and they are applied before any search.
     private (Decision Decision, MatchCounters Counters) Decide(Component component, MatchCounters counters, bool dirty) =>
         component.Targets.Length > Workspace.Limits.MaxTargetsPerComponent || component.Eligible.Length > Workspace.Limits.MaxBlockItems
             ? (Decision.Blocked([.. component.Targets, .. component.Eligible]), counters)
@@ -154,6 +156,7 @@ internal sealed record GroupIndex(
         return (rows, counters);
     }
 
+    // Two targets with unique subsets still contest when they draw the same row.
     private (Decision Decision, MatchCounters Counters) Outcome(Component component, (ImmutableArray<(int Target, TargetSearch Search)> Rows, MatchCounters Counters) searched)
     {
         var searches = searched.Rows;
@@ -173,6 +176,7 @@ internal sealed record GroupIndex(
         return (decision, searched.Counters);
     }
 
+    // The proposal key is the target row's key, so ready order follows that key.
     private MatchProposal ProposalFor(int target, int[] drawn) =>
         Many is Side.Left
             ? new MatchProposal(drawn, [target], Workspace.Items[target].Row.Context.RowKey)
@@ -185,6 +189,7 @@ internal sealed record GroupIndex(
                 SubsetSearch.Search(Classes(target, component), values, MaxGroup, Workspace.Limits.MaxNodesPerTarget, Workspace.Cancellation),
                 counters.SawSearch(dirty));
 
+    // Rows share a class when invariant formatting matches, scale included. 1.0 and 1.00 are different classes.
     private ConservedClass[] Classes(int target, Component component) =>
         [.. EligibleFor(target, component)
             .Select(index => (Index: index, Values: Conserved(Workspace.Items[index].Row.Context)))
@@ -312,6 +317,7 @@ internal sealed record GroupIndex(
             return new(many, [.. wildcards], buckets.ToImmutableDictionary(pair => pair.Key, pair => pair.Value.ToArray(), StringComparer.Ordinal));
         }
 
+        // Both arrays arrive sorted by index. Collect appends in that order.
         private static int[] Merge(int[] left, int[] right)
         {
             var merged = new int[left.Length + right.Length];
@@ -345,6 +351,7 @@ internal sealed record GroupIndex(
     private IReadOnlyList<ConsolidatedRow> Rows(IEnumerable<int> indexes) =>
         [.. indexes.Distinct().Select(index => Workspace.Items[index].Row)];
 
+    // A null key part is not placed. The row stays free for a later pass.
     private static IReadOnlyList<BlockedRow> Placed(MatchWorkspace workspace, IReadOnlyList<string> block) =>
         [.. workspace.Free
             .Select(index => MatchKeys.Compose(workspace.Items[index], block, workspace.Schema) is { } key ? new BlockedRow(index, key) : null)

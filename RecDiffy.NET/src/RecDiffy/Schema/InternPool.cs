@@ -16,6 +16,7 @@ internal sealed record InternPool(
         ImmutableDictionary.Create<IdentifierKey, int>(),
         []);
 
+    // The id is the array index, so the first value is 0, the same Interned a null cell stores.
     public (InternPool Pool, int Id) InternSymbol(string value) =>
         Symbols.TryGetValue(value, out var existing)
             ? (this, existing)
@@ -25,6 +26,7 @@ internal sealed record InternPool(
                 SymbolText = SymbolText.Add(value),
             }, SymbolText.Length);
 
+    // The id is the array index, so the first value is 0, the same Interned a null cell stores.
     public (InternPool Pool, int Id) InternIdentifier(string scheme, string scope, string value)
     {
         var key = new IdentifierKey(scheme, scope, value);

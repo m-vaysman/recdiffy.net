@@ -88,6 +88,7 @@ public readonly struct CanonicalRow
 
     public bool IsNull(string field) => _row.IsNull(field);
 
+    // A null cell is reported as text. The field type is kept only when the cell has a value.
     public CanonicalValue this[string field] => _row.IsNull(field)
         ? new CanonicalValue(FieldType.Text, true, 0m, default, 0)
         : new CanonicalValue(_row.Values[field].Type, false, _row.Values[field].Number, _row.Values[field].Date, _row.Values[field].Interned, _row.Display(field));

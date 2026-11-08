@@ -13,6 +13,7 @@ internal readonly record struct NumberRead
 {
     private readonly decimal _value;
 
+    // Missing and Failed both store zero. Kind is the only signal that separates them.
     private NumberRead(NumberKind kind, decimal value)
     {
         Kind = kind;
@@ -43,6 +44,7 @@ internal readonly record struct NumberRead
 
 internal static class Numbers
 {
+    // A double that does not fit in decimal is Failed. It is not parsed again as text.
     public static NumberRead CanBeNumber(this object? raw) => raw switch
     {
         null or "" => NumberRead.Missing,
@@ -55,6 +57,7 @@ internal static class Numbers
         _ => NumberRead.Failed,
     };
 
+    // A comma is a thousands separator only in groups of three. "1,5" fails the parse instead of becoming 15.
     private static bool GroupsThousands(string text)
     {
         var groups = text.Split('.')[0].Trim().Trim('+', '-').Trim().Split(',');

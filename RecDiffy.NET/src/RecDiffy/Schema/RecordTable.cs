@@ -14,6 +14,8 @@ internal abstract record Column(string Name, FieldType Type)
             _ => throw new ArgumentOutOfRangeException(nameof(field), field.Type, "Unknown field type."),
         };
 
+    // A missing or null cell stores default(T).
+    // The null bitmap, not the value, records absence, so a real zero survives.
     private static ImmutableArray<T> Values<T>(IReadOnlyList<IReadOnlyDictionary<string, CanonicalCell>> rows, string name, Func<CanonicalCell, T> select) =>
         [.. rows.Select(row => row.TryGetValue(name, out var cell) && !cell.IsNull ? select(cell) : default)!];
 
@@ -36,6 +38,7 @@ internal sealed record RecordTable(IReadOnlyDictionary<string, Column> Columns, 
             fields.ToImmutableDictionary(field => field.Name, field => Column.From(field, rows), StringComparer.Ordinal),
             rows.Count);
 
+    // An unhandled column type reads as null, which hides every value of a new column type that misses this arm.
     public bool IsNull(int row, string field) => Columns[field] switch
     {
         DecimalColumn column => column.Nulls[row],

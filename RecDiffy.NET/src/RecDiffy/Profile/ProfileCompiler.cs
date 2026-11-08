@@ -63,6 +63,7 @@ internal static class ProfileCompiler
         _ => [],
     };
 
+    // 16 is the hard cap on the profile and on each pass, in front of a subset walk that branches on the group.
     private static IReadOnlyList<ProfileError> ValidatePaths(ProfileDocument document, FieldSchema schema, IReadOnlyDictionary<string, SideCompilation> sides)
     {
         var missingPaths = document.Paths.Count == 0
@@ -110,6 +111,7 @@ internal static class ProfileCompiler
         _ => false,
     };
 
+    // A key field must be written by every side. One side that never writes it fails the path.
     private static IEnumerable<ProfileError> ValidateKeyField(string pathId, string field, FieldSchema schema, IReadOnlyDictionary<string, SideCompilation> sides) =>
         schema.TryGet(field, out var declaration) switch
         {
@@ -135,6 +137,8 @@ internal static class ProfileCompiler
         _ => false,
     };
 
+    // Two byField routes overlap only when the field and the value are both the same.
+    // Different fields compile, and the run still gives the row to the earlier path.
     private static bool RoutesOverlap(RouteDeclaration left, RouteDeclaration right) => (left.Rule, right.Rule) switch
     {
         ("route.all", _) or (_, "route.all") => true,
@@ -287,6 +291,7 @@ internal sealed record SideCompilation(ImmutableDictionary<string, WriteSite> Wr
             _ => Bind(side, call, registration, schema, midpoint),
         };
 
+    // Checks that fail omit the call from the rule list and the write set. A later rule can still write that field.
     private SideCompilation Bind(string side, RuleCall call, NormalizationRegistration registration, FieldSchema schema, MidpointMode midpoint)
     {
         var rule = registration.Create(call, schema, midpoint);
@@ -309,6 +314,7 @@ internal sealed record SideCompilation(ImmutableDictionary<string, WriteSite> Wr
 
     private SideCompilation Fail(string code, string message) => this with { Errors = Errors.Add(new ProfileError(code, message)) };
 
+    // The name fields is required as a list. Every other required name may sit in the string bag or the list bag.
     private static string? Missing(NormalizationRegistration registration, RuleCall call) =>
         registration.Required.FirstOrDefault(required => required switch
         {

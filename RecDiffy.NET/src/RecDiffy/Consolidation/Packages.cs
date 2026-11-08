@@ -46,17 +46,20 @@ internal static class Packages
             _ => projection with { Failure = "PackageInconsistent" },
         };
 
+    // Agreement is ordinal display text, so 1.0 and 1.00 are different values.
     private static PackageProjection Same(PackageProjection projection, string field, IReadOnlyList<ConsolidatedRow> members) =>
         members.Select(member => member.Context.Display(field)).Distinct(StringComparer.Ordinal).Count() <= 1
             ? projection with { Context = Copy(projection.Context, field, members[0].Context) }
             : projection with { Failure = "PackageInconsistent" };
 
+    // A null amount adds zero, and the total is written at full scale, with no field rounding.
     private static PackageProjection Sum(PackageProjection projection, string field, IReadOnlyList<ConsolidatedRow> members)
     {
         var total = members.Sum(member => member.Context.Values.TryGetValue(field, out var cell) && !cell.IsNull ? cell.Number : 0m);
         return projection with { Context = projection.Context.Write(field, CanonicalCell.FromDecimal(total), "package.sum", null, total.ToString(System.Globalization.CultureInfo.InvariantCulture)) };
     }
 
+    // The first member with the role supplies the value. A missing role fails the package.
     private static PackageProjection FromRole(PackageProjection projection, string field, string? role, IReadOnlyList<ConsolidatedRow> members, string roleField) =>
         members.FirstOrDefault(member => member.Context.Display(roleField) == role) is { } source
             ? projection with { Context = Copy(projection.Context, field, source.Context) }
@@ -79,9 +82,11 @@ internal static class Packages
             Context = projection.Context.Write(field, CanonicalCell.FromDecimal(value), "package.difference", null, value.ToString(System.Globalization.CultureInfo.InvariantCulture)),
         };
 
+    // A null or missing amount contributes zero to the difference.
     private static decimal Number(ConsolidatedRow row, string field) =>
         row.Context.Values.TryGetValue(field, out var cell) && !cell.IsNull ? cell.Number : 0m;
 
+    // An unknown field type leaves the target cell as it was.
     private static RowContext Copy(RowContext target, string field, RowContext source) =>
         source.Values.TryGetValue(field, out var cell) && !cell.IsNull
             ? cell.Type switch
@@ -95,6 +100,7 @@ internal static class Packages
             }
             : target.Write(field, CanonicalCell.Null(source.ContextType(field)), "package.same", null, null);
 
+    // A missing field is typed as text, so the null cell written for it is text.
     private static FieldType ContextType(this RowContext row, string field) =>
         row.Values.TryGetValue(field, out var cell) ? cell.Type : FieldType.Text;
 
@@ -104,6 +110,7 @@ internal static class Packages
         return target.WithPool(pool).Write(field, CanonicalCell.FromInterned(FieldType.Symbol, id), "package.same", null, text);
     }
 
+    // The source cell's scheme and scope are dropped. The copy is pooled under PACKAGE and an empty scope.
     private static RowContext InternIdentifier(RowContext target, string field, string text)
     {
         var (pool, id) = target.Pool.InternIdentifier("PACKAGE", "", text);

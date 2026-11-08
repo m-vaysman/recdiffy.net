@@ -31,6 +31,7 @@ internal static class DateParsing
             _ => null,
         };
 
+    // A double is an OLE Automation date serial. A DateTime loses its time of day.
     private static Parsed Read(object? raw, IReadOnlyList<string> formats) => raw switch
     {
         null or "" => Parsed.Blank,
@@ -51,6 +52,7 @@ internal static class DateParsing
         return true;
     }
 
+    // An empty format list accepts any invariant-culture date.
     private static DateOnly? ParseText(string text, IReadOnlyList<string> formats) =>
         formats.Count == 0
             ? DateOnly.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed) ? parsed : null

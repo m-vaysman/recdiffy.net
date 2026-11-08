@@ -19,12 +19,14 @@ public sealed record RuleRegistry
                     call.Strings["to"],
                     call.Lists.TryGetValue("formats", out var formats) ? formats : [],
                     call.Strings.GetValueOrDefault("formatBy")))
+            // Only the ordinal string "false" turns passthrough off. A missing parameter leaves it on.
             .Register("symbol.map", RulePhase.Identify, ["from", "to"], (call, _, _) =>
                 new SymbolMapRule(
                     call.Strings["from"],
                     call.Strings["to"],
                     call.Maps.TryGetValue("map", out var map) ? map : ImmutableDictionary<string, string>.Empty,
                     call.Strings.TryGetValue("passthrough", out var passthrough) ? passthrough is not "false" : true))
+            // A missing scope is an empty scope. The two share one intern bucket.
             .Register("identifier.map", RulePhase.Identify, ["from", "to", "scheme"], (call, _, _) =>
                 new IdentifierMapRule(call.Strings["from"], call.Strings["to"], call.Strings["scheme"], call.Strings.GetValueOrDefault("scope") ?? ""))
             .Register("text.copy", RulePhase.Identify, ["from", "to"], (call, _, _) =>

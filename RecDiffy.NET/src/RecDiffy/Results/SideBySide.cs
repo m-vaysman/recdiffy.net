@@ -21,6 +21,7 @@ public sealed class SideBySideView(IReadOnlyList<SideBySideLine> lines)
 
 internal static class SideBySideBuilder
 {
+    // One consolidated item can arrive once per member. Reference equality counts the item once.
     public static SideBySideView Build(ReconciliationResult result, SideBySideSpec spec)
     {
         var totals = new Dictionary<(string Row, string Column, string Measure), Bucket>();
@@ -63,6 +64,7 @@ internal static class SideBySideBuilder
     private static string GroupKey(CanonicalRow row, IReadOnlyList<string> fields) =>
         fields.Count == 0 ? "All" : Delimited.Join('|', fields.Select(field => row.Text(field)));
 
+    // The label joins raw text with a pipe. A value that contains a pipe can match a label built from two fields.
     private static string Label(CanonicalRow row, IReadOnlyList<string> fields) =>
         fields.Count == 0 ? "All" : string.Join("|", fields.Select(field => row.Text(field)));
 

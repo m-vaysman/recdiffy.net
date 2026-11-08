@@ -118,6 +118,7 @@ public sealed class RecBuilder<TLeft, TRight>
     }
 
     // A member used both as a key and in Compare is declared once, as a key; keys are compared too.
+    // A decimal is declared at scale 28, so parsing keeps the full value.
     private static TypedField Declare(string name, TypedPair[] uses)
     {
         var key = uses.FirstOrDefault(use => use.Key);
@@ -133,6 +134,7 @@ public sealed class RecBuilder<TLeft, TRight>
         };
     }
 
+    // An identifier's scheme is the left member name, so two fields do not share an intern bucket.
     private static SideBuilder Normalize(SideBuilder side, TypedField field, string column) => field.Type switch
     {
         FieldType.Decimal => side.ParseDecimal(column, field.Pair.Field),
@@ -186,6 +188,7 @@ internal sealed record TypedPair(string Field, string LeftColumn, string RightCo
 
 internal static class Typed
 {
+    // Nullable unwraps to the inner type. Nullability does not change the kind.
     public static TypedKind KindOf(Type type, string parameter) => (Nullable.GetUnderlyingType(type) ?? type) switch
     {
         var t when t == typeof(decimal) || t == typeof(int) || t == typeof(long) => TypedKind.Decimal,
@@ -219,6 +222,7 @@ internal static class Typed
         _ => throw new InvalidCastException($"Expected a decimal, int or long, not {value.GetType().Name}."),
     };
 
+    // A DateTime loses its time of day.
     public static DateOnly? Date(object? value) => value switch
     {
         null => null,
@@ -231,6 +235,7 @@ internal static class Typed
 /// <summary>A typed reconciliation's result, mapped back to the objects you passed in. <see cref="Result"/> holds everything else.</summary>
 public sealed class RecResult<TLeft, TRight>
 {
+    // Ordinal is the index into the list passed to Between. Matched pairs are ordered by the earliest left ordinal.
     internal RecResult(ReconciliationResult result, ProfileDocument profile, ImmutableArray<TLeft> left, ImmutableArray<TRight> right)
     {
         Result = result;

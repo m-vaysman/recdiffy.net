@@ -2,6 +2,8 @@ namespace RecDiffy;
 
 public sealed record WhenClause(string Field, string? EqualsValue, string? NotEquals, IReadOnlyList<string>? In)
 {
+    // Different fields are never exclusive, and an in list is never exclusive.
+    // Equals and not-equals exclude each other only when they name the same text.
     public static bool MutuallyExclusive(WhenClause? left, WhenClause? right) => (left, right) switch
     {
         (null, _) or (_, null) => false,

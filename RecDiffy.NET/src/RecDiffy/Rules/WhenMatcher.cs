@@ -2,6 +2,8 @@ namespace RecDiffy.Rules;
 
 internal static class WhenMatcher
 {
+    // A clause with no equals, not-equals, or in list holds for every row.
+    // A missing field fails equals and in, and it passes not-equals.
     public static bool Holds(WhenClause? when, RowContext row) => when switch
     {
         null => true,
@@ -23,6 +25,7 @@ internal static class WhenMatcher
         return false;
     }
 
+    // A canonical display wins. Otherwise the raw column is trimmed, and a blank raw cell is null.
     public static string? Text(RowContext row, string field) =>
         row.Display(field) ?? (row.Raw.TryGetValue(field, out var raw) ? raw?.ToString()?.Trim() : null);
 }
