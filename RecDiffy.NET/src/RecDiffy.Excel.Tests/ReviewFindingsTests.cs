@@ -5,8 +5,8 @@ using RecDiffy.Results;
 namespace RecDiffy.Excel.Tests;
 
 // Findings from the GROK_sniff review of #90. A dataset with an Equity-only route: Bond rows are never routed, one Equity row is excluded as
-// invalid (required Quantity missing), and one unmatched Equity row has no net cash. Unrouted rows stay LeftOnly or RightOnly with no entry.
-// The invalid row is Quarantined. RunSummary does not count the unrouted rows (#92); the Excel reports must still list them.
+// invalid (required Quantity missing), and one unmatched Equity row has no net cash. Each unrouted row gets its own LeftOnly or RightOnly
+// entry, which RunSummary counts (#92). The invalid row is Quarantined with no entry; the Excel reports must still list it.
 public class ReviewFindingsTests
 {
     private static readonly DateOnly AsOf = new(2026, 11, 4);
@@ -29,26 +29,24 @@ public class ReviewFindingsTests
         Run.Value.Result.WriteAll(Paths.Scratch("review"), new ExcelReportOptions { AsOf = AsOf, Profile = Run.Value.Profile }));
 
     [Fact]
-    public void The_engine_shows_unrouted_and_invalid_rows_without_an_entry_and_leaves_them_out_of_the_summary()
+    public void The_engine_gives_unrouted_rows_an_entry_and_counts_them_in_the_summary()
     {
         var result = Run.Value.Result;
         var orphans = result.Rows.Where(row => row.EntryId is null).Select(row => $"{row.Row.RowKey}:{row.Disposition}:{row.Validity}").Order(StringComparer.Ordinal).ToArray();
 
-        Assert.Equal(["L2:LeftOnly:Valid", "L4:Quarantined:Invalid", "R2:RightOnly:Valid"], orphans);
-        Assert.Equal(1, result.Summary.LeftOnly);
-        Assert.Equal(0, result.Summary.RightOnly);
+        Assert.Equal(["L4:Quarantined:Invalid"], orphans);
+        Assert.Equal((2, 1), (result.Summary.LeftOnly, result.Summary.RightOnly));
     }
 
     [Fact]
-    public void Open_items_include_rows_the_engine_left_without_an_entry()
+    public void Open_items_include_unrouted_entries_and_the_invalid_row_without_an_entry()
     {
         var byLabel = Items().ToDictionary(RowsOf, StringComparer.Ordinal);
 
         Assert.Equal(["L2", "L3", "L4", "R2"], byLabel.Keys.Order(StringComparer.Ordinal), StringComparer.Ordinal);
-        Assert.NotNull(byLabel["L3"].Entry);
-        Assert.Equal(("Unmatched ours", "(not routed)"), (byLabel["L2"].ItemType, byLabel["L2"].Field));
+        Assert.Equal(["L2", "L3", "R2"], byLabel.Where(pair => pair.Value.Entry is not null).Select(pair => pair.Key).Order(StringComparer.Ordinal), StringComparer.Ordinal);
+        Assert.Equal(("Unmatched ours", "Unmatched theirs"), (byLabel["L2"].ItemType, byLabel["R2"].ItemType));
         Assert.Equal(("Unmatched ours", "(excluded: invalid)"), (byLabel["L4"].ItemType, byLabel["L4"].Field));
-        Assert.Equal(("Unmatched theirs", "(not routed)"), (byLabel["R2"].ItemType, byLabel["R2"].Field));
         Assert.Contains("RequiredMissing", byLabel["L4"].Action, StringComparison.Ordinal);
     }
 
@@ -76,7 +74,6 @@ public class ReviewFindingsTests
         var blotter = books[ReportKind.ExceptionBlotter]["BO1_ExceptionBlotter"];
         string[] labels = [.. Items().Select(item => item.Label).Order(StringComparer.Ordinal)];
         Assert.Equal(labels, blotter.Values.Where(cell => cell.Address.StartsWith('B') && labels.Contains(cell.Value)).Select(cell => cell.Value!).Order(StringComparer.Ordinal), StringComparer.Ordinal);
-        Assert.Contains(blotter.Values, cell => cell.Value == "(not routed)");
         Assert.Contains(blotter.Values, cell => cell.Value == "(excluded: invalid)");
 
         var scorecard = books[ReportKind.Scorecard]["MO2_Scorecard"];

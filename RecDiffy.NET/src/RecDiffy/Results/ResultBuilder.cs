@@ -58,6 +58,8 @@ internal static class ResultBuilder
             foreach (var cluster in item.Match.Residue)
                 entries.Add(Open(item.Path.Id, cluster));
         }
+
+        entries.AddRange(Unrouted(entries, left.Concat(right)));
         var entryByRow = Index(entries, left.Concat(right).ToArray());
         var entryById = entries.ToDictionary(entry => entry.Id);
         var rows = left.Concat(right).SelectMany(row => row.Members.Select(member => Row(row, member, entryByRow, entryById, projections))).ToArray();
@@ -154,6 +156,7 @@ internal static class ResultBuilder
         var disposition = row switch
         {
             { Quarantined: true } => Disposition.Quarantined,
+            _ when Invalid(row) => Disposition.Quarantined,
             { Suppression: not null } => Disposition.Suppressed,
             _ when alignment is Alignment.Matched => Disposition.Matched,
             _ when alignment is Alignment.Ambiguous => Disposition.Ambiguous,
@@ -165,6 +168,21 @@ internal static class ResultBuilder
             ? InputValidity.Invalid
             : diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Warning) ? InputValidity.ValidWithWarnings : InputValidity.Valid;
         return new RowResult(member, disposition, row.Suppression, validity, diagnostics, disposition is Disposition.Quarantined ? null : linked);
+    }
+
+    // Invalid always means Quarantined (spec v3 §3.4). The matcher already leaves such a row out, so it is not unmatched (#92).
+    private static bool Invalid(ConsolidatedRow row) =>
+        row.Context.Diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Invalid);
+
+    // A row no route accepts never reaches a matcher. It still gets its own LeftOnly or RightOnly entry, with no path and
+    // the code Unrouted, so every unmatched row has an entry and RunSummary counts it (#92).
+    private static IEnumerable<ResultEntry> Unrouted(IReadOnlyList<ResultEntry> entries, IEnumerable<ConsolidatedRow> rows)
+    {
+        var placed = entries.SelectMany(entry => entry.Left.Concat(entry.Right)).ToHashSet();
+        return rows
+            .Where(row => row is { Quarantined: false, Suppression: null } && Invalid(row) is false && row.Members.Any(member => placed.Contains(member) is false))
+            .Select(row => Open("", new ResidueCluster(row.Context.Side == Side.Left ? Alignment.LeftOnly : Alignment.RightOnly, "Unrouted", "route", [row])))
+            .ToArray();
     }
 
     // An N:1 group's MembersDisagree warnings live on its projection, so each member row of the group reports them too.
