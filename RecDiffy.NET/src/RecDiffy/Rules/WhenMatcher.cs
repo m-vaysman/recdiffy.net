@@ -26,6 +26,7 @@ internal static class WhenMatcher
     }
 
     // A canonical display wins. Otherwise the raw column is trimmed, and a blank raw cell is null.
+    // A raw number is invariant text, as a canonical display is, so a clause reads the same on every server (#158).
     public static string? Text(RowContext row, string field) =>
-        row.Display(field) ?? (row.Raw.TryGetValue(field, out var raw) ? raw?.ToString()?.Trim() : null);
+        row.Display(field) ?? (row.Raw.TryGetValue(field, out var raw) ? InvariantText.Of(raw)?.Trim() : null);
 }

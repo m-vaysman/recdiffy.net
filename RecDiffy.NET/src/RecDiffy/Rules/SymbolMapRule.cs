@@ -1,5 +1,7 @@
 namespace RecDiffy.Rules;
 
+// Replaced by InvariantSymbolMapRule (#158). It turns a raw number into text with the server's culture.
+[Obsolete("Replaced by InvariantSymbolMapRule: turns a raw number into text with the server's culture. See #158.")]
 internal sealed class SymbolMapRule(
     string from,
     string to,

@@ -23,16 +23,16 @@ public sealed record RuleRegistry
                     settings.StrictDateFormats ? CultureDateParsing.Strict(settings.Culture) : settings.Culture))
             // Only the ordinal string "false" turns passthrough off. A missing parameter leaves it on.
             .Register("symbol.map", RulePhase.Identify, ["from", "to"], (call, _, _) =>
-                new SymbolMapRule(
+                new InvariantSymbolMapRule(
                     call.Strings["from"],
                     call.Strings["to"],
                     call.Maps.TryGetValue("map", out var map) ? map : ImmutableDictionary<string, string>.Empty,
                     call.Strings.TryGetValue("passthrough", out var passthrough) ? passthrough is not "false" : true))
             // A missing scope is an empty scope. The two share one intern bucket.
             .Register("identifier.map", RulePhase.Identify, ["from", "to", "scheme"], (call, _, _) =>
-                new IdentifierMapRule(call.Strings["from"], call.Strings["to"], call.Strings["scheme"], call.Strings.GetValueOrDefault("scope") ?? ""))
+                new InvariantIdentifierMapRule(call.Strings["from"], call.Strings["to"], call.Strings["scheme"], call.Strings.GetValueOrDefault("scope") ?? ""))
             .Register("text.copy", RulePhase.Identify, ["from", "to"], (call, _, _) =>
-                new TextCopyRule(call.Strings["from"], call.Strings["to"]))
+                new InvariantTextCopyRule(call.Strings["from"], call.Strings["to"]))
             .Register("required.present", RulePhase.Validate, ["fields"], (call, _, _) =>
                 new RequiredPresentRule(call.Lists["fields"]));
 
