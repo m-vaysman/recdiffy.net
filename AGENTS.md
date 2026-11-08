@@ -2,7 +2,7 @@
 
 These are the instructions for every AI agent that works in this repository. That includes Cursor, GitHub Copilot, Codex, and Claude Code (through `CLAUDE.md`). People can follow them too.
 
-Read the whole file before you change anything. After the repository basics, it has two rule sets:
+Read the whole file before you change anything. After the repository basics and a reading list [for test agents](#for-test-agents), it has two rule sets:
 
 1. [Extend, not edit](#extend-not-edit): code on `main` is closed.
 2. [Functional C# first](#functional-c-first): how to write C# here.
@@ -54,6 +54,46 @@ Profiles refer to rules by **name**, never by class. The name-to-class mapping i
 | A fix to a rule that is on `main` | [Replace and repoint](#replace-and-repoint): a new class, then repoint the same name at it and tag the old class `[Obsolete]` |
 
 Repointing a name fixes every profile that uses it. No profile needs an edit, and no profile hash changes.
+
+## For test agents
+
+If your task is to test RecDiffy, read these first, in this order, before you write a test.
+
+1. **This file.** In particular, new tests go in new files, and you report bugs; you don't fix shipped rules.
+2. **The architecture spec, v3:** `RecDiffy.NET/docs/ARCHITECTURE-SPEC-v3.md`. It is kept out of git, so ask whoever gave you the task for it. The committed `ARCHITECTURE-SPEC.md` is v1 and out of date. For testing, read these sections:
+
+   | Section | What it tells you |
+   |---|---|
+   | §0 Conventions | Left and right, row, item, group, delta |
+   | §3.3 to §3.5 | The normalize phases, every diagnostic code and its severity, and culture: what is declared and what is never guessed |
+   | §6.1 and §6.2 | Alignment, outcome and disposition are separate axes, and the precedence between dispositions |
+   | §7 | Tolerances are inclusive and applied after rounding to scale, and floating point is never interpreted |
+   | §10.1 | The determinism guarantee: the same rows in any order, profile hash, side cultures and engine version give the same result |
+   | §12.3 and §12.4 | The acceptance criteria, and the property tests to extend |
+
+3. **[README.md](README.md):** "Understand the result" (a matched row can still be a break), "Declare how each file is read", and Troubleshooting.
+4. **The entry points.** Read them; don't edit them.
+   - [RuleRegistry.cs](RecDiffy.NET/src/RecDiffy/RuleRegistry.cs) and [TradingRulePack.cs](RecDiffy.NET/src/RecDiffy.RulePacks.Trading/TradingRulePack.cs): which class each rule name builds.
+   - [Reconciler.cs](RecDiffy.NET/src/RecDiffy/Reconciler.cs): `Compile` and `Run`.
+   - [Intake/RecordSource/](RecDiffy.NET/src/RecDiffy/Intake/RecordSource): exactly which values reach the rules.
+   - [ResultModel.cs](RecDiffy.NET/src/RecDiffy/Results/ResultModel.cs): what you can assert on.
+5. **Test patterns to copy.**
+   - [CultureProfile.cs](RecDiffy.NET/src/RecDiffy.Tests/CultureProfile.cs) builds a registered rule the way compile does, with one side's settings, and runs a two-sided profile.
+   - `VerificationTests` and the fixture-v1 tests in `RecDiffy.IO.Tests` are the acceptance bar: all 310 cases.
+
+### Test gotchas
+
+- **Culture.** A profile that declares no culture reads text with the machine's culture, so the same test can pass on one machine and fail on another. Declare a culture in the profile, or set `CultureInfo.CurrentCulture` inside a `try`/`finally` that restores it.
+- **The profile corpus.** `ProfileCorpus` scans every raw-string profile template in the test code and round-trips it. A new template with `{{holes}}` must add its hole values to `ProfileCorpus.Arguments`, or the corpus tests fail.
+- **Obsolete rules.** A replaced rule is tagged `[Obsolete]`. Testing it directly needs `#pragma warning disable CS0618` around the line that builds it.
+- **Full builds.** Incremental builds can skip analyzers. Before you push, run:
+
+  ```
+  dotnet build RecDiffy.NET/RecDiffy.slnx -c Release -warnaserror --no-incremental
+  ```
+
+  CI also runs `RecDiffy.NET/src/RecDiffy.IO.Tests`, so run those tests too.
+- **Bugs you find.** Report each one with 🔴 in the PR and an issue, and add a skipped test in a new file that fails when unskipped. Show that it fails before you skip it. Don't fix a rule that is on `main` in a test PR: that is a [replace and repoint](#replace-and-repoint) ticket of its own.
 
 ---
 
