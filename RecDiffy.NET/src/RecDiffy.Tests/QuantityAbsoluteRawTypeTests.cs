@@ -4,14 +4,11 @@ using RecDiffy.RulePacks.Trading;
 
 namespace RecDiffy.Tests;
 
-// 🔴 quantity.absolute reads its raw value only as decimal or string. A data reader passes int, long and double cells
-// through unchanged (DataReaderSource.CellOf keeps int and long), so a whole-number quantity from a DataTable, a
-// database or any reader that types its columns becomes a null Quantity, with no diagnostic. decimal.parse and
-// side.resolve read the same values correctly. Found while wiring RecDiffy.IO; fixing it is a CHANGE to
-// QuantityAbsolute, which this work does not name.
+// quantity.absolute used to read its raw value only as decimal or string. A data reader passes int and long
+// through unchanged, so a whole-number quantity became a null Quantity. AbsoluteQuantityRule reads those types.
 public class QuantityAbsoluteRawTypeTests
 {
-    [Theory(Skip = "🔴 Known defect: quantity.absolute ignores int and long raw values. Remove Skip with the fix.")]
+    [Theory]
     [InlineData(typeof(int))]
     [InlineData(typeof(long))]
     public void A_whole_number_quantity_from_a_data_reader_is_read(Type type)

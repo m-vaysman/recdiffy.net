@@ -14,6 +14,21 @@ internal static class ProfileCorpus
         ["key"] = ["""["Sku"]""", """["Sku", "Quantity"]""", """["Bond,Swap"]""", """["Bond", "Swap"]""", """["Counterparty", "Instrument", "TradeDate", "Side"]""", """["pipe|comma,equals=back\\slash \"quote\" ünï"]""", "[]"],
         ["block"] = ["""["Counterparty", "Instrument", "TradeDate", "Side", "FixedRate"]""", """["Counterparty", "Instrument", "TradeDate", "Side"]"""],
         ["diff"] = ["", """ , "diff": { "fields": { "Quantity": { "tolerance": { "absolute": "999999" } } } } """],
+        // RecDiffy.IO.Tests Probe.cs fills these from its call sites. The corpus expands every combination.
+        ["fields"] =
+        [
+            """{ "name": "Id", "type": "Text", "role": "Text" }, { "name": "Name", "type": "Text", "role": "Text" }, { "name": "Amount", "type": "Decimal", "scale": 2, "role": "Economic" }""",
+            """{ "name": "Id", "type": "Identifier", "role": "Key" }, { "name": "Day", "type": "Date", "role": "Economic" }, { "name": "Amount", "type": "Decimal", "scale": 2, "role": "Economic" }""",
+            """{ "name": "Unused", "type": "Text", "role": "Text" }""",
+        ],
+        ["rules"] =
+        [
+            "\"identify\": [ { \"rule\": \"text.copy\", \"from\": \"Id\", \"to\": \"Id\" }, { \"rule\": \"text.copy\", \"from\": \"Name\", \"to\": \"Name\" } ], \"parse\": [ { \"rule\": \"decimal.parse\", \"from\": \"Amount\", \"to\": \"Amount\" } ]",
+            "\"identify\": [ { \"rule\": \"text.copy\", \"from\": \"Column1\", \"to\": \"Id\" }, { \"rule\": \"text.copy\", \"from\": \"Column2\", \"to\": \"Name\" } ], \"parse\": [ { \"rule\": \"decimal.parse\", \"from\": \"Column3\", \"to\": \"Amount\" } ]",
+            "\"identify\": [ { \"rule\": \"identifier.map\", \"from\": \"Id\", \"to\": \"Id\", \"scheme\": \"ID\" } ], \"parse\": [ { \"rule\": \"date.parse\", \"from\": \"Day\", \"to\": \"Day\" }, { \"rule\": \"decimal.parse\", \"from\": \"Amount\", \"to\": \"Amount\" } ]",
+            "\"identify\": [ { \"rule\": \"identifier.map\", \"from\": \"Column1\", \"to\": \"Id\", \"scheme\": \"ID\" } ], \"parse\": [ { \"rule\": \"date.parse\", \"from\": \"Column2\", \"to\": \"Day\" }, { \"rule\": \"decimal.parse\", \"from\": \"Column3\", \"to\": \"Amount\" } ]",
+            "",
+        ],
     };
 
     private static readonly Lazy<IReadOnlyDictionary<string, string>> Found = new(Scan);
