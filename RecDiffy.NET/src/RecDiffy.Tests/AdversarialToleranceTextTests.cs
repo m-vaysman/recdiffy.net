@@ -3,7 +3,8 @@ using RecDiffy.Results;
 namespace RecDiffy.Tests;
 
 // Adversarial pass on main. Profile JSON is RecDiffy's own invariant format (spec §3.5 rule 6). A tolerance written as
-// the string "0,05" is not an invariant number. .NET's parser reads it as 5, the "1,5 is 15" case §3.5 rule 4 rejects.
+// the string "0,05" is not an invariant number, so the profile is rejected (#168). .NET would read it as 5. The template holds
+// the valid "0.05", so the profile corpus can round-trip it; the rejected variant is made in the test.
 public class AdversarialToleranceTextTests
 {
     private const string Profile = """
@@ -23,33 +24,30 @@ public class AdversarialToleranceTextTests
           },
           "paths": [ { "id": "p", "route": { "rule": "route.all" },
             "passes": [ { "id": "P1", "pass": "match.naturalKey", "key": ["Id"] } ],
-            "diff": { "fields": { "Quantity": { "tolerance": { "absolute": "0,05" } } } } } ]
+            "diff": { "fields": { "Quantity": { "tolerance": { "absolute": "0.05" } } } } } ]
         }
         """;
 
-    [Fact(Skip = "🔴 #168 (#174 D): a tolerance string is not parsed strictly invariant")]
+    [Fact]
     public void A_tolerance_string_that_is_not_an_invariant_number_is_rejected()
     {
-        var parsed = Record.Exception(() => ProfileDocument.Parse(Profile)) ?? Record.Exception(() => Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()));
+        var failure = Assert.Throws<ProfileCompileException>(() => ProfileDocument.Parse(Profile.Replace("\"0.05\"", "\"0,05\"", StringComparison.Ordinal)));
 
-        Assert.True(parsed is ProfileCompileException, $"\"0,05\" was accepted; tolerance read as {Absolute()}.");
+        Assert.Equal("InvalidParameter", Assert.Single(failure.Errors).Code);
     }
 
-    [Fact(Skip = "🔴 #168 (#174 D): a tolerance string is not parsed strictly invariant")]
-    public void A_four_unit_quantity_difference_is_not_within_a_tolerance_written_as_0_comma_05()
+    [Fact]
+    public void A_tolerance_written_as_the_invariant_string_0_05_is_0_05_and_a_four_unit_difference_breaks()
     {
         var map = new SourceMap<(string Id, string Qty)>().Text("Id", row => row.Id).Text("Qty", row => row.Qty);
-        var compiled = Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore());
+        var document = ProfileDocument.Parse(Profile);
         var result = Reconciler.Run(
-            compiled,
+            Reconciler.Compile(document, RuleRegistry.CreateCore()),
             RecordSources.FromObjects<(string Id, string Qty)>("left", [("T1", "100.00")], map),
             RecordSources.FromObjects<(string Id, string Qty)>("right", [("T1", "104.00")], map),
             ReferenceDataSet.Empty);
 
-        var entry = Assert.Single(result.Entries);
-        Assert.Equal(FieldOutcome.Break, entry.Outcome);
+        Assert.Equal(0.05m, document.Paths[0].Diff!.Fields["Quantity"].Tolerance.Absolute);
+        Assert.Equal(FieldOutcome.Break, Assert.Single(result.Entries).Outcome);
     }
-
-    private static decimal? Absolute() =>
-        ProfileDocument.Parse(Profile).Paths[0].Diff!.Fields["Quantity"].Tolerance.Absolute;
 }
