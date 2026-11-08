@@ -1,3 +1,4 @@
+using System.Globalization;
 using RecDiffy.Results;
 
 namespace RecDiffy;
@@ -10,7 +11,8 @@ public static class Reconciler
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(registry);
-        return ProfileCompiler.Compile(document, registry) switch
+        // The one place the server's culture is read: once, here, for every side that declares none (#158).
+        return ProfileCompiler.Compile(document, registry, CultureInfo.CurrentCulture) switch
         {
             { Errors: [] } outcome => outcome.Profile!,
             var failed => throw new ProfileCompileException(failed.Errors),

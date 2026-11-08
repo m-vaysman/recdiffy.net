@@ -2,6 +2,8 @@ using RecDiffy.Rules;
 
 namespace RecDiffy.RulePacks.Trading;
 
+// Used only by SideResolveRule, which CultureSideResolveRule replaces (#158). CultureSideResolution is its replacement.
+[Obsolete("Used only by SideResolveRule. Replaced by CultureSideResolution. See #158.")]
 internal static class SideResolution
 {
     public static RowContext Apply(RowContext row, string codeColumn, string quantityColumn, string? invertWhen, string perspectiveColumn, string assetField, string ruleId)
@@ -70,6 +72,9 @@ internal static class SideResolution
     }
 }
 
+// Replaced by CultureSideResolveRule (#158). It reads a text quantity with the invariant culture whatever the profile
+// declares, and a raw number through the server's culture, so the sign that picks a side can be lost.
+[Obsolete("Replaced by CultureSideResolveRule: reads the quantity with the invariant culture whatever the profile declares, and a raw number through the server's culture. See #158.")]
 internal sealed class SideResolveRule(string code, string quantity, string? invertWhen, string perspective, string asset) : INormalizationRule
 {
     public string RuleId => "side.resolve";

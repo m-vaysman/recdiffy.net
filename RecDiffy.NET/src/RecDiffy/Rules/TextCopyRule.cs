@@ -1,5 +1,7 @@
 namespace RecDiffy.Rules;
 
+// Replaced by InvariantTextCopyRule (#158). It turns a raw number into text with the server's culture.
+[Obsolete("Replaced by InvariantTextCopyRule: turns a raw number into text with the server's culture. See #158.")]
 internal sealed class TextCopyRule(string from, string to) : INormalizationRule
 {
     public string RuleId => "text.copy";

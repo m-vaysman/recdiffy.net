@@ -1,5 +1,7 @@
 namespace RecDiffy.Rules;
 
+// Used only by IdentifierMapRule, which InvariantIdentifierMapRule replaces (#158).
+[Obsolete("Used only by IdentifierMapRule. Replaced by InvariantIdentifierMapRule. See #158.")]
 internal static class IdentifierMapping
 {
     // Blank text is a null identifier and is not interned.
