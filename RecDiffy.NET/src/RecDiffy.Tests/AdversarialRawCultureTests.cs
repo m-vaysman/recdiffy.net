@@ -28,7 +28,7 @@ public class AdversarialRawCultureTests
         }
         """;
 
-    [Theory(Skip = "🔴 #172 (#174 D): Raw formats with the server's culture")]
+    [Theory]
     [InlineData("en-US")]
     [InlineData("de-DE")]
     [InlineData("fr-FR")]
