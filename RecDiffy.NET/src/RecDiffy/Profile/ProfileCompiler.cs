@@ -2,13 +2,18 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using RecDiffy.Results;
 using RecDiffy.Rules;
 
 namespace RecDiffy;
 
 internal static class ProfileCompiler
 {
-    public static CompileOutcome Compile(ProfileDocument document, RuleRegistry registry)
+    // The server's culture is read here, once. A side that declares no culture is read with it for every run of the compiled profile.
+    public static CompileOutcome Compile(ProfileDocument document, RuleRegistry registry) =>
+        Compile(document, registry, CultureInfo.CurrentCulture);
+
+    public static CompileOutcome Compile(ProfileDocument document, RuleRegistry registry, CultureInfo server)
     {
         var formatErrors = document.FormatVersion == 1
             ? []
@@ -27,21 +32,33 @@ internal static class ProfileCompiler
             return new CompileOutcome(null, [.. formatErrors, .. duplicateErrors, .. scaleErrors]);
 
         var schema = new FieldSchema(document.Fields);
+        var readings = SideReadings.Resolve(document, server);
         var sides = document.Normalization.ToImmutableDictionary(
             pair => pair.Key,
-            pair => CompileSide(pair.Key, pair.Value, schema, document.Midpoint, registry),
+            pair => CompileSide(pair.Key, pair.Value, schema, Settings(document.Midpoint, readings, pair.Key), registry),
             StringComparer.Ordinal);
         var pathErrors = ValidatePaths(document, schema, sides);
         var packageErrors = ValidatePackages(document);
-        ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. scaleErrors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors, .. packageErrors];
+        ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. scaleErrors, .. readings.Errors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors, .. packageErrors];
         return errors.Length == 0
-            ? new CompileOutcome(new CompiledProfile(document.ProfileId, document.Version, document.FormatVersion, Hash(document), document, SideRules(sides, "left"), SideRules(sides, "right")), [])
+            ? new CompileOutcome(
+                new CompiledProfile(document.ProfileId, document.Version, document.FormatVersion, Hash(document), document, SideRules(sides, "left"), SideRules(sides, "right"))
+                {
+                    Reading = readings.Sides.ToImmutableDictionary(pair => pair.Key, pair => pair.Value.Stamp(), StringComparer.Ordinal),
+                },
+                [])
             : new CompileOutcome(null, errors);
     }
 
-    private static SideCompilation CompileSide(string side, NormalizationSide normalization, FieldSchema schema, MidpointMode midpoint, RuleRegistry registry) =>
+    // A side whose culture failed to resolve compiles with invariant settings, so its other errors are still reported.
+    private static RuleSettings Settings(MidpointMode midpoint, ReadingOutcome readings, string side) =>
+        readings.Sides.TryGetValue(side, out var reading)
+            ? new RuleSettings(midpoint, reading.Culture, reading.StrictDateFormats)
+            : RuleSettings.Invariant(midpoint);
+
+    private static SideCompilation CompileSide(string side, NormalizationSide normalization, FieldSchema schema, RuleSettings settings, RuleRegistry registry) =>
         Phases(normalization).Aggregate(SideCompilation.Empty, (state, phase) =>
-            phase.Calls.Aggregate(state, (current, call) => current.Accept(side, phase.Name, phase.Phase, call, schema, midpoint, registry)));
+            phase.Calls.Aggregate(state, (current, call) => current.Accept(side, phase.Name, phase.Phase, call, schema, settings, registry)));
 
     private static IEnumerable<(string Name, RulePhase Phase, IReadOnlyList<RuleCall> Calls)> Phases(NormalizationSide normalization) =>
     [
@@ -163,6 +180,11 @@ internal static class ProfileCompiler
             yield return Pipe("field", field.Name, field.Type.ToString(), field.Role.ToString(), Text(field.Scale));
         foreach (var source in document.SourceKeys.OrderBy(pair => pair.Key, StringComparer.Ordinal))
             yield return Pipe("source", source.Key, source.Value);
+        // Only a declared reading adds a line, so a profile that declares none keeps the hash it had before culture existed.
+        if (document is not { Culture: null, StrictDateFormats: null })
+            yield return Pipe("reading", "", Declared(document.Culture), Declared(document.StrictDateFormats));
+        foreach (var reading in document.SourceReadings.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+            yield return Pipe("reading", reading.Key, Declared(reading.Value.Culture), Declared(reading.Value.StrictDateFormats));
         yield return Pipe(
             "limits",
             Text(document.Limits.MaxGroupSize),
@@ -268,6 +290,16 @@ internal static class ProfileCompiler
     private static string Text(int? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "";
 
     private static string Money(decimal? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "";
+
+    // "-" is undeclared, so an undeclared culture and the invariant culture ("") hash differently.
+    private static string Declared(string? culture) => culture is null ? "-" : "=" + culture;
+
+    private static string Declared(bool? strict) => strict switch
+    {
+        null => "-",
+        true => "true",
+        false => "false",
+    };
 }
 
 internal sealed record CompileOutcome(CompiledProfile? Profile, IReadOnlyList<ProfileError> Errors);
@@ -281,20 +313,20 @@ internal sealed record SideCompilation(ImmutableDictionary<string, WriteSite> Wr
         [],
         []);
 
-    public SideCompilation Accept(string side, string phaseName, RulePhase phase, RuleCall call, FieldSchema schema, MidpointMode midpoint, RuleRegistry registry) =>
+    public SideCompilation Accept(string side, string phaseName, RulePhase phase, RuleCall call, FieldSchema schema, RuleSettings settings, RuleRegistry registry) =>
         registry.TryGet(call.Rule, out var registration) switch
         {
             false => Fail("UnknownRule", $"Rule '{call.Rule}' is not registered."),
             true when registration.Phase != phase => Fail("WrongPhase", $"Rule '{call.Rule}' is listed under {phaseName} but belongs to {registration.Phase}."),
             true when Missing(registration, call) is { } missing => Fail("MissingParameter", $"{side}.{call.Rule} is missing '{missing}'."),
             true when call.Strings.TryGetValue("to", out var target) && !schema.TryGet(target, out _) => Fail("UnknownField", $"{side}.{call.Rule} writes undeclared field '{target}'."),
-            _ => Bind(side, call, registration, schema, midpoint),
+            _ => Bind(side, call, registration, schema, settings),
         };
 
     // Checks that fail omit the call from the rule list and the write set. A later rule can still write that field.
-    private SideCompilation Bind(string side, RuleCall call, NormalizationRegistration registration, FieldSchema schema, MidpointMode midpoint)
+    private SideCompilation Bind(string side, RuleCall call, NormalizationRegistration registration, FieldSchema schema, RuleSettings settings)
     {
-        var rule = registration.Create(call, schema, midpoint);
+        var rule = registration.CreateWithSettings(call, schema, settings);
         var readErrors = rule.Reads.Where(read => !WrittenSites.ContainsKey(read.Name)).Select(read =>
             new ProfileError("FieldReadBeforeWrite", $"{side}.{call.Rule} reads '{read.Name}' before any rule writes it."));
         // Rewriting a field this rule also reads is allowed. Two writers that do not read the field conflict unless their when clauses exclude each other.
@@ -362,6 +394,9 @@ public sealed class CompiledProfile
     public string Hash { get; }
 
     public ProfileDocument Document { get; }
+
+    /// <summary>How each side's text is read, resolved once at compile and keyed by side name (<c>left</c>, <c>right</c>).</summary>
+    public IReadOnlyDictionary<string, SideReading> Reading { get; internal init; } = ImmutableDictionary<string, SideReading>.Empty;
 
     internal IReadOnlyList<CompiledRule> LeftRules { get; }
 

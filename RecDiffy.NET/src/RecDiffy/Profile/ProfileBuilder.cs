@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 
 namespace RecDiffy;
 
@@ -35,8 +36,37 @@ public sealed class ProfileBuilder
             document.Normalization.ToImmutableDictionary(pair => pair.Key, pair => SideBuilder.From(pair.Value), StringComparer.Ordinal),
             document.Consolidation.ToImmutableDictionary(StringComparer.Ordinal),
             [.. document.Paths.Select(PathBuilder.From)],
-            document.Limits));
+            document.Limits,
+            document.Culture,
+            document.StrictDateFormats,
+            document.SourceReadings.ToImmutableDictionary(StringComparer.Ordinal)));
     }
+
+    /// <summary>
+    /// Declares the culture both sides' text is read with, unless a side declares its own. Without a declaration the
+    /// server's culture is used, read once when the profile is compiled.
+    /// </summary>
+    public ProfileBuilder Culture(CultureInfo culture)
+    {
+        ArgumentNullException.ThrowIfNull(culture);
+        return With(_draft with { Culture = culture.Name });
+    }
+
+    /// <summary>Declares the culture one side's text is read with. It overrides the run's culture for that side.</summary>
+    public ProfileBuilder Culture(Side side, CultureInfo culture)
+    {
+        ArgumentNullException.ThrowIfNull(culture);
+        return Reading(side, reading => reading with { Culture = culture.Name });
+    }
+
+    /// <summary>
+    /// Strict date formats, the default, read <c>/</c> and <c>:</c> as exactly those characters. False lets them also
+    /// match the culture's date and time separators, as .NET does.
+    /// </summary>
+    public ProfileBuilder StrictDateFormats(bool strict) => With(_draft with { StrictDateFormats = strict });
+
+    /// <summary>Sets strict date formats for one side. It overrides the run's setting for that side.</summary>
+    public ProfileBuilder StrictDateFormats(Side side, bool strict) => Reading(side, reading => reading with { StrictDateFormats = strict });
 
     public ProfileBuilder RowKeys(string left, string right) => RowKey(Side.Left, left).RowKey(Side.Right, right);
 
@@ -155,7 +185,17 @@ public sealed class ProfileBuilder
         SourceKeys = _draft.SourceKeys,
         Limits = _draft.Limits,
         Consolidation = _draft.Consolidation,
+        Culture = _draft.Culture,
+        StrictDateFormats = _draft.StrictDateFormats,
+        SourceReadings = _draft.SourceReadings,
     };
+
+    private ProfileBuilder Reading(Side side, Func<SourceReading, SourceReading> change)
+    {
+        var name = SideName(side);
+        var current = _draft.SourceReadings.GetValueOrDefault(name) ?? new SourceReading(null, null);
+        return With(_draft with { SourceReadings = _draft.SourceReadings.SetItem(name, change(current)) });
+    }
 
     // The lambda receives the side already stored, or an empty side. The builder it returns replaces that side.
     private ProfileBuilder Configure(Side side, Func<SideBuilder, SideBuilder> configure)
@@ -187,7 +227,10 @@ internal sealed record ProfileDraft(
     ImmutableDictionary<string, SideBuilder> Normalization,
     ImmutableDictionary<string, ConsolidationSide> Consolidation,
     ImmutableList<PathBuilder> Paths,
-    SearchLimits Limits)
+    SearchLimits Limits,
+    string? Culture,
+    bool? StrictDateFormats,
+    ImmutableDictionary<string, SourceReading> SourceReadings)
 {
     public static ProfileDraft Empty(string profileId, string version) => new(
         1,
@@ -199,7 +242,10 @@ internal sealed record ProfileDraft(
         ImmutableDictionary.Create<string, SideBuilder>(StringComparer.Ordinal),
         ImmutableDictionary.Create<string, ConsolidationSide>(StringComparer.Ordinal),
         [],
-        SearchLimits.Default);
+        SearchLimits.Default,
+        null,
+        null,
+        ImmutableDictionary.Create<string, SourceReading>(StringComparer.Ordinal));
 }
 
 /// <summary>The document a builder produced, or the problems that stopped it. Exactly one of the two is present.</summary>

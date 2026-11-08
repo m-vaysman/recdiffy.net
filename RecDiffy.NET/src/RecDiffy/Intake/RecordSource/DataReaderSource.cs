@@ -30,7 +30,7 @@ internal sealed partial class DataReaderSource(Func<IDataReader> open, TabularOp
         {
             if (reader.Read() is false)
                 return [];
-            headers = [.. Enumerable.Range(0, reader.FieldCount).Select(index => reader.GetValue(index)?.ToString() ?? "")];
+            headers = [.. Enumerable.Range(0, reader.FieldCount).Select(index => InvariantText.Of(reader.GetValue(index)) ?? "")];
         }
 
         return ReadBody(reader, sideName, rowKey, headers, cancellation);

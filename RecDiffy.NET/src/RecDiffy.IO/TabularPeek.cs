@@ -51,6 +51,7 @@ public sealed record TabularPeek(IReadOnlyList<string> Headers, IReadOnlyList<Ta
 
 /// <summary>
 /// One sampled row: its 0-based position among the data rows, and its cells as the reader returns them. CSV cells are
-/// text (an empty cell is empty text); Excel cells are a double, a <see cref="DateTime"/>, text, or null when empty.
+/// text (an empty cell is empty text); Excel cells are the decimal the workbook stores (a double only when no decimal
+/// holds it exactly), a <see cref="DateTime"/>, text, or null when empty.
 /// </summary>
 public sealed record TabularRow(long Index, IReadOnlyList<object?> Values);

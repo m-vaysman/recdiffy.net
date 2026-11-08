@@ -14,4 +14,8 @@
     <ProjectReference Include="..\RecDiffy\RecDiffy.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="RecDiffy.Tests" />
+  </ItemGroup>
+
 </Project>

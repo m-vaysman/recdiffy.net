@@ -121,7 +121,11 @@ public sealed record RowResult(
     IReadOnlyList<Diagnostic> Diagnostics,
     GroupId? EntryId);
 
-public sealed record RunInfo(string ProfileHash, string ReferenceId, string ReferenceHash, string EngineVersion);
+public sealed record RunInfo(string ProfileHash, string ReferenceId, string ReferenceHash, string EngineVersion)
+{
+    /// <summary>How each side's text was read, keyed by side name (<c>left</c>, <c>right</c>).</summary>
+    public IReadOnlyDictionary<string, SideReading> Reading { get; init; } = ImmutableDictionary<string, SideReading>.Empty;
+}
 
 public sealed record RunSummary(
     int Matched,

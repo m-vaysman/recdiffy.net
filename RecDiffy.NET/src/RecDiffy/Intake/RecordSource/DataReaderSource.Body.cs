@@ -26,19 +26,24 @@ internal sealed partial class DataReaderSource
         return new RawRecord(new SourceRef(sideName, key, ordinal), cells, missing);
     }
 
-    // A double that fits becomes a decimal, and one that does not stays invariant text.
-    // A DateTime loses its time, and whitespace becomes null.
+    // Floating point passes through unconverted, so decimal.parse reports it (#158). Every integer type becomes a decimal.
+    // A DateTime loses its time, whitespace becomes null, and anything else becomes invariant text, whatever the server's culture.
     private static object? CellOf(object? value) => value switch
     {
         null or DBNull => null,
         string text when string.IsNullOrWhiteSpace(text) => null,
         string text => text.Trim(),
         DateTime date => DateOnly.FromDateTime(date),
-        double number when Rounding.TryFromDouble(number, out var parsed) => parsed,
-        float number when Rounding.TryFromDouble(number, out var parsed) => parsed,
-        double number => number.ToString(CultureInfo.InvariantCulture),
-        float number => number.ToString(CultureInfo.InvariantCulture),
-        decimal or int or long => value,
-        _ => value.ToString(),
+        double or float or Half => value,
+        decimal => value,
+        int number => (decimal)number,
+        long number => (decimal)number,
+        short number => (decimal)number,
+        byte number => (decimal)number,
+        sbyte number => (decimal)number,
+        ushort number => (decimal)number,
+        uint number => (decimal)number,
+        ulong number => (decimal)number,
+        _ => InvariantText.Of(value),
     };
 }

@@ -5,10 +5,6 @@ namespace RecDiffy.Tests;
 
 public class ParseDecimalRuleTests
 {
-    [Fact]
-    public void Decimal_parse_is_registered_to_the_new_rule() =>
-        Assert.Equal(nameof(ParseDecimalRule), Registered(MidpointMode.ToEven).GetType().Name);
-
     [Theory]
     [InlineData("int", "-100", "-100")]
     [InlineData("long", "-9223372036854775808", "-9223372036854775808")]
@@ -92,24 +88,16 @@ public class ParseDecimalRuleTests
         Assert.Contains(invalid.Diagnostics, diagnostic => diagnostic is { Code: "DecimalParse", RuleId: "decimal.parse" });
     }
 
-    private static INormalizationRule Registered(MidpointMode midpoint)
-    {
-        var call = new RuleCall(
-            "decimal.parse",
-            null,
-            new Dictionary<string, string>(StringComparer.Ordinal) { ["from"] = "Qty", ["to"] = "Quantity" },
-            new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal),
-            new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal));
-        var schema = new FieldSchema([new FieldDeclaration("Quantity", FieldType.Decimal, FieldRole.Economic, 2)]);
-        return RuleRegistry.CreateCore().TryGet("decimal.parse", out var registration)
-            ? registration.Create(call, schema, midpoint)
-            : throw new InvalidOperationException("decimal.parse is not registered.");
-    }
+    // decimal.parse now builds CultureDecimalRule (#158). These tests keep checking the type they were written for.
+    // The registration is checked in CultureDecimalRuleTests.
+#pragma warning disable CS0618
+    private static INormalizationRule Rule(MidpointMode midpoint) => new ParseDecimalRule("Qty", "Quantity", 2, midpoint);
+#pragma warning restore CS0618
 
     private static RowContext Apply(object? quantity, MidpointMode midpoint)
     {
         var row = RowContext.Create("L1", Side.Left, new Dictionary<string, object?>(StringComparer.Ordinal) { ["Qty"] = quantity });
-        Registered(midpoint).Apply(ref row);
+        Rule(midpoint).Apply(ref row);
         return row;
     }
 

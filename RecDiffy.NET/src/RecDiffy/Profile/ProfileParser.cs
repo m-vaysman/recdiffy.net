@@ -49,9 +49,38 @@ internal static class ProfileParser
                 SourceKeys = ReadSourceKeys(root),
                 Limits = ReadLimits(root),
                 Consolidation = ReadConsolidation(root),
+                Culture = ReadCulture(root, "culture"),
+                StrictDateFormats = ReadStrictDateFormats(root, "strictDateFormats"),
+                SourceReadings = ReadSourceReadings(root),
             };
         }
     }
+
+    private static string? ReadCulture(JsonElement element, string location) =>
+        element.TryGetProperty("culture", out var culture) switch
+        {
+            false => null,
+            true when culture.ValueKind is JsonValueKind.String => culture.GetString(),
+            true => throw new ProfileCompileException([new ProfileError("InvalidParameter", $"{location} must be a culture name such as \"de-DE\", or \"\" for invariant.")]),
+        };
+
+    private static bool? ReadStrictDateFormats(JsonElement element, string location) =>
+        element.TryGetProperty("strictDateFormats", out var strict) switch
+        {
+            false => null,
+            true when strict.ValueKind is JsonValueKind.True or JsonValueKind.False => strict.GetBoolean(),
+            true => throw new ProfileCompileException([new ProfileError("InvalidParameter", $"{location} must be true or false.")]),
+        };
+
+    private static IReadOnlyDictionary<string, SourceReading> ReadSourceReadings(JsonElement root) =>
+        root.TryGetProperty("sources", out var sources) && sources.ValueKind is JsonValueKind.Object
+            ? sources.EnumerateObject()
+                .Select(property => (Side: property.Name, Reading: new SourceReading(
+                    ReadCulture(property.Value, $"sources.{property.Name}.culture"),
+                    ReadStrictDateFormats(property.Value, $"sources.{property.Name}.strictDateFormats"))))
+                .Where(pair => pair.Reading is not { Culture: null, StrictDateFormats: null })
+                .ToDictionary(pair => pair.Side, pair => pair.Reading, StringComparer.Ordinal)
+            : new Dictionary<string, SourceReading>(StringComparer.Ordinal);
 
     private static IEnumerable<ProfileError> Require(JsonElement element, string name) =>
         element.TryGetProperty(name, out _) ? [] : [new ProfileError("MissingParameter", $"{name} is required.")];

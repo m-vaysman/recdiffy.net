@@ -56,6 +56,9 @@ public sealed record SearchLimits(int MaxGroupSize, int MaxBlockItems, int MaxTa
 
 internal sealed record ConsolidationSide(LifecyclePlan? Lifecycle, IReadOnlyList<PackagePlan> Packages);
 
+/// <summary>One side's declared reading: its culture name (empty for invariant) and whether its date formats are strict. Null means not declared.</summary>
+public sealed record SourceReading(string? Culture, bool? StrictDateFormats);
+
 public sealed record ProfileDocument
 {
     public required int FormatVersion { get; init; }
@@ -75,6 +78,16 @@ public sealed record ProfileDocument
     public required IReadOnlyDictionary<string, string> SourceKeys { get; init; }
 
     public required SearchLimits Limits { get; init; }
+
+    /// <summary>The culture both sides' text is read with, unless a side declares its own. Null means the server's culture, read once at compile. Empty means invariant.</summary>
+    public string? Culture { get; init; }
+
+    /// <summary>Whether <c>/</c> and <c>:</c> in date formats mean exactly those characters. Null means strict.</summary>
+    public bool? StrictDateFormats { get; init; }
+
+    /// <summary>Each side's own reading, keyed by side name. A side's declaration overrides the run's.</summary>
+    public IReadOnlyDictionary<string, SourceReading> SourceReadings { get; init; } =
+        new Dictionary<string, SourceReading>(StringComparer.Ordinal);
 
     internal IReadOnlyDictionary<string, ConsolidationSide> Consolidation { get; init; } =
         new Dictionary<string, ConsolidationSide>(StringComparer.Ordinal);
