@@ -50,7 +50,7 @@ public static class BmfReport
                 chosen[stem] = (rank, path);
         }
 
-        return [.. chosen.Values.Select(item => item.Path).OrderBy(path => path, StringComparer.Ordinal)];
+        return [.. chosen.Values.Select(item => item.Path).Order(StringComparer.Ordinal)];
     }
 
     private static (string Stem, int Rank)? Match(string fileName) => fileName switch
@@ -69,7 +69,7 @@ public static class BmfReport
     private static string Listing(string? directory) =>
         directory is null || !Directory.Exists(directory)
             ? "(directory does not exist)"
-            : Directory.EnumerateFileSystemEntries(directory).OrderBy(path => path, StringComparer.Ordinal).ToArray() switch
+            : Directory.EnumerateFileSystemEntries(directory).Order(StringComparer.Ordinal).ToArray() switch
             {
                 [] => "(empty directory)",
                 var entries => string.Join(Environment.NewLine, entries),
@@ -151,7 +151,9 @@ public static class BmfReport
         {
             if (part.Split('=', 2) is ["Rows", var value]
                 && int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var rows))
+            {
                 return rows;
+            }
         }
 
         return null;

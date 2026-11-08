@@ -93,10 +93,10 @@ internal static class TabularReaders
         }
     }
 
-    private static string List(IReadOnlyList<string> names) =>
-        names.Count == 0
+    private static string List(string[] names) =>
+        names.Length == 0
             ? "The workbook has no sheets."
-            : $"The workbook has {names.Count.ToString(CultureInfo.InvariantCulture)} sheet(s): {string.Join(", ", names.Select((name, index) => $"{(index + 1).ToString(CultureInfo.InvariantCulture)} '{name}'"))}.";
+            : $"The workbook has {names.Length.ToString(CultureInfo.InvariantCulture)} sheet(s): {string.Join(", ", names.Select((name, index) => $"{(index + 1).ToString(CultureInfo.InvariantCulture)} '{name}'"))}.";
 
     // A header row must name every column once: an empty or repeated name cannot be a column a profile reads by name.
     // Without a header, columns are Column1 to ColumnN, so profiles map them by position.

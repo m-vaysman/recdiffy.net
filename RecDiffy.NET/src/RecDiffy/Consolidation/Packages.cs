@@ -48,7 +48,7 @@ internal static class Packages
 
     // Agreement is ordinal display text, so 1.0 and 1.00 are different values.
     private static PackageProjection Same(PackageProjection projection, string field, IReadOnlyList<ConsolidatedRow> members) =>
-        members.Select(member => member.Context.Display(field)).Distinct(StringComparer.Ordinal).Count() <= 1
+        members.Select(member => member.Context.Display(field)).Distinct(StringComparer.Ordinal).Skip(1).Any() is false
             ? projection with { Context = Copy(projection.Context, field, members[0].Context) }
             : projection with { Failure = "PackageInconsistent" };
 
