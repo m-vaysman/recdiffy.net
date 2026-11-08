@@ -20,7 +20,7 @@ public class AdversarialExcelErrorCellTests
         "parse": [ { "rule": "decimal.parse", "from": "Amount", "to": "Amount" } ]
         """;
 
-    [Theory(Skip = "🔴 #169 (#174 E): an error cell must reject the file and name the cell")]
+    [Theory]
     [InlineData("B")]
     [InlineData("C")]
     public void A_workbook_with_an_error_cell_is_rejected_and_the_message_names_the_cell(string column)
