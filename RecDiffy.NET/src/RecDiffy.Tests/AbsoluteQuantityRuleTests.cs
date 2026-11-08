@@ -8,10 +8,6 @@ namespace RecDiffy.Tests;
 
 public class AbsoluteQuantityRuleTests
 {
-    [Fact]
-    public void Quantity_absolute_is_registered_to_the_new_rule() =>
-        Assert.Equal("AbsoluteQuantityRule", Registered().GetType().Name);
-
     [Theory]
     [InlineData("int", "-100", "100")]
     [InlineData("long", "-100", "100")]
@@ -112,35 +108,6 @@ public class AbsoluteQuantityRuleTests
     }
 
     [Theory]
-    [InlineData("int", "-100")]
-    [InlineData("long", "-9223372036854775808")]
-    [InlineData("decimal", "-100.25")]
-    [InlineData("double", "-2.5")]
-    [InlineData("float", "-2.5")]
-    [InlineData("text", "-1,000.50")]
-    [InlineData("text", "1,5")]
-    [InlineData("text", "1234,5")]
-    [InlineData("text", "")]
-    [InlineData("null", "")]
-    [InlineData("text", "abc")]
-    [InlineData("bool", "true")]
-    [InlineData("date", "2026-01-02")]
-    [InlineData("double", "NaN")]
-    public void Every_raw_value_is_read_the_same_way_as_decimal_parse_reads_it(string kind, string raw)
-    {
-        var value = RawValue.Of(kind, raw);
-        var parsed = Row(value);
-        DecimalParse().Apply(ref parsed);
-        var absolute = Apply(Row(value));
-
-        Assert.Equal(parsed.Values["Parsed"].IsNull, absolute.Values["Quantity"].IsNull);
-        Assert.Equal(decimal.Abs(parsed.Values["Parsed"].Number), absolute.Values["Quantity"].Number);
-        Assert.Equal(
-            parsed.Diagnostics.Select(diagnostic => (diagnostic.Code, diagnostic.Severity)),
-            absolute.Diagnostics.Select(diagnostic => (diagnostic.Code, diagnostic.Severity)));
-    }
-
-    [Theory]
     [InlineData(typeof(int))]
     [InlineData(typeof(long))]
     public void A_whole_number_quantity_from_a_data_reader_is_read(Type type)
@@ -169,38 +136,18 @@ public class AbsoluteQuantityRuleTests
         Assert.Contains(row.Diagnostics, diagnostic => diagnostic is { Code: "DecimalParse", RuleId: "quantity.absolute" });
     }
 
-    private static INormalizationRule Registered()
-    {
-        var call = new RuleCall(
-            "quantity.absolute",
-            null,
-            new Dictionary<string, string>(StringComparer.Ordinal) { ["from"] = "Qty", ["to"] = "Quantity" },
-            new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal),
-            new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal));
-        return TradingRulePack.AddTo(RuleRegistry.CreateCore()).TryGet("quantity.absolute", out var registration)
-            ? registration.Create(call, new FieldSchema([]), MidpointMode.ToEven)
-            : throw new InvalidOperationException("quantity.absolute is not registered.");
-    }
-
-    private static INormalizationRule DecimalParse()
-    {
-        var call = new RuleCall(
-            "decimal.parse",
-            null,
-            new Dictionary<string, string>(StringComparer.Ordinal) { ["from"] = "Qty", ["to"] = "Parsed" },
-            new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal),
-            new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal));
-        return RuleRegistry.CreateCore().TryGet("decimal.parse", out var registration)
-            ? registration.Create(call, new FieldSchema([new FieldDeclaration("Parsed", FieldType.Decimal, FieldRole.Economic, 4)]), MidpointMode.ToEven)
-            : throw new InvalidOperationException("decimal.parse is not registered.");
-    }
+    // quantity.absolute now builds CultureQuantityRule (#158). These tests keep checking the type they were written for.
+    // The registration and the agreement with decimal.parse are checked in CultureQuantityRuleTests.
+#pragma warning disable CS0618
+    private static INormalizationRule Absolute() => new AbsoluteQuantityRule("Qty", "Quantity");
+#pragma warning restore CS0618
 
     private static RowContext Row(object? quantity) =>
         RowContext.Create("L1", Side.Left, new Dictionary<string, object?>(StringComparer.Ordinal) { ["Qty"] = quantity });
 
     private static RowContext Apply(RowContext row)
     {
-        Registered().Apply(ref row);
+        Absolute().Apply(ref row);
         return row;
     }
 

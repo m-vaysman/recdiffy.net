@@ -47,7 +47,8 @@ public static class ProfileWriter
         writer.WriteStartObject("rounding");
         writer.WriteString("midpoint", Midpoint(document.Midpoint));
         writer.WriteEndObject();
-        WriteSources(writer, document.SourceKeys);
+        WriteReading(writer, document.Culture, document.StrictDateFormats);
+        WriteSources(writer, document.SourceKeys, document.SourceReadings);
         WriteFields(writer, document.Fields);
         WriteNormalization(writer, document.Normalization);
         WriteConsolidation(writer, document.Consolidation);
@@ -63,15 +64,28 @@ public static class ProfileWriter
         _ => throw new ArgumentException($"Midpoint '{midpoint}' has no profile name.", nameof(midpoint)),
     };
 
-    private static void WriteSources(Utf8JsonWriter writer, IReadOnlyDictionary<string, string> sources)
+    // An undeclared culture or strictness stays undeclared, so the parser's meaning (server culture, strict) is kept.
+    private static void WriteReading(Utf8JsonWriter writer, string? culture, bool? strictDateFormats)
     {
-        if (sources.Count == 0)
+        if (culture is not null)
+            writer.WriteString("culture", culture);
+        if (strictDateFormats is { } strict)
+            writer.WriteBoolean("strictDateFormats", strict);
+    }
+
+    private static void WriteSources(Utf8JsonWriter writer, IReadOnlyDictionary<string, string> sources, IReadOnlyDictionary<string, SourceReading> readings)
+    {
+        var sides = sources.Keys.Union(readings.Keys, StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        if (sides.Length == 0)
             return;
         writer.WriteStartObject("sources");
-        foreach (var (side, rowKey) in Ordered(sources))
+        foreach (var side in sides)
         {
             writer.WriteStartObject(side);
-            writer.WriteString("rowKey", rowKey);
+            if (sources.TryGetValue(side, out var rowKey))
+                writer.WriteString("rowKey", rowKey);
+            if (readings.TryGetValue(side, out var reading))
+                WriteReading(writer, reading.Culture, reading.StrictDateFormats);
             writer.WriteEndObject();
         }
 

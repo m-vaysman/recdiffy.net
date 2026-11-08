@@ -2,6 +2,9 @@ using System.Globalization;
 
 namespace RecDiffy.Rules;
 
+// Replaced by CultureDecimalRule (#158). It reads text with the invariant culture whatever the profile declares,
+// converts float and double, and checks grouping with a comma-only heuristic. decimal.parse no longer builds it.
+[Obsolete("Replaced by CultureDecimalRule: reads text with the invariant culture whatever the profile declares, and converts float and double. See #158.")]
 internal sealed class ParseDecimalRule(string from, string to, int scale, MidpointMode midpoint) : INormalizationRule
 {
     public string RuleId => "decimal.parse";

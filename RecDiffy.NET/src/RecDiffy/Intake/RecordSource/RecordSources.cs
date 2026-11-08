@@ -45,7 +45,7 @@ public static class RecordSources
     {
         if (rowKey.Length == 0)
             return (ordinal.ToString(CultureInfo.InvariantCulture), false);
-        var text = cells.TryGetValue(rowKey, out var value) ? value?.ToString()?.Trim() : null;
+        var text = cells.TryGetValue(rowKey, out var value) ? InvariantText.Of(value)?.Trim() : null;
         return string.IsNullOrEmpty(text) ? ("", true) : (text, false);
     }
 }

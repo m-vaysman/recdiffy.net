@@ -1,5 +1,7 @@
 namespace RecDiffy.Rules;
 
+// Replaced by CultureDateRule (#158). It parses with the invariant culture whatever the profile declares. date.parse no longer builds it.
+[Obsolete("Replaced by CultureDateRule: parses with the invariant culture whatever the profile declares. See #158.")]
 internal sealed class DateParseRule(string from, string to, IReadOnlyList<string> formats, string? formatBy) : INormalizationRule
 {
     public string RuleId => "date.parse";

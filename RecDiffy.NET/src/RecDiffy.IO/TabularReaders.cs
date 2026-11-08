@@ -192,11 +192,13 @@ internal sealed class NamedColumns(IDataReader inner, string[] names) : IDataRea
 
     public string GetString(int i) => inner.GetString(i);
 
-    // Excel stores every number as a double; Sylvan's dynamic reader narrows whole ones to Int32. Widening them back
-    // passes the number on as the workbook stores it, so a whole number and a fraction reach the engine the same way.
+    // The engine never interprets a double (#158). A workbook number reaches it as the decimal the workbook stores,
+    // and Sylvan's narrowing of whole numbers to Int32 is widened to that decimal too. A number no decimal holds
+    // exactly stays a double, and decimal.parse reports it.
     public object GetValue(int i) => inner.GetValue(i) switch
     {
-        int number => (double)number,
+        int number => (decimal)number,
+        double number when WorkbookNumbers.Exact(number) is { } exact => exact,
         var value => value,
     };
 

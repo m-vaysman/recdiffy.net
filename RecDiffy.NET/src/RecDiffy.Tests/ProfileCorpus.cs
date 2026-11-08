@@ -29,6 +29,11 @@ internal static class ProfileCorpus
             "\"identify\": [ { \"rule\": \"identifier.map\", \"from\": \"Column1\", \"to\": \"Id\", \"scheme\": \"ID\" } ], \"parse\": [ { \"rule\": \"date.parse\", \"from\": \"Column2\", \"to\": \"Day\" }, { \"rule\": \"decimal.parse\", \"from\": \"Column3\", \"to\": \"Amount\" } ]",
             "",
         ],
+        // CultureProfile.cs fills these from DeclaredCultureTests, StrictDateFormatTests and CultureDecimalRuleTests.
+        ["run"] = ["", "\"culture\": \"en-US\",", "\"culture\": \"de-DE\", \"strictDateFormats\": false,"],
+        ["left"] = ["", ", \"culture\": \"de-DE\"", ", \"strictDateFormats\": true"],
+        ["right"] = ["", ", \"culture\": \"en-US\""],
+        ["formats"] = ["\"dd/MM/yyyy\""],
     };
 
     private static readonly Lazy<IReadOnlyDictionary<string, string>> Found = new(Scan);

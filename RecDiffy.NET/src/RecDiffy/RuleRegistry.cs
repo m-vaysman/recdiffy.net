@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using RecDiffy.Rules;
 
 namespace RecDiffy;
@@ -11,14 +12,15 @@ public sealed record RuleRegistry
 
     public static RuleRegistry CreateCore() =>
         new RuleRegistry()
-            .Register("decimal.parse", RulePhase.Parse, ["from", "to"], (call, schema, midpoint) =>
-                new ParseDecimalRule(call.Strings["from"], call.Strings["to"], schema.Scale(call.Strings["to"]), midpoint))
-            .Register("date.parse", RulePhase.Parse, ["from", "to"], (call, _, _) =>
-                new DateParseRule(
+            .RegisterWithSettings("decimal.parse", RulePhase.Parse, ["from", "to"], (call, schema, settings) =>
+                new CultureDecimalRule(call.Strings["from"], call.Strings["to"], schema.Scale(call.Strings["to"]), settings.Midpoint, settings.Culture.NumberFormat))
+            .RegisterWithSettings("date.parse", RulePhase.Parse, ["from", "to"], (call, _, settings) =>
+                new CultureDateRule(
                     call.Strings["from"],
                     call.Strings["to"],
                     call.Lists.TryGetValue("formats", out var formats) ? formats : [],
-                    call.Strings.GetValueOrDefault("formatBy")))
+                    call.Strings.GetValueOrDefault("formatBy"),
+                    settings.StrictDateFormats ? CultureDateParsing.Strict(settings.Culture) : settings.Culture))
             // Only the ordinal string "false" turns passthrough off. A missing parameter leaves it on.
             .Register("symbol.map", RulePhase.Identify, ["from", "to"], (call, _, _) =>
                 new SymbolMapRule(
@@ -39,17 +41,34 @@ public sealed record RuleRegistry
         RulePhase phase,
         IReadOnlyList<string> required,
         Func<RuleCall, FieldSchema, MidpointMode, INormalizationRule> create) =>
+        RegisterWithSettings(ruleId, phase, required, (call, schema, settings) => create(call, schema, settings.Midpoint));
+
+    internal RuleRegistry RegisterWithSettings(
+        string ruleId,
+        RulePhase phase,
+        IReadOnlyList<string> required,
+        Func<RuleCall, FieldSchema, RuleSettings, INormalizationRule> create) =>
         this with { Normalization = Normalization.Add(ruleId, new NormalizationRegistration(ruleId, phase, required, create)) };
 
     internal bool TryGet(string ruleId, [NotNullWhen(true)] out NormalizationRegistration? registration) =>
         Normalization.TryGetValue(ruleId, out registration);
 }
 
+// What a side's rules are built with: the profile's midpoint, and the side's culture and date strictness, resolved once at compile.
+internal sealed record RuleSettings(MidpointMode Midpoint, CultureInfo Culture, bool StrictDateFormats)
+{
+    public static RuleSettings Invariant(MidpointMode midpoint) => new(midpoint, CultureInfo.InvariantCulture, true);
+}
+
 internal sealed record NormalizationRegistration(
     string RuleId,
     RulePhase Phase,
     IReadOnlyList<string> Required,
-    Func<RuleCall, FieldSchema, MidpointMode, INormalizationRule> Create);
+    Func<RuleCall, FieldSchema, RuleSettings, INormalizationRule> CreateWithSettings)
+{
+    public INormalizationRule Create(RuleCall call, FieldSchema schema, MidpointMode midpoint) =>
+        CreateWithSettings(call, schema, RuleSettings.Invariant(midpoint));
+}
 
 internal sealed class FieldSchema(IReadOnlyList<FieldDeclaration> fields)
 {

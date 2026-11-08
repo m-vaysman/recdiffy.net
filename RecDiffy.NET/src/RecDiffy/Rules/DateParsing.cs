@@ -2,6 +2,8 @@ using System.Globalization;
 
 namespace RecDiffy.Rules;
 
+// Used only by DateParseRule, which CultureDateRule replaces (#158). CultureDateParsing is its replacement.
+[Obsolete("Used only by DateParseRule. Replaced by CultureDateParsing. See #158.")]
 internal static class DateParsing
 {
     public static RowContext Apply(RowContext row, string from, string to, IReadOnlyList<string> formats, string? formatBy, string ruleId)
