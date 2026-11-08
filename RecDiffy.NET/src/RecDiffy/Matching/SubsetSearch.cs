@@ -15,6 +15,8 @@ internal readonly record struct TargetSearch(SearchState State, int[] DrawnItems
 // The walk mutates a count buffer and restores it. A 250,000-node budget has to stay a node budget.
 internal static class SubsetSearch
 {
+    // The suffix bound uses the first conserved value and assumes every later item can be taken.
+    // A group-size cap makes that an overestimate, so the bound prunes less.
     public static TargetSearch Search(IReadOnlyList<ConservedClass> classes, decimal[] target, int maxGroup, int maxNodes, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -47,6 +49,8 @@ internal static class SubsetSearch
         private int[]? _solution;
         private readonly List<int> _drawn = [];
 
+        // Counts descend. The suffix test breaks out of the count loop, because a smaller count cannot close a gap
+        // the maximum remainder already missed.
         public void Go(int index, int size)
         {
             cancellation.ThrowIfCancellationRequested();
@@ -94,6 +98,7 @@ internal static class SubsetSearch
             counts[index] = 0;
         }
 
+        // Incomplete wins over a contest. A walk that ran out of nodes and also found two solutions is Incomplete.
         public TargetSearch Finish() => new(
             _incomplete ? SearchState.Incomplete : _contest ? SearchState.Contest : _solution is null ? SearchState.None : SearchState.Unique,
             [.. _drawn.Distinct()]);

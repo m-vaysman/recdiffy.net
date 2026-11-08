@@ -9,6 +9,7 @@ namespace RecDiffy;
 
 internal static class ResultBuilder
 {
+    // A degree below 2, or a single job, stays on the caller. Parallel starts at two jobs.
     public static ReconciliationResult Build(
         CompiledProfile profile,
         ReferenceDataSet reference,
@@ -69,6 +70,7 @@ internal static class ResultBuilder
             left.Concat(right).SelectMany(row => row.Members.Select(member => (member, row.Context))).ToDictionary(pair => pair.member, pair => pair.Context));
     }
 
+    // An empty diff list is Exact. NotCompared fields are absent from that list and do not lower the outcome.
     private static (ResultEntry Entry, RowContext Left, RowContext Right) Matched(string pathId, CommittedMatch group, DiffPlan plan, IReadOnlySet<string> equal)
     {
         var left = Aggregate(group.Left, plan, equal);
@@ -94,6 +96,7 @@ internal static class ResultBuilder
             right);
     }
 
+    // LeftOnly and RightOnly residue record NoCandidate. Ambiguous records Contest.
     private static ResultEntry Open(string pathId, ResidueCluster cluster)
     {
         var left = cluster.Rows.Where(row => row.Context.Side == Side.Left).SelectMany(row => row.Members).ToArray();
@@ -117,6 +120,8 @@ internal static class ResultBuilder
             new Explanation(cluster.PassId, cluster.PassId is null ? [] : [new PassAttempt(cluster.PassId, verdict, null, members, cluster.Code)], []));
     }
 
+    // Lineage members inherit the survivor's entry.
+    // A member that already has one keeps it, and a suppressed row publishes nothing.
     private static Dictionary<SourceRef, GroupId> Index(IReadOnlyList<ResultEntry> entries, IReadOnlyList<ConsolidatedRow> rows)
     {
         var map = new Dictionary<SourceRef, GroupId>();
@@ -140,6 +145,7 @@ internal static class ResultBuilder
         return map;
     }
 
+    // Quarantine wins over suppression and over the match, and the entry id is cleared on a quarantined row.
     private static RowResult Row(ConsolidatedRow row, SourceRef member, IReadOnlyDictionary<SourceRef, GroupId> entryByRow, IReadOnlyDictionary<GroupId, ResultEntry> entries)
     {
         var linked = entryByRow.TryGetValue(member, out var entryId) ? entryId : (GroupId?)null;
@@ -166,9 +172,12 @@ internal static class ResultBuilder
             ? row.Context.Diagnostics.Add(new Diagnostic(code, DiagnosticSeverity.Invalid, "consolidation", null, null))
             : row.Context.Diagnostics;
 
+    // The set is the pass block minus the conserved fields. Those fields matched exactly and are not summed.
     private static IReadOnlySet<string> EqualByConstruction(PathDeclaration path, string passId) =>
         path.Passes.Where(pass => pass.Id == passId).SelectMany(pass => pass.Block.Except(pass.Conserve, StringComparer.Ordinal)).ToHashSet(StringComparer.Ordinal);
 
+    // One null member nulls the field. Decimals outside the equal-by-construction set are summed and rounded; the
+    // rest keep the first row.
     private static RowContext Aggregate(IReadOnlyList<ConsolidatedRow> rows, DiffPlan plan, IReadOnlySet<string> equal)
     {
         var seed = rows[0].Context;
@@ -201,6 +210,8 @@ internal static class ResultBuilder
     private static SourceRef[] Members(IReadOnlyList<ConsolidatedRow> left, IReadOnlyList<ConsolidatedRow> right) =>
         [.. left.SelectMany(row => row.Members), .. right.SelectMany(row => row.Members)];
 
+    // The id keeps the first 16 bytes of the SHA-256.
+    // Ordinal is not part of the hash, and duplicate refs collapse first.
     public static GroupId Identify(IReadOnlyList<SourceRef> members)
     {
         var text = string.Join(
@@ -223,6 +234,7 @@ internal static class ResultBuilder
         rows.Count(row => row.Disposition == Disposition.Quarantined),
         rows.Count(row => row.Disposition == Disposition.Suppressed));
 
+    // A missing assembly version is reported as 1.0.0.
     private static string EngineVersion() => typeof(Reconciler).Assembly.GetName().Version?.ToString() ?? "1.0.0";
 }
 
@@ -265,6 +277,7 @@ public sealed class ReconciliationResult
         return SideBySideBuilder.Build(this, spec);
     }
 
+    // Only a matched entry has a projection. A residue id throws.
     public CanonicalRow Projection(GroupId entry, Side side)
     {
         var pair = _projections[entry];
@@ -283,6 +296,7 @@ public sealed class ReconciliationResult
         return _rows[row].Raw.TryGetValue(column, out var value) ? value?.ToString() : null;
     }
 
+    // Text values format as empty. Decimal, date, symbol and identifier are the types that produce text.
     public string Format(in CanonicalValue value) => value.Type switch
     {
         FieldType.Decimal when value.IsNull => "",

@@ -46,6 +46,7 @@ public sealed class ProfileBuilder
         return With(_draft with { SourceKeys = _draft.SourceKeys.SetItem(SideName(side), column) });
     }
 
+    // A repeated name is stored. Build reports DuplicateField later.
     public ProfileBuilder Field(string name, FieldType type, FieldRole role, int scale = 0)
     {
         ArgumentNullException.ThrowIfNull(name);
@@ -77,7 +78,7 @@ public sealed class ProfileBuilder
         return With(_draft with { Normalization = _draft.Normalization.SetItem(SideName(side), rules) });
     }
 
-    /// <summary>Collapses NEW, CANC and CORR events on one side into their surviving row before matching.</summary>
+    /// <summary>Collapses lifecycle events on one side into the surviving row before matching. A cancel removes its target, and a correction supersedes its predecessor.</summary>
     public ProfileBuilder Lifecycle(Side side, string action = "EventAction", string target = "EventTarget", string scope = "Counterparty", string corrPointsAt = "CANC")
     {
         ArgumentNullException.ThrowIfNull(action);
@@ -130,6 +131,7 @@ public sealed class ProfileBuilder
         return Finish(ProfileValidation.Check(Document()), registry);
     }
 
+    // Structural problems return before compile runs. Build without a registry never compiles.
     private ProfileBuildResult Finish(ProfileCheckOutcome outcome, RuleRegistry? registry) => (outcome.Problems, registry) switch
     {
         ({ Count: > 0 }, _) => new ProfileBuildResult(null, outcome.Problems),
@@ -155,6 +157,7 @@ public sealed class ProfileBuilder
         Consolidation = _draft.Consolidation,
     };
 
+    // The lambda receives the side already stored, or an empty side. The builder it returns replaces that side.
     private ProfileBuilder Configure(Side side, Func<SideBuilder, SideBuilder> configure)
     {
         ArgumentNullException.ThrowIfNull(configure);

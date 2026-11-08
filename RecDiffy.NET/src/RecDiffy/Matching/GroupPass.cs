@@ -11,6 +11,7 @@ internal sealed class GroupPass(string passId, IReadOnlyList<string> block, IRea
     public override (PassIndex Index, MatchCounters Counters) Build(MatchWorkspace workspace, MatchCounters counters) =>
         GroupIndex.Create(passId, block, conserve, many, maxGroup, workspace, counters);
 
+    // Fresh counters, rebuilt from the workspace free set. The commit path uses Build and keeps the index.
     public override void Propose(in PassContext context, ProposalSink sink) =>
         Publish(sink, Build(context.Workspace, new MatchCounters()).Index.ReadyProposals);
 

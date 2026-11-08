@@ -20,6 +20,7 @@ public sealed class SourceMap<T>
         return new SourceMap<T>([.. _binders, (row, cells) => cells[column] = read(row)]);
     }
 
+    // Text is trimmed. Decimal and date binders store the value the reader returned.
     public SourceMap<T> Text(string column, Func<T, string?> read)
     {
         ArgumentNullException.ThrowIfNull(column);
@@ -34,6 +35,7 @@ public sealed class SourceMap<T>
         return new SourceMap<T>([.. _binders, (row, cells) => cells[column] = read(row)]);
     }
 
+    // Binders run in add order. The last binder on a column overwrites the cell.
     internal IReadOnlyDictionary<string, object?> Project(T row) =>
         _binders.Aggregate(
             new Dictionary<string, object?>(StringComparer.Ordinal),
@@ -53,6 +55,7 @@ public abstract class RecordSource
 
 public static class RecordSources
 {
+    // The name is checked and then dropped. Materialize receives the side name from the reconciler.
     public static RecordSource FromObjects<T>(string name, IEnumerable<T> rows, SourceMap<T> map)
     {
         ArgumentNullException.ThrowIfNull(name);
@@ -61,6 +64,7 @@ public static class RecordSources
         return new ObjectSource<T>(rows, map);
     }
 
+    // The name is checked and then dropped. Materialize receives the side name from the reconciler.
     public static RecordSource FromObjects<T>(string name, IAsyncEnumerable<T> rows, SourceMap<T> map)
     {
         ArgumentNullException.ThrowIfNull(name);
@@ -69,6 +73,7 @@ public static class RecordSources
         return new AsyncObjectSource<T>(rows, map);
     }
 
+    // The name is checked and then dropped. Materialize receives the side name from the reconciler.
     public static RecordSource FromDataReader(string name, Func<IDataReader> open, TabularOptions options)
     {
         ArgumentNullException.ThrowIfNull(name);
@@ -77,6 +82,8 @@ public static class RecordSources
         return new DataReaderSource(open, options);
     }
 
+    // An empty key name means the ordinal is the identity.
+    // A blank cell in a named key is missing, not an empty identity.
     internal static (string Key, bool Missing) RowIdentity(IReadOnlyDictionary<string, object?> cells, string rowKey, int ordinal)
     {
         if (rowKey.Length == 0)
@@ -128,6 +135,7 @@ internal sealed class AsyncObjectSource<T>(IAsyncEnumerable<T> rows, SourceMap<T
 
 internal sealed class DataReaderSource(Func<IDataReader> open, TabularOptions options) : RecordSource
 {
+    // A set RowKeyColumn replaces the profile key. Null keeps the profile key.
     internal override IReadOnlyList<RawRecord> Materialize(string sideName, string rowKey, CancellationToken cancellation)
     {
         using var reader = open();
@@ -137,6 +145,7 @@ internal sealed class DataReaderSource(Func<IDataReader> open, TabularOptions op
     internal override Task<IReadOnlyList<RawRecord>> MaterializeAsync(string sideName, string rowKey, CancellationToken cancellation) =>
         Task.FromResult(Materialize(sideName, rowKey, cancellation));
 
+    // A file that ends inside the skipped header rows returns no records and no error.
     private IReadOnlyList<RawRecord> Read(IDataReader reader, string sideName, string rowKey, CancellationToken cancellation)
     {
         foreach (var _ in Enumerable.Range(0, options.HeaderRowIndex))
@@ -178,6 +187,8 @@ internal sealed class DataReaderSource(Func<IDataReader> open, TabularOptions op
         return new RawRecord(new SourceRef(sideName, key, ordinal), cells, missing);
     }
 
+    // A double that fits becomes a decimal, and one that does not stays invariant text.
+    // A DateTime loses its time, and whitespace becomes null.
     private static object? CellOf(object? value) => value switch
     {
         null or DBNull => null,

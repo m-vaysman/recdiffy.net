@@ -22,6 +22,7 @@ internal static class Intake
             NormalizeSide(right, profile.RightRules, reference, master));
     }
 
+    // Missing-key rows stay in front, in file order. Collapsed groups follow them.
     private static IReadOnlyList<IntakeRow> NormalizeSide(
         IReadOnlyList<RawRecord> rows,
         IReadOnlyList<CompiledRule> rules,
@@ -32,6 +33,7 @@ internal static class Intake
     private static IntakeRow Normalize(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, ReferenceDataSet reference, InstrumentMaster master) =>
         group.Conflict ? Quarantine(group) : Accept(group, rules, reference, master);
 
+    // A warning does not quarantine the row. Any Invalid diagnostic does.
     private static IntakeRow Accept(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, ReferenceDataSet reference, InstrumentMaster master)
     {
         var context = Warn(Apply(group.Row, rules, reference, master), group.Members.Count);
@@ -44,6 +46,7 @@ internal static class Intake
     private static RowContext Apply(RawRecord row, IReadOnlyList<CompiledRule> rules, ReferenceDataSet reference, InstrumentMaster master) =>
         rules.Aggregate(Start(row, reference, master), (current, rule) => WhenMatcher.Holds(rule.When, current) ? Invoke(rule, current) : current);
 
+    // Any source name other than "right" is the left side.
     private static RowContext Start(RawRecord row, ReferenceDataSet reference, InstrumentMaster master) =>
         RowContext.Create(row.Ref.RowKey, row.Ref.Source is "right" ? Side.Right : Side.Left, row.Cells) with
         {
@@ -65,6 +68,7 @@ internal static class Intake
                 .Diagnose("MissingKey", DiagnosticSeverity.Invalid, "intake", null, null),
             true);
 
+    // Conflict copies skip the rules. Each copy adds one DuplicateConflict, against empty reference data.
     private static IntakeRow Quarantine(DuplicateGroup group) =>
         new(
             group.Members,
@@ -76,6 +80,8 @@ internal static class Intake
     private static IReadOnlyList<DuplicateGroup> Collapse(IReadOnlyList<RawRecord> rows) =>
         [.. rows.GroupBy(row => row.Ref.RowKey, StringComparer.Ordinal).SelectMany(group => Groups(group.ToArray()))];
 
+    // One shared fingerprint collapses to the first row and keeps every source ref.
+    // Two fingerprints quarantine each copy.
     private static IEnumerable<DuplicateGroup> Groups(RawRecord[] copies) =>
         copies.Select(copy => copy.Fingerprint()).Distinct(StringComparer.Ordinal).Count() switch
         {
@@ -89,6 +95,7 @@ internal static class Intake
 
 internal static class RawFingerprints
 {
+    // Columns are sorted by name before the join, so dictionary order cannot split identical rows.
     public static string Fingerprint(this RawRecord row) =>
         Delimited.Join('\u001f', row.Cells.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => $"{pair.Key}={pair.Value}"));
 }

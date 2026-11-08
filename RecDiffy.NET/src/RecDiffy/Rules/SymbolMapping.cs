@@ -2,6 +2,7 @@ namespace RecDiffy.Rules;
 
 internal static class SymbolMapping
 {
+    // Blank text is a null symbol. An unknown value with passthrough off is an invalid null.
     public static RowContext Apply(RowContext row, string from, string to, IReadOnlyDictionary<string, string> map, bool passthrough, string ruleId)
     {
         var raw = row.Raw.TryGetValue(from, out var value) ? value?.ToString()?.Trim() : null;

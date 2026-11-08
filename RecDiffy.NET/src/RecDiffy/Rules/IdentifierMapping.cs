@@ -2,6 +2,7 @@ namespace RecDiffy.Rules;
 
 internal static class IdentifierMapping
 {
+    // Blank text is a null identifier and is not interned.
     public static RowContext Apply(RowContext row, string from, string to, string scheme, string scope, string ruleId)
     {
         var raw = row.Raw.TryGetValue(from, out var value) ? value?.ToString()?.Trim() : null;

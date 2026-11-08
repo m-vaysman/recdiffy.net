@@ -19,6 +19,7 @@ internal sealed record PairIndex(
 
     public override IReadOnlyList<MatchProposal> ReadyProposals => [.. ReadyOrder.Select(key => Ready[key])];
 
+    // Commit order is the ordinal key, not the row index.
     public override MatchProposal? NextReady() =>
         ReadyOrder.IsEmpty || ReadyOrder.Min is not { } key ? null : Ready[key];
 
@@ -63,6 +64,7 @@ internal sealed record PairIndex(
     public override IReadOnlyList<ResidueCluster> Residue() =>
         [.. Left.Keys.Union(Right.Keys, StringComparer.Ordinal).OrderBy(key => key, StringComparer.Ordinal).SelectMany(Cluster)];
 
+    // A key with rows on only one side is not residue. Those rows stay free for a later pass.
     private IEnumerable<ResidueCluster> Cluster(string key) =>
         Sides(key) is { Left: { Length: > 0 } left, Right: { Length: > 0 } right } && (left.Length is not 1 || right.Length is not 1)
             ? [new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows([.. left, .. right]))]
@@ -90,6 +92,8 @@ internal sealed record PairIndex(
             : cleared;
     }
 
+    // A row stays when any opposite row does not veto it, including a row the other side then drops.
+    // One clean pair can remain ambiguous.
     private (int[] Left, int[] Right) Sides(string key)
     {
         var left = Members(Left, key);
@@ -113,6 +117,7 @@ internal sealed record PairIndex(
             .GroupBy(row => row.Key, StringComparer.Ordinal)
             .ToImmutableDictionary(group => group.Key, group => group.Select(row => row.Index).ToImmutableArray(), StringComparer.Ordinal);
 
+    // A null key part is not placed. The row stays free for a later pass.
     private static IReadOnlyList<PlacedRow> Placed(MatchWorkspace workspace, IReadOnlyList<string> fields) =>
         [.. workspace.Free
             .Select(index => MatchKeys.Compose(workspace.Items[index], fields, workspace.Schema) is { } key

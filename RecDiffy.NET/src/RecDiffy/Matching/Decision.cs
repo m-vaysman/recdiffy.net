@@ -12,5 +12,6 @@ internal sealed record Decision(DecisionKind Kind, MatchProposal[] Commits, int[
 
     public static Decision Blocked(int[] items) => new(DecisionKind.Incomplete, [], [], items, "BlockTooLarge");
 
+    // The code is BudgetExhausted. An oversized block never shares this split, because that block does not search.
     public static Decision Mixed(int[] contest, int[] incomplete) => new(DecisionKind.Split, [], contest, incomplete, "BudgetExhausted");
 }

@@ -11,6 +11,7 @@ internal sealed class PairPass(string passId, IReadOnlyList<string> fields, bool
     public override (PassIndex Index, MatchCounters Counters) Build(MatchWorkspace workspace, MatchCounters counters) =>
         PairIndex.Create(passId, fields, veto, workspace, counters);
 
+    // Fresh counters, rebuilt from the workspace free set. The commit path uses Build and keeps the index.
     public override void Propose(in PassContext context, ProposalSink sink) =>
         Publish(sink, Build(context.Workspace, new MatchCounters()).Index.ReadyProposals);
 

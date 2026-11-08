@@ -8,6 +8,8 @@ internal sealed class ParseDecimalRule(string from, string to, int scale, Midpoi
 
     public RulePhase Phase => RulePhase.Parse;
 
+    // The source column is raw text, so the read set stays empty.
+    // Listing it makes compile report FieldReadBeforeWrite.
     public IReadOnlyList<FieldId> Reads { get; } = [];
 
     public IReadOnlyList<FieldId> Writes => [new FieldId(to)];

@@ -10,9 +10,11 @@ internal static class Delimited
     public static string Join(char separator, IEnumerable<string> parts) =>
         string.Join(separator, parts.Select(part => Encode(part, Marks(separator))));
 
+    // Parts must already be escaped. A raw separator splits the result.
     public static string Concat(char separator, IEnumerable<string> escapedParts) =>
         string.Join(separator, escapedParts);
 
+    // A separator already in Reserved must stay once. A second pass rewrites the escape the first pass wrote.
     private static char[] Marks(char separator) =>
         Reserved.Contains(separator) ? Reserved : [.. Reserved, separator];
 

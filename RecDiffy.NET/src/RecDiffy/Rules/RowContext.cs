@@ -44,6 +44,7 @@ public sealed record RowContext
 
     public required ImmutableList<TraceStep> Traces { get; init; }
 
+    // The raw cells are copied under ordinal comparison. The caller's comparer does not survive.
     public static RowContext Create(string rowKey, Side side, IReadOnlyDictionary<string, object?> raw)
     {
         ArgumentNullException.ThrowIfNull(rowKey);
@@ -76,6 +77,7 @@ public sealed record RowContext
     public RowContext Diagnose(string code, DiagnosticSeverity severity, string ruleId, string? field, string? raw) =>
         this with { Diagnostics = Diagnostics.Add(new Diagnostic(code, severity, ruleId, field, raw)) };
 
+    // An unknown cell type displays as null even when the cell is present.
     public string? Display(string field) =>
         Values.TryGetValue(field, out var cell) && !cell.IsNull
             ? cell.Type switch

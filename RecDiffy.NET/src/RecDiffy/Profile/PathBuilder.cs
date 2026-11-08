@@ -33,6 +33,7 @@ public sealed class PathBuilder
     public PathBuilder ReducedKey(string id, params string[] key) => Pass(id, "match.reducedKey", key, [], [], null, null);
 
     /// <summary>Matches several items on the <paramref name="many"/> side to one on the other, within a block, when the conserved fields sum.</summary>
+    // An empty key is stored empty. sharedRef fills a default key later; this pass does not.
     public PathBuilder GroupSum(string id, Side many, IReadOnlyList<string> block, IReadOnlyList<string> conserve, int? maxGroupSize = null, IReadOnlyList<string>? key = null)
     {
         ArgumentNullException.ThrowIfNull(block);
@@ -103,6 +104,7 @@ public sealed class PathBuilder
         return new(_draft with { Passes = _draft.Passes.Add(new PassDeclaration(id, pass, [.. key], [.. block], [.. conserve], many, maxGroupSize)) });
     }
 
+    // A null applicableWhen leaves the clause already stored. It does not clear it.
     private PathBuilder Diff(string field, Func<FieldDiffDeclaration, FieldDiffDeclaration> change, WhenClause? applicableWhen)
     {
         ArgumentNullException.ThrowIfNull(field);
@@ -132,6 +134,7 @@ public sealed class PackageBuilder
     }
 
     /// <summary>A package missing any of these roles is quarantined as incomplete.</summary>
+    // Roles append. A second call keeps the roles from the first.
     public PackageBuilder RequireRoles(params string[] roles)
     {
         ArgumentNullException.ThrowIfNull(roles);

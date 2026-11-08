@@ -28,6 +28,7 @@ public static class ProfileWriter
         return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 
+    // Ampersands and angle brackets stay unescaped.
     private static JsonWriterOptions Options(bool indented) => new()
     {
         Indented = indented,
@@ -134,6 +135,7 @@ public static class ProfileWriter
     }
 
     // from and to lead because every reader looks for them first; the rest follow in ordinal order.
+    // A name that is also rule or when, or that sits in two argument bags, throws.
     private static IReadOnlyList<string> ArgumentNames(RuleCall rule)
     {
         string[] names = [.. rule.Strings.Keys, .. rule.Lists.Keys, .. rule.Maps.Keys];
@@ -201,6 +203,8 @@ public static class ProfileWriter
         writer.WriteEndObject();
     }
 
+    // The field is written as corrTarget. The parser accepts corrPointsAt as well, and corrTarget wins when a file
+    // has both.
     private static void WriteLifecycle(Utf8JsonWriter writer, LifecyclePlan lifecycle)
     {
         writer.WriteStartObject("lifecycle");
@@ -308,6 +312,8 @@ public static class ProfileWriter
         writer.WriteEndObject();
     }
 
+    // Kind is checked against the values first.
+    // A mismatch throws instead of writing a tolerance the parser would read back as a different kind.
     private static void WriteTolerance(Utf8JsonWriter writer, string field, ToleranceDeclaration tolerance)
     {
         var expected = KindOf(tolerance);

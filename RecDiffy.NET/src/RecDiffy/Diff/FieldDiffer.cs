@@ -33,6 +33,7 @@ internal static class FieldDiffer
     private static readonly DecimalComparer Numbers = default;
     private static readonly DateComparer Dates = default;
 
+    // The scan calls Measure, not Finish. Finishing netCash here would read unmeasured sibling scores as NotCompared.
     public static FieldDiff[] Compare(RowContext left, RowContext right, DiffPlan plan)
     {
         for (var index = 0; index < plan.Steps.Length; index++)
@@ -101,6 +102,8 @@ internal static class FieldDiffer
         _ => [],
     };
 
+    // Both null cells are Exact, and one null cell is a Break.
+    // When applicableWhen is set, the field is skipped only if both sides miss it.
     private static FieldScore Measure(DiffStep step, RowContext left, RowContext right, MidpointMode midpoint)
     {
         if (step.ApplicableWhen is not null && WhenMatcher.Holds(step.ApplicableWhen, left) is false && WhenMatcher.Holds(step.ApplicableWhen, right) is false)
@@ -132,6 +135,7 @@ internal static class FieldDiffer
         return new FieldScore(Within(step, left, right, scaledLeft, scaledRight, delta.Number) ? FieldOutcome.WithinTolerance : FieldOutcome.Break, delta.Number, 0);
     }
 
+    // Only a Days tolerance allows a gap. Any other kind, including a missing tolerance, allows zero days.
     private static FieldScore Date(DiffStep step, RowContext left, RowContext right)
     {
         var scaledLeft = left.Values[step.Field.Name].Date;
@@ -146,6 +150,7 @@ internal static class FieldDiffer
     private static FieldScore Text(string? left, string? right) =>
         string.Equals(left, right, StringComparison.Ordinal) ? new FieldScore(FieldOutcome.Exact, 0m, 0) : new FieldScore(FieldOutcome.Break, 0m, 0);
 
+    // The tolerance when must hold on both sides. One side failing it leaves a Break.
     private static bool Within(DiffStep step, RowContext left, RowContext right, decimal scaledLeft, decimal scaledRight, decimal delta)
     {
         if (step.Tolerance is not { } tolerance || tolerance.Kind is "Exact" or "Attributed")
@@ -168,6 +173,7 @@ internal static class FieldDiffer
         return scale == 0m ? false : abs <= ratio * scale;
     }
 
+    // The left quantity is the base. A zero left quantity is unexplained.
     private static bool ProRata(RowContext left, RowContext right, FieldDeclaration field, MidpointMode midpoint)
     {
         if (left.IsNull("Quantity") || right.IsNull("Quantity") || left.IsNull(field.Name) || right.IsNull(field.Name))
@@ -187,17 +193,21 @@ internal static class FieldDiffer
         return Rounding.Round(expected, 2, midpoint) == Rounding.Round(delta, 2, midpoint);
     }
 
+    // Bonds divide quantity times price by 100. A missing asset class does not.
     private static decimal Principal(RowContext row, string? asset, MidpointMode midpoint)
     {
         var raw = Number(row, "Quantity") * Number(row, "Price");
         return Rounding.Round(asset is "Bond" ? raw / 100m : raw, 2, midpoint);
     }
 
+    // SELL, REC_FIXED and REC make the fee negative. A missing side on both rows leaves it positive.
     private static int FeeSign(RowContext left, RowContext right) =>
         (left.Display("Side") ?? right.Display("Side")) is "SELL" or "REC_FIXED" or "REC" ? -1 : 1;
 
+    // A null field contributes zero, so a missing Accrued can still explain net cash.
     private static decimal Number(RowContext row, string field) => row.IsNull(field) ? 0m : row.Values[field].Number;
 
+    // A root that is not a step is a Break.
     private static FieldOutcome Outcome(FieldScore[] scores, DiffPlan plan, string field)
     {
         for (var index = 0; index < plan.Steps.Length; index++)
@@ -209,6 +219,7 @@ internal static class FieldDiffer
         return FieldOutcome.Break;
     }
 
+    // When no root has moved, the explained net is still a Break.
     private static FieldOutcome WorstMoved(FieldScore[] scores, DiffPlan plan)
     {
         var worst = FieldOutcome.Exact;
@@ -228,6 +239,7 @@ internal static class FieldDiffer
         plan.Steps.Where((step, index) => step.Field.Name is "Quantity" or "Price" or "Accrued" or "Fees" && outcomes[index] is not FieldOutcome.Exact and not FieldOutcome.NotCompared)
             .Select(step => step.Field.Name);
 
+    // A null cell is reported as text, whatever type the field has.
     private static CanonicalValue Value(RowContext row, string field) => row.IsNull(field)
         ? new CanonicalValue(FieldType.Text, true, 0m, default, 0)
         : new CanonicalValue(row.Values[field].Type, false, row.Values[field].Number, row.Values[field].Date, row.Values[field].Interned, row.Display(field));
