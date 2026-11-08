@@ -4,7 +4,8 @@ using System.Globalization;
 namespace RecDiffy.Tests;
 
 // Issue #99: building row dispositions must stay linear. One-to-one matching on a unique instrument, 4,000 rows per side against 16,000,
-// after a warmup, best of several runs. Linear growth is about 4x and quadratic about 16x; the test fails at 8x or more.
+// after a warmup, median of several runs. Linear growth is about 4x and quadratic about 16x; the test fails at 8x or more.
+// The minimum is the wrong summary. A 4,000-row run sometimes finishes before a GC pause, and that best time against a steady 16,000-row run crosses 8x.
 // Moved from #98 (seeded fuzz) so the engine change and its proof ship together.
 // Runs in its own non-parallel collection: other tests competing for the CPU would distort the timings.
 [Collection(nameof(TimingCollection))]
@@ -22,23 +23,32 @@ public class OneToOneScalingTests
     {
         const int smallRows = 4_000;
         const int largeRows = 16_000;
-        const int samples = 5;
+        const int warmup = 2;
+        const int samples = 21;
 
-        _ = Time(smallRows);
-        _ = Time(largeRows);
-        var small = Best(smallRows, samples);
-        var large = Best(largeRows, samples);
-        var ratio = (double)large / small;
+        for (var attempt = 0; attempt < warmup; attempt++)
+        {
+            _ = Time(smallRows);
+            _ = Time(largeRows);
+        }
+
+        var measured = Enumerable.Range(0, samples).Select(_ => (Small: Time(smallRows), Large: Time(largeRows))).ToArray();
+        var small = Median(measured.Select(sample => sample.Small));
+        var large = Median(measured.Select(sample => sample.Large));
+        var ratio = large / small;
 
         Assert.True(
             ratio < 8,
-            $"16,000 rows took {TimeSpan.FromTicks(large).TotalMilliseconds:0} ms vs {TimeSpan.FromTicks(small).TotalMilliseconds:0} ms for 4,000 ({ratio:0.00}x). Linear growth is about 4x.");
+            $"16,000 rows took {large:0} ms vs {small:0} ms for 4,000 ({ratio:0.00}x). Linear growth is about 4x.");
     }
 
-    private static long Best(int rows, int samples) =>
-        Enumerable.Range(0, samples).Select(_ => Time(rows)).Min();
+    private static double Median(IEnumerable<double> samples)
+    {
+        var ordered = samples.Order().ToArray();
+        return ordered[ordered.Length / 2];
+    }
 
-    private static long Time(int rows)
+    private static double Time(int rows)
     {
         var left = ScaleRows(rows, "L");
         var right = ScaleRows(rows, "R");
@@ -51,7 +61,7 @@ public class OneToOneScalingTests
         watch.Stop();
         Assert.Equal(rows, result.Summary.Matched);
         Assert.Equal(rows * 2, result.Rows.Count);
-        return watch.ElapsedTicks;
+        return watch.Elapsed.TotalMilliseconds;
     }
 
     private static Dictionary<string, string>[] ScaleRows(int rows, string prefix) =>
