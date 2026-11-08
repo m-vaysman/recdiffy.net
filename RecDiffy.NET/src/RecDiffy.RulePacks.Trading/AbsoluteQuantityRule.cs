@@ -3,6 +3,9 @@ using RecDiffy.Rules;
 
 namespace RecDiffy.RulePacks.Trading;
 
+// Replaced by CultureQuantityRule (#158). It reads text with the invariant culture whatever the profile declares,
+// and converts float and double, so it no longer reads a quantity the way decimal.parse does.
+[Obsolete("Replaced by CultureQuantityRule: reads text with the invariant culture whatever the profile declares, and converts float and double. See #158.")]
 internal sealed class AbsoluteQuantityRule(string from, string to) : INormalizationRule
 {
     public string RuleId => "quantity.absolute";

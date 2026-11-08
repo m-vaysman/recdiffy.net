@@ -62,7 +62,7 @@ internal static class ResultBuilder
         var rows = left.Concat(right).SelectMany(row => row.Members.Select(member => Row(row, member, entryByRow, entryById))).ToArray();
         var summary = Summarize(entries, rows);
         return new ReconciliationResult(
-            new RunInfo(profile.Hash, reference.Id, reference.ContentHash, EngineVersion()),
+            new RunInfo(profile.Hash, reference.Id, reference.ContentHash, EngineVersion()) { Reading = profile.Reading },
             entries,
             rows,
             summary,

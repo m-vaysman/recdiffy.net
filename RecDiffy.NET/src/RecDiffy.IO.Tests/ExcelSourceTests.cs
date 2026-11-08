@@ -128,17 +128,17 @@ public class ExcelSourceTests
         Assert.Equal(["00123"], Ids(Read(book, ExcelSheet.Numbered(1))), StringComparer.Ordinal);
     }
 
-    // Excel stores numbers as doubles. Whole numbers and fractions both reach the engine as the double stored, and
-    // round to the field's scale as a decimal.
+    // A workbook stores numbers as text, and the engine never interprets a double (#158). Whole numbers and fractions
+    // both reach the engine as the decimal the workbook stores, and round to the field's scale.
     [Fact]
-    public void Numbers_reach_the_engine_as_the_double_the_workbook_stores()
+    public void Numbers_reach_the_engine_as_the_decimal_the_workbook_stores()
     {
         var book = TestFiles.Xlsx(TestFiles.Folder(), "book.xlsx", new Sheet("Numbers", [["Id", "Day", "Amount"], ["A", new DateOnly(2026, 1, 1), 2940000], ["B", new DateOnly(2026, 1, 1), 1.094d]]));
 
         var peek = FileSources.PeekExcel(book, new ExcelOptions { HasHeader = true, Sheet = ExcelSheet.Numbered(1) }, 10, 0);
         var rows = Read(book, ExcelSheet.Numbered(1));
 
-        Assert.All(peek.Rows, row => Assert.IsType<double>(row.Values[2]));
+        Assert.Equal([2940000m, 1.094m], peek.Rows.Select(row => Assert.IsType<decimal>(row.Values[2])));
         Assert.Equal([2940000m, 1.09m], rows.Select(row => row["Amount"].Number));
     }
 
