@@ -9,7 +9,7 @@ using RecDiffy.Excel.Writing;
 namespace RecDiffy.Excel;
 
 /// <summary>Writes formatted Excel reports, one .xlsx file per report, from a RecDiffy <see cref="ReconciliationResult"/>.</summary>
-public static class RecDiffyExcel
+public static partial class RecDiffyExcel
 {
     private static readonly IWorkbookWriter Writer = new OpenXmlWorkbookWriter();
 
@@ -79,9 +79,15 @@ public static class RecDiffyExcel
     internal static string SafeSegment(string profileId)
     {
         var replaced = new string([.. profileId.Select(character => character is '<' or '>' or ':' or '"' or '/' or '\\' or '|' or '?' or '*' || char.IsControl(character) || char.IsWhiteSpace(character) ? '-' : character)]);
-        var collapsed = Regex.Replace(Regex.Replace(replaced, @"\.{2,}", "-", RegexOptions.None, TimeSpan.FromSeconds(1)), "-{2,}", "-", RegexOptions.None, TimeSpan.FromSeconds(1));
+        var collapsed = Dashes().Replace(Dots().Replace(replaced, "-"), "-");
         return collapsed.Trim('-', '.') is { Length: > 0 } safe ? safe : "profile";
     }
+
+    [GeneratedRegex(@"\.{2,}", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex Dots();
+
+    [GeneratedRegex("-{2,}", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex Dashes();
 
     internal sealed record Composed(ReportKind Kind, string FileName, Workbook? Workbook, string? SkipReason);
 

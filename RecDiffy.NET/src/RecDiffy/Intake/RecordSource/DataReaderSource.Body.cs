@@ -5,7 +5,7 @@ namespace RecDiffy;
 
 internal sealed partial class DataReaderSource
 {
-    private static IReadOnlyList<RawRecord> ReadBody(IDataReader reader, string sideName, string rowKey, string[] headers, CancellationToken cancellation) =>
+    private static RawRecord[] ReadBody(IDataReader reader, string sideName, string rowKey, string[] headers, CancellationToken cancellation) =>
         Enumerate(reader, cancellation)
             .Select((record, ordinal) => ToRow(sideName, rowKey, headers, record, ordinal))
             .ToArray();

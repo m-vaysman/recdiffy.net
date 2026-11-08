@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq.Expressions;
 using RecDiffy.Results;
 
@@ -101,7 +102,7 @@ public sealed class RecBuilder<TLeft, TRight>
             .Select(group => Declare(group.Key, group.ToArray()))
             .ToArray();
         var passes = _passes
-            .Select((pass, index) => (Id: $"P{index + 1}", Key: pass.Select(pair => pair.Field).ToArray()))
+            .Select((pass, index) => (Id: "P" + (index + 1).ToString(CultureInfo.InvariantCulture), Key: pass.Select(pair => pair.Field).ToArray()))
             .Aggregate(PathBuilder.Create("typed"), (path, pass) => path.NaturalKey(pass.Id, pass.Key));
         var path = _compared
             .Where(pair => pair.Tolerance is not null)

@@ -1,3 +1,4 @@
+using System.Globalization;
 using RecDiffy.IO;
 using RecDiffy.Results;
 
@@ -19,7 +20,7 @@ public static class FileReaders
         var left = FileSources.FromCsv("bins", bins, new CsvOptions { HasHeader = true, Delimiter = CsvDelimiter.Comma });
         var right = FileSources.FromCsv("book", book, new CsvOptions { HasHeader = false, Delimiter = CsvDelimiter.Pipe });
         var peek = FileSources.PeekCsv(book, new CsvOptions { HasHeader = false, Delimiter = CsvDelimiter.Pipe }, sampleSize: 10, seed: 0);
-        Console.WriteLine($"book columns: {string.Join(", ", peek.Headers)}; rows: {peek.RowCount}");
+        Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $"book columns: {string.Join(", ", peek.Headers)}; rows: {peek.RowCount}"));
 
         var registry = RuleRegistry.CreateCore();
         var result = Reconciler.Run(Reconciler.Compile(ProfileDocument.Parse(Profile), registry), left, right, ReferenceDataSet.Empty);

@@ -72,7 +72,7 @@ internal static class ProfileParser
             true => throw new ProfileCompileException([new ProfileError("InvalidParameter", $"{location} must be true or false.")]),
         };
 
-    private static IReadOnlyDictionary<string, SourceReading> ReadSourceReadings(JsonElement root) =>
+    private static Dictionary<string, SourceReading> ReadSourceReadings(JsonElement root) =>
         root.TryGetProperty("sources", out var sources) && sources.ValueKind is JsonValueKind.Object
             ? sources.EnumerateObject()
                 .Select(property => (Side: property.Name, Reading: new SourceReading(
