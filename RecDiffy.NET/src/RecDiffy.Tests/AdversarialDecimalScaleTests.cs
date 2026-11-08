@@ -60,7 +60,7 @@ public class AdversarialDecimalScaleTests
         }
         """;
 
-    [Fact(Skip = "🔴 #171 (#174 B): duplicate detection compares decimals as text")]
+    [Fact]
     public void Duplicate_copies_whose_decimals_differ_only_in_scale_are_identical()
     {
         var map = new SourceMap<(string Id, decimal Qty)>().Text("Id", row => row.Id).Decimal("Qty", row => row.Qty);
