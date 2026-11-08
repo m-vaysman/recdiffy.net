@@ -72,7 +72,7 @@ internal static class TabularReaders
             { Number: var number } => throw new ArgumentOutOfRangeException(nameof(options), number, $"Sheet number {number.ToString(CultureInfo.InvariantCulture)} is out of range in {source}: sheet numbers start at 1, the first tab. {List(names)}"),
         };
         return workbook.TryOpenWorksheet(sheet)
-            ? new NamedColumns(workbook, Names(workbook, options.HasHeader, $"sheet '{sheet}' of {source}"))
+            ? new NamedColumns(workbook, Names(workbook, options.HasHeader, $"sheet '{sheet}' of {source}"), $"sheet '{sheet}' of {source}")
             : throw new InvalidOperationException($"Sheet '{sheet}' of {source} could not be opened.");
     }
 
@@ -121,7 +121,7 @@ internal static class TabularReaders
 }
 
 // Gives the engine the column names this adapter settled on and passes everything else through to the reader it owns.
-internal sealed class NamedColumns(IDataReader inner, string[] names) : IDataReader
+internal sealed class NamedColumns(IDataReader inner, string[] names, string? location = null) : IDataReader
 {
     public object this[int i] => GetValue(i);
 
@@ -192,15 +192,30 @@ internal sealed class NamedColumns(IDataReader inner, string[] names) : IDataRea
 
     public string GetString(int i) => inner.GetString(i);
 
-    // The engine never interprets a double (#158). A workbook number reaches it as the decimal the workbook stores,
-    // and Sylvan's narrowing of whole numbers to Int32 is widened to that decimal too. A number no decimal holds
-    // exactly stays a double, and decimal.parse reports it.
-    public object GetValue(int i) => inner.GetValue(i) switch
+    // The engine never interprets a double (#158). A workbook number reaches it as the decimal the workbook stores.
+    // Sylvan narrows whole numbers to Int32, or to Int64 by the double's binary value: from 2^53 up that is not the stored
+    // text (18014398509484530 arrives as ...528), so an Int64 goes back through the double's shortest text (#169).
+    // A number no decimal holds exactly stays a double, and decimal.parse reports it.
+    public object GetValue(int i) => Value(i) switch
     {
         int number => (decimal)number,
+        long number when WorkbookNumbers.Exact(number) is { } exact => exact,
         double number when WorkbookNumbers.Exact(number) is { } exact => exact,
         var value => value,
     };
+
+    // A workbook error cell breaks the input contract, so the file is rejected with the cell named (spec v3 §1.2, §3.4; #169).
+    private object Value(int i)
+    {
+        try
+        {
+            return inner.GetValue(i);
+        }
+        catch (ExcelFormulaException error)
+        {
+            throw WorkbookErrors.Rejection(location ?? "the workbook", error);
+        }
+    }
 
     public int GetValues(object[] values)
     {
