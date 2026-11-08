@@ -162,7 +162,7 @@ public sealed class ProfileBuilder
     }
 
     // Structural problems return before compile runs. Build without a registry never compiles.
-    private ProfileBuildResult Finish(ProfileCheckOutcome outcome, RuleRegistry? registry) => (outcome.Problems, registry) switch
+    private static ProfileBuildResult Finish(ProfileCheckOutcome outcome, RuleRegistry? registry) => (outcome.Problems, registry) switch
     {
         ({ Count: > 0 }, _) => new ProfileBuildResult(null, outcome.Problems),
         (_, null) => new ProfileBuildResult(outcome.Document, []),
@@ -207,7 +207,7 @@ public sealed class ProfileBuilder
     private ConsolidationSide Consolidation(string side) =>
         _draft.Consolidation.GetValueOrDefault(side) ?? new ConsolidationSide(null, []);
 
-    private ProfileBuilder With(ProfileDraft draft) => new(draft);
+    private static ProfileBuilder With(ProfileDraft draft) => new(draft);
 
     internal static string SideName(Side side) => side switch
     {
