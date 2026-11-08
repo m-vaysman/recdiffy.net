@@ -293,7 +293,7 @@ public sealed class ReconciliationResult
     public string? Raw(SourceRef row, string column)
     {
         ArgumentNullException.ThrowIfNull(column);
-        return _rows[row].Raw.TryGetValue(column, out var value) ? value?.ToString() : null;
+        return _rows[row].Raw.TryGetValue(column, out var value) ? InvariantText.Of(value) : null;
     }
 
     // Text values format as empty. Decimal, date, symbol and identifier are the types that produce text.

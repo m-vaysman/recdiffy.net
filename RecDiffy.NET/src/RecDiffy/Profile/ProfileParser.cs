@@ -218,11 +218,18 @@ internal static class ProfileParser
         element.TryGetProperty(name, out var value)
             ? value.ValueKind switch
             {
-                JsonValueKind.String => decimal.Parse(value.GetString()!, CultureInfo.InvariantCulture),
+                JsonValueKind.String => StrictDecimal(name, value.GetString()!),
                 JsonValueKind.Number => value.GetDecimal(),
                 _ => null,
             }
             : null;
+
+    // Profile JSON is RecDiffy's own format, so a number written as text is read strictly invariant: a sign and a
+    // decimal point, nothing else. "0,05" is rejected, not read as 5 (#168, spec v3 §3.5 rule 6).
+    private static decimal StrictDecimal(string name, string text) =>
+        decimal.TryParse(text, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var parsed)
+            ? parsed
+            : throw new ProfileCompileException([new ProfileError("InvalidParameter", $"{name} \"{text}\" is not an invariant number such as \"0.05\".")]);
 
     // A source with no rowKey stores an empty string, and the run then uses the row ordinal.
     private static IReadOnlyDictionary<string, string> ReadSourceKeys(JsonElement root) =>
