@@ -50,7 +50,7 @@ public class AdversarialUnroundedKeyTests
         """;
 
     // Left reads 100.125 at scale 2 ToEven: 100.12. Right's quantity.absolute keeps -100.125 as 100.125.
-    [Fact(Skip = "🔴 #170 (#174 B): quantity.absolute writes an unrounded value")]
+    [Fact]
     public void An_absolute_quantity_is_rounded_to_its_field_scale_before_it_is_keyed()
     {
         var result = Run(QuantityProfile, "Qty", "100.125", "-100.125");
@@ -59,7 +59,7 @@ public class AdversarialUnroundedKeyTests
     }
 
     // Left reads 100.03125 at scale 4 ToEven: 100.0312. Right's 32nds "100-01" is 100.03125, unrounded.
-    [Fact(Skip = "🔴 #170 (#174 B): price.from32nds writes an unrounded value")]
+    [Fact]
     public void A_32nds_price_is_rounded_to_its_field_scale_and_the_profile_midpoint_before_it_is_keyed()
     {
         var result = Run(PriceProfile, "Px", "100.03125", "100-01");

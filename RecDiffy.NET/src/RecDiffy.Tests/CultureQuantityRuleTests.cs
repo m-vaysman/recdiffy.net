@@ -6,10 +6,6 @@ namespace RecDiffy.Tests;
 
 public class CultureQuantityRuleTests
 {
-    [Fact]
-    public void Quantity_absolute_is_registered_to_the_culture_rule() =>
-        Assert.IsType<CultureQuantityRule>(Absolute("en-US"));
-
     [Theory]
     [InlineData("", "int", "-100")]
     [InlineData("", "long", "-9223372036854775808")]
@@ -55,7 +51,11 @@ public class CultureQuantityRuleTests
         Assert.Empty(row.Diagnostics);
     }
 
-    private static INormalizationRule Absolute(string culture) => CultureProfile.Rules(culture).Build("quantity.absolute", Columns("Quantity"));
+    // quantity.absolute now builds ScaledQuantityRule (#170). These tests keep checking the type they were written for;
+    // the registration is checked in ScaledRuleTests.
+#pragma warning disable CS0618
+    private static INormalizationRule Absolute(string culture) => new CultureQuantityRule("Qty", "Quantity", System.Globalization.CultureInfo.GetCultureInfo(culture).NumberFormat);
+#pragma warning restore CS0618
 
     private static Dictionary<string, string> Columns(string to) => new(StringComparer.Ordinal) { ["from"] = "Qty", ["to"] = to };
 
