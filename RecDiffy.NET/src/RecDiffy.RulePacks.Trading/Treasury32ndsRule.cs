@@ -37,6 +37,8 @@ internal static class Treasury32nds
         row.Write(field, CanonicalCell.FromDecimal(price), ruleId, raw, price.ToString(CultureInfo.InvariantCulture));
 }
 
+// Replaced by Scaled32ndsRule (#170). It rounds to a fixed scale 6 with ToEven, not the field's scale and the profile midpoint.
+[Obsolete("Replaced by Scaled32ndsRule: rounds to a fixed scale 6 with ToEven instead of the field's scale and the profile midpoint. See #170.")]
 internal sealed class Treasury32ndsRule(string from, string to) : INormalizationRule
 {
     public string RuleId => "price.from32nds";

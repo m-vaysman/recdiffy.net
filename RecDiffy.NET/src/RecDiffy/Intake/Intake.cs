@@ -1,3 +1,4 @@
+using System.Globalization;
 using RecDiffy.Rules;
 
 namespace RecDiffy;
@@ -97,5 +98,12 @@ internal static class RawFingerprints
 {
     // Columns are sorted by name before the join, so dictionary order cannot split identical rows.
     public static string Fingerprint(this RawRecord row) =>
-        Delimited.Join('\u001f', row.Cells.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => $"{pair.Key}={pair.Value}"));
+        Delimited.Join('\u001f', row.Cells.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => $"{pair.Key}={Identity(pair.Value)}"));
+
+    // Numbers are equal by value (spec v3 §3.2), so 100 and 100.00 fingerprint alike; anything else is invariant text (#171).
+    private static string? Identity(object? value) => value switch
+    {
+        decimal number => (number / 1.0000000000000000000000000000m).ToString(CultureInfo.InvariantCulture),
+        _ => InvariantText.Of(value),
+    };
 }
