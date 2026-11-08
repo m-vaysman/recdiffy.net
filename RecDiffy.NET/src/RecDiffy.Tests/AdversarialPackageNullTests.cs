@@ -54,7 +54,7 @@ public class AdversarialPackageNullTests
         .Text("Ref", row => row.Ref)
         .Text("NetCash", row => row.NetCash);
 
-    [Theory(Skip = "🔴 #166 (#174 A): a null leg amount counts as zero")]
+    [Theory]
     [InlineData("Sum")]
     [InlineData("DifferenceByRole(PAY,REC)")]
     public void A_package_with_a_leg_whose_amount_is_unknown_has_an_unknown_total(string aggregator)
@@ -70,7 +70,7 @@ public class AdversarialPackageNullTests
         Assert.True(package.IsNull("NetCash"), $"{aggregator}: package NetCash should be unknown, but is {package.Text("NetCash")}; entry outcome {entry.Outcome}.");
     }
 
-    [Fact(Skip = "🔴 #166 (#174 A): a null leg amount counts as zero")]
+    [Fact]
     public void A_package_whose_legs_all_have_unknown_amounts_does_not_sum_to_zero()
     {
         Row[] left = [new("L1", "PKG-1", "PAY", "T1", ""), new("L2", "PKG-1", "REC", "T1", "")];
