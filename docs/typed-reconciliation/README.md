@@ -654,6 +654,8 @@ public static class Report
 - **A field is named after the left member,** and each left member pairs with exactly one right member.
 - **Ambiguous means nothing was guessed.** When two items on one side share a key, none of them matches. Either add a member to the key with `.And(...)`, or resolve the duplicates by hand.
 - **Both sequences are read once,** when you call `Between`. Later changes to the source don't affect the run.
+- **Culture is your reader's job.** `RecBuilder` takes typed values, so it needs no culture: your reader decides how text becomes numbers and dates. Reader 1 parses with the invariant culture because that is how the file is written. A profile-based run declares culture in the profile instead; see [Declare how each file is read](../../README.md#declare-how-each-file-is-read).
+- **No `float` or `double` members.** They are rejected, because any conversion to `decimal` is a choice only you can make. Convert in your reader, as Reader 2 does.
 
 ## Run the examples yourself
 
