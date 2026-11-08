@@ -47,7 +47,7 @@ public class AdversarialLifecycleConflictTests
         .Text("Action", row => row.Action).Text("Target", row => row.Target).Text("Qty", row => row.Qty);
 
     // E2 cancels E1, and E2 arrives twice with different quantities: a conflicting duplicate CANC.
-    [Fact(Skip = "🔴 #163 (#174 C): a conflicting duplicate CANC must quarantine the chain")]
+    [Fact]
     public void A_conflicting_duplicate_cancel_quarantines_the_trade_it_cancels()
     {
         var result = Run(
@@ -59,7 +59,7 @@ public class AdversarialLifecycleConflictTests
     }
 
     // E1 arrives twice with different quantities, and E2 cancels it. E1 exists, so E2's target is not missing.
-    [Fact(Skip = "🔴 #163 (#174 C): a conflicting duplicate CANC must quarantine the chain")]
+    [Fact]
     public void A_cancel_of_a_conflicting_duplicate_reports_ChainMemberQuarantined_not_a_missing_target()
     {
         var result = Run(
