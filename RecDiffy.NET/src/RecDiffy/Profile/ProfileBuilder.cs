@@ -166,7 +166,7 @@ public sealed class ProfileBuilder
     {
         ({ Count: > 0 }, _) => new ProfileBuildResult(null, outcome.Problems),
         (_, null) => new ProfileBuildResult(outcome.Document, []),
-        (_, { } rules) => ProfileCompiler.Compile(outcome.Document, rules) switch
+        (_, { } rules) => ProfileCompiler.Compile(outcome.Document, rules, CultureInfo.CurrentCulture) switch
         {
             { Errors: [] } => new ProfileBuildResult(outcome.Document, []),
             var failed => new ProfileBuildResult(null, [.. failed.Errors.Select(error => new ProfileProblem(error.Code, error.Message, "compile"))]),

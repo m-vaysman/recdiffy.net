@@ -9,10 +9,7 @@ namespace RecDiffy;
 
 internal static class ProfileCompiler
 {
-    // The server's culture is read here, once. A side that declares no culture is read with it for every run of the compiled profile.
-    public static CompileOutcome Compile(ProfileDocument document, RuleRegistry registry) =>
-        Compile(document, registry, CultureInfo.CurrentCulture);
-
+    // server is the culture a side that declares none is read with, for every run of the compiled profile.
     public static CompileOutcome Compile(ProfileDocument document, RuleRegistry registry, CultureInfo server)
     {
         var formatErrors = document.FormatVersion == 1

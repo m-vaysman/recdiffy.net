@@ -1,5 +1,7 @@
 namespace RecDiffy.Rules;
 
+// Replaced by InvariantIdentifierMapRule (#158). It turns a raw number into text with the server's culture.
+[Obsolete("Replaced by InvariantIdentifierMapRule: turns a raw number into text with the server's culture. See #158.")]
 internal sealed class IdentifierMapRule(string from, string to, string scheme, string scope) : INormalizationRule
 {
     public string RuleId => "identifier.map";

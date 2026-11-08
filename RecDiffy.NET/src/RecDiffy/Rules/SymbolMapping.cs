@@ -1,5 +1,7 @@
 namespace RecDiffy.Rules;
 
+// Used only by SymbolMapRule, which InvariantSymbolMapRule replaces (#158).
+[Obsolete("Used only by SymbolMapRule. Replaced by InvariantSymbolMapRule. See #158.")]
 internal static class SymbolMapping
 {
     // Blank text is a null symbol. An unknown value with passthrough off is an invalid null.
