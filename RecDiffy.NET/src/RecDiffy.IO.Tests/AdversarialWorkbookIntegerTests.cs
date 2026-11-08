@@ -21,7 +21,7 @@ public class AdversarialWorkbookIntegerTests(ITestOutputHelper output)
         "parse": [ { "rule": "decimal.parse", "from": "Amount", "to": "Amount" } ]
         """;
 
-    [Theory(Skip = "🔴 #169 (#174 E): whole numbers from 2^53 arrive as the double's binary value")]
+    [Theory]
     [InlineData("18014398509484530")]
     [InlineData("5.764607523034264E+17")]
     [InlineData("1.2345678901234567E+19")]
