@@ -1,15 +1,20 @@
+using System.Globalization;
 using RecDiffy.Rules;
 
 namespace RecDiffy;
 
+// Builds one item per linked package, by the field rules of spec v3 §5.2. No value comes from "the first row".
 internal static class Packages
 {
-    public static IReadOnlyList<ConsolidatedRow> Pack(IReadOnlyList<ConsolidatedRow> rows, PackagePlan plan)
+    public static IReadOnlyList<ConsolidatedRow> Pack(IReadOnlyList<ConsolidatedRow> rows, PackagePlan plan) =>
+        Pack(rows, plan, FieldUse.Everything);
+
+    public static IReadOnlyList<ConsolidatedRow> Pack(IReadOnlyList<ConsolidatedRow> rows, PackagePlan plan, FieldUse use)
     {
         var active = rows.Where(row => row is { Quarantined: false, Suppression: null }).ToArray();
         var linked = active.Where(row => row.Context.Display(plan.LinkField) is not null).ToArray();
         var groups = linked.GroupBy(row => row.Context.Display(plan.LinkField)!, StringComparer.Ordinal);
-        var packed = groups.SelectMany(group => Build(group.ToArray(), plan)).ToArray();
+        var packed = groups.SelectMany(group => Build(group.ToArray(), plan, use)).ToArray();
         var consumed = linked.Select(row => row.Context.RowKey).ToHashSet(StringComparer.Ordinal);
         return
         [
@@ -18,104 +23,107 @@ internal static class Packages
         ];
     }
 
-    private static IReadOnlyList<ConsolidatedRow> Build(IReadOnlyList<ConsolidatedRow> members, PackagePlan plan) =>
-        plan.RequiredRoles.Where(role => members.Any(member => member.Context.Display(plan.RoleField) == role) is false).ToArray() switch
+    // Members are ordered by row key, so nothing below depends on input order (§10.1).
+    private static IReadOnlyList<ConsolidatedRow> Build(IReadOnlyList<ConsolidatedRow> unordered, PackagePlan plan, FieldUse use)
+    {
+        var members = unordered.OrderBy(member => member.Context.RowKey, StringComparer.Ordinal).ToArray();
+        return plan.RequiredRoles.Where(role => members.Any(member => member.Context.Display(plan.RoleField) == role) is false).ToArray() switch
         {
             { Length: > 0 } => Quarantine(members, "IncompletePackage"),
-            _ => Aggregate(members, plan) switch
+            _ => Aggregate(members, plan, use) switch
             {
                 { Failure: { } code } => Quarantine(members, code),
                 { Context: { } context } => [new ConsolidatedRow([.. members.SelectMany(member => member.Members)], context, false, null, null, true)],
             },
         };
+    }
 
-    private static PackageProjection Aggregate(IReadOnlyList<ConsolidatedRow> members, PackagePlan plan) =>
-        plan.Aggregates.Aggregate(
-            new PackageProjection(members[0].Context, null),
+    // Fields without an aggregator are settled first: members that agree give the value, and members that disagree make
+    // it unknown, with MembersDisagree when the run uses the field. Then each aggregator writes its own field.
+    private static PackageProjection Aggregate(IReadOnlyList<ConsolidatedRow> members, PackagePlan plan, FieldUse use)
+    {
+        var contexts = members.Select(member => member.Context).ToArray();
+        var aggregated = plan.Aggregates.Select(aggregate => aggregate.Field).ToHashSet(StringComparer.Ordinal);
+        var settled = contexts
+            .SelectMany(context => context.Values.Keys)
+            .Distinct(StringComparer.Ordinal)
+            .Where(field => aggregated.Contains(field) is false)
+            .Order(StringComparer.Ordinal)
+            .Aggregate(contexts[0], (context, field) => Settle(context, field, contexts, use));
+        return plan.Aggregates.Aggregate(
+            new PackageProjection(settled, null),
             (projection, aggregate) => projection.Failure is not null
                 ? projection
-                : Apply(projection, aggregate, members, plan.RoleField));
+                : Apply(projection, aggregate, members, plan.RoleField, use));
+    }
 
-    private static PackageProjection Apply(PackageProjection projection, FieldAggregate aggregate, IReadOnlyList<ConsolidatedRow> members, string roleField) =>
+    // The target starts as the first member's context, so a field the members agree on is already in place.
+    private static RowContext Settle(RowContext target, string field, IReadOnlyList<RowContext> members, FieldUse use) =>
+        (MemberAgreement.Agree(members, field, use), use.IsUsed(field)) switch
+        {
+            (true, _) => target,
+            (false, true) => Unknown(target, field, members, "package").Diagnose(MemberAgreement.Disagree, DiagnosticSeverity.Warning, "package", field, null),
+            (false, false) => Unknown(target, field, members, "package"),
+        };
+
+    private static PackageProjection Apply(PackageProjection projection, FieldAggregate aggregate, IReadOnlyList<ConsolidatedRow> members, string roleField, FieldUse use) =>
         aggregate.Kind switch
         {
-            AggregateKind.Same => Same(projection, aggregate.Field, members),
+            AggregateKind.Same => Same(projection, aggregate.Field, members, use),
             AggregateKind.Sum => Sum(projection, aggregate.Field, members),
-            AggregateKind.FromRole => FromRole(projection, aggregate.Field, aggregate.Role, members, roleField),
+            AggregateKind.FromRole => FromRole(projection, aggregate.Field, aggregate.Role, members, roleField, use),
             AggregateKind.DifferenceByRole => Difference(projection, aggregate.Field, aggregate.Role, aggregate.OtherRole, members, roleField),
             _ => projection with { Failure = "PackageInconsistent" },
         };
 
-    // Agreement is ordinal display text, so 1.0 and 1.00 are different values.
-    private static PackageProjection Same(PackageProjection projection, string field, IReadOnlyList<ConsolidatedRow> members) =>
-        members.Select(member => member.Context.Display(field)).Distinct(StringComparer.Ordinal).Skip(1).Any() is false
-            ? projection with { Context = Copy(projection.Context, field, members[0].Context) }
+    // Members must agree by value at the field's scale (100 and 100.00 do), else the package is inconsistent. The copy keeps its identity.
+    private static PackageProjection Same(PackageProjection projection, string field, IReadOnlyList<ConsolidatedRow> members, FieldUse use) =>
+        MemberAgreement.Agree([.. members.Select(member => member.Context)], field, use)
+            ? projection with { Context = MemberAgreement.Copy(projection.Context, field, members[0].Context, "package.same") }
             : projection with { Failure = "PackageInconsistent" };
 
-    // A null amount adds zero, and the total is written at full scale, with no field rounding.
-    private static PackageProjection Sum(PackageProjection projection, string field, IReadOnlyList<ConsolidatedRow> members)
+    // An unknown member amount makes the total unknown: null is never zero (§7.5).
+    private static PackageProjection Sum(PackageProjection projection, string field, IReadOnlyList<ConsolidatedRow> members) =>
+        members.Any(member => member.Context.IsNull(field))
+            ? projection with { Context = projection.Context.Write(field, CanonicalCell.Null(FieldType.Decimal), "package.sum", null, null) }
+            : projection with { Context = WriteNumber(projection.Context, field, members.Sum(member => member.Context.Values[field].Number), "package.sum") };
+
+    // The member with the role supplies the value. Several members with the role must agree, else the field is unknown.
+    private static PackageProjection FromRole(PackageProjection projection, string field, string? role, IReadOnlyList<ConsolidatedRow> members, string roleField, FieldUse use)
     {
-        var total = members.Sum(member => member.Context.Values.TryGetValue(field, out var cell) && !cell.IsNull ? cell.Number : 0m);
-        return projection with { Context = projection.Context.Write(field, CanonicalCell.FromDecimal(total), "package.sum", null, total.ToString(System.Globalization.CultureInfo.InvariantCulture)) };
+        RowContext[] holders = [.. members.Where(member => member.Context.Display(roleField) == role).Select(member => member.Context)];
+        return holders switch
+        {
+            [] => projection with { Failure = "IncompletePackage" },
+            _ when MemberAgreement.Agree(holders, field, use) => projection with { Context = MemberAgreement.Copy(projection.Context, field, holders[0], "package.fromRole") },
+            _ => projection with
+            {
+                Context = Unknown(projection.Context, field, holders, "package.fromRole")
+                    .Diagnose(MemberAgreement.Disagree, DiagnosticSeverity.Warning, "package", field, null),
+            },
+        };
     }
 
-    // The first member with the role supplies the value. A missing role fails the package.
-    private static PackageProjection FromRole(PackageProjection projection, string field, string? role, IReadOnlyList<ConsolidatedRow> members, string roleField) =>
-        members.FirstOrDefault(member => member.Context.Display(roleField) == role) is { } source
-            ? projection with { Context = Copy(projection.Context, field, source.Context) }
-            : projection with { Failure = "IncompletePackage" };
-
+    // A missing role fails the package. An unknown leg amount makes the difference unknown (§7.5).
     private static PackageProjection Difference(PackageProjection projection, string field, string? leftRole, string? rightRole, IReadOnlyList<ConsolidatedRow> members, string roleField)
     {
-        var left = members.FirstOrDefault(member => member.Context.Display(roleField) == leftRole);
-        var right = members.FirstOrDefault(member => member.Context.Display(roleField) == rightRole);
-        return (left, right) switch
+        var pay = members.FirstOrDefault(member => member.Context.Display(roleField) == leftRole)?.Context;
+        var receive = members.FirstOrDefault(member => member.Context.Display(roleField) == rightRole)?.Context;
+        return (pay, receive) switch
         {
             (null, _) or (_, null) => projection with { Failure = "IncompletePackage" },
-            ({ } pay, { } receive) => WriteDifference(projection, field, Number(pay, field) - Number(receive, field)),
+            var (left, right) when left.IsNull(field) || right.IsNull(field) =>
+                projection with { Context = projection.Context.Write(field, CanonicalCell.Null(FieldType.Decimal), "package.difference", null, null) },
+            var (left, right) => projection with { Context = WriteNumber(projection.Context, field, left.Values[field].Number - right.Values[field].Number, "package.difference") },
         };
     }
 
-    private static PackageProjection WriteDifference(PackageProjection projection, string field, decimal value) =>
-        projection with
-        {
-            Context = projection.Context.Write(field, CanonicalCell.FromDecimal(value), "package.difference", null, value.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-        };
+    private static RowContext WriteNumber(RowContext target, string field, decimal value, string ruleId) =>
+        target.Write(field, CanonicalCell.FromDecimal(value), ruleId, null, value.ToString(CultureInfo.InvariantCulture));
 
-    // A null or missing amount contributes zero to the difference.
-    private static decimal Number(ConsolidatedRow row, string field) =>
-        row.Context.Values.TryGetValue(field, out var cell) && !cell.IsNull ? cell.Number : 0m;
-
-    // An unknown field type leaves the target cell as it was.
-    private static RowContext Copy(RowContext target, string field, RowContext source) =>
-        source.Values.TryGetValue(field, out var cell) && !cell.IsNull
-            ? cell.Type switch
-            {
-                FieldType.Decimal => target.Write(field, cell, "package.same", null, source.Display(field)),
-                FieldType.Date => target.Write(field, cell, "package.same", null, source.Display(field)),
-                FieldType.Symbol => InternSymbol(target, field, source.Display(field)!),
-                FieldType.Identifier => InternIdentifier(target, field, source.Display(field)!),
-                FieldType.Text => target.Write(field, CanonicalCell.FromText(source.Display(field)), "package.same", null, source.Display(field)),
-                _ => target,
-            }
-            : target.Write(field, CanonicalCell.Null(source.ContextType(field)), "package.same", null, null);
-
-    // A missing field is typed as text, so the null cell written for it is text.
-    private static FieldType ContextType(this RowContext row, string field) =>
-        row.Values.TryGetValue(field, out var cell) ? cell.Type : FieldType.Text;
-
-    private static RowContext InternSymbol(RowContext target, string field, string text)
-    {
-        var (pool, id) = target.Pool.InternSymbol(text);
-        return target.WithPool(pool).Write(field, CanonicalCell.FromInterned(FieldType.Symbol, id), "package.same", null, text);
-    }
-
-    // The source cell's scheme and scope are dropped. The copy is pooled under PACKAGE and an empty scope.
-    private static RowContext InternIdentifier(RowContext target, string field, string text)
-    {
-        var (pool, id) = target.Pool.InternIdentifier("PACKAGE", "", text);
-        return target.WithPool(pool).Write(field, CanonicalCell.FromInterned(FieldType.Identifier, id), "package.same", null, text);
-    }
+    // The null is typed by a member that has the field, so a decimal stays a decimal.
+    private static RowContext Unknown(RowContext target, string field, IReadOnlyList<RowContext> members, string ruleId) =>
+        MemberAgreement.Unknown(target, field, members.FirstOrDefault(member => member.Values.ContainsKey(field)) ?? members[0], ruleId);
 
     private static IReadOnlyList<ConsolidatedRow> Quarantine(IReadOnlyList<ConsolidatedRow> members, string code) =>
         [.. members.Select(member => member with

@@ -43,7 +43,7 @@ public class AdversarialGroupProjectionOrderTests
     private static readonly Row Second = new("A2", "2025-06-12", "50", "500");
     private static readonly Row Block = new("B1", "2025-06-11", "100", "1000");
 
-    [Fact(Skip = "🔴 #167 (#174 A): an N:1 projection takes fields from its first row")]
+    [Fact]
     public void A_group_sum_outcome_does_not_depend_on_allocation_order()
     {
         var inOrder = Run([First, Second]);

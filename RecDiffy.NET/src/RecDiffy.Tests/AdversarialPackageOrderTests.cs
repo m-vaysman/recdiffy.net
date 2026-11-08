@@ -60,7 +60,7 @@ public class AdversarialPackageOrderTests
     private static readonly Row Far = new("L-FAR", "SWAP-1", "FAR", "UTI-FAR", "2025-09-11", "1000000");
     private static readonly Row Street = new("R1", "", "", "UTI-NEAR", "2025-06-11", "1000000");
 
-    [Fact(Skip = "🔴 #164 (#174 A): unaggregated fields come from the first leg")]
+    [Fact]
     public void Package_row_dispositions_do_not_depend_on_leg_order()
     {
         var nearFirst = Run([Near, Far], [Street]);
@@ -69,7 +69,7 @@ public class AdversarialPackageOrderTests
         Assert.Equal(Dispositions(nearFirst), Dispositions(farFirst));
     }
 
-    [Fact(Skip = "🔴 #164 (#174 A): unaggregated fields come from the first leg")]
+    [Fact]
     public void Package_projection_does_not_depend_on_leg_order()
     {
         var nearFirst = Run([Near, Far], []);

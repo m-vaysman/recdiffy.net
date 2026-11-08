@@ -104,7 +104,8 @@ internal static class RunPipeline
     {
         var plan = profile.Document.Consolidation.TryGetValue(side, out var found) ? found : null;
         var collapsed = Consolidation.Run(rows, plan?.Lifecycle, null);
-        return plan is null ? collapsed : plan.Packages.Aggregate(collapsed, Packages.Pack);
+        var use = FieldUse.Of(profile.Document);
+        return plan is null ? collapsed : plan.Packages.Aggregate(collapsed, (current, package) => Packages.Pack(current, package, use));
     }
 
     private static IReadOnlyList<ConsolidatedRow> OnPath(
