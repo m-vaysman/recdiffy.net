@@ -75,7 +75,7 @@ public class AdversarialDecimalScaleTests
         Assert.All(left, row => Assert.Contains(row.Diagnostics, diagnostic => diagnostic.Code == "DuplicateRowCollapsed"));
     }
 
-    [Fact(Skip = "🔴 #171 (#174 A): Same compares decimals as text")]
+    [Fact]
     public void Package_legs_whose_quantities_differ_only_in_scale_agree_under_Same()
     {
         var map = new SourceMap<(string Id, string Link, string Role, string Ref, string Qty)>()

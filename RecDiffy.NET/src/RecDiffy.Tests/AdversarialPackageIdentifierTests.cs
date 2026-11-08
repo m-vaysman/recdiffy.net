@@ -42,7 +42,7 @@ public class AdversarialPackageIdentifierTests
         }
         """;
 
-    [Theory(Skip = "🔴 #165 (#174 A): Same and FromRole re-scheme an identifier")]
+    [Theory]
     [InlineData("Same")]
     [InlineData("FromRole(PAY)")]
     public void A_package_matches_the_other_side_on_an_identifier_its_legs_agree_on(string aggregator)

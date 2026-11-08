@@ -20,6 +20,7 @@ internal static class ResultBuilder
         CancellationToken cancellation)
     {
         var jobs = routed.SelectMany(item => item.Match.Committed.Select(group => (item.Path, Group: group))).ToArray();
+        var use = FieldUse.Of(profile.Document);
         var built = new (ResultEntry Entry, RowContext Left, RowContext Right)[jobs.Length];
         var degree = options.MaxDegreeOfParallelism is int chosen and > 1 ? chosen : 1;
         if (degree == 1 || jobs.Length < 2)
@@ -28,7 +29,7 @@ internal static class ResultBuilder
             {
                 cancellation.ThrowIfCancellationRequested();
                 var plan = DiffPlan.From(jobs[index].Path, profile.Document.Fields, profile.Document.Midpoint);
-                built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan, EqualByConstruction(jobs[index].Path, jobs[index].Group.PassId));
+                built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan, EqualByConstruction(jobs[index].Path, jobs[index].Group.PassId), use);
             }
         }
         else
@@ -40,7 +41,7 @@ internal static class ResultBuilder
                 index =>
                 {
                     var plan = DiffPlan.From(jobs[index].Path, profile.Document.Fields, profile.Document.Midpoint);
-                    built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan, EqualByConstruction(jobs[index].Path, jobs[index].Group.PassId));
+                    built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan, EqualByConstruction(jobs[index].Path, jobs[index].Group.PassId), use);
                 });
         }
 
@@ -59,7 +60,7 @@ internal static class ResultBuilder
         }
         var entryByRow = Index(entries, left.Concat(right).ToArray());
         var entryById = entries.ToDictionary(entry => entry.Id);
-        var rows = left.Concat(right).SelectMany(row => row.Members.Select(member => Row(row, member, entryByRow, entryById))).ToArray();
+        var rows = left.Concat(right).SelectMany(row => row.Members.Select(member => Row(row, member, entryByRow, entryById, projections))).ToArray();
         var summary = Summarize(entries, rows);
         return new ReconciliationResult(
             new RunInfo(profile.Hash, reference.Id, reference.ContentHash, EngineVersion()) { Reading = profile.Reading },
@@ -71,10 +72,10 @@ internal static class ResultBuilder
     }
 
     // An empty diff list is Exact. NotCompared fields are absent from that list and do not lower the outcome.
-    private static (ResultEntry Entry, RowContext Left, RowContext Right) Matched(string pathId, CommittedMatch group, DiffPlan plan, IReadOnlySet<string> equal)
+    private static (ResultEntry Entry, RowContext Left, RowContext Right) Matched(string pathId, CommittedMatch group, DiffPlan plan, IReadOnlySet<string> equal, FieldUse use)
     {
-        var left = Aggregate(group.Left, plan, equal);
-        var right = Aggregate(group.Right, plan, equal);
+        var left = Aggregate(group.Left, plan, equal, use);
+        var right = Aggregate(group.Right, plan, equal, use);
         var diffs = FieldDiffer.Compare(left, right, plan);
         var outcome = diffs.Any(diff => diff.Outcome == FieldOutcome.Break)
             ? FieldOutcome.Break
@@ -146,7 +147,7 @@ internal static class ResultBuilder
     }
 
     // Quarantine wins over suppression and over the match, and the entry id is cleared on a quarantined row.
-    private static RowResult Row(ConsolidatedRow row, SourceRef member, IReadOnlyDictionary<SourceRef, GroupId> entryByRow, IReadOnlyDictionary<GroupId, ResultEntry> entries)
+    private static RowResult Row(ConsolidatedRow row, SourceRef member, IReadOnlyDictionary<SourceRef, GroupId> entryByRow, IReadOnlyDictionary<GroupId, ResultEntry> entries, IReadOnlyDictionary<GroupId, (RowContext Left, RowContext Right)> projections)
     {
         var linked = entryByRow.TryGetValue(member, out var entryId) ? entryId : (GroupId?)null;
         var alignment = linked is { } id ? entries[id].Alignment : (Alignment?)null;
@@ -159,12 +160,19 @@ internal static class ResultBuilder
             _ when alignment is Alignment.SearchIncomplete => Disposition.SearchIncomplete,
             _ => row.Context.Side == Side.Left ? Disposition.LeftOnly : Disposition.RightOnly,
         };
-        var diagnostics = DiagnosticsOf(row);
+        var diagnostics = DiagnosticsOf(row).AddRange(GroupWarnings(row, linked, projections));
         var validity = row.Quarantined || diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Invalid)
             ? InputValidity.Invalid
             : diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Warning) ? InputValidity.ValidWithWarnings : InputValidity.Valid;
         return new RowResult(member, disposition, row.Suppression, validity, diagnostics, disposition is Disposition.Quarantined ? null : linked);
     }
+
+    // An N:1 group's MembersDisagree warnings live on its projection, so each member row of the group reports them too.
+    private static IEnumerable<Diagnostic> GroupWarnings(ConsolidatedRow row, GroupId? linked, IReadOnlyDictionary<GroupId, (RowContext Left, RowContext Right)> projections) =>
+        linked is { } id && projections.TryGetValue(id, out var pair)
+            ? (row.Context.Side == Side.Left ? pair.Left : pair.Right).Diagnostics
+                .Where(diagnostic => diagnostic is { Code: MemberAgreement.Disagree, RuleId: "aggregate" })
+            : [];
 
     // Package quarantine already records its code on the row context. Lifecycle quarantine keeps the code only on the consolidated row.
     private static ImmutableList<Diagnostic> DiagnosticsOf(ConsolidatedRow row) =>
@@ -176,21 +184,42 @@ internal static class ResultBuilder
     private static IReadOnlySet<string> EqualByConstruction(PathDeclaration path, string passId) =>
         path.Passes.Where(pass => pass.Id == passId).SelectMany(pass => pass.Block.Except(pass.Conserve, StringComparer.Ordinal)).ToHashSet(StringComparer.Ordinal);
 
-    // One null member nulls the field. Decimals outside the equal-by-construction set are summed and rounded; the
-    // rest keep the first row.
-    private static RowContext Aggregate(IReadOnlyList<ConsolidatedRow> rows, DiffPlan plan, IReadOnlySet<string> equal)
+    // An N:1 projection (spec v3 §5.3). Compared decimals outside the equal-by-construction set are summed and rounded,
+    // and one null member nulls the sum. Every other field follows §5.2: members that agree give the value, and members
+    // that disagree make it unknown, with MembersDisagree when the run uses the field. The base is the member with the
+    // lowest row key, so allocation order never decides (#167).
+    private static RowContext Aggregate(IReadOnlyList<ConsolidatedRow> rows, DiffPlan plan, IReadOnlySet<string> equal, FieldUse use)
     {
-        var seed = rows[0].Context;
-        return rows.Count == 1
-            ? seed
-            : plan.Steps.Where(step => step.Field.Type == FieldType.Decimal && equal.Contains(step.Field.Name) is false).Aggregate(seed, (current, step) =>
-            {
-                if (rows.Any(row => row.Context.IsNull(step.Field.Name)))
-                    return current.Write(step.Field.Name, CanonicalCell.Null(FieldType.Decimal), "aggregate", null, null);
-                var sum = rows.Aggregate(0m, (total, row) => total + row.Context.Values[step.Field.Name].Number);
-                return current.Write(step.Field.Name, CanonicalCell.FromDecimal(Rounding.Round(sum, step.Field.Scale, plan.Midpoint)), "aggregate", null, null);
-            });
+        if (rows.Count == 1)
+            return rows[0].Context;
+        RowContext[] contexts = [.. rows.Select(row => row.Context).OrderBy(context => context.RowKey, StringComparer.Ordinal)];
+        DiffStep[] summed = [.. plan.Steps.Where(step => step.Field.Type == FieldType.Decimal && equal.Contains(step.Field.Name) is false)];
+        var summedNames = summed.Select(step => step.Field.Name).ToHashSet(StringComparer.Ordinal);
+        var settled = contexts
+            .SelectMany(context => context.Values.Keys)
+            .Distinct(StringComparer.Ordinal)
+            .Where(field => summedNames.Contains(field) is false)
+            .Order(StringComparer.Ordinal)
+            .Aggregate(contexts[0], (current, field) => Settle(current, field, contexts, use));
+        return summed.Aggregate(settled, (current, step) => Sum(current, step, contexts, plan.Midpoint));
     }
+
+    private static RowContext Settle(RowContext current, string field, IReadOnlyList<RowContext> members, FieldUse use)
+    {
+        var typedBy = members.FirstOrDefault(member => member.Values.ContainsKey(field)) ?? members[0];
+        return (MemberAgreement.Agree(members, field, use), use.IsUsed(field)) switch
+        {
+            (true, _) => current,
+            (false, true) => MemberAgreement.Unknown(current, field, typedBy, "aggregate")
+                .Diagnose(MemberAgreement.Disagree, DiagnosticSeverity.Warning, "aggregate", field, null),
+            (false, false) => MemberAgreement.Unknown(current, field, typedBy, "aggregate"),
+        };
+    }
+
+    private static RowContext Sum(RowContext current, DiffStep step, IReadOnlyList<RowContext> members, MidpointMode midpoint) =>
+        members.Any(member => member.IsNull(step.Field.Name))
+            ? current.Write(step.Field.Name, CanonicalCell.Null(FieldType.Decimal), "aggregate", null, null)
+            : current.Write(step.Field.Name, CanonicalCell.FromDecimal(Rounding.Round(members.Sum(member => member.Values[step.Field.Name].Number), step.Field.Scale, midpoint)), "aggregate", null, null);
 
     private static Composition Compose(CommittedMatch group)
     {
