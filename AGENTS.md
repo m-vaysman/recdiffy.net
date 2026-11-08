@@ -17,15 +17,13 @@ Read the whole file before you change anything. After the repository basics, it 
   ```
   dotnet build RecDiffy.NET/RecDiffy.slnx -c Release -warnaserror
   ```
-- **Tests:** CI runs these two:
+- **Tests:** CI runs every test project in the solution, in Release, with no filter:
 
   ```
-  dotnet test RecDiffy.NET/src/RecDiffy.Tests/RecDiffy.Tests.csproj -c Release
+  dotnet test RecDiffy.NET/RecDiffy.slnx -c Release
   ```
 
-  ```
-  dotnet test RecDiffy.NET/src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj -c Release
-  ```
+  The Excel tests skip the LibreOffice recalc tests when `soffice` isn't installed.
 
 ### Branches and PRs
 
