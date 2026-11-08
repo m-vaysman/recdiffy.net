@@ -149,6 +149,7 @@ An entry can also represent multiple source rows. In the warehouse example, one 
 A profile declares:
 
 - **Fields:** canonical names, types, and roles.
+- **Reading:** the culture each file's text is read with, and whether date formats are strict.
 - **Normalization:** how source values become canonical values.
 - **Consolidation:** optional lifecycle and package processing before matching.
 - **Routes:** which matching path receives each row.
@@ -157,6 +158,35 @@ A profile declares:
 - **Search limits:** bounds on group matching.
 
 Compile the profile once, then pass the compiled profile to reconciliation runs. Start with the warehouse profile in the sample above before adapting it to your own fields and source mappings.
+
+## Declare how each file is read
+
+Text in a file is read with a culture. Declare it once for the run and, when one file differs, for that side. Nothing below the declaration picks a culture, and nothing is guessed.
+
+```json
+{
+  "culture": "en-US",
+  "sources": {
+    "left":  { "rowKey": "ConfirmId", "culture": "de-DE" },
+    "right": { "rowKey": "TradeId" }
+  }
+}
+```
+
+```csharp
+builder
+    .Culture(CultureInfo.GetCultureInfo("en-US"))                // both files
+    .Culture(Side.Left, CultureInfo.GetCultureInfo("de-DE"));    // this file is German
+```
+
+| | What happens |
+|---|---|
+| **Resolution** | A side uses its own culture, else the run's, else the server's culture, read once when the profile is compiled. `"culture": ""` is invariant. |
+| **Numbers** | `1.234,56` on a de-DE side and `1,234.56` on an en-US side are both 1234.56, and compare `Exact`. A thousands separator where the culture puts none is `Invalid`: `1,5` on an en-US side is not 15. |
+| **Dates** | Formats are strict: `/` and `:` mean exactly those characters, and the culture supplies month and day names. `"strictDateFormats": false`, for the run or one side, restores the .NET behaviour, where they also match the culture's separators. |
+| **Floating point** | `float` and `double` are never converted. They are `Invalid` with `FloatValue`, so supply a `decimal` or text. Excel numbers arrive as the decimal the workbook stores. |
+| **Text RecDiffy makes** | Identifiers, symbols and row keys made from a number are invariant, so a numeric key matches across sides with different cultures. |
+| **Record** | `result.Run.Reading` shows each side's culture, separators, where the culture came from, and whether dates were strict. |
 
 ## Write Excel reports
 
@@ -193,6 +223,9 @@ Files are named `<ID>_<ReportName>_<profileId>_<asOf yyyy-MM-dd>.xlsx`. Reports 
 | Rows remain unmatched | Check normalized key values, routing, and pass configuration. |
 | A component reports `BlockTooLarge` | Inspect its size and blocking fields before increasing limits. |
 | Records match but show `Break` | Inspect field differences and configured tolerances. |
+| A row is `Invalid` with `FloatValue` | The source gave a `float` or `double`. Supply a `decimal` or text. |
+| A number that looks right is `Invalid` with `DecimalParse` | Check the side's culture in `result.Run.Reading`: `1.5` on a de-DE side is not a number. |
+| Compile reports `UnknownCulture` | The name is not a culture this host knows. A host in invariant-globalization mode, such as the AOT host, knows only `""`. |
 
 `SearchIncomplete` means the search did not establish a complete decision. Do not present it as an ordinary unmatched result.
 
