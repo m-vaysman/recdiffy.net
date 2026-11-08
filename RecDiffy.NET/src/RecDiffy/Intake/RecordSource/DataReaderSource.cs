@@ -16,7 +16,7 @@ internal sealed partial class DataReaderSource(Func<IDataReader> open, TabularOp
         Task.FromResult(Materialize(sideName, rowKey, cancellation));
 
     // A file that ends inside the skipped header rows returns no records and no error.
-    private IReadOnlyList<RawRecord> Read(IDataReader reader, string sideName, string rowKey, CancellationToken cancellation)
+    private RawRecord[] Read(IDataReader reader, string sideName, string rowKey, CancellationToken cancellation)
     {
         foreach (var _ in Enumerable.Range(0, options.HeaderRowIndex))
         {
