@@ -32,7 +32,7 @@ internal static class Intake
         [.. rows.Where(row => row.MissingKey).Select(QuarantineMissing), .. Collapse(rows.Where(row => row.MissingKey is false).ToArray()).Select(group => Normalize(group, rules, reference, master))];
 
     private static IntakeRow Normalize(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, ReferenceDataSet reference, InstrumentMaster master) =>
-        group.Conflict ? Quarantine(group) : Accept(group, rules, reference, master);
+        group.Conflict ? Quarantine(group, rules, reference, master) : Accept(group, rules, reference, master);
 
     // A warning does not quarantine the row. Any Invalid diagnostic does.
     private static IntakeRow Accept(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, ReferenceDataSet reference, InstrumentMaster master)
@@ -69,13 +69,12 @@ internal static class Intake
                 .Diagnose("MissingKey", DiagnosticSeverity.Invalid, "intake", null, null),
             true);
 
-    // Conflict copies skip the rules. Each copy adds one DuplicateConflict, against empty reference data.
-    private static IntakeRow Quarantine(DuplicateGroup group) =>
+    // A conflicting copy is normalized like any row, so lifecycle can read its action and target and quarantine its
+    // whole chain (spec v3 §3.2, §5.1 rule 5; #163). The copy itself is quarantined with one DuplicateConflict.
+    private static IntakeRow Quarantine(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, ReferenceDataSet reference, InstrumentMaster master) =>
         new(
             group.Members,
-            group.Members.Aggregate(
-                Start(group.Row, ReferenceDataSet.Empty, InstrumentMaster.Empty),
-                (row, _) => row.Diagnose("DuplicateConflict", DiagnosticSeverity.Invalid, "duplicates", null, group.Row.Ref.RowKey)),
+            Apply(group.Row, rules, reference, master).Diagnose("DuplicateConflict", DiagnosticSeverity.Invalid, "duplicates", null, group.Row.Ref.RowKey),
             true);
 
     private static IReadOnlyList<DuplicateGroup> Collapse(IReadOnlyList<RawRecord> rows) =>
