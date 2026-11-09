@@ -45,7 +45,8 @@ Read the whole file before you change anything. After the repository basics and 
 
 - **Read the skill first.** Before you plan, write or review Excel-DNA code (#192), read [.agents/skills/excel-dna/SKILL.md](.agents/skills/excel-dna/SKILL.md) and the references it points to. Codex loads it from `.agents/skills` on its own; every other agent opens it from here.
 - **No COM without the lead.** Don't write, extend or run Excel COM automation or interop code unless the use is listed under "Approved COM uses" below. That includes `ExcelDnaUtil.Application`, Office interop types, `dynamic` automation, `ExcelRibbon` and custom task panes. Excel-DNA's C API (`XlCall`, `ExcelReference`) isn't COM. If a feature needs COM, finish the parts that don't, then ask the lead (the repository owner) and wait.
-- **Approved COM uses:** none yet. Add each approved use here, with a link to the approval.
+- **Approved COM uses:** add each approved use here, with a link to the approval.
+  - **`ExcelRibbon`** for the add-in's ribbon: its custom UI, and the callbacks that open or activate the reconciliation window. The callbacks only schedule work. Reading and writing Excel still goes through the C API. [Approved by the lead on #192](https://github.com/m-vaysman/recdiffy.net/issues/192#issuecomment-6742644969).
 
 ## Where changes go
 
