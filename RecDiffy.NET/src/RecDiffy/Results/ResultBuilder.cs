@@ -175,13 +175,15 @@ internal static class ResultBuilder
         row.Context.Diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Invalid);
 
     // A row no route accepts never reaches a matcher. It still gets its own LeftOnly or RightOnly entry, with no path and
-    // the code Unrouted, so every unmatched row has an entry and RunSummary counts it (#92).
+    // the code Unrouted, so every unmatched row has an entry and RunSummary counts it (#92). The trail records the route
+    // step; no pass saw the row, so CommittedBy is null.
     private static IEnumerable<ResultEntry> Unrouted(IReadOnlyList<ResultEntry> entries, IEnumerable<ConsolidatedRow> rows)
     {
         var placed = entries.SelectMany(entry => entry.Left.Concat(entry.Right)).ToHashSet();
         return rows
             .Where(row => row is { Quarantined: false, Suppression: null } && Invalid(row) is false && row.Members.Any(member => placed.Contains(member) is false))
             .Select(row => Open("", new ResidueCluster(row.Context.Side == Side.Left ? Alignment.LeftOnly : Alignment.RightOnly, "Unrouted", "route", [row])))
+            .Select(entry => entry with { Explanation = entry.Explanation with { CommittedBy = null } })
             .ToArray();
     }
 

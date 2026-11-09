@@ -45,8 +45,9 @@ public class ReviewFindingsTests
 
         Assert.Equal(["L2", "L3", "L4", "R2"], byLabel.Keys.Order(StringComparer.Ordinal), StringComparer.Ordinal);
         Assert.Equal(["L2", "L3", "R2"], byLabel.Where(pair => pair.Value.Entry is not null).Select(pair => pair.Key).Order(StringComparer.Ordinal), StringComparer.Ordinal);
-        Assert.Equal(("Unmatched ours", "Unmatched theirs"), (byLabel["L2"].ItemType, byLabel["R2"].ItemType));
+        Assert.Equal(("Unmatched ours", "(not routed)"), (byLabel["L2"].ItemType, byLabel["L2"].Field));
         Assert.Equal(("Unmatched ours", "(excluded: invalid)"), (byLabel["L4"].ItemType, byLabel["L4"].Field));
+        Assert.Equal(("Unmatched theirs", "(not routed)"), (byLabel["R2"].ItemType, byLabel["R2"].Field));
         Assert.Contains("RequiredMissing", byLabel["L4"].Action, StringComparison.Ordinal);
     }
 
@@ -74,6 +75,7 @@ public class ReviewFindingsTests
         var blotter = books[ReportKind.ExceptionBlotter]["BO1_ExceptionBlotter"];
         string[] labels = [.. Items().Select(item => item.Label).Order(StringComparer.Ordinal)];
         Assert.Equal(labels, blotter.Values.Where(cell => cell.Address.StartsWith('B') && labels.Contains(cell.Value)).Select(cell => cell.Value!).Order(StringComparer.Ordinal), StringComparer.Ordinal);
+        Assert.Contains(blotter.Values, cell => cell.Value == "(not routed)");
         Assert.Contains(blotter.Values, cell => cell.Value == "(excluded: invalid)");
 
         var scorecard = books[ReportKind.Scorecard]["MO2_Scorecard"];
