@@ -45,8 +45,10 @@ public sealed class CsvFileSources : ICsvSources
             ?? Encoding.GetEncoding(name, EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback);
     }
 
-    private static string Reason(CsvSource source, Exception exception)
+    public static string Reason(CsvSource source, Exception exception)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(exception);
         var file = Path.GetFileName(source.Path);
         return exception switch
         {

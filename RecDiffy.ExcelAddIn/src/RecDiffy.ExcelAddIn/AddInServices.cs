@@ -12,6 +12,8 @@ internal static class AddInServices
 
     private static readonly CsvFileSources Csv = new();
 
+    private static readonly EngineRuns Runs = new(Excel, TimeProvider.System);
+
     public static WindowHost Window { get; } = new(CreateShell);
 
     private static Task ShowAbove(nint owner) => Window.ShowAbove(owner);
@@ -19,7 +21,7 @@ internal static class AddInServices
     private static ShellWindow CreateShell()
     {
         var window = new ShellWindow();
-        window.DataContext = new ShellViewModel(new SourcesViewModel(new SourceServices(Excel, Csv, new FileDialogs(window)), ExcelCulture));
+        window.DataContext = new ShellViewModel(new SourcesViewModel(new SourceServices(Excel, Csv, new FileDialogs(window)), ExcelCulture), Runs);
         return window;
     }
 }

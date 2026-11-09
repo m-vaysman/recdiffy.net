@@ -8,6 +8,8 @@ public sealed partial class SideViewModel(string side, SourceServices services, 
 {
     private readonly SourceServices _services = services ?? throw new ArgumentNullException(nameof(services));
 
+    private ExcelRangePick? _range;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Heading))]
     private string alias = string.Empty;
@@ -112,10 +114,18 @@ public sealed partial class SideViewModel(string side, SourceServices services, 
 
     public SideSetup ToSetup() => new(Alias, Source);
 
+    public RunSide? ToRunSide() => (Source, _range) switch
+    {
+        (CsvSource csv, _) when HasData => new RunSide.Csv(csv),
+        (WorkbookSource, { } range) when HasData => new RunSide.Workbook(range),
+        _ => null,
+    };
+
     public void Apply(SideSetup setup, CultureChoice chosen)
     {
         ArgumentNullException.ThrowIfNull(setup);
         ArgumentNullException.ThrowIfNull(chosen);
+        _range = null;
         (Alias, Source, Culture, Table, Preview, Problem, Summary) = (setup.Alias, setup.Source, chosen, null, null, null, Unread(setup.Source));
         if (setup.Source is CsvSource csv)
             ReadCsvCommand.Execute(csv);
@@ -173,10 +183,10 @@ public sealed partial class SideViewModel(string side, SourceServices services, 
             var read = await _services.Excel
                 .ReadAsync(picked.Range, new Progress<double>(value => Progress = value), cancellationToken)
                 .ConfigureAwait(true);
-            (Source, Table, Preview, Summary, Problem) = read switch
+            (_range, Source, Table, Preview, Summary, Problem) = read switch
             {
-                SourceRead.Read done => (WorkbookOf(done.Range), done.Table, done.Preview, SummaryOf(done.Range, done.Table), (string?)null),
-                SourceRead.Rejected failed => (new NoSource(), (SourceTable?)null, (SourcePreview?)null, string.Empty, failed.Reason),
+                SourceRead.Read done => (done.Range, WorkbookOf(done.Range), done.Table, done.Preview, SummaryOf(done.Range, done.Table), (string?)null),
+                SourceRead.Rejected failed => ((ExcelRangePick?)null, new NoSource(), (SourceTable?)null, (SourcePreview?)null, string.Empty, failed.Reason),
                 _ => throw new InvalidOperationException("A source read is either read or rejected."),
             };
         }
