@@ -11,4 +11,8 @@
     <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
     <None Include="$(MSBuildThisFileDirectory)resources/logos/columns-square-icon.jpg" Pack="true" PackagePath="\" />
   </ItemGroup>
+
+  <Target Name="RequirePrereleaseVersion" BeforeTargets="GenerateNuspec" Condition="'$(IsPackable)' != 'false' and $(PackageVersion.Contains('-')) != 'true'">
+    <Error Text="Package version '$(PackageVersion)' is not a prerelease. Every RecDiffy package is a prerelease for now: pack with -p:Version=X.Y.Z-label, for example -p:Version=1.2.0-preview.1." />
+  </Target>
 </Project>
