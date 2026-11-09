@@ -80,6 +80,108 @@
                     AutomationProperties.Name="{Binding Side, StringFormat='{}{0} sample rows'}" />
         </StackPanel>
       </DataTemplate>
+      <DataTemplate x:Key="FieldRow">
+        <StackPanel Margin="0,0,0,8">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="150" />
+              <ColumnDefinition Width="180" />
+              <ColumnDefinition Width="180" />
+              <ColumnDefinition Width="120" />
+              <ColumnDefinition Width="120" />
+              <ColumnDefinition Width="200" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBox Margin="0,0,8,0" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Field name" />
+            <ComboBox Grid.Column="1" Margin="0,0,8,0" SelectedItem="{Binding LeftColumn}"
+                      ItemsSource="{Binding DataContext.LeftColumns, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                      AutomationProperties.Name="Left column" />
+            <ComboBox Grid.Column="2" Margin="0,0,8,0" SelectedItem="{Binding RightColumn}"
+                      ItemsSource="{Binding DataContext.RightColumns, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                      AutomationProperties.Name="Right column" />
+            <ComboBox Grid.Column="3" Margin="0,0,8,0" ItemsSource="{x:Static vm:TypeChoice.All}" DisplayMemberPath="Label"
+                      SelectedValuePath="Type" SelectedValue="{Binding Type}" AutomationProperties.Name="Field type" />
+            <ComboBox Grid.Column="4" Margin="0,0,8,0" ItemsSource="{x:Static vm:RoleChoice.All}" DisplayMemberPath="Label"
+                      SelectedValuePath="Role" SelectedValue="{Binding Role}" AutomationProperties.Name="Field role" />
+            <TextBox Grid.Column="5" Margin="0,0,8,0" Text="{Binding ScaleText, UpdateSourceTrigger=PropertyChanged}"
+                     Visibility="{Binding IsDecimal, Converter={StaticResource VisibleWhenTrue}}"
+                     ToolTip="Decimal places the values are rounded to before they're compared" AutomationProperties.Name="Decimal places" />
+            <TextBox Grid.Column="5" Margin="0,0,8,0" Text="{Binding DateFormatsText, UpdateSourceTrigger=PropertyChanged}"
+                     Visibility="{Binding IsDate, Converter={StaticResource VisibleWhenTrue}}"
+                     ToolTip="Formats for dates written as text, such as dd.MM.yyyy. Separate several with ;"
+                     AutomationProperties.Name="Date formats" />
+            <Button Grid.Column="6" Style="{StaticResource SmallButton}" Content="✕" Command="{Binding RemoveCommand}"
+                    ToolTip="Remove this field" AutomationProperties.Name="Remove field" />
+          </Grid>
+          <TextBlock Style="{StaticResource Problem}" Text="{Binding Problem}"
+                     Visibility="{Binding Problem, Converter={StaticResource VisibleWhenText}}" />
+        </StackPanel>
+      </DataTemplate>
+      <DataTemplate x:Key="PassRow">
+        <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="5" Padding="12" Margin="0,0,0,8">
+          <StackPanel>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Style="{StaticResource BlockHeading}" Text="{Binding Title}" />
+              <Button Grid.Column="1" Style="{StaticResource SmallButton}" Content="✕" Command="{Binding RemoveCommand}"
+                      ToolTip="Remove this pass" AutomationProperties.Name="{Binding Title, StringFormat='Remove {0}'}" />
+            </Grid>
+            <TextBlock Style="{StaticResource SecondaryText}" Margin="0,2,0,0" Text="{Binding Caption}" />
+            <ItemsControl ItemsSource="{Binding Keys}" Focusable="False">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <CheckBox Margin="0,10,20,0" Content="{Binding Field}" IsChecked="{Binding IsSelected}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Style="{StaticResource Problem}" Text="{Binding Problem}"
+                       Visibility="{Binding Problem, Converter={StaticResource VisibleWhenText}}" />
+          </StackPanel>
+        </Border>
+      </DataTemplate>
+      <DataTemplate x:Key="ComparisonRow">
+        <StackPanel Margin="0,0,0,8">
+          <Grid MinHeight="44">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="150" />
+              <ColumnDefinition Width="230" />
+              <ColumnDefinition Width="290" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Style="{StaticResource BlockHeading}" Text="{Binding Field}" TextTrimming="CharacterEllipsis" />
+            <TextBlock Grid.Column="1" Style="{StaticResource SecondaryText}" VerticalAlignment="Center" Text="{Binding Columns}"
+                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+            <ComboBox Grid.Column="2" Margin="0,0,8,0" ItemsSource="{Binding Kinds}" DisplayMemberPath="Label"
+                      SelectedValuePath="Kind" SelectedValue="{Binding Kind}"
+                      AutomationProperties.Name="{Binding Field, StringFormat='How {0} is compared'}" />
+            <StackPanel Grid.Column="3" Orientation="Horizontal">
+              <TextBox Width="90" Text="{Binding AmountText, UpdateSourceTrigger=PropertyChanged}"
+                       Visibility="{Binding UsesAmount, Converter={StaticResource VisibleWhenTrue}}" AutomationProperties.Name="Amount" />
+              <TextBlock Style="{StaticResource SecondaryText}" Margin="6,0,12,0" VerticalAlignment="Center" Text="amount"
+                         Visibility="{Binding UsesAmount, Converter={StaticResource VisibleWhenTrue}}" />
+              <TextBox Width="70" Text="{Binding PercentageText, UpdateSourceTrigger=PropertyChanged}"
+                       Visibility="{Binding UsesPercentage, Converter={StaticResource VisibleWhenTrue}}" AutomationProperties.Name="Percentage" />
+              <TextBlock Style="{StaticResource SecondaryText}" Margin="6,0,12,0" VerticalAlignment="Center" Text="%"
+                         Visibility="{Binding UsesPercentage, Converter={StaticResource VisibleWhenTrue}}" />
+              <TextBox Width="70" Text="{Binding DaysText, UpdateSourceTrigger=PropertyChanged}"
+                       Visibility="{Binding UsesDays, Converter={StaticResource VisibleWhenTrue}}" AutomationProperties.Name="Days" />
+              <TextBlock Style="{StaticResource SecondaryText}" Margin="6,0,0,0" VerticalAlignment="Center" Text="days"
+                         Visibility="{Binding UsesDays, Converter={StaticResource VisibleWhenTrue}}" />
+            </StackPanel>
+          </Grid>
+          <TextBlock Style="{StaticResource Problem}" Text="{Binding Problem}"
+                     Visibility="{Binding Problem, Converter={StaticResource VisibleWhenText}}" />
+        </StackPanel>
+      </DataTemplate>
     </ResourceDictionary>
   </Window.Resources>
 
@@ -130,9 +232,80 @@
         </ScrollViewer>
       </TabItem>
       <TabItem Header="Rules">
-        <Border Style="{StaticResource Notice}" VerticalAlignment="Top" Margin="0">
-          <TextBlock Style="{StaticResource SecondaryText}" Text="Matching and comparison rules aren't available yet." />
-        </Border>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+          <StackPanel DataContext="{Binding Rules}">
+            <TextBlock Style="{StaticResource SectionHeading}" Text="Match records, then compare values" />
+            <Border Style="{StaticResource Notice}" Margin="0,0,0,12" Visibility="{Binding NotEditable, Converter={StaticResource VisibleWhenText}}">
+              <TextBlock Style="{StaticResource SecondaryText}" Text="{Binding NotEditable}" />
+            </Border>
+
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Style="{StaticResource BlockHeading}" Text="Fields" />
+              <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="Pair same-named columns" Command="{Binding PairSameNamedColumnsCommand}" Margin="0,0,8,0"
+                        ToolTip="Adds a field for each left and right column with the same name. You can change or remove any of them." />
+                <Button Content="Add field" Command="{Binding AddFieldCommand}" Margin="0" />
+              </StackPanel>
+            </Grid>
+            <TextBlock Style="{StaticResource SecondaryText}" Margin="0,4,0,10"
+                       Text="Pair a left column with a right column and say what it holds. Keys match records, compared fields are checked once records match, and carried fields come along unchanged." />
+            <Grid Visibility="{Binding HasFields, Converter={StaticResource VisibleWhenTrue}}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="180" />
+                <ColumnDefinition Width="180" />
+                <ColumnDefinition Width="120" />
+                <ColumnDefinition Width="120" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Style="{StaticResource ColumnLabel}" Text="Field" />
+              <TextBlock Grid.Column="1" Style="{StaticResource ColumnLabel}" Text="Left column" />
+              <TextBlock Grid.Column="2" Style="{StaticResource ColumnLabel}" Text="Right column" />
+              <TextBlock Grid.Column="3" Style="{StaticResource ColumnLabel}" Text="Type" />
+              <TextBlock Grid.Column="4" Style="{StaticResource ColumnLabel}" Text="Role" />
+              <TextBlock Grid.Column="5" Style="{StaticResource ColumnLabel}" Text="Decimal places or date formats" />
+            </Grid>
+            <ItemsControl ItemsSource="{Binding Fields}" ItemTemplate="{StaticResource FieldRow}" Focusable="False" />
+            <TextBlock Style="{StaticResource SecondaryText}" Text="No fields yet."
+                       Visibility="{Binding HasFields, Converter={StaticResource VisibleWhenFalse}}" />
+
+            <Grid Margin="0,20,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Style="{StaticResource BlockHeading}" Text="Matching passes" />
+              <Button Grid.Column="1" Content="Add pass" Command="{Binding AddPassCommand}" Margin="0" />
+            </Grid>
+            <TextBlock Style="{StaticResource SecondaryText}" Margin="0,4,0,10"
+                       Text="Passes run in order. Duplicate keys are never settled by picking a row: those records show as ambiguous." />
+            <ItemsControl ItemsSource="{Binding Passes}" ItemTemplate="{StaticResource PassRow}" Focusable="False" />
+
+            <TextBlock Style="{StaticResource BlockHeading}" Margin="0,20,0,0" Text="Comparisons" />
+            <TextBlock Style="{StaticResource SecondaryText}" Margin="0,4,0,10"
+                       Text="Compared fields are checked once records match. Numbers are rounded to their decimal places first, and a tolerance includes its bound. Keys must be equal." />
+            <ItemsControl ItemsSource="{Binding Comparisons}" ItemTemplate="{StaticResource ComparisonRow}" Focusable="False" />
+            <TextBlock Style="{StaticResource SecondaryText}" Text="No compared fields yet. Set a field's role to Compared."
+                       Visibility="{Binding HasComparisons, Converter={StaticResource VisibleWhenFalse}}" />
+
+            <ItemsControl Margin="0,16,0,0" ItemsSource="{Binding Problems}" Focusable="False">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Style="{StaticResource Problem}" Text="{Binding}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Border Style="{StaticResource Notice}" Margin="0,16,0,0">
+              <TextBlock Style="{StaticResource SecondaryText}"
+                         Text="Advanced rules aren't editable here yet: normalizing values beyond reading columns, consolidation, routing, grouped matching and search limits." />
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
       </TabItem>
       <TabItem Header="Results">
         <Border Style="{StaticResource Notice}" VerticalAlignment="Top" Margin="0">
