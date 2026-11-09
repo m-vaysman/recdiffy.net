@@ -123,8 +123,7 @@ internal static class Consolidation
         {
             [] => [],
             _ when members.Any(member => member.Row.Quarantined || index[(member.Scope, member.Id)].Count > 1) => QuarantineChain(members),
-            _ when members.Any(member => member.Target is not null && index.ContainsKey((member.Scope, member.Target)) is false) =>
-                Mark(members, true, null, "MissingLifecycleTarget"),
+            _ when members.Any(member => MissingTarget(member, index)) => Mark(members, true, null, "MissingLifecycleTarget"),
             _ when HasCycle(members, index) => Mark(members, true, null, "LifecycleCycle"),
             _ => Survivors(members, index, corrPointsAt) switch
             {
@@ -132,6 +131,16 @@ internal static class Consolidation
                 [var survivor] => Assign(members, survivor.Id, index, corrPointsAt),
                 _ => Mark(members, true, null, "LifecycleConflict"),
             },
+        };
+
+    // A cancel or a correction must name an event that exists. One that names none has nothing to cancel or supersede,
+    // so it is not read as cancelling itself (spec v3 §5.1 rule 1; #216).
+    private static bool MissingTarget(LifeEvent member, IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index) =>
+        member switch
+        {
+            { Action: "CANC" or "CORR", Target: null } => true,
+            { Target: { } target } => index.ContainsKey((member.Scope, target)) is false,
+            _ => false,
         };
 
     // A cancel is never a survivor. It removes its target; the cancel row itself is suppressed later as a cancel
