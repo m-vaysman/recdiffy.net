@@ -35,7 +35,7 @@ internal sealed class FakeExcel(RangeChoice choice, Func<ExcelRangePick, Task<So
     public static FakeExcel Reading(SourceRead result) =>
         new(new RangeChoice.Picked(Range), _ => Task.FromResult(result));
 
-    public static FakeExcel ReadingTable() => Reading(new SourceRead.Read(Range, Table));
+    public static FakeExcel ReadingTable() => Reading(new SourceRead.Read(Range, Table, SourcePreview.Of(Table)));
 
     public Task<RangeChoice> PickRangeAsync(string workbookPath, string prompt, CancellationToken cancellationToken)
     {

@@ -11,6 +11,8 @@ internal sealed class ExcelDnaSources(Func<nint, Task> showAbove) : IExcelSource
     private const int BlockRows = 5_000;
     private const int ReferenceType = 8;
     private const int DocumentPath = 2;
+    private const int DateSystem = 20;
+    private const int CellNumberFormat = 7;
 
     public Task<RangeChoice> PickRangeAsync(string workbookPath, string prompt, CancellationToken cancellationToken) =>
         OnExcel(() => Pick(workbookPath, prompt), cancellationToken);
@@ -70,13 +72,50 @@ internal sealed class ExcelDnaSources(Func<nint, Task> showAbove) : IExcelSource
                 progress.Report((double)(start + count) / range.Rows);
             }
 
-            return SourceTables.Build(range, rows);
+            return SourceTables.Build(range, rows) switch
+            {
+                SourceRead.Read read => read with { Preview = TypedPreview(range, sheet, rows, read.Table) },
+                var rejected => rejected,
+            };
         }
         catch (XlCallException)
         {
             return new SourceRead.Rejected($"Excel couldn't read {range.Address} on [{range.Workbook}]{range.Sheet}. Check that the workbook is still open, then pick the range again.");
         }
     }
+
+    private static SourcePreview TypedPreview(ExcelRangePick range, string sheet, IReadOnlyList<IReadOnlyList<SourceCell>> rows, SourceTable table)
+    {
+        var kept = SourceTables.KeptRows(rows);
+        var uses1904 = Uses1904(range.Workbook);
+        IReadOnlyList<IReadOnlyList<object?>> sample =
+        [
+            .. SourcePreview.SampleIndexes(kept.Count, SourcePreview.SampleSize, SourcePreview.Seed)
+                .Select(index => (IReadOnlyList<object?>)
+                [
+                    .. Enumerable.Range(0, range.Columns).Select(column =>
+                        Typed(sheet, range.FirstRow + kept[index], range.FirstColumn + column, rows[kept[index]][column].Value, uses1904)),
+                ]),
+        ];
+        return new SourcePreview(table.Headers, sample, table.Rows.Count);
+    }
+
+    private static object? Typed(string sheet, int row, int column, object? value, bool uses1904) =>
+        value is decimal or double
+            ? ExcelDates.Typed(value, Shape(new ExcelReference(row, row, column, column, sheet)), uses1904)
+            : value;
+
+    private static CellShape Shape(ExcelReference cell) =>
+        ExcelDates.ShapeOf(FormatCode(cell)) is var shape and not CellShape.Value ? shape : ExcelDates.ShapeOfFormat(NumberFormat(cell));
+
+    private static string FormatCode(ExcelReference cell) =>
+        XlCall.TryExcel(XlCall.xlfCell, out var code, "format", cell) is XlCall.XlReturn.XlReturnSuccess && code is string text ? text : "G";
+
+    private static string NumberFormat(ExcelReference cell) =>
+        XlCall.TryExcel(XlCall.xlfGetCell, out var format, CellNumberFormat, cell) is XlCall.XlReturn.XlReturnSuccess && format is string text ? text : "General";
+
+    private static bool Uses1904(string workbook) =>
+        XlCall.TryExcel(XlCall.xlfGetDocument, out var flag, DateSystem, workbook) is XlCall.XlReturn.XlReturnSuccess && flag is true;
 
     private static IEnumerable<IReadOnlyList<SourceCell>> Cells(object block, int rows, int columns) =>
         block switch

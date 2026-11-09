@@ -17,13 +17,14 @@ public sealed partial class SideViewModel(string side, SourceServices services, 
     private SourceSetup source = new NoSource();
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PreviewTable))]
     private CultureChoice culture = defaultCulture ?? throw new ArgumentNullException(nameof(defaultCulture));
 
     [ObservableProperty]
     private SourceTable? table;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasData), nameof(PreviewCaption))]
+    [NotifyPropertyChangedFor(nameof(HasData), nameof(PreviewCaption), nameof(PreviewTable))]
     private SourcePreview? preview;
 
     [ObservableProperty]
@@ -47,6 +48,8 @@ public sealed partial class SideViewModel(string side, SourceServices services, 
     public string PreviewCaption => Preview is { } shown
         ? string.Create(CultureInfo.CurrentCulture, $"{shown.Rows.Count:N0} sample {(shown.Rows.Count == 1 ? "row" : "rows")} of {Count(shown.RowCount, "row")}")
         : "No data chosen yet.";
+
+    public PreviewTable? PreviewTable => Preview?.Render(Culture.ToCulture());
 
     public bool IsCsv => Source is CsvSource;
 
@@ -172,7 +175,7 @@ public sealed partial class SideViewModel(string side, SourceServices services, 
                 .ConfigureAwait(true);
             (Source, Table, Preview, Summary, Problem) = read switch
             {
-                SourceRead.Read done => (WorkbookOf(done.Range), done.Table, SourcePreview.Of(done.Table), SummaryOf(done.Range, done.Table), (string?)null),
+                SourceRead.Read done => (WorkbookOf(done.Range), done.Table, done.Preview, SummaryOf(done.Range, done.Table), (string?)null),
                 SourceRead.Rejected failed => (new NoSource(), (SourceTable?)null, (SourcePreview?)null, string.Empty, failed.Reason),
                 _ => throw new InvalidOperationException("A source read is either read or rejected."),
             };

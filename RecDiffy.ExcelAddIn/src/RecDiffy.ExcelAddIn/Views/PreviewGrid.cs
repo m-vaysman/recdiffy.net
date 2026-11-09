@@ -7,37 +7,37 @@ namespace RecDiffy.ExcelAddIn.Views;
 
 public static class PreviewGrid
 {
-    public static readonly DependencyProperty PreviewProperty = DependencyProperty.RegisterAttached(
-        "Preview", typeof(SourcePreview), typeof(PreviewGrid), new PropertyMetadata(null, OnPreviewChanged));
+    public static readonly DependencyProperty TableProperty = DependencyProperty.RegisterAttached(
+        "Table", typeof(PreviewTable), typeof(PreviewGrid), new PropertyMetadata(null, OnTableChanged));
 
-    public static SourcePreview? GetPreview(DependencyObject element)
+    public static PreviewTable? GetTable(DependencyObject element)
     {
         ArgumentNullException.ThrowIfNull(element);
-        return element.GetValue(PreviewProperty) is SourcePreview preview ? preview : null;
+        return element.GetValue(TableProperty) is PreviewTable table ? table : null;
     }
 
-    public static void SetPreview(DependencyObject element, SourcePreview? value)
+    public static void SetTable(DependencyObject element, PreviewTable? value)
     {
         ArgumentNullException.ThrowIfNull(element);
-        element.SetValue(PreviewProperty, value);
+        element.SetValue(TableProperty, value);
     }
 
-    private static void OnPreviewChanged(DependencyObject element, DependencyPropertyChangedEventArgs e)
+    private static void OnTableChanged(DependencyObject element, DependencyPropertyChangedEventArgs e)
     {
         if (element is not DataGrid grid)
             return;
 
-        var preview = e.NewValue is SourcePreview shown ? shown : null;
+        var table = e.NewValue is PreviewTable shown ? shown : null;
         var cellText = grid.TryFindResource("PreviewCellText") is Style style ? style : null;
         grid.Columns.Clear();
-        foreach (var column in Columns(preview, cellText))
+        foreach (var column in Columns(table, cellText))
             grid.Columns.Add(column);
 
-        grid.ItemsSource = preview is null ? null : (string[][])[.. preview.Rows.Select(row => row.ToArray())];
+        grid.ItemsSource = table is null ? null : (string[][])[.. table.Rows.Select(row => row.ToArray())];
     }
 
-    private static IEnumerable<DataGridColumn> Columns(SourcePreview? preview, Style? cellText) =>
-        (preview?.Headers ?? []).Select((header, index) => new DataGridTextColumn
+    private static IEnumerable<DataGridColumn> Columns(PreviewTable? table, Style? cellText) =>
+        (table?.Headers ?? []).Select((header, index) => new DataGridTextColumn
         {
             Header = new TextBlock { Text = header },
             Binding = new Binding($"[{index}]"),

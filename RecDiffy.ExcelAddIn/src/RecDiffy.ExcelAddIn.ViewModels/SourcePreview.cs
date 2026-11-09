@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace RecDiffy.ExcelAddIn.ViewModels;
 
-public sealed record SourcePreview(IReadOnlyList<string> Headers, IReadOnlyList<IReadOnlyList<string>> Rows, long RowCount)
+public sealed record SourcePreview(IReadOnlyList<string> Headers, IReadOnlyList<IReadOnlyList<object?>> Rows, long RowCount)
 {
     public const int SampleSize = 5;
 
@@ -11,14 +11,29 @@ public sealed record SourcePreview(IReadOnlyList<string> Headers, IReadOnlyList<
     public static SourcePreview Of(SourceTable table)
     {
         ArgumentNullException.ThrowIfNull(table);
-        IReadOnlyList<IReadOnlyList<string>> rows = [.. SampleIndexes(table.Rows.Count, SampleSize, Seed).Select(index => Texts(table.Rows[index]))];
+        IReadOnlyList<IReadOnlyList<object?>> rows = [.. SampleIndexes(table.Rows.Count, SampleSize, Seed).Select(index => table.Rows[index])];
         return new(table.Headers, rows, table.Rows.Count);
     }
 
-    public static IReadOnlyList<string> Texts(IReadOnlyList<object?> values)
+    public PreviewTable Render(CultureInfo culture)
     {
-        ArgumentNullException.ThrowIfNull(values);
-        return [.. values.Select(value => Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty)];
+        ArgumentNullException.ThrowIfNull(culture);
+        IReadOnlyList<IReadOnlyList<string>> rows = [.. Rows.Select(row => (IReadOnlyList<string>)[.. row.Select(value => Text(value, culture))])];
+        return new(Headers, rows);
+    }
+
+    public static string Text(object? value, CultureInfo culture)
+    {
+        ArgumentNullException.ThrowIfNull(culture);
+        return value switch
+        {
+            null => string.Empty,
+            DateTime { TimeOfDay.Ticks: 0 } date => date.ToString("d", culture),
+            DateTime moment => moment.ToString("g", culture),
+            TimeOnly { Second: 0 } time => time.ToString("t", culture),
+            TimeOnly time => time.ToString("T", culture),
+            _ => Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty,
+        };
     }
 
     public static IReadOnlyList<int> SampleIndexes(int count, int size, int seed)
@@ -39,3 +54,5 @@ public sealed record SourcePreview(IReadOnlyList<string> Headers, IReadOnlyList<
         return [.. chosen.Order()];
     }
 }
+
+public sealed record PreviewTable(IReadOnlyList<string> Headers, IReadOnlyList<IReadOnlyList<string>> Rows);

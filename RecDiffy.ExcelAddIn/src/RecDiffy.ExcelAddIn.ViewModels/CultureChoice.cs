@@ -6,6 +6,18 @@ public sealed record CultureChoice(string Name, string Label)
 {
     public static CultureChoice Invariant { get; } = new(string.Empty, "Invariant culture");
 
+    public CultureInfo ToCulture()
+    {
+        try
+        {
+            return CultureInfo.GetCultureInfo(Name);
+        }
+        catch (CultureNotFoundException)
+        {
+            return CultureInfo.InvariantCulture;
+        }
+    }
+
     public static CultureChoice Of(CultureInfo culture)
     {
         ArgumentNullException.ThrowIfNull(culture);
