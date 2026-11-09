@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RecDiffy.ExcelAddIn/RecDiffy.ExcelAddIn.csproj" />
+    <Project Path="src/RecDiffy.ExcelAddIn.ViewModels/RecDiffy.ExcelAddIn.ViewModels.csproj" />
+    <Project Path="src/RecDiffy.ExcelAddIn.ViewModels.Tests/RecDiffy.ExcelAddIn.ViewModels.Tests.csproj" />
+  </Folder>
+</Solution>
