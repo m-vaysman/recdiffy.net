@@ -12,6 +12,14 @@ internal static class ExcelWindows
         _ => 0,
     };
 
+    public static nint Foremost() => TopLevelExcelWindows().FirstOrDefault(IsWindowVisible);
+
+    public static void BringForward(nint window)
+    {
+        if (window is not 0)
+            _ = SetForegroundWindow(window);
+    }
+
     private static nint ToHandle(double value) => value < 0 ? (nint)(int)value : (nint)(uint)value;
 
     private static nint Match(nint candidate) =>
@@ -60,6 +68,16 @@ internal static class ExcelWindows
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool IsWindow(nint handle);
+
+    [DllImport("user32.dll")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsWindowVisible(nint handle);
+
+    [DllImport("user32.dll")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetForegroundWindow(nint handle);
 
     [DllImport("user32.dll")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
