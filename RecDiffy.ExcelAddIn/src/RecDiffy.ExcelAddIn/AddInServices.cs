@@ -5,6 +5,14 @@ namespace RecDiffy.ExcelAddIn;
 
 internal static class AddInServices
 {
-    public static WindowHost Window { get; } =
-        new(() => new ShellWindow { DataContext = new ShellViewModel(new SourcesViewModel()) });
+    private static readonly ExcelDnaSources Excel = new();
+
+    public static WindowHost Window { get; } = new(CreateShell);
+
+    private static ShellWindow CreateShell()
+    {
+        var window = new ShellWindow();
+        window.DataContext = new ShellViewModel(new SourcesViewModel(Excel, new WorkbookDialog(window)));
+        return window;
+    }
 }
