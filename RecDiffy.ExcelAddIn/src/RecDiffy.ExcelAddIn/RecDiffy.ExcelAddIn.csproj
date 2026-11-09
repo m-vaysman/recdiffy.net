@@ -16,4 +16,9 @@
     <ProjectReference Include="..\RecDiffy.ExcelAddIn.ViewModels\RecDiffy.ExcelAddIn.ViewModels.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Resource Include="Resources\RecDiffy.ico" />
+    <EmbeddedResource Include="Resources\recdiffy-*.png" LogicalName="RecDiffy.ExcelAddIn.Resources.%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>

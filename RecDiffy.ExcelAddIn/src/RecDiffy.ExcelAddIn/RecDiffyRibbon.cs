@@ -8,15 +8,15 @@ namespace RecDiffy.ExcelAddIn;
 public sealed class RecDiffyRibbon : ExcelRibbon
 {
     private const string CustomUi = """
-        <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">
+        <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" loadImage="LoadImage">
           <ribbon>
             <tabs>
               <tab id="RecDiffyTab" label="RecDiffy">
-                <group id="ReconcileGroup" label="Reconcile">
+                <group id="ReconcileGroup" label="Reconcile" image="RecDiffy">
                   <button id="ReconcileButton"
                           label="Reconcile datasets"
                           size="large"
-                          imageMso="Consolidate"
+                          image="RecDiffy"
                           screentip="Reconcile datasets"
                           supertip="Open the RecDiffy window to compare a left and a right dataset."
                           onAction="OnReconcile" />
@@ -28,6 +28,9 @@ public sealed class RecDiffyRibbon : ExcelRibbon
         """;
 
     public override string GetCustomUI(string RibbonID) => CustomUi;
+
+    public override object LoadImage(string imageId) =>
+        imageId is RibbonIcons.RecDiffy ? RibbonIcons.ForThisDisplay() : base.LoadImage(imageId);
 
     public void OnReconcile(IRibbonControl control) => ExcelAsyncUtil.QueueAsMacro(OpenWindow);
 
