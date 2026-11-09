@@ -21,8 +21,17 @@ public static class SourceTables
         var headers = rows[0].Select(cell => HeaderText(cell.Value)).ToArray();
         return HeaderProblems(headers) is { Length: > 0 } problems
             ? new SourceRead.Rejected($"The header row of {location} ({range.Address}) can't be used: {string.Join("; ", problems)}.")
-            : new SourceRead.Read(range, new SourceTable(headers, [.. rows.Skip(1).Select(row => (IReadOnlyList<object?>)[.. row.Select(cell => cell.Value)])]));
+            : new SourceRead.Read(range, new SourceTable(headers, [.. rows.Skip(1).Where(HasValue).Select(row => (IReadOnlyList<object?>)[.. row.Select(cell => cell.Value)])]));
     }
+
+    private static bool HasValue(IReadOnlyList<SourceCell> row) => row.Any(cell => !IsBlank(cell.Value));
+
+    private static bool IsBlank(object? value) => value switch
+    {
+        null => true,
+        string text => string.IsNullOrWhiteSpace(text),
+        _ => false,
+    };
 
     public static string CellName(int row, int column) => ColumnName(column) + (row + 1).ToString(CultureInfo.InvariantCulture);
 
