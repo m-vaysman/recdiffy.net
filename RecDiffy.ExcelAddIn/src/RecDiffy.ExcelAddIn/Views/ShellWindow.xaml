@@ -4,6 +4,7 @@
         xmlns:vm="clr-namespace:RecDiffy.ExcelAddIn.ViewModels;assembly=RecDiffy.ExcelAddIn.ViewModels"
         xmlns:views="clr-namespace:RecDiffy.ExcelAddIn.Views"
         Title="RecDiffy · Reconcile datasets"
+        Icon="/RecDiffy.ExcelAddIn;component/Resources/RecDiffy.ico"
         Width="960" Height="800" MinWidth="720" MinHeight="480"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
