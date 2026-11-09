@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Threading;
@@ -18,13 +19,21 @@ internal sealed class WindowHost(Func<Window> createWindow)
         {
             if (_thread is { IsAlive: true })
             {
-                _ = _dispatcher?.BeginInvoke(ActivateWindow);
+                _ = _dispatcher?.BeginInvoke(() => ActivateWindow(owner));
                 return;
             }
 
             _thread = new Thread(() => Run(owner)) { IsBackground = true, Name = "RecDiffy window" };
             _thread.SetApartmentState(ApartmentState.STA);
             _thread.Start();
+        }
+    }
+
+    public Task ShowAbove(nint owner)
+    {
+        lock (_gate)
+        {
+            return _dispatcher?.InvokeAsync(() => RaiseAbove(owner)).Task ?? Task.CompletedTask;
         }
     }
 
@@ -69,16 +78,43 @@ internal sealed class WindowHost(Func<Window> createWindow)
         }
     }
 
-    private void ActivateWindow()
+    private void ActivateWindow(nint owner)
     {
         if (_window is null)
             return;
 
+        Reown(_window, owner);
         if (_window.WindowState is WindowState.Minimized)
             _window.WindowState = WindowState.Normal;
 
         _window.Activate();
     }
+
+    private void RaiseAbove(nint owner)
+    {
+        if (_window is null)
+            return;
+
+        Reown(_window, owner);
+        _ = SetWindowPos(new WindowInteropHelper(_window).Handle, TopOfZOrder, 0, 0, 0, 0, NoSize | NoMove | NoActivate);
+    }
+
+    private static void Reown(Window window, nint owner)
+    {
+        var interop = new WindowInteropHelper(window);
+        if (owner is not 0 && interop.Owner != owner)
+            interop.Owner = owner;
+    }
+
+    private const nint TopOfZOrder = 0;
+    private const uint NoSize = 0x0001;
+    private const uint NoMove = 0x0002;
+    private const uint NoActivate = 0x0010;
+
+    [DllImport("user32.dll")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetWindowPos(nint handle, nint insertAfter, int x, int y, int width, int height, uint flags);
 
     private static void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
