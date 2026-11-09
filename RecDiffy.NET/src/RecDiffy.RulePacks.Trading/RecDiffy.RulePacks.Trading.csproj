@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <ProjectGuid>{FA85221A-9476-5E26-9CF9-B75DD8EB0D9C}</ProjectGuid>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsAotCompatible>true</IsAotCompatible>
