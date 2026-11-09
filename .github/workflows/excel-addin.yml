@@ -1,0 +1,45 @@
+name: Excel add-in
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'RecDiffy.ExcelAddIn/**'
+      - '.github/workflows/excel-addin.yml'
+  push:
+    branches: [main, dev]
+    paths:
+      - 'RecDiffy.ExcelAddIn/**'
+      - '.github/workflows/excel-addin.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: RecDiffy.ExcelAddIn/global.json
+
+      - name: Restore
+        run: dotnet restore RecDiffy.ExcelAddIn/RecDiffy.ExcelAddIn.slnx
+
+      - name: Build
+        run: dotnet build RecDiffy.ExcelAddIn/RecDiffy.ExcelAddIn.slnx -c Release --no-restore -warnaserror
+
+      - name: Test
+        run: dotnet test RecDiffy.ExcelAddIn/RecDiffy.ExcelAddIn.slnx -c Release --no-build
+
+      - name: Upload the packed add-ins
+        uses: actions/upload-artifact@v4
+        with:
+          name: recdiffy-excel-addin
+          path: RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/*-packed.xll
+          if-no-files-found: error
