@@ -11,16 +11,18 @@ public class PreviewAndCultureTests
         var preview = SourcePreview.Of(FakeExcel.Table);
 
         Assert.Equal(FakeExcel.Table.Headers, preview.Headers);
-        Assert.Equal([["T-1", "10", "1.5"], ["T-2", "20", "2.5"]], preview.Rows);
+        Assert.Equal([["T-1", "10", "1.5"], ["T-2", "20", "2.5"]], preview.Render(CultureInfo.InvariantCulture).Rows);
         Assert.Equal(2, preview.RowCount);
     }
 
     [Fact]
-    public void Values_are_previewed_as_invariant_text()
+    public void Values_other_than_dates_are_previewed_as_invariant_text()
     {
-        var texts = SourcePreview.Texts(["T-1", 1500.6m, null, true, 0.032600000000000004]);
+        object?[] values = ["T-1", 1500.6m, null, true, 0.032600000000000004];
 
-        Assert.Equal(["T-1", "1500.6", string.Empty, "True", "0.032600000000000004"], texts);
+        var texts = values.Select(value => SourcePreview.Text(value, CultureInfo.GetCultureInfo("de-DE")));
+
+        Assert.Equal(["T-1", "1500.6", string.Empty, "True", "0.032600000000000004"], texts, StringComparer.Ordinal);
     }
 
     [Fact]
