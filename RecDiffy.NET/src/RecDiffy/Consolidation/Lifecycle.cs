@@ -51,27 +51,20 @@ internal static class Consolidation
     private static string? Reason(RowContext context) =>
         context.Diagnostics.FirstOrDefault(diagnostic => diagnostic.Severity == DiagnosticSeverity.Invalid)?.Code;
 
-    // Conflicting copies of one event share their chain's fate, but each stays its own row, so every copy is accounted for once.
-    private static ConsolidatedRow Own(ConsolidatedRow fate, IntakeRow row) =>
-        fate.Members.Intersect(row.Members).Any() ? fate : fate with { Members = row.Members, Context = row.Context };
-
+    // Each row gets its own fate, keyed by its source ref: copies of one row key can differ in scope (#214).
     private static IReadOnlyList<ConsolidatedRow> Collapse(IReadOnlyList<IntakeRow> rows, LifecyclePlan plan)
     {
         var events = rows.Select(row => ToEvent(row, plan)).OfType<LifeEvent>().ToArray();
-        var index = events.GroupBy(evt => (evt.Scope, evt.Id)).ToDictionary(group => group.Key, Representative);
-        var linked = Components([.. index.Values], index);
-        var decided = linked.SelectMany(component => Decide(component, index, plan.CorrPointsAt)).ToDictionary(row => row.Context.RowKey, StringComparer.Ordinal);
-        return [.. rows.Select(row => decided.TryGetValue(row.Context.RowKey, out var fate) ? Own(fate, row) : PassThrough(row))];
+        var index = Copies(events);
+        var linked = Components(events, index);
+        var decided = linked.SelectMany(component => Decide(component, index, plan.CorrPointsAt)).ToDictionary(row => row.Members[0]);
+        return [.. rows.Select(row => decided.TryGetValue(row.Members[0], out var fate) ? fate : PassThrough(row))];
     }
 
-    // Several events for one scope and id keep a quarantined copy when one exists.
-    // Otherwise the first copy is kept and marked quarantined.
-    private static LifeEvent Representative(IGrouping<(string Scope, string Id), LifeEvent> group) =>
-        group.Count() is 1
-            ? group.First()
-            : group.FirstOrDefault(evt => evt.Row.Quarantined) is { } quarantined
-                ? quarantined
-                : group.First() with { Row = group.First().Row with { Quarantined = true } };
+    // Every copy of an event is kept, and each copy's target links its chain. No copy stands for the others, so copy
+    // order cannot pick which chain is quarantined (spec v3 §3.2; #214).
+    private static IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> Copies(IReadOnlyList<LifeEvent> events) =>
+        events.GroupBy(evt => (evt.Scope, evt.Id)).ToDictionary(group => group.Key, group => (IReadOnlyList<LifeEvent>)[.. group]);
 
     // A blank action is not an event. The row stays on the pass-through path.
     private static LifeEvent? ToEvent(IntakeRow row, LifecyclePlan plan) =>
@@ -86,7 +79,7 @@ internal static class Consolidation
 
     private static IEnumerable<IReadOnlyList<LifeEvent>> Components(
         IReadOnlyList<LifeEvent> events,
-        IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index) =>
+        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index) =>
         events.Aggregate(
             (Seen: ImmutableHashSet<LifeKey>.Empty, Groups: ImmutableList<IReadOnlyList<LifeEvent>>.Empty),
             (state, evt) => state.Seen.Contains(evt.Key) ? state : Add(state, evt, index)).Groups;
@@ -94,17 +87,17 @@ internal static class Consolidation
     private static (ImmutableHashSet<LifeKey> Seen, ImmutableList<IReadOnlyList<LifeEvent>> Groups) Add(
         (ImmutableHashSet<LifeKey> Seen, ImmutableList<IReadOnlyList<LifeEvent>> Groups) state,
         LifeEvent start,
-        IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index)
+        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index)
     {
         var keys = Reachable([start.Key], [], index);
-        var members = keys.Select(key => index[(key.Scope, key.Id)]).DistinctBy(evt => evt.Key).ToArray();
+        var members = keys.SelectMany(key => index[(key.Scope, key.Id)]).ToArray();
         return (state.Seen.Union(keys), state.Groups.Add(members));
     }
 
     private static ImmutableHashSet<LifeKey> Reachable(
         LifeKey[] pending,
         ImmutableHashSet<LifeKey> seen,
-        IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index) =>
+        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index) =>
         pending.Length is 0
             ? seen
             : Reachable(
@@ -112,23 +105,24 @@ internal static class Consolidation
                 seen.Union(pending),
                 index);
 
-    private static IEnumerable<LifeKey> Links(LifeKey key, IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index)
+    private static IEnumerable<LifeKey> Links(LifeKey key, IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index)
     {
-        var outbound = index.TryGetValue((key.Scope, key.Id), out var evt) && evt.Target is { } target && index.ContainsKey((key.Scope, target))
-            ? [new LifeKey(key.Scope, target)]
+        var outbound = index.TryGetValue((key.Scope, key.Id), out var copies)
+            ? copies.Select(copy => copy.Target).OfType<string>().Where(target => index.ContainsKey((key.Scope, target))).Select(target => new LifeKey(key.Scope, target))
             : Array.Empty<LifeKey>();
-        var inbound = index.Values.Where(other => other.Scope == key.Scope && other.Target == key.Id).Select(other => other.Key);
+        var inbound = index.Values.SelectMany(others => others).Where(other => other.Scope == key.Scope && other.Target == key.Id).Select(other => other.Key);
         return [key, .. outbound, .. inbound];
     }
 
+    // A key with more than one copy is a conflict even when no copy is quarantined yet.
     private static IReadOnlyList<ConsolidatedRow> Decide(
         IReadOnlyList<LifeEvent> members,
-        IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index,
+        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index,
         string corrPointsAt) =>
         members switch
         {
             [] => [],
-            _ when members.Any(member => member.Row.Quarantined) => Mark(members, true, null, "ChainMemberQuarantined"),
+            _ when members.Any(member => member.Row.Quarantined || index[(member.Scope, member.Id)].Count > 1) => QuarantineChain(members),
             _ when members.Any(member => member.Target is not null && index.ContainsKey((member.Scope, member.Target)) is false) =>
                 Mark(members, true, null, "MissingLifecycleTarget"),
             _ when HasCycle(members, index) => Mark(members, true, null, "LifecycleCycle"),
@@ -144,7 +138,7 @@ internal static class Consolidation
     // event.
     private static IReadOnlyList<LifeEvent> Survivors(
         IReadOnlyList<LifeEvent> members,
-        IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index,
+        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index,
         string corrPointsAt)
     {
         var cancelled = members.Where(member => member.Action is "CANC" && member.Target is not null).Select(member => member.Target!).ToHashSet(StringComparer.Ordinal);
@@ -153,11 +147,11 @@ internal static class Consolidation
     }
 
     // When corrPointsAt is CANC and the named event is a cancel, the correction supersedes that cancel's target.
-    private static string Predecessor(LifeEvent corr, IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index, string corrPointsAt) =>
+    private static string Predecessor(LifeEvent corr, IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index, string corrPointsAt) =>
         (corr.Target, corrPointsAt) switch
         {
             (null, _) => corr.Id,
-            (var target, "CANC") when index.TryGetValue((corr.Scope, target), out var linked) && linked is { Action: "CANC", Target: { } cancelled } => cancelled,
+            (var target, "CANC") when index.TryGetValue((corr.Scope, target), out var linked) && linked is [{ Action: "CANC", Target: { } cancelled }] => cancelled,
             (var target, _) => target,
         };
 
@@ -166,19 +160,23 @@ internal static class Consolidation
     private static IReadOnlyList<ConsolidatedRow> Assign(
         IReadOnlyList<LifeEvent> members,
         string survivorId,
-        IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index,
+        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index,
         string corrPointsAt) =>
         [.. members.Select(member => member.Id == survivorId
             ? Row(member, false, null, null) with { LifecycleCollapsed = true, Lineage = [.. members.SelectMany(item => item.Row.Members)] }
             : Row(member, false, member.Action is "CANC" ? SuppressionReason.CancelEvent : SuppressionReason.Superseded, null))];
 
-    private static bool HasCycle(IReadOnlyList<LifeEvent> members, IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index) =>
+    private static bool HasCycle(IReadOnlyList<LifeEvent> members, IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index) =>
         members.Any(member => Walk(member.Scope, member.Id, [], index));
 
-    private static bool Walk(string scope, string id, ImmutableHashSet<string> stack, IReadOnlyDictionary<(string Scope, string Id), LifeEvent> index) =>
-        index.TryGetValue((scope, id), out var evt) && evt.Target is { } target
-            ? stack.Contains(target) || Walk(scope, target, stack.Add(id), index)
-            : false;
+    private static bool Walk(string scope, string id, ImmutableHashSet<string> stack, IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index) =>
+        index.TryGetValue((scope, id), out var copies)
+        && copies.Any(evt => evt.Target is { } target && (stack.Contains(target) || Walk(scope, target, stack.Add(id), index)));
+
+    // A row already quarantined keeps its own reason, so a conflicting copy reports DuplicateConflict alone (spec v3
+    // §3.4; #214). Every other row of the chain is ChainMemberQuarantined.
+    private static IReadOnlyList<ConsolidatedRow> QuarantineChain(IReadOnlyList<LifeEvent> members) =>
+        [.. members.Select(member => Row(member, true, null, (member.Row.Quarantined ? Reason(member.Row.Context) : null) ?? "ChainMemberQuarantined"))];
 
     private static IReadOnlyList<ConsolidatedRow> Mark(IReadOnlyList<LifeEvent> members, bool quarantine, SuppressionReason? suppression, string? code) =>
         [.. members.Select(member => Row(member, quarantine, suppression, code))];
