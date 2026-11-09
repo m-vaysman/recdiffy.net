@@ -399,29 +399,43 @@ public class CascadeTests
     }
 
     [Fact]
-    public void Doubling_pair_matches_stays_under_a_quadratic_slope()
+    public void Doubling_pair_matches_keeps_the_matcher_work_linear() =>
+        AssertLinearGrowth(PairMatches(600), PairMatches(1_200), 600);
+
+    [Fact]
+    public void Doubling_group_matches_keeps_the_matcher_work_linear() =>
+        AssertLinearGrowth(GroupMatches(600), GroupMatches(1_200), 600);
+
+    private static void AssertLinearGrowth(MatchReport once, MatchReport twice, int matches)
     {
-        var once = Elapsed(600);
-        var twice = Elapsed(1_200);
-        Assert.True(twice < once * 3 + TimeSpan.FromMilliseconds(200), $"600 rows took {once}, 1200 rows took {twice}");
+        var counts = $"{matches} matches: {once.Counters}, {2 * matches} matches: {twice.Counters}";
+        Assert.Equal(matches, once.Committed.Count);
+        Assert.Equal(2 * matches, twice.Committed.Count);
+        Assert.True(once.Counters.IndexBuilds == twice.Counters.IndexBuilds, counts);
+        Assert.True(twice.Counters.Components <= 2 * once.Counters.Components, counts);
+        Assert.True(twice.Counters.SubsetSearches <= 2 * once.Counters.SubsetSearches, counts);
+        Assert.True(twice.Counters.DirtyResearches <= 2 * once.Counters.DirtyResearches, counts);
     }
 
-    private static TimeSpan Elapsed(int count)
+    private static MatchReport PairMatches(int count)
     {
-        var left = new ConsolidatedRow[count];
-        var right = new ConsolidatedRow[count];
-        for (var index = 0; index < count; index++)
-        {
-            left[index] = Trade($"L{index}", Side.Left, "C", "I" + index, 10m, 100m, 1m, null);
-            right[index] = Trade($"R{index}", Side.Right, "C", "I" + index, 10m, 100m, 1m, null);
-        }
+        ConsolidatedRow[] left = [.. Enumerable.Range(0, count).Select(index => Trade($"L{index}", Side.Left, "C", "I" + index, 10m, 100m, 1m, null))];
+        ConsolidatedRow[] right = [.. Enumerable.Range(0, count).Select(index => Trade($"R{index}", Side.Right, "C", "I" + index, 10m, 100m, 1m, null))];
+        return CascadeMatcher.Run(left, right, [Passes[1]], Fields, SearchLimits.Default);
+    }
 
-        var passes = new[] { Passes[1] };
-        CascadeMatcher.Run(left, right, passes, Fields, SearchLimits.Default);
-        var watch = System.Diagnostics.Stopwatch.StartNew();
-        CascadeMatcher.Run(left, right, passes, Fields, SearchLimits.Default);
-        watch.Stop();
-        return watch.Elapsed;
+    private static MatchReport GroupMatches(int count)
+    {
+        ConsolidatedRow[] left =
+        [
+            .. Enumerable.Range(0, count).SelectMany(index => new[]
+            {
+                Trade($"L{index}a", Side.Left, "C", "I" + index, 2m, 10m, 2m, null),
+                Trade($"L{index}b", Side.Left, "C", "I" + index, 3m, 10m, 3m, null),
+            }),
+        ];
+        ConsolidatedRow[] right = [.. Enumerable.Range(0, count).Select(index => Trade($"R{index}", Side.Right, "C", "I" + index, 5m, 10m, 5m, null))];
+        return CascadeMatcher.Run(left, right, [Passes[2]], Fields, SearchLimits.Default);
     }
 
     private static string Snapshot(MatchReport report)
