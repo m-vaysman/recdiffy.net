@@ -163,7 +163,7 @@ internal static class ResultBuilder
             _ when alignment is Alignment.SearchIncomplete => Disposition.SearchIncomplete,
             _ => row.Context.Side == Side.Left ? Disposition.LeftOnly : Disposition.RightOnly,
         };
-        var diagnostics = DiagnosticsOf(row).AddRange(GroupWarnings(row, linked, projections));
+        var diagnostics = OwnDiagnostics(row, member).AddRange(DiagnosticsOf(row)).AddRange(GroupWarnings(row, linked, projections));
         var validity = row.Quarantined || diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Invalid)
             ? InputValidity.Invalid
             : diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Warning) ? InputValidity.ValidWithWarnings : InputValidity.Valid;
@@ -193,6 +193,10 @@ internal static class ResultBuilder
             ? (row.Context.Side == Side.Left ? pair.Left : pair.Right).Diagnostics
                 .Where(diagnostic => diagnostic is { Code: MemberAgreement.Disagree, RuleId: "aggregate" })
             : [];
+
+    // A package leg reports its own diagnostics first, then the package's (spec v3 §3.2, §3.4; #217).
+    private static ImmutableList<Diagnostic> OwnDiagnostics(ConsolidatedRow row, SourceRef member) =>
+        row.MemberDiagnostics is { } own && own.TryGetValue(member, out var diagnostics) ? diagnostics : [];
 
     // Package quarantine already records its code on the row context. Lifecycle quarantine keeps the code only on the consolidated row.
     private static ImmutableList<Diagnostic> DiagnosticsOf(ConsolidatedRow row) =>
