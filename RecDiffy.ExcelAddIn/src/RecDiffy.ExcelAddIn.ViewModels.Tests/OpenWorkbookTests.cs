@@ -37,7 +37,7 @@ public class OpenWorkbookTests
     public async Task A_workbook_that_was_never_saved_is_kept_without_a_path()
     {
         var unsaved = FakeExcel.Range with { Workbook = "Book1", Path = null };
-        var excel = new FakeExcel(new RangeChoice.Picked(unsaved), range => Task.FromResult<SourceRead>(new SourceRead.Read(range, FakeExcel.Table)));
+        var excel = new FakeExcel(new RangeChoice.Picked(unsaved), range => Task.FromResult<SourceRead>(new SourceRead.Read(range, FakeExcel.Table, SourcePreview.Of(FakeExcel.Table))));
         var side = Make.Side("Left", excel, new FakeDialog(null));
 
         await side.ChooseOpenWorkbookDataCommand.ExecuteAsync(null);

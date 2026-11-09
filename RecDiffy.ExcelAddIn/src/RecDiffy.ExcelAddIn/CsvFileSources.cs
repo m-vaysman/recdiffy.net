@@ -17,7 +17,7 @@ public sealed class CsvFileSources : ICsvSources
         {
             using var file = new FileStream(source.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
             var peek = FileSources.PeekCsv(file, Options(source), SourcePreview.SampleSize, SourcePreview.Seed, cancellationToken);
-            return new CsvPeek.Read(new SourcePreview(peek.Headers, [.. peek.Rows.Select(row => SourcePreview.Texts(row.Values))], peek.RowCount));
+            return new CsvPeek.Read(new SourcePreview(peek.Headers, [.. peek.Rows.Select(row => row.Values)], peek.RowCount));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException or DecoderFallbackException or FormatException)
         {

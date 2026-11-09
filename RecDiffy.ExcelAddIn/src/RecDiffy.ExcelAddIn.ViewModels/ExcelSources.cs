@@ -23,7 +23,7 @@ public abstract record SourceRead
     {
     }
 
-    public sealed record Read(ExcelRangePick Range, SourceTable Table) : SourceRead;
+    public sealed record Read(ExcelRangePick Range, SourceTable Table, SourcePreview Preview) : SourceRead;
 
     public sealed record Rejected(string Reason) : SourceRead;
 }

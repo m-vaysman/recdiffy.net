@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Text;
 using RecDiffy.ExcelAddIn.ViewModels;
@@ -19,7 +20,7 @@ public sealed class CsvFileSourcesTests : IDisposable
         var preview = Assert.IsType<CsvPeek.Read>(CsvFileSources.Peek(CsvSource.At(path), CancellationToken.None)).Preview;
 
         Assert.Equal(["Ref", "Quantity", "Price"], preview.Headers);
-        Assert.Equal([["T-1", "10", "1.5"], ["T-2", "20", "2.5"]], preview.Rows);
+        Assert.Equal([["T-1", "10", "1.5"], ["T-2", "20", "2.5"]], preview.Render(CultureInfo.InvariantCulture).Rows);
         Assert.Equal(2, preview.RowCount);
     }
 
@@ -42,7 +43,7 @@ public sealed class CsvFileSourcesTests : IDisposable
 
         var preview = Assert.IsType<CsvPeek.Read>(CsvFileSources.Peek(source, CancellationToken.None)).Preview;
 
-        Assert.Equal([["T-1", "Müller"]], preview.Rows);
+        Assert.Equal([["T-1", "Müller"]], preview.Render(CultureInfo.InvariantCulture).Rows);
     }
 
     [Fact]

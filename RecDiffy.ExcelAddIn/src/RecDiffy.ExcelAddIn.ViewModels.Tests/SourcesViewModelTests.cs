@@ -106,7 +106,7 @@ public class SourcesViewModelTests
         Assert.True(sources.IsReading);
         Assert.Same(sources.Right, sources.Reading);
         Assert.Equal("Reading the right data", sources.ReadingMessage);
-        pending.SetResult(new SourceRead.Read(FakeExcel.Range, FakeExcel.Table));
+        pending.SetResult(new SourceRead.Read(FakeExcel.Range, FakeExcel.Table, SourcePreview.Of(FakeExcel.Table)));
         await choosing;
         Assert.False(sources.IsReading);
         Assert.Equal(string.Empty, sources.ReadingMessage);

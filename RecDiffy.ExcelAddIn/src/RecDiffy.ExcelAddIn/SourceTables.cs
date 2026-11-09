@@ -19,9 +19,17 @@ public static class SourceTables
             return new SourceRead.Rejected($"The range picked on {location} is empty. Pick the data including its header row.");
 
         var headers = rows[0].Select(cell => HeaderText(cell.Value)).ToArray();
-        return HeaderProblems(headers) is { Length: > 0 } problems
-            ? new SourceRead.Rejected($"The header row of {location} ({range.Address}) can't be used: {string.Join("; ", problems)}.")
-            : new SourceRead.Read(range, new SourceTable(headers, [.. rows.Skip(1).Where(HasValue).Select(row => (IReadOnlyList<object?>)[.. row.Select(cell => cell.Value)])]));
+        if (HeaderProblems(headers) is { Length: > 0 } problems)
+            return new SourceRead.Rejected($"The header row of {location} ({range.Address}) can't be used: {string.Join("; ", problems)}.");
+
+        var table = new SourceTable(headers, [.. KeptRows(rows).Select(index => (IReadOnlyList<object?>)[.. rows[index].Select(cell => cell.Value)])]);
+        return new SourceRead.Read(range, table, SourcePreview.Of(table));
+    }
+
+    public static IReadOnlyList<int> KeptRows(IReadOnlyList<IReadOnlyList<SourceCell>> rows)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        return [.. Enumerable.Range(1, Math.Max(rows.Count - 1, 0)).Where(index => HasValue(rows[index]))];
     }
 
     private static bool HasValue(IReadOnlyList<SourceCell> row) => row.Any(cell => !IsBlank(cell.Value));
