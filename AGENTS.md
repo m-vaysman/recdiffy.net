@@ -41,6 +41,12 @@ Read the whole file before you change anything. After the repository basics and 
 
 - **No `[GeneratedRegex]` in test projects.** The Sonar build strips source generators from test projects, so that code fails there with CS8795 even though `ci.yml` passes. Use `new Regex(pattern, options, TimeSpan)` fields instead.
 
+### Excel-DNA add-in
+
+- **Read the skill first.** Before you plan, write or review Excel-DNA code (#192), read [.agents/skills/excel-dna/SKILL.md](.agents/skills/excel-dna/SKILL.md) and the references it points to. Codex loads it from `.agents/skills` on its own; every other agent opens it from here.
+- **No COM without the lead.** Don't write, extend or run Excel COM automation or interop code unless the use is listed under "Approved COM uses" below. That includes `ExcelDnaUtil.Application`, Office interop types, `dynamic` automation, `ExcelRibbon` and custom task panes. Excel-DNA's C API (`XlCall`, `ExcelReference`) isn't COM. If a feature needs COM, finish the parts that don't, then ask the lead (the repository owner) and wait.
+- **Approved COM uses:** none yet. Add each approved use here, with a link to the approval.
+
 ## Where changes go
 
 Profiles refer to rules by **name**, never by class. The name-to-class mapping is the seam, so look for it before you edit anything.
