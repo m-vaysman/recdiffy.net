@@ -145,6 +145,8 @@ internal static class FactsBuilder
 
     private static decimal? Abs(decimal? value) => value is { } number ? Math.Abs(number) : null;
 
+    private const string NotRouted = "Not routed to any matching path: check the profile routes";
+
     private static OpenItem? OpenItem(EntryFact entry, DiffFact[] diffs, FieldMap map)
     {
         var netCash = map.IsMapped(ReportRole.NetCash);
@@ -152,6 +154,8 @@ internal static class FactsBuilder
         return entry.Entry switch
         {
             { Outcome: FieldOutcome.Break } => Break(entry, diffs, netCash, settleField),
+            { Alignment: Alignment.LeftOnly, Explanation.Trail: [{ Detail: "Unrouted" }] } => Whole(entry, "Unmatched ours", entry.Ours, netCash, NotRouted),
+            { Alignment: Alignment.RightOnly, Explanation.Trail: [{ Detail: "Unrouted" }] } => Whole(entry, "Unmatched theirs", entry.Theirs, netCash, NotRouted),
             { Alignment: Alignment.LeftOnly } => Whole(entry, "Unmatched ours", entry.Ours, netCash, "Chase confirmation: not in their file"),
             { Alignment: Alignment.RightOnly } => Whole(entry, "Unmatched theirs", entry.Theirs, netCash, "DK: investigate alleged trade"),
             { Alignment: Alignment.Ambiguous } => Whole(entry, "Ambiguous", entry.Ours.Any ? entry.Ours : entry.Theirs, false, "Resolve ambiguity: choose the rows that belong together"),

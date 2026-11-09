@@ -48,13 +48,13 @@ public class RunSummaryAccountingTests
     }
 
     [Fact]
-    public void An_unrouted_row_is_explained_as_Unrouted_with_no_path()
+    public void An_unrouted_row_is_explained_as_Unrouted_with_no_path_and_no_committing_pass()
     {
         var result = Run([("T2", "Bond", "500")], []);
 
         var entry = Assert.Single(result.Entries);
         var attempt = Assert.Single(entry.Explanation.Trail);
-        Assert.Equal((Alignment.LeftOnly, "", "Unrouted"), (entry.Alignment, entry.PathId, attempt.Detail));
+        Assert.Equal((Alignment.LeftOnly, "", "Unrouted", (string?)null), (entry.Alignment, entry.PathId, attempt.Detail, entry.Explanation.CommittedBy));
     }
 
     private static ReconciliationResult Run((string Id, string Asset, string Amount)[] left, (string Id, string Asset, string Amount)[] right) =>
