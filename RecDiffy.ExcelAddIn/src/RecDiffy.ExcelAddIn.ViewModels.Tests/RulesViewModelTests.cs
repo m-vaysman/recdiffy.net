@@ -327,7 +327,7 @@ public class RulesViewModelTests
         var excel = new FakeExcel(new RangeChoice.Picked(FakeExcel.Range), _ => Task.FromResult(ReadNext()));
         var shell = new ShellViewModel(new SourcesViewModel(
             new SourceServices(excel, FakeCsv.Reading(), new FakeDialog(@"C:\data\Book.xlsx")),
-            excelCulture ?? Make.ExcelCulture));
+            excelCulture ?? Make.ExcelCulture), FakeRuns.Unused());
         await ChooseBoth(shell).ConfigureAwait(true);
         return shell;
     }

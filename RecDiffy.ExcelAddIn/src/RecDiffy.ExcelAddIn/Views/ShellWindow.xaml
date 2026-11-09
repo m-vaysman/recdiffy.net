@@ -308,9 +308,132 @@
         </ScrollViewer>
       </TabItem>
       <TabItem Header="Results">
-        <Border Style="{StaticResource Notice}" VerticalAlignment="Top" Margin="0">
-          <TextBlock Style="{StaticResource SecondaryText}" Text="Choose your sources and rules, then run the reconciliation." />
-        </Border>
+        <Grid DataContext="{Binding Results}">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+
+          <StackPanel>
+            <Border Style="{StaticResource Notice}" Margin="0,0,0,12" Visibility="{Binding ShowsEmptyNotice, Converter={StaticResource VisibleWhenTrue}}">
+              <TextBlock Style="{StaticResource SecondaryText}" Text="Choose your sources and rules, then run the reconciliation." />
+            </Border>
+            <Border Style="{StaticResource Notice}" Margin="0,0,0,12" Visibility="{Binding IsRunning, Converter={StaticResource VisibleWhenTrue}}">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                  <TextBlock Style="{StaticResource BlockHeading}" HorizontalAlignment="Left" Text="{Binding Stage, StringFormat='{}{0}…'}"
+                             AutomationProperties.LiveSetting="Polite" />
+                  <ProgressBar Height="6" Margin="0,8,24,0" Minimum="0" Maximum="1" IsIndeterminate="{Binding IsIndeterminate, Mode=OneWay}"
+                               Value="{Binding ProgressValue, Mode=OneWay}" Foreground="{StaticResource InkBrush}" Background="{StaticResource PaperBrush}"
+                               BorderThickness="0" AutomationProperties.Name="Run progress" />
+                </StackPanel>
+                <Button Grid.Column="1" Content="Cancel" Margin="0"
+                        Command="{Binding DataContext.RunCancelCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+              </Grid>
+            </Border>
+            <Border Style="{StaticResource Notice}" Margin="0,0,0,12" Visibility="{Binding Message, Converter={StaticResource VisibleWhenText}}">
+              <TextBlock Style="{StaticResource Problem}" Margin="0" TextWrapping="Wrap" Text="{Binding Message}" />
+            </Border>
+            <Border Style="{StaticResource Notice}" Margin="0,0,0,12"
+                    Visibility="{Binding DataContext.ShowsStaleNotice, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource VisibleWhenTrue}}">
+              <TextBlock Style="{StaticResource SecondaryText}" TextWrapping="Wrap"
+                         Text="The rules or sources changed after this run. Run again to refresh the results." />
+            </Border>
+          </StackPanel>
+
+          <StackPanel Grid.Row="1" Visibility="{Binding HasResults, Converter={StaticResource VisibleWhenTrue}}">
+            <TextBlock Style="{StaticResource SecondaryText}" TextWrapping="Wrap" Text="{Binding Run.Label}" />
+            <ItemsControl ItemsSource="{Binding Run.Counts}" Margin="0,8,0,8" Focusable="False">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Margin="0,4,28,4">
+                    <TextBlock x:Name="Count" FontSize="22" Foreground="{StaticResource TextBrush}" Text="{Binding Count, StringFormat='{}{0:N0}'}" />
+                    <TextBlock Style="{StaticResource SecondaryText}" Text="{Binding Label}" />
+                  </StackPanel>
+                  <DataTemplate.Triggers>
+                    <DataTrigger Binding="{Binding NeedsAttention}" Value="True">
+                      <Setter TargetName="Count" Property="Foreground" Value="{StaticResource BreakBrush}" />
+                    </DataTrigger>
+                  </DataTemplate.Triggers>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <DataGrid Grid.Row="2" ItemsSource="{Binding Run.Rows}" SelectedItem="{Binding Selected}"
+                    VerticalScrollBarVisibility="Auto" EnableRowVirtualization="True"
+                    VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                    Visibility="{Binding HasResults, Converter={StaticResource VisibleWhenTrue}}" AutomationProperties.Name="Results">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Outcome" Width="190" Binding="{Binding Outcome, Mode=OneTime}">
+                <DataGridTextColumn.ElementStyle>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource PreviewCellText}">
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding IsBreak, Mode=OneTime}" Value="True">
+                        <Setter Property="Foreground" Value="{StaticResource BreakBrush}" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </DataGridTextColumn.ElementStyle>
+              </DataGridTextColumn>
+              <DataGridTextColumn Header="Left" Width="*" Binding="{Binding Left, Mode=OneTime}" ElementStyle="{StaticResource PreviewCellText}" />
+              <DataGridTextColumn Header="Right" Width="*" Binding="{Binding Right, Mode=OneTime}" ElementStyle="{StaticResource PreviewCellText}" />
+              <DataGridTextColumn Header="Details" Width="2*" Binding="{Binding Details, Mode=OneTime}" ElementStyle="{StaticResource PreviewCellText}" />
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <Expander Grid.Row="3" Margin="0,12,0,0" Header="Rows RecDiffy couldn't read"
+                    Visibility="{Binding Run.HasRowProblems, Converter={StaticResource VisibleWhenTrue}, FallbackValue=Collapsed}">
+            <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto" Focusable="False">
+              <ItemsControl ItemsSource="{Binding Run.RowProblems}" Focusable="False">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Style="{StaticResource SecondaryText}" Margin="0,2" TextWrapping="Wrap" Text="{Binding}" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </Expander>
+
+          <Expander Grid.Row="4" Margin="0,12,0,0" Header="Explain selected result" IsExpanded="{Binding IsExplanationOpen}"
+                    Visibility="{Binding HasResults, Converter={StaticResource VisibleWhenTrue}}">
+            <ScrollViewer MaxHeight="240" VerticalScrollBarVisibility="Auto" Focusable="False">
+              <StackPanel>
+                <TextBlock Style="{StaticResource SecondaryText}" Text="Select a result to see how RecDiffy reached it."
+                           Visibility="{Binding HasSelection, Converter={StaticResource VisibleWhenFalse}}" />
+                <ItemsControl ItemsSource="{Binding Explanation}" Focusable="False">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="0,0,0,10">
+                        <TextBlock Style="{StaticResource BlockHeading}" HorizontalAlignment="Left" Text="{Binding Title}" />
+                        <ItemsControl ItemsSource="{Binding Lines}" Focusable="False">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                              <TextBlock Style="{StaticResource SecondaryText}" Margin="0,2,0,0" TextWrapping="Wrap" Text="{Binding}" />
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Style="{StaticResource SecondaryText}" Margin="0,4,0,0" Text="{Binding Run.Identity}" />
+              </StackPanel>
+            </ScrollViewer>
+          </Expander>
+        </Grid>
       </TabItem>
       <TabItem Header="Settings">
         <Border Style="{StaticResource Notice}" VerticalAlignment="Top" Margin="0">
@@ -330,7 +453,7 @@
         <StackPanel Grid.Column="1" Orientation="Horizontal">
           <Button Content="Review rules →" Command="{Binding ReviewRulesCommand}"
                   Visibility="{Binding ShowsReviewRules, Converter={StaticResource VisibleWhenTrue}}" />
-          <Button Style="{StaticResource PrimaryButton}" Content="Run reconciliation" IsEnabled="{Binding CanRun}" />
+          <Button Style="{StaticResource PrimaryButton}" Content="Run reconciliation" Command="{Binding RunCommand}" />
         </StackPanel>
       </Grid>
     </Border>

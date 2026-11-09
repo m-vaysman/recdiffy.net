@@ -74,7 +74,11 @@ internal sealed class ExcelDnaSources(Func<nint, Task> showAbove) : IExcelSource
 
             return SourceTables.Build(range, rows) switch
             {
-                SourceRead.Read read => read with { Preview = TypedPreview(range, sheet, rows, read.Table) },
+                SourceRead.Read read when Uses1904(range.Workbook) is var uses1904 => read with
+                {
+                    Table = read.Table with { Uses1904 = uses1904 },
+                    Preview = TypedPreview(range, sheet, rows, read.Table, uses1904),
+                },
                 var rejected => rejected,
             };
         }
@@ -84,10 +88,9 @@ internal sealed class ExcelDnaSources(Func<nint, Task> showAbove) : IExcelSource
         }
     }
 
-    private static SourcePreview TypedPreview(ExcelRangePick range, string sheet, IReadOnlyList<IReadOnlyList<SourceCell>> rows, SourceTable table)
+    private static SourcePreview TypedPreview(ExcelRangePick range, string sheet, IReadOnlyList<IReadOnlyList<SourceCell>> rows, SourceTable table, bool uses1904)
     {
         var kept = SourceTables.KeptRows(rows);
-        var uses1904 = Uses1904(range.Workbook);
         IReadOnlyList<IReadOnlyList<object?>> sample =
         [
             .. SourcePreview.SampleIndexes(kept.Count, SourcePreview.SampleSize, SourcePreview.Seed)

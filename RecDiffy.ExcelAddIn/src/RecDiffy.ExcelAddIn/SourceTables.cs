@@ -22,7 +22,11 @@ public static class SourceTables
         if (HeaderProblems(headers) is { Length: > 0 } problems)
             return new SourceRead.Rejected($"The header row of {location} ({range.Address}) can't be used: {string.Join("; ", problems)}.");
 
-        var table = new SourceTable(headers, [.. KeptRows(rows).Select(index => (IReadOnlyList<object?>)[.. rows[index].Select(cell => cell.Value)])]);
+        var kept = KeptRows(rows);
+        var table = new SourceTable(headers, [.. kept.Select(index => (IReadOnlyList<object?>)[.. rows[index].Select(cell => cell.Value)])])
+        {
+            SheetRows = [.. kept.Select(index => range.FirstRow + index + 1)],
+        };
         return new SourceRead.Read(range, table, SourcePreview.Of(table));
     }
 
