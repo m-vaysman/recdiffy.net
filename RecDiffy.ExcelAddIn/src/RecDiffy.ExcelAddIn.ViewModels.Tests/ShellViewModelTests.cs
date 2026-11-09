@@ -79,7 +79,7 @@ public class ShellViewModelTests
     public async Task The_status_says_which_side_is_being_read()
     {
         var pending = new TaskCompletionSource<SourceRead>();
-        var shell = new ShellViewModel(new SourcesViewModel(
+        var shell = new ShellViewModel(Make.Sources(
             new FakeExcel(new RangeChoice.Picked(FakeExcel.Range), _ => pending.Task),
             new FakeDialog(@"C:\data\Book.xlsx")));
 
@@ -96,7 +96,7 @@ public class ShellViewModelTests
         Assert.Throws<ArgumentNullException>(() => new ShellViewModel(null!));
 
     private static ShellViewModel NewShell() =>
-        new(new SourcesViewModel(FakeExcel.ReadingTable(), new FakeDialog(@"C:\data\Book.xlsx")));
+        new(Make.Sources(FakeExcel.ReadingTable(), new FakeDialog(@"C:\data\Book.xlsx")));
 
     private static List<string?> Changes(INotifyPropertyChanged source)
     {

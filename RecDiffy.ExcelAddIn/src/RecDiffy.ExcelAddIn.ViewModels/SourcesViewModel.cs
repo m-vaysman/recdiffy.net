@@ -1,17 +1,28 @@
 using System.ComponentModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace RecDiffy.ExcelAddIn.ViewModels;
 
 public sealed class SourcesViewModel : ObservableObject
 {
-    public SourcesViewModel(IExcelSources excel, IWorkbookDialog dialog)
+    private ProfileDocument _profile = SetupProfiles.Draft();
+
+    public SourcesViewModel(SourceServices services, CultureInfo excelCulture)
     {
-        Left = new SideViewModel("Left", excel, dialog);
-        Right = new SideViewModel("Right", excel, dialog);
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(excelCulture);
+        ExcelCulture = CultureChoice.Of(excelCulture);
+        Cultures = CultureChoice.ListWith(ExcelCulture);
+        Left = new SideViewModel("Left", services, ExcelCulture);
+        Right = new SideViewModel("Right", services, ExcelCulture);
         Left.PropertyChanged += OnSideChanged;
         Right.PropertyChanged += OnSideChanged;
     }
+
+    public CultureChoice ExcelCulture { get; }
+
+    public IReadOnlyList<CultureChoice> Cultures { get; }
 
     public SideViewModel Left { get; }
 
@@ -31,6 +42,20 @@ public sealed class SourcesViewModel : ObservableObject
     public string ReadingMessage => Reading is { } side ? $"Reading the {side.Side.ToLowerInvariant()} data" : string.Empty;
 
     public double ReadingProgress => Reading?.Progress ?? 0;
+
+    public ReconciliationSetup ToSetup() =>
+        new(Left.ToSetup(), Right.ToSetup(), SetupProfiles.WithCultures(_profile, Left.Culture.Name, Right.Culture.Name));
+
+    public void Apply(ReconciliationSetup setup)
+    {
+        ArgumentNullException.ThrowIfNull(setup);
+        _profile = setup.Profile;
+        Left.Apply(setup.Left, CultureFor(setup.Profile, Side.Left));
+        Right.Apply(setup.Right, CultureFor(setup.Profile, Side.Right));
+    }
+
+    private CultureChoice CultureFor(ProfileDocument profile, Side side) =>
+        SetupProfiles.CultureOf(profile, side) is { } name ? CultureChoice.Find(Cultures, name) : ExcelCulture;
 
     private void OnSideChanged(object? sender, PropertyChangedEventArgs e)
     {

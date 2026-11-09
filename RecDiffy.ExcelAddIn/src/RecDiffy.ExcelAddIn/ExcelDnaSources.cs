@@ -15,6 +15,9 @@ internal sealed class ExcelDnaSources(Func<nint, Task> showAbove) : IExcelSource
     public Task<RangeChoice> PickRangeAsync(string workbookPath, string prompt, CancellationToken cancellationToken) =>
         OnExcel(() => Pick(workbookPath, prompt), cancellationToken);
 
+    public Task<RangeChoice> PickOpenRangeAsync(string prompt, CancellationToken cancellationToken) =>
+        OnExcel(() => PickOpen(prompt), cancellationToken);
+
     public Task<SourceRead> ReadAsync(ExcelRangePick range, IProgress<double> progress, CancellationToken cancellationToken) =>
         OnExcel(() => Read(range, progress, cancellationToken), cancellationToken);
 
@@ -28,9 +31,16 @@ internal sealed class ExcelDnaSources(Func<nint, Task> showAbove) : IExcelSource
             _ when SamePath(opened, workbookPath) => Activate(opened),
             _ => $"A different workbook named {fileName} is already open in Excel. Close it, then choose the file again.",
         };
-        if (ready is not null)
-            return new RangeChoice.Rejected(ready);
+        return ready is not null ? new RangeChoice.Rejected(ready) : Input(prompt);
+    }
 
+    private static RangeChoice PickOpen(string prompt) =>
+        OpenWorkbooks().Count == 0
+            ? new RangeChoice.Rejected("No workbook is open in Excel. Open one first, or use Excel file… to choose a file.")
+            : Input(prompt);
+
+    private static RangeChoice Input(string prompt)
+    {
         XlCall.TryExcel(XlCall.xlfInput, out var picked, prompt, ReferenceType, "RecDiffy");
         return picked switch
         {
@@ -81,12 +91,14 @@ internal sealed class ExcelDnaSources(Func<nint, Task> showAbove) : IExcelSource
             : [];
 
     private static bool SamePath(string openName, string workbookPath) =>
+        PathOf(openName) is { } path
+        && string.Equals(path, Path.GetFullPath(workbookPath), StringComparison.OrdinalIgnoreCase);
+
+    private static string? PathOf(string openName) =>
         XlCall.TryExcel(XlCall.xlfGetDocument, out var directory, DocumentPath, openName) is XlCall.XlReturn.XlReturnSuccess
-        && directory is string folder
-        && string.Equals(
-            Path.GetFullPath(Path.Combine(folder, openName)),
-            Path.GetFullPath(workbookPath),
-            StringComparison.OrdinalIgnoreCase);
+        && directory is string { Length: > 0 } folder
+            ? Path.GetFullPath(Path.Combine(folder, openName))
+            : null;
 
     private static string? Open(string workbookPath) =>
         XlCall.TryExcel(XlCall.xlcOpen, out var opened, workbookPath, 0, true) is XlCall.XlReturn.XlReturnSuccess && opened is true
@@ -104,14 +116,16 @@ internal sealed class ExcelDnaSources(Func<nint, Task> showAbove) : IExcelSource
         var sheetName = XlCall.Excel(XlCall.xlSheetNm, reference) as string ?? string.Empty;
         var reftext = XlCall.Excel(XlCall.xlfReftext, reference, true) as string ?? string.Empty;
         var close = sheetName.IndexOf(']', StringComparison.Ordinal);
+        var workbook = close > 0 ? sheetName[1..close] : string.Empty;
         return new ExcelRangePick(
-            Workbook: close > 0 ? sheetName[1..close] : string.Empty,
+            Workbook: workbook,
             Sheet: close > 0 ? sheetName[(close + 1)..] : sheetName,
             Address: reftext[(reftext.LastIndexOf('!') + 1)..],
             FirstRow: reference.RowFirst,
             FirstColumn: reference.ColumnFirst,
             Rows: reference.RowLast - reference.RowFirst + 1,
-            Columns: reference.ColumnLast - reference.ColumnFirst + 1);
+            Columns: reference.ColumnLast - reference.ColumnFirst + 1,
+            Path: PathOf(workbook));
     }
 
     private static nint ActiveWindow() =>
