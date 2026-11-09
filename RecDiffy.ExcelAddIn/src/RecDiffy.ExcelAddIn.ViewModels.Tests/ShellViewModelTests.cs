@@ -89,7 +89,7 @@ public class ShellViewModelTests
         var pending = new TaskCompletionSource<SourceRead>();
         var shell = new ShellViewModel(Make.Sources(
             new FakeExcel(new RangeChoice.Picked(FakeExcel.Range), _ => pending.Task),
-            new FakeDialog(@"C:\data\Book.xlsx")));
+            new FakeDialog(@"C:\data\Book.xlsx")), FakeRuns.Unused());
 
         var choosing = shell.Sources.Left.ChooseExcelDataCommand.ExecuteAsync(null);
 
@@ -101,10 +101,10 @@ public class ShellViewModelTests
 
     [Fact]
     public void A_shell_needs_its_sources() =>
-        Assert.Throws<ArgumentNullException>(() => new ShellViewModel(null!));
+        Assert.Throws<ArgumentNullException>(() => new ShellViewModel(null!, FakeRuns.Unused()));
 
     private static ShellViewModel NewShell() =>
-        new(Make.Sources(FakeExcel.ReadingTable(), new FakeDialog(@"C:\data\Book.xlsx")));
+        new(Make.Sources(FakeExcel.ReadingTable(), new FakeDialog(@"C:\data\Book.xlsx")), FakeRuns.Unused());
 
     private static List<string?> Changes(INotifyPropertyChanged source)
     {

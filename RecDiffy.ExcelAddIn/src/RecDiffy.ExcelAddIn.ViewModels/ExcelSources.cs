@@ -2,7 +2,12 @@ namespace RecDiffy.ExcelAddIn.ViewModels;
 
 public sealed record ExcelRangePick(string Workbook, string Sheet, string Address, int FirstRow, int FirstColumn, int Rows, int Columns, string? Path = null);
 
-public sealed record SourceTable(IReadOnlyList<string> Headers, IReadOnlyList<IReadOnlyList<object?>> Rows);
+public sealed record SourceTable(IReadOnlyList<string> Headers, IReadOnlyList<IReadOnlyList<object?>> Rows)
+{
+    public IReadOnlyList<int> SheetRows { get; init; } = [];
+
+    public bool Uses1904 { get; init; }
+}
 
 public abstract record RangeChoice
 {
