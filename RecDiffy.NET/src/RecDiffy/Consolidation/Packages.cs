@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Globalization;
 using RecDiffy.Rules;
 
@@ -33,23 +34,31 @@ internal static class Packages
             _ => Aggregate(members, plan, use) switch
             {
                 { Failure: { } code } => Quarantine(members, code),
-                { Context: { } context } => [new ConsolidatedRow([.. members.SelectMany(member => member.Members)], context, false, null, null, true)],
+                { Context: { } context } => [new ConsolidatedRow([.. members.SelectMany(member => member.Members)], context, false, null, null, true, MemberDiagnostics: OwnDiagnostics(members))],
             },
         };
     }
 
+    // Each leg keeps its own diagnostics, such as DuplicateRowCollapsed for a copied leg, so result building reports a
+    // warning on the leg it belongs to and not on the whole package (spec v3 §3.2, §3.4; #217).
+    private static IReadOnlyDictionary<SourceRef, ImmutableList<Diagnostic>> OwnDiagnostics(IReadOnlyList<ConsolidatedRow> members) =>
+        members.SelectMany(member => member.Members.Select(source => (Source: source, member.Context.Diagnostics))).ToDictionary(pair => pair.Source, pair => pair.Diagnostics);
+
     // Fields without an aggregator are settled first: members that agree give the value, and members that disagree make
     // it unknown, with MembersDisagree when the run uses the field. Then each aggregator writes its own field.
+    // The item starts with no leg's diagnostics and only the raw columns every leg agrees on, so nothing comes from the
+    // first leg by row key (§5.2, §10.1; #217).
     private static PackageProjection Aggregate(IReadOnlyList<ConsolidatedRow> members, PackagePlan plan, FieldUse use)
     {
         var contexts = members.Select(member => member.Context).ToArray();
         var aggregated = plan.Aggregates.Select(aggregate => aggregate.Field).ToHashSet(StringComparer.Ordinal);
+        var start = contexts[0] with { Raw = AgreedRaw(contexts), Diagnostics = [] };
         var settled = contexts
             .SelectMany(context => context.Values.Keys)
             .Distinct(StringComparer.Ordinal)
             .Where(field => aggregated.Contains(field) is false)
             .Order(StringComparer.Ordinal)
-            .Aggregate(contexts[0], (context, field) => Settle(context, field, contexts, use));
+            .Aggregate(start, (context, field) => Settle(context, field, contexts, use));
         return plan.Aggregates.Aggregate(
             new PackageProjection(settled, null),
             (projection, aggregate) => projection.Failure is not null
@@ -72,7 +81,7 @@ internal static class Packages
             AggregateKind.Same => Same(projection, aggregate.Field, members, use),
             AggregateKind.Sum => Sum(projection, aggregate.Field, members),
             AggregateKind.FromRole => FromRole(projection, aggregate.Field, aggregate.Role, members, roleField, use),
-            AggregateKind.DifferenceByRole => Difference(projection, aggregate.Field, aggregate.Role, aggregate.OtherRole, members, roleField),
+            AggregateKind.DifferenceByRole => Difference(projection, aggregate.Field, aggregate.Role, aggregate.OtherRole, members, roleField, use),
             _ => projection with { Failure = "PackageInconsistent" },
         };
 
@@ -104,19 +113,34 @@ internal static class Packages
         };
     }
 
-    // A missing role fails the package. An unknown leg amount makes the difference unknown (§7.5).
-    private static PackageProjection Difference(PackageProjection projection, string field, string? leftRole, string? rightRole, IReadOnlyList<ConsolidatedRow> members, string roleField)
+    // A missing role fails the package. An unknown leg amount makes the difference unknown (§7.5). Several members with
+    // one role must agree, as FromRole requires, else the difference is unknown with MembersDisagree; no holder is chosen
+    // by row key (§5.2; #217).
+    private static PackageProjection Difference(PackageProjection projection, string field, string? leftRole, string? rightRole, IReadOnlyList<ConsolidatedRow> members, string roleField, FieldUse use)
     {
-        var pay = members.FirstOrDefault(member => member.Context.Display(roleField) == leftRole)?.Context;
-        var receive = members.FirstOrDefault(member => member.Context.Display(roleField) == rightRole)?.Context;
+        RowContext[] pay = [.. members.Where(member => member.Context.Display(roleField) == leftRole).Select(member => member.Context)];
+        RowContext[] receive = [.. members.Where(member => member.Context.Display(roleField) == rightRole).Select(member => member.Context)];
         return (pay, receive) switch
         {
-            (null, _) or (_, null) => projection with { Failure = "IncompletePackage" },
-            var (left, right) when left.IsNull(field) || right.IsNull(field) =>
+            ([], _) or (_, []) => projection with { Failure = "IncompletePackage" },
+            _ when MemberAgreement.Agree(pay, field, use) is false || MemberAgreement.Agree(receive, field, use) is false => projection with
+            {
+                Context = projection.Context.Write(field, CanonicalCell.Null(FieldType.Decimal), "package.difference", null, null)
+                    .Diagnose(MemberAgreement.Disagree, DiagnosticSeverity.Warning, "package", field, null),
+            },
+            ([var left, ..], [var right, ..]) when left.IsNull(field) || right.IsNull(field) =>
                 projection with { Context = projection.Context.Write(field, CanonicalCell.Null(FieldType.Decimal), "package.difference", null, null) },
-            var (left, right) => projection with { Context = WriteNumber(projection.Context, field, left.Values[field].Number - right.Values[field].Number, "package.difference") },
+            ([var left, ..], [var right, ..]) => projection with { Context = WriteNumber(projection.Context, field, left.Values[field].Number - right.Values[field].Number, "package.difference") },
         };
     }
+
+    // A raw column stays on the item only when every leg holds the same text in it, read as a condition reads it.
+    private static IReadOnlyDictionary<string, object?> AgreedRaw(IReadOnlyList<RowContext> members) =>
+        members[0].Raw
+            .Where(column => members.All(member => member.Raw.TryGetValue(column.Key, out var value) && string.Equals(RawText(value), RawText(column.Value), StringComparison.Ordinal)))
+            .ToDictionary(column => column.Key, column => column.Value, StringComparer.Ordinal);
+
+    private static string? RawText(object? value) => InvariantText.Of(value)?.Trim();
 
     private static RowContext WriteNumber(RowContext target, string field, decimal value, string ruleId) =>
         target.Write(field, CanonicalCell.FromDecimal(value), ruleId, null, value.ToString(CultureInfo.InvariantCulture));
