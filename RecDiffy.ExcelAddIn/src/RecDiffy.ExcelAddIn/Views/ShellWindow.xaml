@@ -16,6 +16,18 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/RecDiffy.ExcelAddIn;component/Themes/Shell.xaml" />
       </ResourceDictionary.MergedDictionaries>
+      <DataTemplate x:Key="SidePanel">
+        <StackPanel>
+          <TextBlock Style="{StaticResource SectionHeading}" Text="{Binding Heading}" />
+          <Label Style="{StaticResource FieldLabel}" Target="{Binding ElementName=Alias}" Content="Alias (optional)" />
+          <TextBox x:Name="Alias" Text="{Binding Alias, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.Name="{Binding Side, StringFormat='{}{0} alias'}" />
+          <Button Content="Choose Excel data…" Command="{Binding ChooseExcelDataCommand}" HorizontalAlignment="Left" Margin="0,12,0,0"
+                  AutomationProperties.Name="{Binding Side, StringFormat='Choose the {0} Excel data'}" />
+          <TextBlock Style="{StaticResource SecondaryText}" Margin="0,8,0,0" Text="{Binding Summary}" />
+          <TextBlock Style="{StaticResource SecondaryText}" Margin="0,8,0,0" Foreground="{StaticResource BreakBrush}" Text="{Binding Problem}" />
+        </StackPanel>
+      </DataTemplate>
     </ResourceDictionary>
   </Window.Resources>
 
@@ -45,22 +57,12 @@
               <ColumnDefinition Width="24" />
               <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <StackPanel>
-              <TextBlock Style="{StaticResource SectionHeading}" Text="{Binding Sources.LeftHeading}" />
-              <Label Style="{StaticResource FieldLabel}" Target="{Binding ElementName=LeftAlias}" Content="_Left alias (optional)" />
-              <TextBox x:Name="LeftAlias" Text="{Binding Sources.LeftAlias, UpdateSourceTrigger=PropertyChanged}"
-                       AutomationProperties.Name="Left alias" />
-            </StackPanel>
-            <StackPanel Grid.Column="2">
-              <TextBlock Style="{StaticResource SectionHeading}" Text="{Binding Sources.RightHeading}" />
-              <Label Style="{StaticResource FieldLabel}" Target="{Binding ElementName=RightAlias}" Content="R_ight alias (optional)" />
-              <TextBox x:Name="RightAlias" Text="{Binding Sources.RightAlias, UpdateSourceTrigger=PropertyChanged}"
-                       AutomationProperties.Name="Right alias" />
-            </StackPanel>
+            <ContentControl Content="{Binding Sources.Left}" ContentTemplate="{StaticResource SidePanel}" Focusable="False" />
+            <ContentControl Grid.Column="2" Content="{Binding Sources.Right}" ContentTemplate="{StaticResource SidePanel}" Focusable="False" />
           </Grid>
           <Border Style="{StaticResource Notice}">
             <TextBlock Style="{StaticResource SecondaryText}"
-                       Text="Selecting the left and right data comes in the next build. For now, you can name each side." />
+                       Text="Choose a workbook, then select its data in Excel, including the header row. A closed workbook opens read-only." />
           </Border>
         </StackPanel>
       </TabItem>
@@ -96,5 +98,19 @@
         </StackPanel>
       </Grid>
     </Border>
+
+    <Grid Grid.RowSpan="3" Background="{StaticResource VeilBrush}"
+          Visibility="{Binding Sources.IsReading, Converter={StaticResource VisibleWhenTrue}}">
+      <Border Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8"
+              Padding="24" Width="420" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel>
+          <TextBlock Style="{StaticResource SectionHeading}" Text="{Binding Sources.ReadingMessage}" AutomationProperties.LiveSetting="Polite" />
+          <ProgressBar Height="6" Minimum="0" Maximum="1" Value="{Binding Sources.ReadingProgress, Mode=OneWay}"
+                       Foreground="{StaticResource InkBrush}" Background="{StaticResource SoftBrush}" BorderThickness="0" />
+          <TextBlock Style="{StaticResource SecondaryText}" Margin="0,12,0,0"
+                     Text="Don't change the workbook until reading finishes. Excel is busy until then." />
+        </StackPanel>
+      </Border>
+    </Grid>
   </Grid>
 </Window>
