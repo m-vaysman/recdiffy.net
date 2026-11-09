@@ -3,5 +3,6 @@
     <Project Path="src/RecDiffy.ExcelAddIn/RecDiffy.ExcelAddIn.csproj" />
     <Project Path="src/RecDiffy.ExcelAddIn.ViewModels/RecDiffy.ExcelAddIn.ViewModels.csproj" />
     <Project Path="src/RecDiffy.ExcelAddIn.ViewModels.Tests/RecDiffy.ExcelAddIn.ViewModels.Tests.csproj" />
+    <Project Path="src/RecDiffy.ExcelAddIn.Tests/RecDiffy.ExcelAddIn.Tests.csproj" />
   </Folder>
 </Solution>

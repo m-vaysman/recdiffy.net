@@ -8,6 +8,7 @@
   <Color x:Key="TextColor">#24342E</Color>
   <Color x:Key="SecondaryTextColor">#597064</Color>
   <Color x:Key="InputBorderColor">#85968C</Color>
+  <Color x:Key="BreakColor">#A63523</Color>
 
   <SolidColorBrush x:Key="PaperBrush" Color="{StaticResource PaperColor}" />
   <SolidColorBrush x:Key="SoftBrush" Color="{StaticResource SoftColor}" />
@@ -16,6 +17,8 @@
   <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
   <SolidColorBrush x:Key="SecondaryTextBrush" Color="{StaticResource SecondaryTextColor}" />
   <SolidColorBrush x:Key="InputBorderBrush" Color="{StaticResource InputBorderColor}" />
+  <SolidColorBrush x:Key="BreakBrush" Color="{StaticResource BreakColor}" />
+  <SolidColorBrush x:Key="VeilBrush" Color="#E6FFFFFF" />
 
   <BooleanToVisibilityConverter x:Key="VisibleWhenTrue" />
 

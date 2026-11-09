@@ -8,9 +8,10 @@ Agents: read `.agents/skills/excel-dna/SKILL.md` before changing this code. No E
 
 | Project | Target | Holds |
 |---|---|---|
-| `RecDiffy.ExcelAddIn` | `net10.0-windows`, WPF, Excel-DNA 1.9.0 | The ribbon, the window host and the views |
+| `RecDiffy.ExcelAddIn` | `net10.0-windows`, WPF, Excel-DNA 1.9.0 | The ribbon, the window host, the views, and the Excel reader. The reader uses the C API and the cell conversions registered at startup. |
 | `RecDiffy.ExcelAddIn.ViewModels` | `net10.0` | View models (CommunityToolkit.Mvvm), with no Excel or WPF types |
 | `RecDiffy.ExcelAddIn.ViewModels.Tests` | `net10.0` | xunit tests of the view models, which run without Excel |
+| `RecDiffy.ExcelAddIn.Tests` | `net10.0-windows` | xunit tests of the cell conversions and the table built from a picked range, which run without Excel |
 
 ## Build and test
 
