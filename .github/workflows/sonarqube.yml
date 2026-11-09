@@ -49,6 +49,7 @@ jobs:
         if: steps.secrets.outputs.configured == 'true'
         uses: actions/setup-dotnet@v4
         with:
+          dotnet-version: 8.0.x
           global-json-file: RecDiffy.NET/global.json
 
       - name: Set up JDK 21

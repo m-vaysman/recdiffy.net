@@ -79,15 +79,15 @@ public static partial class RecDiffyExcel
     internal static string SafeSegment(string profileId)
     {
         var replaced = new string([.. profileId.Select(character => character is '<' or '>' or ':' or '"' or '/' or '\\' or '|' or '?' or '*' || char.IsControl(character) || char.IsWhiteSpace(character) ? '-' : character)]);
-        var collapsed = Dashes.Replace(Dots.Replace(replaced, "-"), "-");
+        var collapsed = Dashes().Replace(Dots().Replace(replaced, "-"), "-");
         return collapsed.Trim('-', '.') is { Length: > 0 } safe ? safe : "profile";
     }
 
     [GeneratedRegex(@"\.{2,}", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
-    private static partial Regex Dots { get; }
+    private static partial Regex Dots();
 
     [GeneratedRegex("-{2,}", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
-    private static partial Regex Dashes { get; }
+    private static partial Regex Dashes();
 
     internal sealed record Composed(ReportKind Kind, string FileName, Workbook? Workbook, string? SkipReason);
 
