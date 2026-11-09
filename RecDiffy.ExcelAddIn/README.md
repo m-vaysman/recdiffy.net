@@ -8,8 +8,8 @@ Agents: read `.agents/skills/excel-dna/SKILL.md` before changing this code. No E
 
 | Project | Target | Holds |
 |---|---|---|
-| `RecDiffy.ExcelAddIn` | `net10.0-windows`, WPF, Excel-DNA 1.9.0 | The ribbon, the window host, the views, and the Excel reader. The reader uses the C API and the cell conversions registered at startup. |
-| `RecDiffy.ExcelAddIn.ViewModels` | `net10.0` | View models (CommunityToolkit.Mvvm), with no Excel or WPF types |
+| `RecDiffy.ExcelAddIn` | `net10.0-windows`, WPF, Excel-DNA 1.9.0, RecDiffy.IO 1.2.0-preview.2 | The ribbon, the window host, the views, the Excel reader and the CSV reader. The Excel reader uses the C API and the cell conversions registered at startup. The CSV reader uses `RecDiffy.IO`. |
+| `RecDiffy.ExcelAddIn.ViewModels` | `net10.0`, RecDiffy 1.2.0-preview.2 | View models (CommunityToolkit.Mvvm) and the serializable reconciliation setup (#193), with no Excel or WPF types |
 | `RecDiffy.ExcelAddIn.ViewModels.Tests` | `net10.0` | xunit tests of the view models, which run without Excel |
 | `RecDiffy.ExcelAddIn.Tests` | `net10.0-windows` | xunit tests of the cell conversions and the table built from a picked range, which run without Excel |
 

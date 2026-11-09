@@ -16,7 +16,7 @@ public class SourcesViewModelTests
     [Fact]
     public void Typing_an_alias_updates_that_side_only()
     {
-        var sources = new SourcesViewModel(FakeExcel.ReadingTable(), new FakeDialog(null));
+        var sources = Make.Sources(FakeExcel.ReadingTable(), new FakeDialog(null));
         var changed = Changes(sources.Left);
 
         sources.Left.Alias = "Your records";
@@ -30,7 +30,7 @@ public class SourcesViewModelTests
     public async Task Choosing_excel_data_reads_the_picked_range_and_summarises_it()
     {
         var excel = FakeExcel.ReadingTable();
-        var side = new SideViewModel("Left", excel, new FakeDialog(@"C:\data\Book.xlsx"));
+        var side = Make.Side("Left", excel, new FakeDialog(@"C:\data\Book.xlsx"));
 
         await side.ChooseExcelDataCommand.ExecuteAsync(null);
 
@@ -46,7 +46,7 @@ public class SourcesViewModelTests
     public async Task Cancelling_the_file_dialog_asks_excel_for_nothing()
     {
         var excel = FakeExcel.ReadingTable();
-        var side = new SideViewModel("Left", excel, new FakeDialog(null));
+        var side = Make.Side("Left", excel, new FakeDialog(null));
 
         await side.ChooseExcelDataCommand.ExecuteAsync(null);
 
@@ -58,7 +58,7 @@ public class SourcesViewModelTests
     public async Task Cancelling_the_range_picker_reads_nothing_and_changes_nothing()
     {
         var excel = new FakeExcel(new RangeChoice.Canceled(), _ => throw new InvalidOperationException("must not read"));
-        var side = new SideViewModel("Left", excel, new FakeDialog(@"C:\data\Book.xlsx"));
+        var side = Make.Side("Left", excel, new FakeDialog(@"C:\data\Book.xlsx"));
 
         await side.ChooseExcelDataCommand.ExecuteAsync(null);
 
@@ -71,7 +71,7 @@ public class SourcesViewModelTests
     public async Task A_rejected_pick_shows_the_reason()
     {
         var excel = new FakeExcel(new RangeChoice.Rejected("Pick one rectangular range, not several."), _ => throw new InvalidOperationException("must not read"));
-        var side = new SideViewModel("Left", excel, new FakeDialog(@"C:\data\Book.xlsx"));
+        var side = Make.Side("Left", excel, new FakeDialog(@"C:\data\Book.xlsx"));
 
         await side.ChooseExcelDataCommand.ExecuteAsync(null);
 
@@ -82,9 +82,9 @@ public class SourcesViewModelTests
     [Fact]
     public async Task A_rejected_read_shows_the_reason_and_drops_the_earlier_table()
     {
-        var side = new SideViewModel("Left", FakeExcel.ReadingTable(), new FakeDialog(@"C:\data\Book.xlsx"));
+        var side = Make.Side("Left", FakeExcel.ReadingTable(), new FakeDialog(@"C:\data\Book.xlsx"));
         await side.ChooseExcelDataCommand.ExecuteAsync(null);
-        var rejecting = new SideViewModel("Left", FakeExcel.Reading(new SourceRead.Rejected("Cell B3 of [Book.xlsx]Trades holds #N/A.")), new FakeDialog(@"C:\data\Book.xlsx"));
+        var rejecting = Make.Side("Left", FakeExcel.Reading(new SourceRead.Rejected("Cell B3 of [Book.xlsx]Trades holds #N/A.")), new FakeDialog(@"C:\data\Book.xlsx"));
 
         await rejecting.ChooseExcelDataCommand.ExecuteAsync(null);
 
@@ -99,7 +99,7 @@ public class SourcesViewModelTests
     {
         var pending = new TaskCompletionSource<SourceRead>();
         var excel = new FakeExcel(new RangeChoice.Picked(FakeExcel.Range), _ => pending.Task);
-        var sources = new SourcesViewModel(excel, new FakeDialog(@"C:\data\Book.xlsx"));
+        var sources = Make.Sources(excel, new FakeDialog(@"C:\data\Book.xlsx"));
 
         var choosing = sources.Right.ChooseExcelDataCommand.ExecuteAsync(null);
 
@@ -115,7 +115,7 @@ public class SourcesViewModelTests
     [Fact]
     public async Task Sources_are_complete_once_both_sides_hold_data()
     {
-        var sources = new SourcesViewModel(FakeExcel.ReadingTable(), new FakeDialog(@"C:\data\Book.xlsx"));
+        var sources = Make.Sources(FakeExcel.ReadingTable(), new FakeDialog(@"C:\data\Book.xlsx"));
         Assert.False(sources.IsComplete);
 
         await sources.Left.ChooseExcelDataCommand.ExecuteAsync(null);
