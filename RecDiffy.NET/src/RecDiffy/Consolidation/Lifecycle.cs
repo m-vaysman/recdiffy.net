@@ -11,7 +11,8 @@ internal sealed record ConsolidatedRow(
     string? Code,
     bool Packaged = false,
     bool LifecycleCollapsed = false,
-    IReadOnlyList<SourceRef>? Lineage = null);
+    IReadOnlyList<SourceRef>? Lineage = null,
+    IReadOnlyDictionary<SourceRef, ImmutableList<Diagnostic>>? MemberDiagnostics = null);
 
 internal sealed record LifecyclePlan(string ActionField, string TargetField, string ScopeField, string CorrPointsAt);
 
