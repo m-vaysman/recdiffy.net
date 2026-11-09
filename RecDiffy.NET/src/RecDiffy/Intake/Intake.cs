@@ -29,7 +29,7 @@ internal static class Intake
         IReadOnlyList<CompiledRule> rules,
         ReferenceDataSet reference,
         InstrumentMaster master) =>
-        [.. rows.Where(row => row.MissingKey).Select(QuarantineMissing), .. Collapse(rows.Where(row => row.MissingKey is false).ToArray()).Select(group => Normalize(group, rules, reference, master))];
+        [.. rows.Where(row => row.MissingKey).Select(row => QuarantineMissing(row, rules, reference, master)), .. Collapse(rows.Where(row => row.MissingKey is false).ToArray()).Select(group => Normalize(group, rules, reference, master))];
 
     private static IntakeRow Normalize(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, ReferenceDataSet reference, InstrumentMaster master) =>
         group.Conflict ? Quarantine(group, rules, reference, master) : Accept(group, rules, reference, master);
@@ -62,10 +62,12 @@ internal static class Intake
         return next;
     }
 
-    private static IntakeRow QuarantineMissing(RawRecord row) =>
+    // A keyless row is normalized like any row, so lifecycle can read its action and target and quarantine the chain it
+    // names (spec v3 §5.1 rule 5; #215). It is quarantined for its missing key alone, so no rule's code is kept (§3.4).
+    private static IntakeRow QuarantineMissing(RawRecord row, IReadOnlyList<CompiledRule> rules, ReferenceDataSet reference, InstrumentMaster master) =>
         new(
             [row.Ref],
-            RowContext.Create(row.Ref.RowKey, row.Ref.Source is "right" ? Side.Right : Side.Left, row.Cells)
+            (Apply(row, rules, reference, master) with { Diagnostics = [] })
                 .Diagnose("MissingKey", DiagnosticSeverity.Invalid, "intake", null, null),
             true);
 
