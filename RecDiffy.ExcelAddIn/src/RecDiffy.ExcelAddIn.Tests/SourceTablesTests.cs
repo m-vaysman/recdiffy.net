@@ -57,6 +57,73 @@ public class SourceTablesTests
     }
 
     [Fact]
+    public void Rows_with_no_values_are_dropped_wherever_they_sit()
+    {
+        var read = Assert.IsType<SourceRead.Read>(SourceTables.Build(Range,
+        [
+            [Cell("Ref"), Cell("Quantity"), Cell("Price")],
+            [SourceCell.Empty, SourceCell.Empty, SourceCell.Empty],
+            [Cell("T-1"), Cell(10m), Cell(1.5m)],
+            [SourceCell.Empty, SourceCell.Empty, SourceCell.Empty],
+            [Cell("T-2"), Cell(20m), Cell(2.5m)],
+            [SourceCell.Empty, SourceCell.Empty, SourceCell.Empty],
+            [SourceCell.Empty, SourceCell.Empty, SourceCell.Empty],
+        ]));
+
+        Assert.Equal([["T-1", 10m, 1.5m], ["T-2", 20m, 2.5m]], read.Table.Rows);
+    }
+
+    [Fact]
+    public void A_row_of_blank_text_counts_as_empty()
+    {
+        var read = Assert.IsType<SourceRead.Read>(SourceTables.Build(Range,
+        [
+            [Cell("Ref"), Cell("Quantity"), Cell("Price")],
+            [Cell(" "), Cell(string.Empty), Cell("\t")],
+            [Cell("T-1"), Cell(10m), Cell(1.5m)],
+        ]));
+
+        Assert.Equal([["T-1", 10m, 1.5m]], read.Table.Rows);
+    }
+
+    [Fact]
+    public void A_row_with_any_value_is_kept()
+    {
+        var read = Assert.IsType<SourceRead.Read>(SourceTables.Build(Range,
+        [
+            [Cell("Ref"), Cell("Quantity"), Cell("Price")],
+            [SourceCell.Empty, Cell(0m), SourceCell.Empty],
+            [Cell(false), SourceCell.Empty, Cell(" ")],
+        ]));
+
+        Assert.Equal([[null, 0m, null], [false, null, " "]], read.Table.Rows);
+    }
+
+    [Fact]
+    public void A_range_of_only_empty_data_rows_reads_as_no_rows()
+    {
+        var read = Assert.IsType<SourceRead.Read>(SourceTables.Build(Range,
+        [
+            [Cell("Ref"), Cell("Quantity"), Cell("Price")],
+            [SourceCell.Empty, SourceCell.Empty, SourceCell.Empty],
+        ]));
+
+        Assert.Empty(read.Table.Rows);
+    }
+
+    [Fact]
+    public void An_error_in_an_otherwise_empty_row_still_rejects_the_read()
+    {
+        var rejected = Assert.IsType<SourceRead.Rejected>(SourceTables.Build(Range,
+        [
+            [Cell("Ref"), Cell("Quantity"), Cell("Price")],
+            [SourceCell.Empty, SourceCell.Failed("#REF!"), SourceCell.Empty],
+        ]));
+
+        Assert.StartsWith("Cell D6 of [Book.xlsx]Trades holds #REF!.", rejected.Reason, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void An_empty_range_is_rejected() =>
         Assert.IsType<SourceRead.Rejected>(SourceTables.Build(Range, []));
 
