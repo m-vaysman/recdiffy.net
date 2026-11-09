@@ -61,13 +61,21 @@ public class ShellViewModelTests
     }
 
     [Fact]
-    public async Task The_shell_can_run_once_both_sides_hold_data()
+    public async Task The_shell_can_run_once_both_sides_hold_data_and_the_rules_are_valid()
     {
         var shell = NewShell();
         var changed = Changes(shell);
 
         await shell.Sources.Left.ChooseExcelDataCommand.ExecuteAsync(null);
         await shell.Sources.Right.ChooseExcelDataCommand.ExecuteAsync(null);
+        Assert.False(shell.CanRun);
+        Assert.EndsWith("rule problems to fix before running.", shell.Status, StringComparison.Ordinal);
+
+        shell.Rules.PairSameNamedColumnsCommand.Execute(null);
+        shell.Rules.Fields[0].Type = RecDiffy.FieldType.Identifier;
+        shell.Rules.Fields[0].Role = RecDiffy.FieldRole.Key;
+        shell.Rules.AddPassCommand.Execute(null);
+        shell.Rules.Passes[0].Keys[0].IsSelected = true;
 
         Assert.True(shell.CanRun);
         Assert.Equal("Ready", shell.Status);
