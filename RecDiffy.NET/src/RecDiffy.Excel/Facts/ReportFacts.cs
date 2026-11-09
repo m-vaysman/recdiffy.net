@@ -69,8 +69,8 @@ internal enum DiffState
     Attributed,
 }
 
-// An open item is an engine entry (a break, or an unmatched, ambiguous or search-incomplete entry) or a row the engine left without an entry:
-// unrouted LeftOnly/RightOnly, or excluded as Invalid (Quarantined) before matching. They must not drop out of the blotter.
+// An open item is an engine entry (a break, or an unmatched, unrouted, ambiguous or search-incomplete entry) or a row the engine left without
+// an entry: excluded as Invalid (Quarantined) before matching. They must not drop out of the blotter.
 internal sealed record OpenItem(EntryFact? Entry, RowFact? Row, string ItemType, string Category, DiffFact? Diff, decimal? Impact, string Action, FieldValue SettleDate)
 {
     public string Field => (Diff, Row) switch
@@ -78,6 +78,7 @@ internal sealed record OpenItem(EntryFact? Entry, RowFact? Row, string ItemType,
         ({ } diff, _) => diff.Field,
         (_, { Row.Validity: InputValidity.Invalid }) => "(excluded: invalid)",
         (_, { }) => "(not routed)",
+        _ when Entry is { Entry.Explanation.Trail: [{ Detail: "Unrouted" }] } => "(not routed)",
         _ => "(whole trade)",
     };
 
