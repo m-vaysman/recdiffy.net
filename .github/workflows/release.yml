@@ -51,8 +51,8 @@ jobs:
       - name: Read the version from the tag
         run: |
           tag="${GITHUB_REF#refs/tags/}"
-          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Tag '$tag' must be vX.Y.Z, for example v1.2.3."
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*$ ]]; then
+            echo "Tag '$tag' must be a prerelease, vX.Y.Z-label, for example v1.2.0-preview.1. Every release is a prerelease for now."
             exit 1
           fi
           echo "VERSION=${tag#v}" >> "$GITHUB_ENV"
@@ -74,4 +74,4 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$TAG" artifacts/*.nupkg artifacts/*.snupkg --title "$TAG" --generate-notes
+        run: gh release create "$TAG" artifacts/*.nupkg artifacts/*.snupkg --title "$TAG" --generate-notes --prerelease
