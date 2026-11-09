@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>RecDiffy.ExcelAddIn</RootNamespace>
+    <ExcelAddInName>RecDiffy</ExcelAddInName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ExcelDna.AddIn" Version="1.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RecDiffy.ExcelAddIn.ViewModels\RecDiffy.ExcelAddIn.ViewModels.csproj" />
+  </ItemGroup>
+
+</Project>
