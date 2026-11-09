@@ -1,0 +1,6 @@
+interface:
+  display_name: "Excel-DNA"
+  short_description: "Excel-DNA add-ins: C API workbook access without COM, startup conversions, WPF hosting, logging"
+
+policy:
+  allow_implicit_invocation: true
