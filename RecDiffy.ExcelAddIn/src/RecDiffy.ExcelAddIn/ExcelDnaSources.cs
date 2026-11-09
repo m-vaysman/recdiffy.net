@@ -4,8 +4,10 @@ using RecDiffy.ExcelAddIn.ViewModels;
 
 namespace RecDiffy.ExcelAddIn;
 
-internal sealed class ExcelDnaSources : IExcelSources
+internal sealed class ExcelDnaSources(Func<nint, Task> showAbove) : IExcelSources
 {
+    private readonly Func<nint, Task> _showAbove = showAbove ?? throw new ArgumentNullException(nameof(showAbove));
+
     private const int BlockRows = 5_000;
     private const int ReferenceType = 8;
     private const int DocumentPath = 2;
@@ -112,30 +114,46 @@ internal sealed class ExcelDnaSources : IExcelSources
             Columns: reference.ColumnLast - reference.ColumnFirst + 1);
     }
 
-    private static Task<T> OnExcel<T>(Func<T> work, CancellationToken cancellationToken)
+    private static nint ActiveWindow() =>
+        XlCall.TryExcel(XlCall.xlGetHwnd, out var handle) switch
+        {
+            XlCall.XlReturn.XlReturnSuccess => ExcelWindows.Resolve(handle),
+            _ => 0,
+        };
+
+    private async Task<T> OnExcel<T>(Func<T> work, CancellationToken cancellationToken)
     {
         var completion = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var activeWindow = new TaskCompletionSource<nint>(TaskCreationOptions.RunContinuationsAsynchronously);
+        ExcelWindows.BringForward(ExcelWindows.Foremost());
         ExcelAsyncUtil.QueueAsMacro(() =>
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                completion.SetCanceled(cancellationToken);
-                return;
-            }
-
-            try
-            {
-                completion.SetResult(work());
-            }
-            catch (OperationCanceledException canceled)
-            {
-                completion.SetCanceled(canceled.CancellationToken);
-            }
-            catch (Exception exception)
-            {
-                completion.SetException(exception);
-            }
+            Complete(work, completion, cancellationToken);
+            activeWindow.SetResult(ActiveWindow());
         });
-        return completion.Task;
+        await _showAbove(await activeWindow.Task.ConfigureAwait(false)).ConfigureAwait(false);
+        return await completion.Task.ConfigureAwait(false);
+    }
+
+    private static void Complete<T>(Func<T> work, TaskCompletionSource<T> completion, CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            completion.SetCanceled(cancellationToken);
+            return;
+        }
+
+        try
+        {
+            completion.SetResult(work());
+        }
+        catch (OperationCanceledException canceled)
+        {
+            completion.SetCanceled(canceled.CancellationToken);
+        }
+        catch (Exception exception)
+        {
+            completion.SetException(exception);
+        }
     }
 }
