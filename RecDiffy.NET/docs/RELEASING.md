@@ -16,6 +16,8 @@ The workflow publishes through nuget.org Trusted Publishing, so no API key is st
 
 Add a repository secret named `NUGET_USER` before the first tag. It holds the nuget.org username of the account that created the policy, not an API key.
 
+If a release goes wrong, follow [RELEASE-RECOVERY.md](RELEASE-RECOVERY.md).
+
 ## GitHub Packages
 
 A push to `main` packs `1.1.0-preview.<run number>` and publishes those packages to GitHub Packages, not nuget.org.
