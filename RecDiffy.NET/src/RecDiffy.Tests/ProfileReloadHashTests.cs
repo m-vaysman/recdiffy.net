@@ -4,7 +4,7 @@ namespace RecDiffy.Tests;
 
 public class ProfileReloadHashTests
 {
-    [Fact(Skip = "🔴 #206: the parser adds rowKey \"\" for a side that declares only a reading, so the hash changes after a JSON round trip.")]
+    [Fact]
     public void A_built_profile_keeps_its_hash_through_json_when_a_side_declares_a_culture_but_no_row_key()
     {
         var built = ProfileBuilder.Create("p", "1")
