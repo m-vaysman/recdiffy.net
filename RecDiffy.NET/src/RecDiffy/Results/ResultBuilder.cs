@@ -211,7 +211,8 @@ internal static class ResultBuilder
     // An N:1 projection (spec v3 §5.3). Compared decimals outside the equal-by-construction set are summed and rounded,
     // and one null member nulls the sum. Every other field follows §5.2: members that agree give the value, and members
     // that disagree make it unknown, with MembersDisagree when the run uses the field. The base is the member with the
-    // lowest row key, so allocation order never decides (#167).
+    // lowest row key, so allocation order never decides (#167). The base keeps only the raw columns every member agrees on,
+    // so a condition on a raw column never reads the base member's own column (#236).
     private static RowContext Aggregate(IReadOnlyList<ConsolidatedRow> rows, DiffPlan plan, IReadOnlySet<string> equal, FieldUse use)
     {
         if (rows.Count == 1)
@@ -219,14 +220,34 @@ internal static class ResultBuilder
         RowContext[] contexts = [.. rows.Select(row => row.Context).OrderBy(context => context.RowKey, StringComparer.Ordinal)];
         DiffStep[] summed = [.. plan.Steps.Where(step => step.Field.Type == FieldType.Decimal && equal.Contains(step.Field.Name) is false)];
         var summedNames = summed.Select(step => step.Field.Name).ToHashSet(StringComparer.Ordinal);
+        var start = contexts[0] with { Raw = AgreedRaw(contexts) };
+        var warned = DisagreeingRawColumns(contexts, start.Raw, use)
+            .Aggregate(start, (current, column) => current.Diagnose(MemberAgreement.Disagree, DiagnosticSeverity.Warning, "aggregate", column, null));
         var settled = contexts
             .SelectMany(context => context.Values.Keys)
             .Distinct(StringComparer.Ordinal)
             .Where(field => summedNames.Contains(field) is false)
             .Order(StringComparer.Ordinal)
-            .Aggregate(contexts[0], (current, field) => Settle(current, field, contexts, use));
+            .Aggregate(warned, (current, field) => Settle(current, field, contexts, use));
         return summed.Aggregate(settled, (current, step) => Sum(current, step, contexts, plan.Midpoint));
     }
+
+    // A raw column stays on the projection only when every member holds the same text in it, read as a condition reads it.
+    private static IReadOnlyDictionary<string, object?> AgreedRaw(IReadOnlyList<RowContext> members) =>
+        members[0].Raw
+            .Where(column => members.All(member => member.Raw.TryGetValue(column.Key, out var value) && string.Equals(RawText(value), RawText(column.Value), StringComparison.Ordinal)))
+            .ToDictionary(column => column.Key, column => column.Value, StringComparer.Ordinal);
+
+    private static string? RawText(object? value) => InvariantText.Of(value)?.Trim();
+
+    // A raw column the run uses that the members hold differently is named in a MembersDisagree warning, as a canonical
+    // field is (§5.2). A canonical field of that name is settled by Settle instead.
+    private static IEnumerable<string> DisagreeingRawColumns(IReadOnlyList<RowContext> members, IReadOnlyDictionary<string, object?> agreed, FieldUse use) =>
+        members
+            .SelectMany(member => member.Raw.Keys)
+            .Distinct(StringComparer.Ordinal)
+            .Where(column => use.IsUsed(column) && agreed.ContainsKey(column) is false && members.All(member => member.Values.ContainsKey(column) is false))
+            .Order(StringComparer.Ordinal);
 
     private static RowContext Settle(RowContext current, string field, IReadOnlyList<RowContext> members, FieldUse use)
     {

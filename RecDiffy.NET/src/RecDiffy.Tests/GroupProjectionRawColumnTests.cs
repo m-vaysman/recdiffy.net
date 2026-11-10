@@ -44,7 +44,7 @@ public class GroupProjectionRawColumnTests
 
     // Two allocations sum to the block's quantity. One says Swap in the raw Asset column and the other Bond; the block
     // says Bond. Their net cash (500 + 400 = 900) differs from the block's 1,000. Only the allocations' row keys differ.
-    [Fact(Skip = "🔴 #236: the N:1 group projection takes its raw columns from the first allocation by row key, so a condition on a raw column depends on row keys.")]
+    [Fact]
     public void A_condition_on_a_raw_column_of_a_group_does_not_depend_on_row_keys()
     {
         var original = Describe(Run([new("A1", "Swap", "50", "500"), new("A2", "Bond", "50", "400")]));
