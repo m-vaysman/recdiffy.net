@@ -535,13 +535,13 @@ A run reports problems with input rows as diagnostics on `RowResult.Diagnostics`
 
 ## Known gaps
 
-These behaviours on `dev` are likely defects. They are listed so you can avoid them until they are fixed.
+These behaviours on `dev` are defects, each tracked in an issue with a skipped failing test. They are listed so you can avoid them until they are fixed.
 
-- **A side with no `normalization` block compiles.** That side writes no fields, so none of its rows can be matched. `FieldNotProduced` checks only the sides that have a block. Declare rules for both sides.
-- **`match.sharedRef` with no `key`** uses `Counterparty` and `TradeRef`, but compile doesn't check that they are declared. If either is missing, the run throws `KeyNotFoundException`. Give every `match.sharedRef` pass a `key`.
-- **`route.byField` on an `Identifier` field matches no row.** The route compares the scheme and value together against `equals`. Route on a `Symbol` field instead.
-- **A `days` tolerance ignores its `when`.** The gap is allowed even when the condition fails on one side or both.
-- **`"equals": ""` never holds on a CSV or Excel source.** A data reader turns a blank cell into null, and the check compares with an empty string. It does hold on an object source, whose blank text stays `""`, so the same profile behaves differently by source.
-- **`party.resolveAlias` can't follow `party.resolveLei` on the same field.** It writes only when the field is still empty, but compile counts it as a second writer (`AmbiguousWrite`). Give the two rules `when` clauses that exclude each other, or resolve into separate fields.
-- **A lifecycle survivor merged into a package loses its history.** The package's entry has no `LifecycleCollapsed` flag, and the superseded and cancel rows get no `EntryId`.
+- **A side with no `normalization` block compiles.** That side writes no fields, so none of its rows can be matched. `FieldNotProduced` checks only the sides that have a block. Declare rules for both sides. ([#287](https://github.com/m-vaysman/recdiffy.net/issues/287))
+- **`match.sharedRef` with no `key`** uses `Counterparty` and `TradeRef`, but compile doesn't check that they are declared. If either is missing, the run throws `KeyNotFoundException`. Give every `match.sharedRef` pass a `key`. ([#288](https://github.com/m-vaysman/recdiffy.net/issues/288))
+- **`route.byField` on an `Identifier` field matches no row.** The route compares the scheme and value together against `equals`. Route on a `Symbol` field instead. ([#278](https://github.com/m-vaysman/recdiffy.net/issues/278))
+- **A `days` tolerance ignores its `when`.** The gap is allowed even when the condition fails on one side or both. ([#289](https://github.com/m-vaysman/recdiffy.net/issues/289))
+- **`"equals": ""` never holds on a CSV or Excel source.** A data reader turns a blank cell into null, and the check compares with an empty string. It does hold on an object source, whose blank text stays `""`, so the same profile behaves differently by source. ([#280](https://github.com/m-vaysman/recdiffy.net/issues/280))
+- **`party.resolveAlias` can't follow `party.resolveLei` on the same field.** It writes only when the field is still empty, but compile counts it as a second writer (`AmbiguousWrite`). Give the two rules `when` clauses that exclude each other, or resolve into separate fields. ([#291](https://github.com/m-vaysman/recdiffy.net/issues/291))
+- **A lifecycle survivor merged into a package loses its history.** The package's entry has no `LifecycleCollapsed` flag, and the superseded and cancel rows get no `EntryId`. ([#290](https://github.com/m-vaysman/recdiffy.net/issues/290))
 - **`AttributedTo` is filled when the formula doesn't explain the difference.** [#254](https://github.com/m-vaysman/recdiffy.net/issues/254).
