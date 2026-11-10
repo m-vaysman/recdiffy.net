@@ -9,7 +9,7 @@ The rules for changing code live in [AGENTS.md](AGENTS.md). Every AI agent that 
 - **Search first.** Look through the open issues and pull requests. Several people and agents work here at the same time. If a PR already covers your change, build on it instead of opening a second one.
 - **Open an issue for anything new.** For a feature or a change in behaviour, use the feature request form, so the scope is agreed before you write code. For a bug, use the bug report form.
 - **Keep data synthetic.** Never put real client files, names, account numbers or trade IDs in an issue, a test or a PR. Make up a few rows that show the problem.
-- **Keep security reports private.** Don't report a vulnerability in a public issue, discussion or PR. A private way to report one is being set up in [#241](https://github.com/m-vaysman/recdiffy.net/issues/241).
+- **Keep security reports private.** Don't report a vulnerability in a public issue, discussion or PR. Report it privately, as [SECURITY.md](SECURITY.md) describes.
 
 ## What you need
 
