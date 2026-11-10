@@ -102,6 +102,8 @@ internal static class ProfileCompiler
             false => [new ProfileError("UnknownField", $"{side} aggregator names unknown field '{aggregate.Field}'.")],
             true when aggregate is { Kind: AggregateKind.Sum or AggregateKind.DifferenceByRole } && declaration is { Type: not FieldType.Decimal } =>
                 [new ProfileError("InvalidParameter", $"{side} aggregator {aggregate.Kind} on '{aggregate.Field}' needs a Decimal field, not a {declaration.Type} field.")],
+            true when aggregate is { Kind: AggregateKind.DifferenceByRole, OtherRole: null } =>
+                [new ProfileError("MissingParameter", $"{side} aggregator DifferenceByRole on '{aggregate.Field}' requires two roles.")],
             _ => [],
         };
 
