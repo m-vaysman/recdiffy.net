@@ -1,3 +1,4 @@
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace RecDiffy.ExcelAddIn.ViewModels;
@@ -28,7 +29,7 @@ public sealed partial class ResultsViewModel : ObservableObject
     private string? message;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasResults), nameof(ShowsEmptyNotice))]
+    [NotifyPropertyChangedFor(nameof(HasResults), nameof(ShowsEmptyNotice), nameof(ListedRows), nameof(HiddenExactMatches))]
     private RunView? run;
 
     [ObservableProperty]
@@ -37,6 +38,41 @@ public sealed partial class ResultsViewModel : ObservableObject
 
     [ObservableProperty]
     private bool isExplanationOpen;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ListedRows), nameof(HiddenExactMatches))]
+    private bool includeExactMatches = true;
+
+    [ObservableProperty]
+    private bool isWriting;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(WriteStage), nameof(WriteFraction))]
+    private WriteProgress? writeProgress;
+
+    [ObservableProperty]
+    private string? writeMessage;
+
+    public IReadOnlyList<ResultRow> ListedRows => (Run, IncludeExactMatches) switch
+    {
+        (null, _) => [],
+        ({ } shown, true) => shown.Rows,
+        ({ } shown, false) => [.. shown.Rows.Where(row => !ResultSheets.IsExactMatch(row.Entry))],
+    };
+
+    public string? HiddenExactMatches => (Run, IncludeExactMatches) switch
+    {
+        ({ } shown, false) => string.Create(
+            CultureInfo.CurrentCulture,
+            $"{shown.Rows.Count(row => ResultSheets.IsExactMatch(row.Entry)):N0} exact matches aren't listed. The counts include them. Turn them on in Settings."),
+        _ => null,
+    };
+
+    public string WriteStage => WriteProgress is { } progress
+        ? string.Create(CultureInfo.CurrentCulture, $"Writing results to Excel: {progress.Written:N0} of {progress.Total:N0}")
+        : "Writing results to Excel";
+
+    public double WriteFraction => WriteProgress is { Total: > 0 } progress ? (double)progress.Written / progress.Total : 0;
 
     public bool IsRunning => State is RunState.Running;
 
@@ -76,6 +112,32 @@ public sealed partial class ResultsViewModel : ObservableObject
             _ => throw new InvalidOperationException("A run is completed, canceled or failed."),
         };
         (Stage, Fraction) = (string.Empty, null);
+        if (outcome is RunOutcome.Completed)
+            WriteMessage = null;
+    }
+
+    public void StartWrite() =>
+        (IsWriting, WriteProgress, WriteMessage) = (true, null, null);
+
+    public void ReportWrite(WriteProgress progress)
+    {
+        ArgumentNullException.ThrowIfNull(progress);
+        if (!IsWriting)
+            return;
+
+        WriteProgress = progress;
+    }
+
+    public void FinishWrite(WriteOutcome outcome)
+    {
+        ArgumentNullException.ThrowIfNull(outcome);
+        (IsWriting, WriteProgress, WriteMessage) = (false, null, ResultOutputs.Describe(outcome));
+    }
+
+    partial void OnIncludeExactMatchesChanged(bool value)
+    {
+        if (!value && Selected is { } shown && ResultSheets.IsExactMatch(shown.Entry))
+            Selected = null;
     }
 
     private string Kept(string what) =>
