@@ -155,7 +155,7 @@ public static class ProfileWriter
         string[] names = [.. rule.Strings.Keys, .. rule.Lists.Keys, .. rule.Maps.Keys];
         var clash = names
             .GroupBy(name => name, StringComparer.Ordinal)
-            .FirstOrDefault(group => group.Count() > 1 || group.Key is "rule" or "when");
+            .FirstOrDefault(group => group.Skip(1).Any() || group.Key is "rule" or "when");
         return clash is null
             ? [.. Leading.Where(names.Contains), .. names.Where(name => !Leading.Contains(name)).Order(StringComparer.Ordinal)]
             : throw new ArgumentException($"Rule '{rule.Rule}' argument '{clash.Key}' cannot be written as a distinct JSON property.", nameof(rule));

@@ -111,7 +111,7 @@ internal static class TabularReaders
             throw new InvalidDataException($"The header row of {source} is empty. With a header, row 1 must name the columns, starting at cell A1.");
         var names = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToArray();
         var empty = names.Select((name, index) => (name, index)).Where(pair => string.IsNullOrWhiteSpace(pair.name)).Select(pair => (pair.index + 1).ToString(CultureInfo.InvariantCulture)).ToArray();
-        var repeated = names.Where(name => !string.IsNullOrWhiteSpace(name)).GroupBy(name => name, StringComparer.Ordinal).Where(group => group.Count() > 1).Select(group => $"'{group.Key}'").ToArray();
+        var repeated = names.Where(name => !string.IsNullOrWhiteSpace(name)).GroupBy(name => name, StringComparer.Ordinal).Where(group => group.Skip(1).Any()).Select(group => $"'{group.Key}'").ToArray();
         string[] problems =
         [
             .. empty.Length > 0 ? [$"column(s) {string.Join(", ", empty)} have no name"] : Array.Empty<string>(),

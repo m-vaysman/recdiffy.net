@@ -41,7 +41,7 @@ internal static class Packages
 
     // Each leg keeps its own diagnostics, such as DuplicateRowCollapsed for a copied leg, so result building reports a
     // warning on the leg it belongs to and not on the whole package (spec v3 §3.2, §3.4; #217).
-    private static IReadOnlyDictionary<SourceRef, ImmutableList<Diagnostic>> OwnDiagnostics(IReadOnlyList<ConsolidatedRow> members) =>
+    private static Dictionary<SourceRef, ImmutableList<Diagnostic>> OwnDiagnostics(IReadOnlyList<ConsolidatedRow> members) =>
         members.SelectMany(member => member.Members.Select(source => (Source: source, member.Context.Diagnostics))).ToDictionary(pair => pair.Source, pair => pair.Diagnostics);
 
     // Fields without an aggregator are settled first: members that agree give the value, and members that disagree make
@@ -138,7 +138,7 @@ internal static class Packages
     }
 
     // A raw column stays on the item only when every leg holds the same text in it, read as a condition reads it.
-    private static IReadOnlyDictionary<string, object?> AgreedRaw(IReadOnlyList<RowContext> members) =>
+    private static Dictionary<string, object?> AgreedRaw(RowContext[] members) =>
         members[0].Raw
             .Where(column => members.All(member => member.Raw.TryGetValue(column.Key, out var value) && string.Equals(RawText(value), RawText(column.Value), StringComparison.Ordinal)))
             .ToDictionary(column => column.Key, column => column.Value, StringComparer.Ordinal);

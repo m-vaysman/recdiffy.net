@@ -6,14 +6,17 @@ namespace RecDiffy;
 internal sealed partial class DataReaderSource(Func<IDataReader> open, TabularOptions options) : RecordSource
 {
     // A set RowKeyColumn replaces the profile key. Null keeps the profile key.
-    internal override IReadOnlyList<RawRecord> Materialize(string sideName, string rowKey, CancellationToken cancellation)
+    internal override IReadOnlyList<RawRecord> Materialize(string sideName, string rowKey, CancellationToken cancellation) =>
+        ReadAll(sideName, rowKey, cancellation);
+
+    internal override Task<IReadOnlyList<RawRecord>> MaterializeAsync(string sideName, string rowKey, CancellationToken cancellation) =>
+        Task.FromResult<IReadOnlyList<RawRecord>>(ReadAll(sideName, rowKey, cancellation));
+
+    private RawRecord[] ReadAll(string sideName, string rowKey, CancellationToken cancellation)
     {
         using var reader = open();
         return Read(reader, sideName, options.RowKeyColumn ?? rowKey, cancellation);
     }
-
-    internal override Task<IReadOnlyList<RawRecord>> MaterializeAsync(string sideName, string rowKey, CancellationToken cancellation) =>
-        Task.FromResult(Materialize(sideName, rowKey, cancellation));
 
     // A file that ends inside the skipped header rows returns no records and no error.
     private RawRecord[] Read(IDataReader reader, string sideName, string rowKey, CancellationToken cancellation)
