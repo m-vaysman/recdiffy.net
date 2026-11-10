@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main, dev]
   push:
-    branches: [main]
+    branches: [main, dev]
 
 permissions:
   contents: read
@@ -52,6 +52,21 @@ jobs:
 
       - name: Test Excel reports
         run: dotnet test RecDiffy.NET/src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj -c Release --no-build --no-restore
+
+      # Allure Docker Service, not TestOps. The upload must not fail this job.
+      # Fork pull requests are skipped: Actions does not provide these secrets.
+      # Same-repo pull requests, and pushes to dev and main, publish project recdiffy.
+      - name: Publish Allure report
+        if: ${{ !cancelled() && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        continue-on-error: true
+        env:
+          ALLURE_SERVER_URL: ${{ secrets.ALLURE_SERVER_URL }}
+          ALLURE_USER: ${{ secrets.ALLURE_USER }}
+          ALLURE_PASSWORD: ${{ secrets.ALLURE_PASSWORD }}
+          ALLURE_PROJECT_ID: recdiffy
+          ALLURE_EXECUTION_NAME: ${{ github.event_name == 'pull_request' && format('PR #{0} {1}', github.event.pull_request.number, github.sha) || format('{0} {1}', github.ref_name, github.sha) }}
+          ALLURE_EXECUTION_FROM: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 .github/scripts/publish_allure.py
 
       - name: Pack prerelease
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

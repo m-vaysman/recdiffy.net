@@ -7,6 +7,7 @@
 [![CI](https://github.com/m-vaysman/recdiffy.net/actions/workflows/ci.yml/badge.svg)](https://github.com/m-vaysman/recdiffy.net/actions/workflows/ci.yml)
 [![Quality Gate](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=alert_status)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Coverage](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=coverage)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Bugs](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=bugs)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Vulnerabilities](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=vulnerabilities)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Code Smells](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=code_smells)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Maintainability](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=sqale_rating)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Security](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=security_rating)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net)
 [![Benchmarks](https://img.shields.io/badge/benchmarks-Bencher-0b7285)](https://bench.cobblerhill.net/perf/recdiffy)
+[![Test report](https://img.shields.io/badge/tests-Allure-ff6a00)](https://recdiffytests.cobblerhill.net/allure-docker-service/projects/recdiffy/reports/latest/index.html)
 
 Reconcile two datasets and explain every match, difference, and unmatched row.
 
@@ -75,6 +76,12 @@ dotnet test
 ```
 
 Run these commands from the `RecDiffy.NET` directory, which contains the solution and SDK configuration.
+
+GitHub Actions publishes an [Allure](https://allurereport.org/) report for pushes to `dev` and `main`, and for pull requests opened from this repository. A pull request from a fork skips the upload, because GitHub does not pass the Allure secrets to that run, and a failed upload does not fail the build.
+
+[Latest test report](https://recdiffytests.cobblerhill.net/allure-docker-service/projects/recdiffy/reports/latest/index.html)
+
+`dotnet test` writes `allure-results` under each RecDiffy.NET test project's build output, once for `net8.0` and once for `net10.0`. The packages that ship RecDiffy do not reference Allure.
 
 ## Your first reconciliation
 
