@@ -18,9 +18,19 @@ internal static class SubsetSearch
     // The suffix bound uses the first conserved value and assumes every later item can be taken.
     // A group-size cap makes that an overestimate, so the bound prunes less. A bound past the decimal range is held at
     // MaxValue, still an overestimate. The bound is read only when every value is non-negative, so it only grows (#224).
+    // The inputs are checked before the walk starts (#245 review). The target and every class hold one value per conserved
+    // field, and every class holds at least one item. No classes is a search with no group, not an error.
     public static TargetSearch Search(IReadOnlyList<ConservedClass> classes, decimal[] target, int maxGroup, int maxNodes, CancellationToken cancellation = default)
     {
+        ArgumentNullException.ThrowIfNull(classes);
+        ArgumentNullException.ThrowIfNull(target);
+        if (target is [])
+            throw new ArgumentException("The target holds no conserved value.", nameof(target));
+        if (classes.Select(cls => Problem(cls, target.Length)).FirstOrDefault(problem => problem is not null) is { } problem)
+            throw new ArgumentException(problem, nameof(classes));
         cancellation.ThrowIfCancellationRequested();
+        if (classes is [])
+            return new TargetSearch(SearchState.None, []);
         var counts = new int[classes.Count];
         var sums = new decimal[target.Length];
         var suffix = new decimal[classes.Count + 1];
@@ -31,6 +41,15 @@ internal static class SubsetSearch
         walk.Go(0, 0);
         return walk.Finish();
     }
+
+    private static string? Problem(ConservedClass? cls, int width) => cls switch
+    {
+        null => "A class is null.",
+        { Values: null } => "A class has no conserved values.",
+        { Items: null or [] } => "A class has no items.",
+        { Values.Length: var length } when length != width => $"A class holds {length} conserved values and the target holds {width}.",
+        _ => null,
+    };
 
     private sealed class Walk(
         IReadOnlyList<ConservedClass> classes,
