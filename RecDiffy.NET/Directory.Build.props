@@ -7,7 +7,7 @@
     <Copyright>Copyright (c) 2026 Michael Vaysman</Copyright>
     <RepositoryUrl>https://github.com/m-vaysman/recdiffy.net</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageProjectUrl>https://github.com/m-vaysman/recdiffy.net/wiki</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/m-vaysman/recdiffy.net</PackageProjectUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
