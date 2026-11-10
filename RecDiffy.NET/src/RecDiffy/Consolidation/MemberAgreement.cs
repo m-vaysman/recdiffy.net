@@ -5,7 +5,8 @@ using RecDiffy.Rules;
 namespace RecDiffy;
 
 // What consolidation needs from the profile to combine members (spec v3 §5.2, §5.3): each field's declaration, the
-// profile midpoint, and the fields the run uses (keys, blocks, conserve lists, diffed fields and route fields).
+// profile midpoint, and the fields the run uses (keys, blocks, conserve lists, diffed fields, route fields, and the fields
+// a diff condition reads on the combined item).
 internal sealed record FieldUse(IReadOnlyDictionary<string, FieldDeclaration> Fields, MidpointMode Midpoint, Func<string, bool> IsUsed)
 {
     // For a caller without a profile: every field is used, and decimals agree only when exactly equal.
@@ -17,7 +18,14 @@ internal sealed record FieldUse(IReadOnlyDictionary<string, FieldDeclaration> Fi
         var compared = document.Fields.Where(field => field.Role is FieldRole.Key or FieldRole.Economic).Select(field => field.Name);
         var matched = document.Paths.SelectMany(path => path.Passes).SelectMany(pass => (IEnumerable<string>)[.. pass.Key, .. pass.Block, .. pass.Conserve]);
         var routed = document.Paths.Select(path => path.Route.Field).OfType<string>();
-        var used = compared.Concat(matched).Concat(routed).ToImmutableHashSet(StringComparer.Ordinal);
+        // applicableWhen and a tolerance's when are read on the combined item, so they make a field used (#220). A rule's
+        // when runs on each member before consolidation and never reads the combined item.
+        var conditioned = document.Paths
+            .SelectMany(path => path.Diff?.Fields.Values ?? [])
+            .SelectMany(diff => (IEnumerable<WhenClause?>)[diff.ApplicableWhen, diff.Tolerance.When])
+            .OfType<WhenClause>()
+            .Select(when => when.Field);
+        var used = compared.Concat(matched).Concat(routed).Concat(conditioned).ToImmutableHashSet(StringComparer.Ordinal);
         return new(document.Fields.ToImmutableDictionary(field => field.Name, StringComparer.Ordinal), document.Midpoint, used.Contains);
     }
 
