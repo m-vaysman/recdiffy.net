@@ -341,6 +341,28 @@
             <Border Style="{StaticResource Notice}" Margin="0,0,0,12" Visibility="{Binding Message, Converter={StaticResource VisibleWhenText}}">
               <TextBlock Style="{StaticResource Problem}" Margin="0" TextWrapping="Wrap" Text="{Binding Message}" />
             </Border>
+            <Border Style="{StaticResource Notice}" Margin="0,0,0,12" Visibility="{Binding IsWriting, Converter={StaticResource VisibleWhenTrue}}">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                  <TextBlock Style="{StaticResource BlockHeading}" HorizontalAlignment="Left" Text="{Binding WriteStage, StringFormat='{}{0}…'}"
+                             AutomationProperties.LiveSetting="Polite" />
+                  <ProgressBar Height="6" Margin="0,8,24,0" Minimum="0" Maximum="1" Value="{Binding WriteFraction, Mode=OneWay}"
+                               Foreground="{StaticResource InkBrush}" Background="{StaticResource PaperBrush}"
+                               BorderThickness="0" AutomationProperties.Name="Write progress" />
+                </StackPanel>
+                <Button Grid.Column="1" Content="Cancel" Margin="0"
+                        Command="{Binding DataContext.WriteResultsCancelCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        AutomationProperties.Name="Cancel writing to the worksheet" />
+              </Grid>
+            </Border>
+            <Border Style="{StaticResource Notice}" Margin="0,0,0,12" Visibility="{Binding WriteMessage, Converter={StaticResource VisibleWhenText}}">
+              <TextBlock Style="{StaticResource SecondaryText}" TextWrapping="Wrap" Text="{Binding WriteMessage}"
+                         AutomationProperties.LiveSetting="Polite" />
+            </Border>
             <Border Style="{StaticResource Notice}" Margin="0,0,0,12"
                     Visibility="{Binding DataContext.ShowsStaleNotice, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource VisibleWhenTrue}}">
               <TextBlock Style="{StaticResource SecondaryText}" TextWrapping="Wrap"
@@ -349,7 +371,16 @@
           </StackPanel>
 
           <StackPanel Grid.Row="1" Visibility="{Binding HasResults, Converter={StaticResource VisibleWhenTrue}}">
-            <TextBlock Style="{StaticResource SecondaryText}" TextWrapping="Wrap" Text="{Binding Run.Label}" />
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Style="{StaticResource SecondaryText}" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Run.Label}" />
+              <Button Grid.Column="1" Content="Write to worksheet" VerticalAlignment="Top"
+                      Command="{Binding DataContext.WriteResultsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                      ToolTip="Write these results to a new sheet in a new workbook" />
+            </Grid>
             <ItemsControl ItemsSource="{Binding Run.Counts}" Margin="0,8,0,8" Focusable="False">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -370,9 +401,11 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <TextBlock Style="{StaticResource SecondaryText}" Margin="0,0,0,8" Text="{Binding HiddenExactMatches}"
+                       Visibility="{Binding HiddenExactMatches, Converter={StaticResource VisibleWhenText}}" />
           </StackPanel>
 
-          <DataGrid Grid.Row="2" ItemsSource="{Binding Run.Rows}" SelectedItem="{Binding Selected}"
+          <DataGrid Grid.Row="2" ItemsSource="{Binding ListedRows}" SelectedItem="{Binding Selected}"
                     VerticalScrollBarVisibility="Auto" EnableRowVirtualization="True"
                     VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
                     Visibility="{Binding HasResults, Converter={StaticResource VisibleWhenTrue}}" AutomationProperties.Name="Results">
@@ -408,7 +441,7 @@
           </Expander>
 
           <Expander Grid.Row="4" Margin="0,12,0,0" Header="Explain selected result" IsExpanded="{Binding IsExplanationOpen}"
-                    Visibility="{Binding HasResults, Converter={StaticResource VisibleWhenTrue}}">
+                    Visibility="{Binding DataContext.ShowsExplanation, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource VisibleWhenTrue}}">
             <ScrollViewer MaxHeight="240" VerticalScrollBarVisibility="Auto" Focusable="False">
               <StackPanel>
                 <TextBlock Style="{StaticResource SecondaryText}" Text="Select a result to see how RecDiffy reached it."
@@ -436,9 +469,24 @@
         </Grid>
       </TabItem>
       <TabItem Header="Settings">
-        <Border Style="{StaticResource Notice}" VerticalAlignment="Top" Margin="0">
-          <TextBlock Style="{StaticResource SecondaryText}" Text="Settings aren't available yet." />
-        </Border>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+          <StackPanel DataContext="{Binding Settings}" MaxWidth="640" HorizontalAlignment="Left">
+            <TextBlock Style="{StaticResource SectionHeading}" Text="Results" />
+            <CheckBox Content="Include exact matches" IsChecked="{Binding IncludeExactMatches}" />
+            <TextBlock Style="{StaticResource SecondaryText}" Margin="24,4,0,16"
+                       Text="List exact matches in the results table and on the worksheet. The counts always include them." />
+            <CheckBox Content="Offer “Explain selected result”" IsChecked="{Binding OffersExplanation}" />
+            <TextBlock Style="{StaticResource SecondaryText}" Margin="24,4,0,16"
+                       Text="Show the explanation area under the results table. Turning it off hides the area and keeps its data." />
+            <TextBlock Style="{StaticResource SectionHeading}" Margin="0,8,0,12" Text="Worksheet" />
+            <TextBlock Style="{StaticResource SecondaryText}"
+                       Text="Write to worksheet puts the results on a new sheet in a new workbook, so nothing you have open changes." />
+            <TextBlock Style="{StaticResource SecondaryText}" Margin="0,16,0,0"
+                       Text="These settings are remembered for your Windows account. Matching and comparison rules are on the Rules tab." />
+            <TextBlock Style="{StaticResource Problem}" Text="{Binding Problem}"
+                       Visibility="{Binding Problem, Converter={StaticResource VisibleWhenText}}" />
+          </StackPanel>
+        </ScrollViewer>
       </TabItem>
     </TabControl>
 
