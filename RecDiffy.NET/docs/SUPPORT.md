@@ -8,7 +8,7 @@ Each claim has one of three statuses:
 - **Checked by analyzers:** the compiler's analyzers enforce it on every build. That catches most problems, not all.
 - **Not verified:** expected to work, but nothing runs it yet. The linked issue tracks the check.
 
-The workflows are in [.github/workflows](../../.github/workflows). [ci.yml](../../.github/workflows/ci.yml) is the one that matters here.
+The workflows are in [.github/workflows](../../.github/workflows). Two matter here: [ci.yml](../../.github/workflows/ci.yml) builds the solution and runs the test projects, and [packages.yml](../../.github/workflows/packages.yml) packs the libraries and uses the packages as a consumer would. Both run on every pull request into `dev`.
 
 ## Packages
 
@@ -25,17 +25,17 @@ The four ship together, at one version. See [RELEASING.md](RELEASING.md#release-
 
 | Area | Claim | How it is checked | Status |
 |---|---|---|---|
-| **.NET 10** | Every package runs on `net10.0`. | CI runs `RecDiffy.Tests`, `RecDiffy.IO.Tests` and `RecDiffy.Excel.Tests` for `net10.0`. | Verified in CI |
-| **.NET 8** | Every package runs on `net8.0`. | The same three test projects also run for `net8.0`. CI installs the .NET 8 SDK beside the pinned .NET 10 SDK. | Verified in CI |
+| **.NET 10** | Every package runs on `net10.0`. | CI runs `RecDiffy.Tests`, `RecDiffy.IO.Tests` and `RecDiffy.Excel.Tests` for `net10.0`, and runs the samples from the packed packages on `net10.0`. | Verified in CI |
+| **.NET 8** | Every package runs on `net8.0`. | The same three test projects, and the samples from the packed packages, also run on `net8.0`. CI installs the .NET 8 SDK beside the pinned .NET 10 SDK. | Verified in CI |
 | **.NET 9** | An app on .NET 9 gets the `net8.0` build. | Nothing runs it. | Not verified |
 | **.NET Framework, .NET Standard** | Not supported. | No target. | Not supported |
-| **Linux** | The libraries build and pass their tests on Linux. | CI and the release workflow run on `ubuntu-latest`. | Verified in CI |
+| **Linux** | The libraries build and pass their tests on Linux. | `ci.yml`, `packages.yml` and `release.yml` run on `ubuntu-latest`. | Verified in CI |
 | **Windows** | The libraries run on Windows. | No library test suite runs on Windows. The benchmarks run on a self-hosted Windows machine, but they measure speed, not results. The Excel add-in's tests run on `windows-latest` against the published `RecDiffy` and `RecDiffy.IO` packages. | Not verified ([#53](https://github.com/m-vaysman/recdiffy.net/issues/53)) |
 | **macOS** | The libraries run on macOS. | Nothing runs on macOS. | Not verified ([#53](https://github.com/m-vaysman/recdiffy.net/issues/53)) |
 | **Thread safety** | See [Thread safety](#thread-safety). | Parallel tests in `RecDiffy.Tests`. | Partly verified in CI |
-| **Native AOT, trimming** | `RecDiffy` and `RecDiffy.RulePacks.Trading` work in a trimmed, AOT-published app. | The AOT and trim analyzers run on every build, and CI fails on any warning. CI builds the AOT host but doesn't publish or run it. | Checked by analyzers; publish not verified ([#51](https://github.com/m-vaysman/recdiffy.net/issues/51)) |
+| **Native AOT, trimming** | `RecDiffy` and `RecDiffy.RulePacks.Trading` work in a trimmed, AOT-published app. | The AOT and trim analyzers run on every build. The Packages workflow also publishes the AOT host, and an app built from the packed packages, with Native AOT and trimmed, on `net8.0` and `net10.0`, failing on any warning, and runs each. Only on Linux x64. | Verified in CI, on Linux |
 | **AOT and trimming for `RecDiffy.IO`, `RecDiffy.Excel`** | No claim. | These projects aren't marked, so the analyzers don't run on them. | Not claimed |
-| **Installing the packages** | A clean project restores the packages from a feed and runs. | The samples and tests use project references, not packages. | Not verified ([#50](https://github.com/m-vaysman/recdiffy.net/issues/50)) |
+| **Installing the packages** | A clean project restores the packages from a feed and runs. | The Packages workflow packs the solution, checks that exactly the four libraries come out, restores them into a project with no project references, checks each package's files and dependencies, and runs every sample from them. It checks packages packed from the pull request, not the files a release pushes. | Verified in CI |
 
 ## Building from source
 
@@ -59,8 +59,9 @@ What holds today, and how each part is checked:
 
 ## Native AOT and trimming
 
-- **What is checked.** `RecDiffy` and `RecDiffy.RulePacks.Trading` set `IsAotCompatible` and `IsTrimmable`. On `net8.0` and later, that turns on the AOT, trim and single-file analyzers. CI builds with `-warnaserror`, so any new warning from them fails the build.
-- **What isn't checked yet.** The analyzers can't see everything. [RecDiffy.AotHost](../src/RecDiffy.AotHost) compiles and runs a small reconciliation, and it sets `PublishAot`, but CI only builds it. Publishing it, running the native binary and checking its exit code is [#51](https://github.com/m-vaysman/recdiffy.net/issues/51).
+- **The analyzers.** `RecDiffy` and `RecDiffy.RulePacks.Trading` set `IsAotCompatible` and `IsTrimmable`. On `net8.0` and later, that turns on the AOT, trim and single-file analyzers. CI builds with `-warnaserror`, so any new warning from them fails the build.
+- **Publishing.** The Packages workflow publishes [RecDiffy.AotHost](../src/RecDiffy.AotHost) with Native AOT for `linux-x64`, runs it, and checks its answer. It also publishes [PackageSmoke/Aot](../tests/PackageSmoke/Aot), which compiles the samples that use only these two packages against the packed packages, with Native AOT and trimmed, for `net8.0` and `net10.0`, and runs every sample. Warnings fail the publish. See [the PackageSmoke README](../tests/PackageSmoke/README.md).
+- **What isn't checked.** AOT publishing on Windows and macOS ([#53](https://github.com/m-vaysman/recdiffy.net/issues/53)).
 - **Invariant globalization.** The AOT host sets `InvariantGlobalization`, as many AOT apps do. In that mode the only culture a profile can declare is `""`, the invariant culture. Any other name fails compile with `UnknownCulture`.
 
 ## Supported use
@@ -76,8 +77,7 @@ What holds today, and how each part is checked:
 
 | Gap | Issue |
 |---|---|
-| Run the library tests on Windows and macOS | [#53](https://github.com/m-vaysman/recdiffy.net/issues/53) |
-| Publish and run the AOT host, and a trimmed consumer | [#51](https://github.com/m-vaysman/recdiffy.net/issues/51) |
-| Restore the packed packages in a clean consumer and run it | [#50](https://github.com/m-vaysman/recdiffy.net/issues/50) |
+| Run the library tests, and the AOT publish, on Windows and macOS | [#53](https://github.com/m-vaysman/recdiffy.net/issues/53) |
+| Check the packages a release pushes, not only the ones each pull request packs | No issue yet |
 
-When one of these lands, change its row above from "Not verified" to "Verified in CI", and link the workflow step.
+When one of these lands, update the matching row above, and link the workflow step.

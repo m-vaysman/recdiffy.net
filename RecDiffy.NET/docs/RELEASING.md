@@ -17,7 +17,7 @@ The four packages ship together, from one commit, at one version. The trading pa
 
 - **Each package depends on `RecDiffy` at its own version, as a minimum.** For example, `RecDiffy.RulePacks.Trading` 1.2.0-preview.3 depends on `RecDiffy` 1.2.0-preview.3 or later. NuGet lets a consumer take a newer `RecDiffy` than the other packages were built with.
 - **The trading pack uses the engine's internals** (`InternalsVisibleTo` in [RecDiffy.csproj](../src/RecDiffy/RecDiffy.csproj)), so it may not work with an engine from another release. Tell consumers to keep all four packages on one version.
-- **Only the four named projects are packed.** The workflows name them one by one. The samples project isn't marked `IsPackable=false` yet ([#86](https://github.com/m-vaysman/recdiffy.net/issues/86)).
+- **Only the four libraries are packed.** The release workflow names them one by one, and both sample projects set `IsPackable=false` ([#86](https://github.com/m-vaysman/recdiffy.net/issues/86)). The [Packages workflow](../../.github/workflows/packages.yml) packs the whole solution on every pull request, and fails if anything else comes out.
 - **The Excel add-in isn't a package.** It references `RecDiffy` and `RecDiffy.IO` from nuget.org at a version it names itself, `1.2.0-preview.2` today, so a release doesn't change it. Moving it to a new version is its own PR.
 
 What runs on which framework and operating system is in [SUPPORT.md](SUPPORT.md).
@@ -46,6 +46,7 @@ What that means in practice:
 - **GitHub Packages builds sort lower.** NuGet orders every `1.1.0-preview` below every `1.2.0-preview`. A consumer with both feeds gets the nuget.org release, even when a GitHub Packages build has newer code.
 - **The run number counts every CI run,** including pull requests and pushes to `dev`, so the GitHub Packages numbers jump.
 - **GitHub Packages builds are for this repository's own checks.** Point consumers at nuget.org.
+- **A third version never leaves CI.** The [Packages workflow](../../.github/workflows/packages.yml) packs `0.0.0-ci.<run number>` on every pull request and push, to check the packages. It keeps them as a workflow artifact for seven days and publishes nothing.
 
 Whether to align the two lines is an open decision for the maintainer. The workflows are unchanged until it is made.
 
@@ -81,8 +82,7 @@ The push uses `--skip-duplicate`, so a version that is already on nuget.org is s
 
 - **Prerelease API.** Names and behaviour can change between previews. The API review before 1.0 is [#45](https://github.com/m-vaysman/recdiffy.net/issues/45), and the compatibility promise is [#74](https://github.com/m-vaysman/recdiffy.net/issues/74).
 - **Linux-only CI.** The library tests run only on Ubuntu ([#53](https://github.com/m-vaysman/recdiffy.net/issues/53)).
-- **AOT not published.** The AOT host is built but never published or run ([#51](https://github.com/m-vaysman/recdiffy.net/issues/51)).
-- **No package consumer test.** No workflow restores the packed packages in a clean project ([#50](https://github.com/m-vaysman/recdiffy.net/issues/50)).
+- **Release packages aren't smoke-tested.** The Packages workflow checks packages packed from each pull request. The release workflow packs again from the tag, and those files go to nuget.org without the consumer and AOT checks.
 - **No XML API documentation** in the packages. No project sets `GenerateDocumentationFile`.
 - **Package metadata gaps,** such as links in the packed README, are tracked in [#46](https://github.com/m-vaysman/recdiffy.net/issues/46).
 - **`AttributedTo` can name roots that don't explain the difference** ([#254](https://github.com/m-vaysman/recdiffy.net/issues/254)).
