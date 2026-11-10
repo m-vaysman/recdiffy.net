@@ -3,7 +3,7 @@ using RecDiffy.Results;
 
 namespace RecDiffy.Tests;
 
-public class ResultConceptsGuideTests
+public class ResultExamplesTests
 {
     private const string LedgerProfile = """
         {
