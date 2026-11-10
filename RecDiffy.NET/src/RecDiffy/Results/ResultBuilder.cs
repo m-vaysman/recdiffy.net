@@ -187,11 +187,12 @@ internal static class ResultBuilder
             .ToArray();
     }
 
-    // An N:1 group's MembersDisagree warnings live on its projection, so each member row of the group reports them too.
+    // An N:1 group's MembersDisagree and AggregateOverflow warnings live on its projection, so each member row of the group
+    // reports them too.
     private static IEnumerable<Diagnostic> GroupWarnings(ConsolidatedRow row, GroupId? linked, IReadOnlyDictionary<GroupId, (RowContext Left, RowContext Right)> projections) =>
         linked is { } id && projections.TryGetValue(id, out var pair)
             ? (row.Context.Side == Side.Left ? pair.Left : pair.Right).Diagnostics
-                .Where(diagnostic => diagnostic is { Code: MemberAgreement.Disagree, RuleId: "aggregate" })
+                .Where(diagnostic => diagnostic is { Code: MemberAgreement.Disagree or CheckedDecimal.Overflow, RuleId: "aggregate" })
             : [];
 
     // A package leg reports its own diagnostics first, then the package's (spec v3 §3.2, §3.4; #217).
@@ -261,10 +262,16 @@ internal static class ResultBuilder
         };
     }
 
+    // A sum past the decimal range is unknown, with AggregateOverflow naming the field (#224).
     private static RowContext Sum(RowContext current, DiffStep step, IReadOnlyList<RowContext> members, MidpointMode midpoint) =>
         members.Any(member => member.IsNull(step.Field.Name))
             ? current.Write(step.Field.Name, CanonicalCell.Null(FieldType.Decimal), "aggregate", null, null)
-            : current.Write(step.Field.Name, CanonicalCell.FromDecimal(Rounding.Round(members.Sum(member => member.Values[step.Field.Name].Number), step.Field.Scale, midpoint)), "aggregate", null, null);
+            : CheckedDecimal.Sum(members.Select(member => member.Values[step.Field.Name].Number)) switch
+            {
+                { } total => current.Write(step.Field.Name, CanonicalCell.FromDecimal(Rounding.Round(total, step.Field.Scale, midpoint)), "aggregate", null, null),
+                null => current.Write(step.Field.Name, CanonicalCell.Null(FieldType.Decimal), "aggregate", null, null)
+                    .Diagnose(CheckedDecimal.Overflow, DiagnosticSeverity.Warning, "aggregate", step.Field.Name, null),
+            };
 
     private static Composition Compose(CommittedMatch group)
     {
