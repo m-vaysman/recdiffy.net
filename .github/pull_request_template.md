@@ -15,6 +15,7 @@ Issue: #
 - [ ] `dotnet build RecDiffy.NET/RecDiffy.slnx -c Release -warnaserror --no-incremental` is clean.
 - [ ] `dotnet test RecDiffy.NET/RecDiffy.slnx -c Release` passes.
 - [ ] If the Excel add-in changed: its solution builds with `-warnaserror`, and its tests pass.
+- [ ] If the Excel add-in changed: `RecDiffy.ExcelAddIn/tools/Test-ExcelExit.ps1` passes, run by hand on a machine with Excel. It leaves no `EXCEL.EXE` behind.
 - [ ] New tests are in new files.
 - [ ] All test data is synthetic.
 
