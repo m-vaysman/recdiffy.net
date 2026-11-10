@@ -32,6 +32,7 @@ internal static class FieldDiffer
 {
     private static readonly DecimalComparer Numbers = default;
     private static readonly DateComparer Dates = default;
+    private static readonly string[] NetCashRoots = ["Quantity", "Price", "Accrued", "Fees"];
 
     // The scan calls Measure, not Finish. Finishing netCash here would read unmeasured sibling scores as NotCompared.
     public static FieldDiff[] Compare(RowContext left, RowContext right, DiffPlan plan)
@@ -45,23 +46,31 @@ internal static class FieldDiffer
         return Array.Empty<FieldDiff>();
     }
 
+    // Every score is measured before any attribution is finished, so the field declaration order never lets a root be
+    // read unmeasured (NotCompared). netCash is finished last, from its roots' finished outcomes: an attributed root such
+    // as Accrued counts with the outcome its own attribution gives it (spec v3 §6, §7.4, §10.1; #218).
     private static FieldDiff[] Materialize(RowContext left, RowContext right, DiffPlan plan)
     {
         var scores = new FieldScore[plan.Steps.Length];
-        var outcomes = new FieldOutcome[plan.Steps.Length];
+        var measured = new FieldOutcome[plan.Steps.Length];
         for (var index = 0; index < plan.Steps.Length; index++)
         {
             scores[index] = Measure(plan.Steps[index], left, right, plan.Midpoint);
-            outcomes[index] = plan.Steps[index].Attribution is "trading.netCash"
-                ? scores[index].Outcome
-                : Finish(plan.Steps[index], scores[index], scores, plan, left, right);
+            measured[index] = scores[index].Outcome;
         }
 
-        // netCash is finished after every score is measured. Finish reads sibling scores, and an unmeasured score is NotCompared.
+        var outcomes = new FieldOutcome[plan.Steps.Length];
+        for (var index = 0; index < plan.Steps.Length; index++)
+        {
+            outcomes[index] = plan.Steps[index].Attribution is "trading.netCash"
+                ? measured[index]
+                : Finish(plan.Steps[index], scores[index], measured, plan, left, right);
+        }
+
         for (var index = 0; index < plan.Steps.Length; index++)
         {
             if (plan.Steps[index].Attribution is "trading.netCash")
-                outcomes[index] = Finish(plan.Steps[index], scores[index], scores, plan, left, right);
+                outcomes[index] = Finish(plan.Steps[index], scores[index], outcomes, plan, left, right);
         }
 
         var diffs = new List<FieldDiff>();
@@ -85,13 +94,14 @@ internal static class FieldDiffer
         return [.. diffs];
     }
 
-    private static FieldOutcome Finish(DiffStep step, FieldScore score, FieldScore[] scores, DiffPlan plan, RowContext left, RowContext right) =>
+    // roots holds the outcome each root field counts with.
+    private static FieldOutcome Finish(DiffStep step, FieldScore score, FieldOutcome[] roots, DiffPlan plan, RowContext left, RowContext right) =>
         score.Outcome is FieldOutcome.Exact or FieldOutcome.NotCompared
             ? score.Outcome
             : step.Attribution switch
             {
-                "trading.proRataToQuantity" when ProRata(left, right, step.Field, plan.Midpoint) => Outcome(scores, plan, "Quantity"),
-                "trading.netCash" when NetExplained(left, right, score.Number, plan.Midpoint) => WorstMoved(scores, plan),
+                "trading.proRataToQuantity" when ProRata(left, right, step.Field, plan.Midpoint) => Outcome(roots, plan, "Quantity"),
+                "trading.netCash" when NetExplained(left, right, score.Number, plan.Midpoint) => WorstMoved(roots, plan),
                 _ => score.Outcome,
             };
 
@@ -208,24 +218,24 @@ internal static class FieldDiffer
     private static decimal Number(RowContext row, string field) => row.IsNull(field) ? 0m : row.Values[field].Number;
 
     // A root that is not a step is a Break.
-    private static FieldOutcome Outcome(FieldScore[] scores, DiffPlan plan, string field)
+    private static FieldOutcome Outcome(FieldOutcome[] outcomes, DiffPlan plan, string field)
     {
         for (var index = 0; index < plan.Steps.Length; index++)
         {
             if (plan.Steps[index].Field.Name == field)
-                return scores[index].Outcome;
+                return outcomes[index];
         }
 
         return FieldOutcome.Break;
     }
 
     // When no root has moved, the explained net is still a Break.
-    private static FieldOutcome WorstMoved(FieldScore[] scores, DiffPlan plan)
+    private static FieldOutcome WorstMoved(FieldOutcome[] outcomes, DiffPlan plan)
     {
         var worst = FieldOutcome.Exact;
-        foreach (var name in new[] { "Quantity", "Price", "Accrued", "Fees" })
+        foreach (var name in NetCashRoots)
         {
-            var outcome = Outcome(scores, plan, name);
+            var outcome = Outcome(outcomes, plan, name);
             if (outcome is FieldOutcome.Break)
                 return FieldOutcome.Break;
             if (outcome is FieldOutcome.WithinTolerance)
@@ -235,9 +245,9 @@ internal static class FieldDiffer
         return worst is FieldOutcome.Exact ? FieldOutcome.Break : worst;
     }
 
+    // The moved roots in the fixed root order, so the field declaration order cannot reorder AttributedTo (#218).
     private static IEnumerable<string> Moved(FieldOutcome[] outcomes, DiffPlan plan) =>
-        plan.Steps.Where((step, index) => step.Field.Name is "Quantity" or "Price" or "Accrued" or "Fees" && outcomes[index] is not FieldOutcome.Exact and not FieldOutcome.NotCompared)
-            .Select(step => step.Field.Name);
+        NetCashRoots.Where(name => Enumerable.Range(0, plan.Steps.Length).Any(index => plan.Steps[index].Field.Name == name && outcomes[index] is not FieldOutcome.Exact and not FieldOutcome.NotCompared));
 
     // A null cell is reported as text, whatever type the field has.
     private static CanonicalValue Value(RowContext row, string field) => row.IsNull(field)
