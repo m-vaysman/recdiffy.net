@@ -7,6 +7,9 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <RunSettingsFilePath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../allure.runsettings'))</RunSettingsFilePath>
+    <!-- Allure.Xunit's synchronous reporter shifts dynamic PGO so a recompile allocates inside this project's zero-allocation window. -->
+    <TieredCompilation>false</TieredCompilation>
+    <TieredPGO>false</TieredPGO>
   </PropertyGroup>
 
   <ItemGroup>
