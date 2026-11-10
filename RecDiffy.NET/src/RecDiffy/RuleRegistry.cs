@@ -15,7 +15,7 @@ public sealed record RuleRegistry
             .RegisterWithSettings("decimal.parse", RulePhase.Parse, ["from", "to"], (call, schema, settings) =>
                 new CultureDecimalRule(call.Strings["from"], call.Strings["to"], schema.Scale(call.Strings["to"]), settings.Midpoint, settings.Culture.NumberFormat))
             .RegisterWithSettings("date.parse", RulePhase.Parse, ["from", "to"], (call, _, settings) =>
-                new CultureDateRule(
+                new DeclaredDateRule(
                     call.Strings["from"],
                     call.Strings["to"],
                     call.Lists.TryGetValue("formats", out var formats) ? formats : [],
