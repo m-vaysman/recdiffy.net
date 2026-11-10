@@ -1,0 +1,92 @@
+name: Bug report
+description: RecDiffy, one of its packages, or the Excel add-in does something wrong.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug.
+
+        **Use synthetic data only.** Never paste or attach real client files, names, account numbers or trade IDs. Make up a few rows that show the problem.
+
+        **Found a security vulnerability?** Don't report it here. Issues are public.
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      description: Which part has the bug? Pick all that apply.
+      multiple: true
+      options:
+        - RecDiffy
+        - RecDiffy.IO
+        - RecDiffy.Excel (the report writer)
+        - RecDiffy.RulePacks.Trading
+        - Excel add-in
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The package version. For the Excel add-in, the commit or the CI run you built it from.
+      placeholder: 1.2.0-preview.3
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: The OS and the .NET version. For the Excel add-in, also the Excel version and whether it's 64-bit or 32-bit.
+      placeholder: Windows 11, .NET 10.0.0, Excel 365 64-bit
+    validations:
+      required: false
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration (the profile)
+      description: |
+        The profile JSON, or the code that sets up the run, such as `RecBuilder` calls. Include the culture each side declares. For the Excel add-in, describe what you set on each tab.
+        Trim it to what the reproduction needs. Put code in a fenced code block.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What you expected to happen. For a reconciliation, the alignment, the field outcome or the row disposition you expected.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What happened instead. Include the exception and its stack trace, or the diagnostics on the affected rows, such as `Invalid` with `DecimalParse`.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: |
+        The smallest input that shows the bug: a few rows per side, as CSV text or C# objects, and the code that runs them. A failing xunit test is welcome.
+        Synthetic data only.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: The data in this report is synthetic. It has no real client files, names, account numbers or trade IDs.
+          required: true
+        - label: I searched the open issues, and this bug isn't reported yet.
+          required: true
