@@ -83,7 +83,8 @@ public class DiffTests
             ["NetCash"] = new(new ToleranceDeclaration("Attributed", null, null, "trading.netCash", null), "trading.netCash", null),
         })),
         Fields,
-        MidpointMode.ToEven);
+        MidpointMode.ToEven,
+        RulePacks.Trading.TradingRulePack.AddTo(RuleRegistry.CreateCore()).Attributions);
 
     private static RowContext Trade(string id, Side side, decimal quantity, decimal price, decimal accrued, decimal fees, decimal cash, string direction, string asset)
     {
