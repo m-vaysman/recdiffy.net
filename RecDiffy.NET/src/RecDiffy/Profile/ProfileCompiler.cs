@@ -36,7 +36,8 @@ internal static class ProfileCompiler
             StringComparer.Ordinal);
         var pathErrors = ValidatePaths(document, schema, sides);
         var packageErrors = ValidatePackages(document);
-        ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. scaleErrors, .. readings.Errors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors, .. packageErrors];
+        var consolidationErrors = ValidateConsolidation(document, schema);
+        ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. scaleErrors, .. readings.Errors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors, .. packageErrors, .. consolidationErrors];
         return errors.Length == 0
             ? new CompileOutcome(
                 new CompiledProfile(document.ProfileId, document.Version, document.FormatVersion, Hash(document), document, SideRules(sides, "left"), SideRules(sides, "right"))
@@ -77,6 +78,33 @@ internal static class ProfileCompiler
         _ => [],
     };
 
+    // Every field consolidation reads must be declared. Sum and DifferenceByRole do arithmetic, so they need a Decimal
+    // field (spec v3 §3.1, §9.3; #223).
+    private static IEnumerable<ProfileError> ValidateConsolidation(ProfileDocument document, FieldSchema schema) =>
+        document.Consolidation.OrderBy(pair => pair.Key, StringComparer.Ordinal).SelectMany(pair => ValidateConsolidationSide(pair.Key, pair.Value, schema));
+
+    private static IEnumerable<ProfileError> ValidateConsolidationSide(string side, ConsolidationSide plan, FieldSchema schema)
+    {
+        (string Setting, string Field)[] lifecycle = plan.Lifecycle is { } life
+            ? [("lifecycle action", life.ActionField), ("lifecycle target", life.TargetField), ("lifecycle scope", life.ScopeField)]
+            : [];
+        var packages = plan.Packages.SelectMany(package => (IEnumerable<(string Setting, string Field)>)[("package link", package.LinkField), ("package role", package.RoleField)]);
+        var undeclared = lifecycle.Concat(packages)
+            .Where(setting => schema.TryGet(setting.Field, out _) is false)
+            .Select(setting => new ProfileError("UnknownField", $"{side} {setting.Setting} names unknown field '{setting.Field}'."));
+        var aggregates = plan.Packages.SelectMany(package => package.Aggregates).SelectMany(aggregate => ValidateAggregate(side, aggregate, schema));
+        return [.. undeclared, .. aggregates];
+    }
+
+    private static IEnumerable<ProfileError> ValidateAggregate(string side, FieldAggregate aggregate, FieldSchema schema) =>
+        schema.TryGet(aggregate.Field, out var declaration) switch
+        {
+            false => [new ProfileError("UnknownField", $"{side} aggregator names unknown field '{aggregate.Field}'.")],
+            true when aggregate is { Kind: AggregateKind.Sum or AggregateKind.DifferenceByRole } && declaration is { Type: not FieldType.Decimal } =>
+                [new ProfileError("InvalidParameter", $"{side} aggregator {aggregate.Kind} on '{aggregate.Field}' needs a Decimal field, not a {declaration.Type} field.")],
+            _ => [],
+        };
+
     // 16 is the hard cap on the profile and on each pass, in front of a subset walk that branches on the group.
     private static IReadOnlyList<ProfileError> ValidatePaths(ProfileDocument document, FieldSchema schema, IReadOnlyDictionary<string, SideCompilation> sides)
     {
@@ -88,7 +116,7 @@ internal static class ProfileCompiler
             new ProfileError("OverlappingRoute", $"Path '{path.Id}' overlaps another route.")));
         var passErrors = document.Paths.SelectMany(path => path.Passes.SelectMany(pass => ValidatePass(path, pass, document, schema, sides)));
         var diffErrors = document.Paths.SelectMany(path => (path.Diff?.Fields ?? ImmutableDictionary<string, FieldDiffDeclaration>.Empty).SelectMany(pair =>
-            ValidateDiff(pair.Key, pair.Value, schema)));
+            ValidateDiff(path.Id, pair.Key, pair.Value, schema, sides)));
         var limit = document.Limits.MaxGroupSize > 16
             ? new[] { new ProfileError("LimitExceeded", "limits.maxGroupSize exceeds the hard cap of 16.") }
             : [];
@@ -115,8 +143,12 @@ internal static class ProfileCompiler
         var cap = (pass.MaxGroupSize ?? document.Limits.MaxGroupSize) > 16
             ? new[] { new ProfileError("LimitExceeded", $"Pass '{pass.Id}' maxGroupSize exceeds the hard cap of 16.") }
             : [];
+        // A natural or reduced key with no field would give every row the same key (#223). sharedRef has a default key.
+        var key = pass is { Pass: "match.naturalKey" or "match.reducedKey", Key.Count: 0 }
+            ? new[] { new ProfileError("MissingParameter", $"Pass '{pass.Id}' requires key.") }
+            : [];
         var fields = ((string[])[.. pass.Key, .. pass.Block, .. pass.Conserve]).SelectMany(field => ValidateKeyField(path.Id, field, schema, sides));
-        return [.. unknown, .. group, .. cap, .. fields];
+        return [.. unknown, .. group, .. cap, .. key, .. fields];
     }
 
     private static bool KnownPass(string pass) => pass switch
@@ -135,11 +167,13 @@ internal static class ProfileCompiler
             _ => [],
         };
 
-    private static IEnumerable<ProfileError> ValidateDiff(string field, FieldDiffDeclaration diff, FieldSchema schema) =>
+    // A compared field must be written by every side, as a key field must (#223).
+    private static IEnumerable<ProfileError> ValidateDiff(string pathId, string field, FieldDiffDeclaration diff, FieldSchema schema, IReadOnlyDictionary<string, SideCompilation> sides) =>
         schema.TryGet(field, out var declaration) switch
         {
             false => [new ProfileError("UnknownField", $"Diff field '{field}' is not declared.")],
             true when !ToleranceFits(declaration.Type, diff.Tolerance.Kind) => [new ProfileError("ToleranceMismatch", $"Tolerance '{diff.Tolerance.Kind}' does not fit field '{field}'.")],
+            true when sides.Values.Any(side => !side.Written.Contains(field)) => [new ProfileError("FieldNotProduced", $"Path '{pathId}' compares '{field}', which a side does not write.")],
             _ => [],
         };
 
