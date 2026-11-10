@@ -78,42 +78,49 @@ internal static class Consolidation
                 row.Context.Display(plan.TargetField))
             : null;
 
-    private static IEnumerable<IReadOnlyList<LifeEvent>> Components(
+    // A chain is a linked component of the event graph: each event links to its target and to every event that names it.
+    // The events that name each key are looked up once, and a loop with an explicit stack walks each chain, so the work
+    // grows with the event count and a chain of any length cannot overflow the call stack (spec v3 §3.1, §12; #222).
+    // The sets and the stack are local to this call; the result is a new list of chains.
+    private static IReadOnlyList<IReadOnlyList<LifeEvent>> Components(
         IReadOnlyList<LifeEvent> events,
-        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index) =>
-        events.Aggregate(
-            (Seen: ImmutableHashSet<LifeKey>.Empty, Groups: ImmutableList<IReadOnlyList<LifeEvent>>.Empty),
-            (state, evt) => state.Seen.Contains(evt.Key) ? state : Add(state, evt, index)).Groups;
-
-    private static (ImmutableHashSet<LifeKey> Seen, ImmutableList<IReadOnlyList<LifeEvent>> Groups) Add(
-        (ImmutableHashSet<LifeKey> Seen, ImmutableList<IReadOnlyList<LifeEvent>> Groups) state,
-        LifeEvent start,
         IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index)
     {
-        var keys = Reachable([start.Key], [], index);
-        var members = keys.SelectMany(key => index[(key.Scope, key.Id)]).ToArray();
-        return (state.Seen.Union(keys), state.Groups.Add(members));
+        var inbound = events.Where(evt => evt.Target is not null).ToLookup(evt => (evt.Scope, evt.Target!), evt => evt.Key);
+        var seen = new HashSet<LifeKey>();
+        var chains = new List<IReadOnlyList<LifeEvent>>();
+        foreach (var start in events)
+        {
+            if (seen.Add(start.Key) is false)
+                continue;
+            var keys = new List<LifeKey>();
+            var pending = new Stack<LifeKey>([start.Key]);
+            while (pending.TryPop(out var key))
+            {
+                keys.Add(key);
+                foreach (var next in Links(key, index, inbound))
+                {
+                    if (seen.Add(next))
+                        pending.Push(next);
+                }
+            }
+
+            chains.Add([.. keys.SelectMany(key => index[(key.Scope, key.Id)])]);
+        }
+
+        return chains;
     }
 
-    private static ImmutableHashSet<LifeKey> Reachable(
-        LifeKey[] pending,
-        ImmutableHashSet<LifeKey> seen,
-        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index) =>
-        pending.Length is 0
-            ? seen
-            : Reachable(
-                [.. pending.SelectMany(key => Links(key, index)).Where(key => seen.Contains(key) is false && pending.Contains(key) is false).Distinct()],
-                seen.Union(pending),
-                index);
-
-    private static IEnumerable<LifeKey> Links(LifeKey key, IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index)
-    {
-        var outbound = index.TryGetValue((key.Scope, key.Id), out var copies)
-            ? copies.Select(copy => copy.Target).OfType<string>().Where(target => index.ContainsKey((key.Scope, target))).Select(target => new LifeKey(key.Scope, target))
-            : Array.Empty<LifeKey>();
-        var inbound = index.Values.SelectMany(others => others).Where(other => other.Scope == key.Scope && other.Target == key.Id).Select(other => other.Key);
-        return [key, .. outbound, .. inbound];
-    }
+    private static IEnumerable<LifeKey> Links(
+        LifeKey key,
+        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index,
+        ILookup<(string Scope, string Id), LifeKey> inbound) =>
+        index[(key.Scope, key.Id)]
+            .Select(copy => copy.Target)
+            .OfType<string>()
+            .Where(target => index.ContainsKey((key.Scope, target)))
+            .Select(target => new LifeKey(key.Scope, target))
+            .Concat(inbound[(key.Scope, key.Id)]);
 
     // A key with more than one copy is a conflict even when no copy is quarantined yet.
     private static IReadOnlyList<ConsolidatedRow> Decide(
@@ -125,7 +132,7 @@ internal static class Consolidation
             [] => [],
             _ when members.Any(member => member.Row.Quarantined || index[(member.Scope, member.Id)].Count > 1) => QuarantineChain(members),
             _ when members.Any(member => MissingTarget(member, index)) => Mark(members, true, null, "MissingLifecycleTarget"),
-            _ when HasCycle(members, index) => Mark(members, true, null, "LifecycleCycle"),
+            _ when HasCycle(members) => Mark(members, true, null, "LifecycleCycle"),
             _ => Survivors(members, index, corrPointsAt) switch
             {
                 [] => Mark(members, false, SuppressionReason.FullyCancelled, null),
@@ -176,12 +183,11 @@ internal static class Consolidation
             ? Row(member, false, null, null) with { LifecycleCollapsed = true, Lineage = [.. members.SelectMany(item => item.Row.Members)] }
             : Row(member, false, member.Action is "CANC" ? SuppressionReason.CancelEvent : SuppressionReason.Superseded, null))];
 
-    private static bool HasCycle(IReadOnlyList<LifeEvent> members, IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index) =>
-        members.Any(member => Walk(member.Scope, member.Id, [], index));
-
-    private static bool Walk(string scope, string id, ImmutableHashSet<string> stack, IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index) =>
-        index.TryGetValue((scope, id), out var copies)
-        && copies.Any(evt => evt.Target is { } target && (stack.Contains(target) || Walk(scope, target, stack.Add(id), index)));
+    // Decide reaches this only when every key of the chain has one event and every named target exists. Each event names
+    // at most one target, so a linked chain of n events has n - 1 links unless its links close a loop: it has a cycle
+    // exactly when every event names a target. No walk is needed, so a long chain costs one pass (#222).
+    private static bool HasCycle(IReadOnlyList<LifeEvent> members) =>
+        members.All(member => member.Target is not null);
 
     // A row already quarantined keeps its own reason, so a conflicting copy reports DuplicateConflict alone (spec v3
     // §3.4; #214). Every other row of the chain is ChainMemberQuarantined.
