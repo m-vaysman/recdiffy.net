@@ -45,7 +45,7 @@ Four things fail outside these rules:
 - **An unknown key is ignored.** Keys are case-sensitive, so a misspelled key such as `"tolerence"` is silently dropped and its default applies.
 - **A `date.parse` format without a year** stops compile at once, with only that `InvalidParameter` error. It is thrown even from `ProfileBuilder.Build(registry)`, which otherwise returns its problems.
 
-Complete, runnable profiles are in [FirstReconciliation.cs](../src/RecDiffy.Samples/FirstReconciliation.cs) (warehouse, core rules only), [TradingReference.cs](../src/RecDiffy.Samples/TradingReference.cs) (trading pack and reference data) and [ResultReading.cs](../src/RecDiffy.Samples/ResultReading.cs). The sample program checks each result and returns 0 only when all of them hold.
+Complete, runnable profiles are in [FirstReconciliation.cs](../src/RecDiffy.Samples/FirstReconciliation.cs) (warehouse, core rules only), [TradingReference.cs](../src/RecDiffy.Samples/TradingReference.cs) (trading pack and reference data) and [ResultReading.cs](../src/RecDiffy.Samples/ResultReading.cs). The sample program checks each result and returns 0 only when all of them hold. CI runs it on every pull request, from the projects and from the packed packages.
 
 ## The shape of a profile
 
