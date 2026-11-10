@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <RunSettingsFilePath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../allure.runsettings'))</RunSettingsFilePath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
@@ -13,9 +14,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Allure.Xunit" Version="2.15.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <!-- 2.8.2 is the last adapter that loads Allure.Xunit's v2 reporter. 3.x does not. -->
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\allureConfig.json" Link="allureConfig.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
