@@ -75,7 +75,7 @@
         <StackPanel Margin="0,0,0,16">
           <TextBlock FontWeight="Medium" Text="{Binding Heading}" />
           <TextBlock Style="{StaticResource SecondaryText}" Margin="0,2,0,6" Text="{Binding PreviewCaption}" />
-          <DataGrid views:PreviewGrid.Table="{Binding PreviewTable}"
+          <DataGrid views:PreviewGrid.Table="{Binding PreviewTable}" views:PreviewNotes.Preview="{Binding Preview}"
                     Visibility="{Binding HasData, Converter={StaticResource VisibleWhenTrue}}"
                     AutomationProperties.Name="{Binding Side, StringFormat='{}{0} sample rows'}" />
         </StackPanel>
