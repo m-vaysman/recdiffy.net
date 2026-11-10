@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <RootNamespace>RecDiffy.Samples</RootNamespace>
+    <PublishAot>true</PublishAot>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(SamplesFolder)SampleReport.cs;$(SamplesFolder)FirstReconciliation.cs;$(SamplesFolder)ResultReading.cs;$(SamplesFolder)SideBySideReport.cs;$(SamplesFolder)AsyncRun.cs;$(SamplesFolder)TradingReference.cs;$(SamplesFolder)BuiltProfile.cs;$(SamplesFolder)TypedReconciliation.cs" Link="Samples/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RecDiffy.RulePacks.Trading" Version="$(RecDiffyVersion)" />
+  </ItemGroup>
+
+</Project>
