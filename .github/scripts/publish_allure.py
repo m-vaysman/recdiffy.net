@@ -12,10 +12,12 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 MAX_FILES = 20
 MAX_BYTES = 8_000_000
+PROXY_TIMEOUTS = {502, 503, 504, 524}
 
 
 def result_directories(root: Path) -> list[Path]:
@@ -172,12 +174,90 @@ def report_url(payload: bytes) -> str:
     return url
 
 
-def write_summary(url: str) -> None:
+def log(message: str) -> None:
+    print(message, flush=True)
+
+
+def write_summary(url: str, counts: str) -> None:
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if not summary:
         return
     with open(summary, "a", encoding="utf-8") as handle:
-        handle.write(f"### Allure report\n\n[{url}]({url})\n")
+        handle.write(f"### Allure report\n\n[{url}]({url})\n\n{counts}\n")
+
+
+def latest_report_url(server: str, project_id: str) -> str:
+    return f"{api_base(server)}/projects/{project_id}/reports/latest/index.html"
+
+
+def report_url_from_executor(server: str, project_id: str, executor: dict) -> str:
+    relative = executor.get("reportUrl")
+    if isinstance(relative, str):
+        parts = [part for part in relative.split("/") if part not in ("", "..")]
+        if len(parts) >= 2 and parts[-1] == "index.html":
+            return f"{api_base(server)}/projects/{project_id}/reports/{parts[-2]}/index.html"
+    return latest_report_url(server, project_id)
+
+
+def matching_executor(payload: bytes, execution_name: str, execution_from: str) -> dict | None:
+    document = json.loads(payload)
+    if not isinstance(document, list):
+        return None
+    return next(
+        (
+            item
+            for item in document
+            if isinstance(item, dict)
+            and (item.get("buildUrl") == execution_from or item.get("name") == execution_name)
+        ),
+        None,
+    )
+
+
+def summary_counts(payload: bytes) -> str:
+    document = json.loads(payload)
+    statistic = document.get("statistic") if isinstance(document, dict) else None
+    if not isinstance(statistic, dict):
+        raise RuntimeError("Allure summary did not include statistic")
+    return (
+        f"passed={statistic.get('passed', 0)} "
+        f"failed={statistic.get('failed', 0)} "
+        f"broken={statistic.get('broken', 0)} "
+        f"skipped={statistic.get('skipped', 0)} "
+        f"total={statistic.get('total', 0)}"
+    )
+
+
+def fetch_public(url: str) -> tuple[int, bytes]:
+    with tempfile.NamedTemporaryFile() as response:
+        completed = subprocess.run(
+            ["curl", "-sS", "--max-time", "30", "-o", response.name, "-w", "%{http_code}", url],
+            capture_output=True,
+        )
+        payload = Path(response.name).read_bytes()
+    if completed.returncode != 0:
+        return 0, completed.stderr
+    status_text = completed.stdout.decode().strip()
+    return (int(status_text) if status_text.isdigit() else 0), payload
+
+
+def wait_for_published_report(
+    server: str,
+    project_id: str,
+    execution_name: str,
+    execution_from: str,
+) -> tuple[str, str]:
+    root = f"{api_base(server)}/projects/{project_id}/reports/latest"
+    deadline = time.monotonic() + 180
+    while time.monotonic() < deadline:
+        status, payload = fetch_public(f"{root}/widgets/executors.json")
+        executor = matching_executor(payload, execution_name, execution_from) if status == 200 else None
+        if executor is not None:
+            summary_status, summary = fetch_public(f"{root}/widgets/summary.json")
+            if summary_status == 200:
+                return report_url_from_executor(server, project_id, executor), summary_counts(summary)
+        time.sleep(5)
+    raise RuntimeError("the generated report did not show this execution")
 
 
 def api_base(server: str) -> str:
@@ -214,7 +294,7 @@ def publish(root: Path) -> int:
         jar = Path(temporary) / "cookies"
         count = stage(directories, staging)
         files = sorted(path for path in staging.iterdir() if path.is_file())
-        print(f"Staged {count} Allure files from {len(directories)} result directories.")
+        log(f"Staged {count} Allure files from {len(directories)} result directories.")
         if not files:
             print("Allure result directories were empty.", file=sys.stderr)
             return 1
@@ -266,7 +346,7 @@ def publish(root: Path) -> int:
                 if status < 200 or status >= 300:
                     fail(status, payload, f"send-results batch {index}", secrets)
                     return 1
-                print(f"Sent batch {index} ({len(group)} files).")
+                log(f"Sent batch {index} ({len(group)} files).")
 
             query = (
                 f"project_id={project_id}"
@@ -281,14 +361,36 @@ def publish(root: Path) -> int:
                 csrf=csrf,
                 timeout=300,
             )
-            if status < 200 or status >= 300:
+            generated_url = None
+            if 200 <= status < 300:
+                generated_url = report_url(payload)
+                if not generated_url.startswith("http"):
+                    generated_url = f"{server.rstrip('/')}/{generated_url.lstrip('/')}"
+            elif status in PROXY_TIMEOUTS:
+                log(
+                    f"generate-report returned HTTP {status}. "
+                    "Cloudflare closed the request; waiting for the report that is still being built."
+                )
+            else:
                 fail(status, payload, "generate-report", secrets)
                 return 1
-            url = report_url(payload)
-            if not url.startswith("http"):
-                url = f"{server.rstrip('/')}/{url.lstrip('/')}"
-            print(f"Allure report: {url}")
-            write_summary(url)
+
+            try:
+                published_url, counts = wait_for_published_report(
+                    server,
+                    project_id,
+                    execution_name,
+                    execution_from,
+                )
+            except RuntimeError as error:
+                if generated_url is None:
+                    log(f"Allure report was not published: {error}")
+                    return 1
+                published_url, counts = generated_url, "counts unavailable"
+            url = generated_url or published_url
+            log(f"Allure report: {url}")
+            log(f"Allure counts: {counts}")
+            write_summary(url, counts)
             return 0
         finally:
             try:
@@ -346,7 +448,15 @@ def self_check() -> int:
         )
         assert csrf_token(jar) == "token-value"
         assert redact("user secret", ["secret"]) == "user ***"
-    print("self-check ok")
+
+    executor = {"name": "PR #250 abc", "buildUrl": "https://github.com/example/actions/runs/1", "reportUrl": "../7/index.html"}
+    payload = json.dumps([executor]).encode()
+    assert matching_executor(payload, "other", "https://github.com/example/actions/runs/1") == executor
+    assert matching_executor(payload, "missing", "https://github.com/example/actions/runs/9") is None
+    assert report_url_from_executor("https://reports.example", "recdiffy", executor).endswith("/reports/7/index.html")
+    counts = summary_counts(b'{"statistic":{"passed":3,"failed":1,"broken":0,"skipped":2,"total":6}}')
+    assert counts == "passed=3 failed=1 broken=0 skipped=2 total=6"
+    log("self-check ok")
     return 0
 
 
