@@ -10,6 +10,8 @@ public sealed record RuleRegistry
     internal ImmutableDictionary<string, NormalizationRegistration> Normalization { get; init; } =
         ImmutableDictionary.Create<string, NormalizationRegistration>(StringComparer.Ordinal);
 
+    internal AttributionRegistry Attributions { get; init; } = AttributionRegistry.Empty;
+
     public static RuleRegistry CreateCore() =>
         new RuleRegistry()
             .RegisterWithSettings("decimal.parse", RulePhase.Parse, ["from", "to"], (call, schema, settings) =>
