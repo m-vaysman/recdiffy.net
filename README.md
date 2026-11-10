@@ -4,12 +4,15 @@
 
 # RecDiffy.NET
 
+[![NuGet](https://img.shields.io/nuget/vpre/RecDiffy?label=NuGet)](https://www.nuget.org/packages/RecDiffy)
 [![CI](https://github.com/m-vaysman/recdiffy.net/actions/workflows/ci.yml/badge.svg)](https://github.com/m-vaysman/recdiffy.net/actions/workflows/ci.yml)
 [![Quality Gate](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=alert_status)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Coverage](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=coverage)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Bugs](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=bugs)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Vulnerabilities](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=vulnerabilities)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Code Smells](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=code_smells)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Maintainability](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=sqale_rating)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Security](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=security_rating)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net)
 [![Benchmarks](https://img.shields.io/badge/benchmarks-Bencher-0b7285)](https://bench.cobblerhill.net/perf/recdiffy)
 [![Test report](https://img.shields.io/badge/tests-Allure-ff6a00)](https://recdiffytests.cobblerhill.net/allure-docker-service/projects/recdiffy/reports/latest/index.html)
 
 Reconcile two datasets and explain every match, difference, and unmatched row.
+
+> **Prerelease.** Every RecDiffy release is a prerelease for now, and the API may change from one preview to the next. Pin the version you build against.
 
 RecDiffy.NET is a general-purpose reconciliation and diffing library for .NET. Use it when records from two systems represent the same underlying activity but differ in identifiers, formatting, or grouping—for example, warehouse bins versus book inventory, or internal trades versus broker records.
 
@@ -57,84 +60,165 @@ Matched 4 (2 with breaks) | Ambiguous 0 | Left only 1 | Right only 1
 
 Every bucket holds your own `BrokerConfirm` and `BlotterTrade` objects. RecDiffy doesn't read the files here: [Sylvan](https://github.com/MarkPflug/Sylvan) does, and any reader that gives you objects works. The [full walkthrough](docs/typed-reconciliation/README.md) covers the two readers, the mapping line by line, and examples from logistics, retail and healthcare billing.
 
-## Prerequisites
+## Install
 
-- .NET SDK **10.0.403**, or a compatible version permitted by [global.json](RecDiffy.NET/global.json).
-- Git.
+RecDiffy is on nuget.org. Every release is a prerelease, so `dotnet add package` needs `--prerelease`:
 
-## Build and test
-
-```powershell
-git clone https://github.com/m-vaysman/recdiffy.net.git
-cd recdiffy.net
-git switch dev
-cd RecDiffy.NET
-
-dotnet restore
-dotnet build
-dotnet test
+```shell
+dotnet add package RecDiffy --prerelease
 ```
 
-Run these commands from the `RecDiffy.NET` directory, which contains the solution and SDK configuration.
+| Package | What it adds |
+|---|---|
+| [RecDiffy](https://www.nuget.org/packages/RecDiffy) | The engine: profiles, matching, comparison and results |
+| [RecDiffy.IO](https://www.nuget.org/packages/RecDiffy.IO) | Reads CSV and Excel files as record sources |
+| [RecDiffy.Excel](https://www.nuget.org/packages/RecDiffy.Excel) | Writes formatted Excel reports from a result |
+| [RecDiffy.RulePacks.Trading](https://www.nuget.org/packages/RecDiffy.RulePacks.Trading) | Normalization rules for trade reconciliations |
 
-GitHub Actions publishes an [Allure](https://allurereport.org/) report for pushes to `dev` and `main`, and for pull requests opened from this repository. A pull request from a fork skips the upload, because GitHub does not pass the Allure secrets to that run, and a failed upload does not fail the build.
+- **Runtimes.** The packages target .NET 8 and .NET 10, so any app on .NET 8 or later can use them.
+- **Versions.** The four packages ship together. Use the same version of each.
 
-[Latest test report](https://recdiffytests.cobblerhill.net/allure-docker-service/projects/recdiffy/reports/latest/index.html)
+## Quickstart: your first reconciliation
 
-`dotnet test` writes `allure-results` under each RecDiffy.NET test project's build output, once for `net8.0` and once for `net10.0`. The packages that ship RecDiffy do not reference Allure.
+This builds a console app that reconciles a warehouse's bin counts against its stock book. You need the .NET SDK, version 8 or later, and nothing from this repository. It was checked against `1.2.0-preview.3`.
 
-## Your first reconciliation
+**1. Create the project.**
 
-Suppose your warehouse reports two bins:
-
-| Bin | SKU | Quantity |
-|---|---|---:|
-| A | WIDGET | 4 |
-| B | WIDGET | 6 |
-
-Your inventory book reports one position:
-
-| Position | SKU | Quantity |
-|---|---|---:|
-| BOOK | WIDGET | 10 |
-
-A group-sum matching pass can reconcile the two warehouse rows against the single book row because their quantities total 10.
-
-Run the sample from the `RecDiffy.NET` directory:
-
-```powershell
-dotnet run --project src/RecDiffy.Samples/RecDiffy.Samples.csproj
+```shell
+dotnet new console -n Warehouse
+cd Warehouse
+dotnet add package RecDiffy --version 1.2.0-preview.3
+dotnet add package RecDiffy.IO --version 1.2.0-preview.3
 ```
 
-The first example prints one matched entry with `ManyToOne` composition and an `Exact` comparison outcome. All three source rows receive a `Matched` disposition. The same program then shows a field break, an unmatched row, a quarantined row, a side-by-side view, an async run, and a trading-pack run that uses reference data.
+The versions are pinned because a preview can change the API. Use `--prerelease` instead of `--version` to take the newest one.
 
-The application API has three steps:
+**2. Add the two files.** The warehouse counts stock by bin, and the book holds one position per SKU. Save both files next to `Warehouse.csproj`.
+
+`bins.csv`:
+
+```csv
+Bin,Sku,Quantity
+A1,WIDGET,4
+A2,WIDGET,6
+B1,GADGET,3
+C1,GIZMO,2
+```
+
+`book.csv`:
+
+```csv
+Position,Sku,Quantity
+BOOK-1,WIDGET,10
+BOOK-2,GADGET,5
+```
+
+**3. Add the profile.** A profile is the policy for a reconciliation: which fields matter, how each file's columns become those fields, and how rows are matched. Save this as `warehouse.profile.json`:
+
+```json
+{
+  "formatVersion": 1,
+  "profileId": "warehouse",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left":  { "rowKey": "Bin" },
+    "right": { "rowKey": "Position" }
+  },
+  "fields": [
+    { "name": "Sku", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "scale": 0, "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [ { "rule": "symbol.map", "from": "Sku", "to": "Sku" } ],
+      "parse": [ { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" } ]
+    },
+    "right": {
+      "identify": [ { "rule": "symbol.map", "from": "Sku", "to": "Sku" } ],
+      "parse": [ { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" } ]
+    }
+  },
+  "paths": [
+    {
+      "id": "stock",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "bins", "pass": "match.groupSum", "many": "left", "block": ["Sku"], "conserve": ["Quantity"] },
+        { "id": "sku", "pass": "match.naturalKey", "key": ["Sku"] }
+      ]
+    }
+  ]
+}
+```
+
+- **`culture`** says how the text in both files is read, so the result is the same on every machine.
+- **`sources`** names the column that identifies each row: `Bin` in the bins file, `Position` in the book.
+- **`fields`** declares `Sku` as the key and `Quantity` as an economic field. Economic fields are compared once rows match.
+- **`normalization`** maps each file's columns to those fields. Here both files happen to use the field names.
+- **`paths`** lists the matching passes, tried in order. The `bins` pass matches several bins whose quantities add up to one book position. The `sku` pass then pairs what is left by SKU, one to one.
+
+**4. Replace `Program.cs`:**
 
 ```csharp
-// API outline: profileJson, datasets, and mappings are supplied by your application.
+using RecDiffy;
+using RecDiffy.IO;
+using RecDiffy.Results;
 
-// 1. Compile the reconciliation rules.
+// 1. Compile the profile once.
 var profile = Reconciler.Compile(
-    ProfileDocument.Parse(profileJson),
+    ProfileDocument.Parse(File.ReadAllText("warehouse.profile.json")),
     RuleRegistry.CreateCore());
 
-// 2. Adapt each dataset into a record source.
-var left = RecordSources.FromObjects("bins", bins, binMap);
-var right = RecordSources.FromObjects("book", positions, positionMap);
+// 2. Read each file as a record source.
+var csv = new CsvOptions { HasHeader = true, Delimiter = CsvDelimiter.Comma };
+var bins = FileSources.FromCsv("bins", "bins.csv", csv);
+var book = FileSources.FromCsv("book", "book.csv", csv);
 
-// 3. Run the reconciliation.
-var result = Reconciler.Run(
-    profile,
-    left,
-    right,
-    ReferenceDataSet.Empty);
+// 3. Run the reconciliation and print every entry.
+var result = Reconciler.Run(profile, bins, book, ReferenceDataSet.Empty);
+
+var summary = result.Summary;
+Console.WriteLine($"Matched {summary.Matched} ({summary.Break} with breaks) | Left only {summary.LeftOnly} | Right only {summary.RightOnly}");
+
+foreach (var entry in result.Entries)
+{
+    Console.WriteLine($"{entry.Alignment,-9} {entry.Composition,-9} {entry.Outcome,-11} {Keys(entry.Left)} | {Keys(entry.Right)}");
+    foreach (var diff in entry.Diffs.Where(diff => diff.Outcome == FieldOutcome.Break))
+        Console.WriteLine($"    {diff.Field}: {result.Format(diff.Left)} vs {result.Format(diff.Right)}");
+}
+
+static string Keys(IReadOnlyList<SourceRef> rows) =>
+    rows.Count == 0 ? "-" : string.Join(" + ", rows.OrderBy(row => row.Ordinal).Select(row => row.RowKey));
 ```
 
-The complete program for that outline is [FirstReconciliation.cs](RecDiffy.NET/src/RecDiffy.Samples/FirstReconciliation.cs). The same behavior is checked by `Matches_warehouse_bins_to_book_stock_without_the_trading_pack` in [VerificationTests.cs](RecDiffy.NET/src/RecDiffy.Tests/VerificationTests.cs):
+**5. Run it** from the project folder, where the three files are:
 
-```powershell
-dotnet test src/RecDiffy.Tests/RecDiffy.Tests.csproj --filter FullyQualifiedName~Matches_warehouse_bins_to_book_stock_without_the_trading_pack
+```shell
+dotnet run
 ```
+
+```text
+Matched 2 (1 with breaks) | Left only 1 | Right only 0
+Matched   ManyToOne Exact       A1 + A2 | BOOK-1
+Matched   OneToOne  Break       B1 | BOOK-2
+    Quantity: 3 vs 5
+LeftOnly  None      NotCompared C1 | -
+```
+
+- **A1 + A2 and BOOK-1:** the `bins` pass matched two bins to one position, because 4 + 6 = 10. The quantities agree, so the outcome is `Exact`.
+- **B1 and BOOK-2:** no group of bins adds up to 5, so the `sku` pass paired them by SKU. They match, but their quantities differ, so the outcome is `Break`.
+- **C1:** no book position holds `GIZMO`, so the bin is left only.
+
+To reconcile objects you already hold in memory, replace the two `FileSources.FromCsv` calls with `RecordSources.FromObjects` and a `SourceMap` for each type. [FirstReconciliation.cs](RecDiffy.NET/src/RecDiffy.Samples/FirstReconciliation.cs) shows how.
+
+## Documentation
+
+- **[What a result means](RecDiffy.NET/docs/RESULTS.md):** how to read a result.
+- **[Profile reference](RecDiffy.NET/docs/PROFILES.md):** what a profile can declare.
+- **[Support matrix](RecDiffy.NET/docs/SUPPORT.md):** what each package supports.
+- **[Typed reconciliation](docs/typed-reconciliation/README.md):** `RecBuilder` with your own objects, step by step.
+- **[Excel report layouts](RecDiffy.NET/docs/report-specs/README.md):** what each Excel report shows.
 
 ## Understand the result
 
@@ -164,7 +248,7 @@ A profile declares:
 - **Comparison rules:** fields to compare and tolerances to apply.
 - **Search limits:** bounds on group matching.
 
-Compile the profile once, then pass the compiled profile to reconciliation runs. Start with the warehouse profile in the sample above before adapting it to your own fields and source mappings.
+Compile the profile once, then pass the compiled profile to reconciliation runs. Start with the warehouse profile in the quickstart above before adapting it to your own fields and source mappings.
 
 ## Declare how each file is read
 
@@ -224,6 +308,7 @@ Files are named `<ID>_<ReportName>_<profileId>_<asOf yyyy-MM-dd>.xlsx`. Reports 
 
 | Symptom | First thing to check |
 |---|---|
+| `dotnet add package` says there are no stable versions | Every release is a prerelease. Add `--prerelease`, or pin one with `--version`. |
 | Build cannot find a compatible SDK | Compare `dotnet --list-sdks` with [global.json](RecDiffy.NET/global.json). |
 | Profile compilation fails | Inspect the errors on `ProfileCompileException`. |
 | A row is quarantined | Inspect its diagnostics for missing keys or invalid values. |
@@ -235,6 +320,32 @@ Files are named `<ID>_<ReportName>_<profileId>_<asOf yyyy-MM-dd>.xlsx`. Reports 
 | Compile reports `UnknownCulture` | The name is not a culture this host knows. A host in invariant-globalization mode, such as the AOT host, knows only `""`. |
 
 `SearchIncomplete` means the search did not establish a complete decision. Do not present it as an ordinary unmatched result.
+
+## Run the samples
+
+The repository has a sample program that goes further than the quickstart: a quarantined row, a side-by-side view, an async run, a trading-pack run that uses reference data, Excel reports, a profile built in code, and `RecBuilder` with typed objects. It needs a clone, and the .NET SDK that [global.json](RecDiffy.NET/global.json) pins.
+
+```shell
+git clone https://github.com/m-vaysman/recdiffy.net.git
+cd recdiffy.net/RecDiffy.NET
+dotnet run --project src/RecDiffy.Samples/RecDiffy.Samples.csproj
+```
+
+The clone checks out `main`, which holds the latest release. The first example reconciles two bins against one book position, built from objects: [FirstReconciliation.cs](RecDiffy.NET/src/RecDiffy.Samples/FirstReconciliation.cs). `Matches_warehouse_bins_to_book_stock_without_the_trading_pack` in [VerificationTests.cs](RecDiffy.NET/src/RecDiffy.Tests/VerificationTests.cs) checks the same behavior:
+
+```shell
+dotnet test src/RecDiffy.Tests/RecDiffy.Tests.csproj --filter FullyQualifiedName~Matches_warehouse_bins_to_book_stock_without_the_trading_pack
+```
+
+## Contribute
+
+To build RecDiffy from source, test it or change it, follow [CONTRIBUTING.md](CONTRIBUTING.md). It covers the SDK, the build, the branch to start from, and the rules for a change.
+
+GitHub Actions publishes an [Allure](https://allurereport.org/) report for pushes to `dev` and `main`, and for pull requests opened from this repository. A pull request from a fork skips the upload, because GitHub does not pass the Allure secrets to that run, and a failed upload does not fail the build.
+
+[Latest test report](https://recdiffytests.cobblerhill.net/allure-docker-service/projects/recdiffy/reports/latest/index.html)
+
+`dotnet test` writes `allure-results` under each RecDiffy.NET test project's build output, once for `net8.0` and once for `net10.0`. The packages that ship RecDiffy do not reference Allure.
 
 ## Find your way around
 
