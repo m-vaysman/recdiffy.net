@@ -53,12 +53,14 @@ internal static class Packages
         var contexts = members.Select(member => member.Context).ToArray();
         var aggregated = plan.Aggregates.Select(aggregate => aggregate.Field).ToHashSet(StringComparer.Ordinal);
         var start = contexts[0] with { Raw = AgreedRaw(contexts), Diagnostics = [] };
+        var warned = DisagreeingRawColumns(contexts, start.Raw, use)
+            .Aggregate(start, (context, column) => context.Diagnose(MemberAgreement.Disagree, DiagnosticSeverity.Warning, "package", column, null));
         var settled = contexts
             .SelectMany(context => context.Values.Keys)
             .Distinct(StringComparer.Ordinal)
             .Where(field => aggregated.Contains(field) is false)
             .Order(StringComparer.Ordinal)
-            .Aggregate(start, (context, field) => Settle(context, field, contexts, use));
+            .Aggregate(warned, (context, field) => Settle(context, field, contexts, use));
         return plan.Aggregates.Aggregate(
             new PackageProjection(settled, null),
             (projection, aggregate) => projection.Failure is not null
@@ -141,6 +143,16 @@ internal static class Packages
             .ToDictionary(column => column.Key, column => column.Value, StringComparer.Ordinal);
 
     private static string? RawText(object? value) => InvariantText.Of(value)?.Trim();
+
+    // A raw column the run uses, such as one a diff condition reads, that the legs hold differently is unknown on the item
+    // and named in a MembersDisagree warning, as a canonical field is (§5.2; #220). A canonical field of that name is
+    // settled by Settle instead.
+    private static IEnumerable<string> DisagreeingRawColumns(IReadOnlyList<RowContext> members, IReadOnlyDictionary<string, object?> agreed, FieldUse use) =>
+        members
+            .SelectMany(member => member.Raw.Keys)
+            .Distinct(StringComparer.Ordinal)
+            .Where(column => use.IsUsed(column) && agreed.ContainsKey(column) is false && members.All(member => member.Values.ContainsKey(column) is false))
+            .Order(StringComparer.Ordinal);
 
     private static RowContext WriteNumber(RowContext target, string field, decimal value, string ruleId) =>
         target.Write(field, CanonicalCell.FromDecimal(value), ruleId, null, value.ToString(CultureInfo.InvariantCulture));
