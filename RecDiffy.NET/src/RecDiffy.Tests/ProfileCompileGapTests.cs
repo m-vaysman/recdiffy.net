@@ -101,9 +101,7 @@ public class ProfileCompileGapTests
     public void A_package_profile_that_cannot_work_is_rejected_at_compile(string what, string from, string to) =>
         AssertRejected(what, Package, from, to);
 
-    // ProfileWriterTests' every-key profile has "Fees": "DifferenceByRole(PAY)" and expects it to compile, so this check
-    // waits on a decision about that test.
-    [Fact(Skip = "🔴 #223: DifferenceByRole with one role still compiles; ProfileWriterTests expects it to.")]
+    [Fact]
     public void A_DifferenceByRole_aggregator_with_one_role_is_rejected_at_compile() =>
         AssertRejected("DifferenceByRole names one role", Package, "DifferenceByRole(PAY,REC)", "DifferenceByRole(PAY)");
 
