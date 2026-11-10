@@ -149,7 +149,7 @@ internal static class ResultBuilder
     }
 
     // Quarantine wins over suppression and over the match, and the entry id is cleared on a quarantined row.
-    private static RowResult Row(ConsolidatedRow row, SourceRef member, IReadOnlyDictionary<SourceRef, GroupId> entryByRow, IReadOnlyDictionary<GroupId, ResultEntry> entries, IReadOnlyDictionary<GroupId, (RowContext Left, RowContext Right)> projections)
+    private static RowResult Row(ConsolidatedRow row, SourceRef member, Dictionary<SourceRef, GroupId> entryByRow, Dictionary<GroupId, ResultEntry> entries, IReadOnlyDictionary<GroupId, (RowContext Left, RowContext Right)> projections)
     {
         var linked = entryByRow.TryGetValue(member, out var entryId) ? entryId : (GroupId?)null;
         var alignment = linked is { } id ? entries[id].Alignment : (Alignment?)null;
@@ -177,7 +177,7 @@ internal static class ResultBuilder
     // A row no route accepts never reaches a matcher. It still gets its own LeftOnly or RightOnly entry, with no path and
     // the code Unrouted, so every unmatched row has an entry and RunSummary counts it (#92). The trail records the route
     // step; no pass saw the row, so CommittedBy is null.
-    private static IEnumerable<ResultEntry> Unrouted(IReadOnlyList<ResultEntry> entries, IEnumerable<ConsolidatedRow> rows)
+    private static ResultEntry[] Unrouted(IReadOnlyList<ResultEntry> entries, IEnumerable<ConsolidatedRow> rows)
     {
         var placed = entries.SelectMany(entry => entry.Left.Concat(entry.Right)).ToHashSet();
         return rows
@@ -234,7 +234,7 @@ internal static class ResultBuilder
     }
 
     // A raw column stays on the projection only when every member holds the same text in it, read as a condition reads it.
-    private static IReadOnlyDictionary<string, object?> AgreedRaw(IReadOnlyList<RowContext> members) =>
+    private static Dictionary<string, object?> AgreedRaw(RowContext[] members) =>
         members[0].Raw
             .Where(column => members.All(member => member.Raw.TryGetValue(column.Key, out var value) && string.Equals(RawText(value), RawText(column.Value), StringComparison.Ordinal)))
             .ToDictionary(column => column.Key, column => column.Value, StringComparer.Ordinal);
@@ -250,7 +250,7 @@ internal static class ResultBuilder
             .Where(column => use.IsUsed(column) && agreed.ContainsKey(column) is false && members.All(member => member.Values.ContainsKey(column) is false))
             .Order(StringComparer.Ordinal);
 
-    private static RowContext Settle(RowContext current, string field, IReadOnlyList<RowContext> members, FieldUse use)
+    private static RowContext Settle(RowContext current, string field, RowContext[] members, FieldUse use)
     {
         var typedBy = members.FirstOrDefault(member => member.Values.ContainsKey(field)) ?? members[0];
         return (MemberAgreement.Agree(members, field, use), use.IsUsed(field)) switch

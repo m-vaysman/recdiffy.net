@@ -64,7 +64,7 @@ internal static class Consolidation
 
     // Every copy of an event is kept, and each copy's target links its chain. No copy stands for the others, so copy
     // order cannot pick which chain is quarantined (spec v3 §3.2; #214).
-    private static IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> Copies(IReadOnlyList<LifeEvent> events) =>
+    private static Dictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> Copies(IReadOnlyList<LifeEvent> events) =>
         events.GroupBy(evt => (evt.Scope, evt.Id)).ToDictionary(group => group.Key, group => (IReadOnlyList<LifeEvent>)[.. group]);
 
     // A blank action is not an event. The row stays on the pass-through path.
@@ -82,9 +82,9 @@ internal static class Consolidation
     // The events that name each key are looked up once, and a loop with an explicit stack walks each chain, so the work
     // grows with the event count and a chain of any length cannot overflow the call stack (spec v3 §3.1, §12; #222).
     // The sets and the stack are local to this call; the result is a new list of chains.
-    private static IReadOnlyList<IReadOnlyList<LifeEvent>> Components(
+    private static List<IReadOnlyList<LifeEvent>> Components(
         IReadOnlyList<LifeEvent> events,
-        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index)
+        Dictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index)
     {
         var inbound = events.Where(evt => evt.Target is not null).ToLookup(evt => (evt.Scope, evt.Target!), evt => evt.Key);
         var seen = new HashSet<LifeKey>();
@@ -114,7 +114,7 @@ internal static class Consolidation
 
     private static IEnumerable<LifeKey> Links(
         LifeKey key,
-        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index,
+        Dictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index,
         ILookup<(string Scope, string Id), LifeKey> inbound) =>
         index[(key.Scope, key.Id)]
             .Select(copy => copy.Target)
@@ -126,7 +126,7 @@ internal static class Consolidation
     // A key with more than one copy is a conflict even when no copy is quarantined yet.
     private static IReadOnlyList<ConsolidatedRow> Decide(
         IReadOnlyList<LifeEvent> members,
-        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index,
+        Dictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index,
         string corrPointsAt) =>
         members switch
         {
@@ -137,14 +137,14 @@ internal static class Consolidation
             _ => Survivors(members, index, corrPointsAt) switch
             {
                 [] => Mark(members, false, SuppressionReason.FullyCancelled, null),
-                [var survivor] => Assign(members, survivor.Id, index, corrPointsAt),
+                [var survivor] => Assign(members, survivor.Id),
                 _ => Mark(members, true, null, "LifecycleConflict"),
             },
         };
 
     // A cancel or a correction must name an event that exists. One that names none has nothing to cancel or supersede,
     // so it is not read as cancelling itself (spec v3 §5.1 rule 1; #216).
-    private static bool MissingTarget(LifeEvent member, IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index) =>
+    private static bool MissingTarget(LifeEvent member, Dictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index) =>
         member switch
         {
             { Action: "CANC" or "CORR", Target: null } => true,
@@ -156,7 +156,7 @@ internal static class Consolidation
     // event.
     private static IReadOnlyList<LifeEvent> Survivors(
         IReadOnlyList<LifeEvent> members,
-        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index,
+        Dictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index,
         string corrPointsAt)
     {
         var cancelled = members.Where(member => member.Action is "CANC" && member.Target is not null).Select(member => member.Target!).ToHashSet(StringComparer.Ordinal);
@@ -165,7 +165,7 @@ internal static class Consolidation
     }
 
     // When corrPointsAt is CANC and the named event is a cancel, the correction supersedes that cancel's target.
-    private static string Predecessor(LifeEvent corr, IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index, string corrPointsAt) =>
+    private static string Predecessor(LifeEvent corr, Dictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index, string corrPointsAt) =>
         (corr.Target, corrPointsAt) switch
         {
             (null, _) => corr.Id,
@@ -175,11 +175,7 @@ internal static class Consolidation
 
     // Only the survivor carries the lineage of every member.
     // A cancel is suppressed as a cancel event; every other non-survivor is superseded.
-    private static IReadOnlyList<ConsolidatedRow> Assign(
-        IReadOnlyList<LifeEvent> members,
-        string survivorId,
-        IReadOnlyDictionary<(string Scope, string Id), IReadOnlyList<LifeEvent>> index,
-        string corrPointsAt) =>
+    private static IReadOnlyList<ConsolidatedRow> Assign(IReadOnlyList<LifeEvent> members, string survivorId) =>
         [.. members.Select(member => member.Id == survivorId
             ? Row(member, false, null, null) with { LifecycleCollapsed = true, Lineage = [.. members.SelectMany(item => item.Row.Members)] }
             : Row(member, false, member.Action is "CANC" ? SuppressionReason.CancelEvent : SuppressionReason.Superseded, null))];

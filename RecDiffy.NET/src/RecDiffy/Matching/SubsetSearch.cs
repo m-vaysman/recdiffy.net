@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace RecDiffy;
 
 internal enum SearchState
@@ -47,7 +49,7 @@ internal static class SubsetSearch
         null => "A class is null.",
         { Values: null } => "A class has no conserved values.",
         { Items: null or [] } => "A class has no items.",
-        { Values.Length: var length } when length != width => $"A class holds {length} conserved values and the target holds {width}.",
+        { Values.Length: var length } when length != width => string.Create(CultureInfo.InvariantCulture, $"A class holds {length} conserved values and the target holds {width}."),
         _ => null,
     };
 

@@ -5,8 +5,11 @@ namespace RecDiffy.RulePacks.Trading;
 
 // Reads the raw quantity exactly as decimal.parse reads a number: the side's culture, and no float or double.
 // Replaced by ScaledQuantityRule (#170). It writes the absolute quantity unrounded, so the match key and the diff see different numbers.
+// Friend tests still construct it; deleting a replaced rule is left to a human.
+#pragma warning disable MA0182
 [Obsolete("Replaced by ScaledQuantityRule: writes the absolute quantity unrounded, so a pair the diff calls Exact never matches. See #170.")]
 internal sealed class CultureQuantityRule(string from, string to, NumberFormatInfo format) : INormalizationRule
+#pragma warning restore MA0182
 {
     public string RuleId => "quantity.absolute";
 
