@@ -216,6 +216,7 @@ To reconcile objects you already hold in memory, replace the two `FileSources.Fr
 
 - **[What a result means](RecDiffy.NET/docs/RESULTS.md):** how to read a result.
 - **[Profile reference](RecDiffy.NET/docs/PROFILES.md):** what a profile can declare.
+- **[Profile examples](RecDiffy.NET/docs/PROFILE-EXAMPLES.md):** profiles that run, with the output each gives.
 - **[Support matrix](RecDiffy.NET/docs/SUPPORT.md):** what each package supports.
 - **[Typed reconciliation](docs/typed-reconciliation/README.md):** `RecBuilder` with your own objects, step by step.
 - **[Excel report layouts](RecDiffy.NET/docs/report-specs/README.md):** what each Excel report shows.
