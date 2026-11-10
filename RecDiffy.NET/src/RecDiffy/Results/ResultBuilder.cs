@@ -28,7 +28,7 @@ internal static class ResultBuilder
             for (var index = 0; index < jobs.Length; index++)
             {
                 cancellation.ThrowIfCancellationRequested();
-                var plan = DiffPlan.From(jobs[index].Path, profile.Document.Fields, profile.Document.Midpoint);
+                var plan = DiffPlan.From(jobs[index].Path, profile.Document.Fields, profile.Document.Midpoint, profile.Attributions);
                 built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan, EqualByConstruction(jobs[index].Path, jobs[index].Group.PassId), use);
             }
         }
@@ -40,7 +40,7 @@ internal static class ResultBuilder
                 new ParallelOptions { MaxDegreeOfParallelism = degree, CancellationToken = cancellation },
                 index =>
                 {
-                    var plan = DiffPlan.From(jobs[index].Path, profile.Document.Fields, profile.Document.Midpoint);
+                    var plan = DiffPlan.From(jobs[index].Path, profile.Document.Fields, profile.Document.Midpoint, profile.Attributions);
                     built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan, EqualByConstruction(jobs[index].Path, jobs[index].Group.PassId), use);
                 });
         }

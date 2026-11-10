@@ -38,12 +38,14 @@ internal static class ProfileCompiler
         var packageErrors = ValidatePackages(document);
         var consolidationErrors = ValidateConsolidation(document, schema);
         var conditionErrors = ValidateConditions(document);
-        ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. scaleErrors, .. readings.Errors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors, .. packageErrors, .. consolidationErrors, .. conditionErrors];
+        var attributionErrors = AttributionValidation.Validate(document, schema, registry.Attributions);
+        ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. scaleErrors, .. readings.Errors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors, .. packageErrors, .. consolidationErrors, .. conditionErrors, .. attributionErrors];
         return errors.Length == 0
             ? new CompileOutcome(
                 new CompiledProfile(document.ProfileId, document.Version, document.FormatVersion, Hash(document), document, SideRules(sides, "left"), SideRules(sides, "right"))
                 {
                     Reading = readings.Sides.ToImmutableDictionary(pair => pair.Key, pair => pair.Value.Stamp(), StringComparer.Ordinal),
+                    Attributions = registry.Attributions,
                 },
                 [])
             : new CompileOutcome(null, errors);
@@ -472,6 +474,8 @@ public sealed class CompiledProfile
 
     /// <summary>How each side's text is read, resolved once at compile and keyed by side name (<c>left</c>, <c>right</c>).</summary>
     public IReadOnlyDictionary<string, SideReading> Reading { get; internal init; } = ImmutableDictionary<string, SideReading>.Empty;
+
+    internal AttributionRegistry Attributions { get; init; } = AttributionRegistry.Empty;
 
     internal IReadOnlyList<CompiledRule> LeftRules { get; }
 
