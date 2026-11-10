@@ -12,7 +12,12 @@ namespace RecDiffy.Excel.Writing;
 
 // The only type that knows the Open XML SDK. The SDK builds its document by mutation, so this writer is the
 // imperative edge of the library: reports describe a workbook as immutable data and this class serializes it.
+// Replaced by OpenXmlSpreadsheetWriter (#256). Clean keeps an unpaired UTF-16 surrogate, which XML 1.0 cannot carry, so saving
+// the workbook throws ArgumentException. RecDiffyExcel no longer builds it; deleting a replaced type is left to a human.
+#pragma warning disable MA0182
+[Obsolete("Replaced by OpenXmlSpreadsheetWriter: Clean keeps an unpaired UTF-16 surrogate, and saving the workbook throws ArgumentException. See #256.")]
 internal sealed class OpenXmlWorkbookWriter : IWorkbookWriter
+#pragma warning restore MA0182
 {
     private const long EmuPerCm = 360_000;
     private const int MaxCellText = 32_767;

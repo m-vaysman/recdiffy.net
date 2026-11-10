@@ -11,7 +11,7 @@ namespace RecDiffy.Excel;
 /// <summary>Writes formatted Excel reports, one .xlsx file per report, from a RecDiffy <see cref="ReconciliationResult"/>.</summary>
 public static partial class RecDiffyExcel
 {
-    private static readonly IWorkbookWriter Writer = new OpenXmlWorkbookWriter();
+    private static readonly IWorkbookWriter Writer = new OpenXmlSpreadsheetWriter();
 
     /// <summary>Writes one report to a stream. Returns the outcome; when the report is skipped, nothing is written and the reason is returned.</summary>
     public static ReportOutcome WriteReport(this ReconciliationResult result, ReportKind kind, Stream output, ExcelReportOptions options)
