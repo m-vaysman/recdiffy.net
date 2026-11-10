@@ -16,7 +16,8 @@ internal readonly record struct TargetSearch(SearchState State, int[] DrawnItems
 internal static class SubsetSearch
 {
     // The suffix bound uses the first conserved value and assumes every later item can be taken.
-    // A group-size cap makes that an overestimate, so the bound prunes less.
+    // A group-size cap makes that an overestimate, so the bound prunes less. A bound past the decimal range is held at
+    // MaxValue, still an overestimate. The bound is read only when every value is non-negative, so it only grows (#224).
     public static TargetSearch Search(IReadOnlyList<ConservedClass> classes, decimal[] target, int maxGroup, int maxNodes, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -24,7 +25,7 @@ internal static class SubsetSearch
         var sums = new decimal[target.Length];
         var suffix = new decimal[classes.Count + 1];
         for (var index = classes.Count - 1; index >= 0; index--)
-            suffix[index] = suffix[index + 1] + classes[index].Values[0] * classes[index].Items.Length;
+            suffix[index] = CheckedDecimal.Add(suffix[index + 1], CheckedDecimal.Multiply(classes[index].Values[0], classes[index].Items.Length)) ?? decimal.MaxValue;
         var nonNegative = classes.All(cls => cls.Values[0] >= 0m);
         var walk = new Walk(classes, target, maxGroup, maxNodes, counts, sums, suffix, nonNegative, cancellation);
         walk.Go(0, 0);
@@ -77,6 +78,9 @@ internal static class SubsetSearch
                 var next = size + k;
                 if (next > maxGroup)
                     continue;
+                // A count whose sums leave the decimal range is not a group, so the walk skips it (#224).
+                if (Fits(cls, k) is false)
+                    continue;
                 Add(cls, k);
                 if (nonNegative && sums[0] > target[0])
                 {
@@ -84,7 +88,7 @@ internal static class SubsetSearch
                     continue;
                 }
 
-                if (nonNegative && sums[0] + suffix[index + 1] < target[0])
+                if (nonNegative && CheckedDecimal.Add(sums[0], suffix[index + 1]) is { } reach && reach < target[0])
                 {
                     Add(cls, -k);
                     break;
@@ -127,6 +131,17 @@ internal static class SubsetSearch
             }
 
             _solution = [.. counts];
+        }
+
+        private bool Fits(ConservedClass cls, int count)
+        {
+            for (var field = 0; field < sums.Length; field++)
+            {
+                if (CheckedDecimal.Add(sums[field], CheckedDecimal.Multiply(cls.Values[field], count)) is null)
+                    return false;
+            }
+
+            return true;
         }
 
         private void Add(ConservedClass cls, int count)

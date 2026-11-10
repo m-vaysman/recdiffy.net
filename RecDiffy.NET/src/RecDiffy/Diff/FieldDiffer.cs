@@ -177,13 +177,15 @@ internal static class FieldDiffer
         };
     }
 
+    // An allowance past the decimal range cannot be computed, so the delta is not within it (#224).
     private static bool Relative(decimal abs, decimal left, decimal right, decimal ratio)
     {
         var scale = Abs(left) > Abs(right) ? Abs(left) : Abs(right);
-        return scale == 0m ? false : abs <= ratio * scale;
+        return scale == 0m ? false : CheckedDecimal.Multiply(ratio, scale) is { } allowed && abs <= allowed;
     }
 
-    // The left quantity is the base. A zero left quantity is unexplained.
+    // The left quantity is the base. A zero left quantity is unexplained, and so is an expected value past the decimal
+    // range (#224).
     private static bool ProRata(RowContext left, RowContext right, FieldDeclaration field, MidpointMode midpoint)
     {
         if (left.IsNull("Quantity") || right.IsNull("Quantity") || left.IsNull(field.Name) || right.IsNull(field.Name))
@@ -191,24 +193,29 @@ internal static class FieldDiffer
         var leftQuantity = left.Values["Quantity"].Number;
         if (leftQuantity == 0m)
             return false;
-        var expected = Rounding.Round(left.Values[field.Name].Number * right.Values["Quantity"].Number / leftQuantity, field.Scale, midpoint);
-        return expected == Rounding.Round(right.Values[field.Name].Number, field.Scale, midpoint);
+        var expected = CheckedDecimal.Divide(CheckedDecimal.Multiply(left.Values[field.Name].Number, right.Values["Quantity"].Number), leftQuantity);
+        return expected is { } value && Rounding.Round(value, field.Scale, midpoint) == Rounding.Round(right.Values[field.Name].Number, field.Scale, midpoint);
     }
 
+    // Each step is the one the expression took before #224, in the same order, so a value that fits is unchanged. A step
+    // past the decimal range leaves net cash unexplained.
     private static bool NetExplained(RowContext left, RowContext right, decimal delta, MidpointMode midpoint)
     {
         var asset = left.Display("AssetClass") ?? right.Display("AssetClass");
-        var principal = Principal(right, asset, midpoint) - Principal(left, asset, midpoint);
-        var expected = principal + Number(right, "Accrued") - Number(left, "Accrued") + FeeSign(left, right) * (Number(right, "Fees") - Number(left, "Fees"));
-        return Rounding.Round(expected, 2, midpoint) == Rounding.Round(delta, 2, midpoint);
+        var principal = CheckedDecimal.Subtract(Principal(right, asset, midpoint), Principal(left, asset, midpoint));
+        var withAccrued = CheckedDecimal.Subtract(CheckedDecimal.Add(principal, Number(right, "Accrued")), Number(left, "Accrued"));
+        var fees = CheckedDecimal.Multiply(FeeSign(left, right), CheckedDecimal.Subtract(Number(right, "Fees"), Number(left, "Fees")));
+        var expected = CheckedDecimal.Add(withAccrued, fees);
+        return expected is { } value && Rounding.Round(value, 2, midpoint) == Rounding.Round(delta, 2, midpoint);
     }
 
-    // Bonds divide quantity times price by 100. A missing asset class does not.
-    private static decimal Principal(RowContext row, string? asset, MidpointMode midpoint)
-    {
-        var raw = Number(row, "Quantity") * Number(row, "Price");
-        return Rounding.Round(asset is "Bond" ? raw / 100m : raw, 2, midpoint);
-    }
+    // Bonds divide quantity times price by 100. A missing asset class does not. A product past the decimal range is null.
+    private static decimal? Principal(RowContext row, string? asset, MidpointMode midpoint) =>
+        CheckedDecimal.Multiply(Number(row, "Quantity"), Number(row, "Price")) switch
+        {
+            { } raw => Rounding.Round(asset is "Bond" ? raw / 100m : raw, 2, midpoint),
+            null => null,
+        };
 
     // SELL, REC_FIXED and REC make the fee negative. A missing side on both rows leaves it positive.
     private static int FeeSign(RowContext left, RowContext right) =>

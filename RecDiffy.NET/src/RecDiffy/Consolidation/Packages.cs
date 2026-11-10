@@ -93,11 +93,12 @@ internal static class Packages
             ? projection with { Context = MemberAgreement.Copy(projection.Context, field, members[0].Context, "package.same") }
             : projection with { Failure = "PackageInconsistent" };
 
-    // An unknown member amount makes the total unknown: null is never zero (§7.5).
+    // An unknown member amount makes the total unknown: null is never zero (§7.5). A total past the decimal range is
+    // unknown too, with AggregateOverflow naming the field (#224).
     private static PackageProjection Sum(PackageProjection projection, string field, IReadOnlyList<ConsolidatedRow> members) =>
         members.Any(member => member.Context.IsNull(field))
             ? projection with { Context = projection.Context.Write(field, CanonicalCell.Null(FieldType.Decimal), "package.sum", null, null) }
-            : projection with { Context = WriteNumber(projection.Context, field, members.Sum(member => member.Context.Values[field].Number), "package.sum") };
+            : projection with { Context = WriteChecked(projection.Context, field, CheckedDecimal.Sum(members.Select(member => member.Context.Values[field].Number)), "package.sum") };
 
     // The member with the role supplies the value. Several members with the role must agree, else the field is unknown.
     private static PackageProjection FromRole(PackageProjection projection, string field, string? role, IReadOnlyList<ConsolidatedRow> members, string roleField, FieldUse use)
@@ -132,7 +133,7 @@ internal static class Packages
             },
             ([var left, ..], [var right, ..]) when left.IsNull(field) || right.IsNull(field) =>
                 projection with { Context = projection.Context.Write(field, CanonicalCell.Null(FieldType.Decimal), "package.difference", null, null) },
-            ([var left, ..], [var right, ..]) => projection with { Context = WriteNumber(projection.Context, field, left.Values[field].Number - right.Values[field].Number, "package.difference") },
+            ([var left, ..], [var right, ..]) => projection with { Context = WriteChecked(projection.Context, field, CheckedDecimal.Subtract(left.Values[field].Number, right.Values[field].Number), "package.difference") },
         };
     }
 
@@ -153,6 +154,14 @@ internal static class Packages
             .Distinct(StringComparer.Ordinal)
             .Where(column => use.IsUsed(column) && agreed.ContainsKey(column) is false && members.All(member => member.Values.ContainsKey(column) is false))
             .Order(StringComparer.Ordinal);
+
+    private static RowContext WriteChecked(RowContext target, string field, decimal? value, string ruleId) =>
+        value switch
+        {
+            { } number => WriteNumber(target, field, number, ruleId),
+            null => target.Write(field, CanonicalCell.Null(FieldType.Decimal), ruleId, null, null)
+                .Diagnose(CheckedDecimal.Overflow, DiagnosticSeverity.Warning, "package", field, null),
+        };
 
     private static RowContext WriteNumber(RowContext target, string field, decimal value, string ruleId) =>
         target.Write(field, CanonicalCell.FromDecimal(value), ruleId, null, value.ToString(CultureInfo.InvariantCulture));
