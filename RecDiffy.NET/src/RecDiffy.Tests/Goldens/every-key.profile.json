@@ -358,7 +358,7 @@
             "NetCash": "Sum",
             "Price": "FromRole(PAY)",
             "Accrued": "DifferenceByRole(PAY,REC)",
-            "Fees": "DifferenceByRole(PAY)"
+            "Fees": "DifferenceByRole(REC,PAY)"
           }
         },
         {

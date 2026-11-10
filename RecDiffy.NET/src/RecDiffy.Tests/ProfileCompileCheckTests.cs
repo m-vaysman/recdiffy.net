@@ -76,6 +76,7 @@ public class ProfileCompileCheckTests
     [InlineData("\"Price\": \"FromRole(PAY)\"", "\"Prise\": \"FromRole(PAY)\"", "UnknownField", "left aggregator names unknown field 'Prise'.")]
     [InlineData("\"SettleDate\": \"Same\"", "\"SettleDate\": \"Sum\"", "InvalidParameter", "left aggregator Sum on 'SettleDate' needs a Decimal field, not a Date field.")]
     [InlineData("\"SettleDate\": \"Same\"", "\"SettleDate\": \"DifferenceByRole(PAY,REC)\"", "InvalidParameter", "left aggregator DifferenceByRole on 'SettleDate' needs a Decimal field, not a Date field.")]
+    [InlineData("\"Price\": \"FromRole(PAY)\"", "\"Price\": \"DifferenceByRole(PAY)\"", "MissingParameter", "left aggregator DifferenceByRole on 'Price' requires two roles.")]
     [InlineData("\"pass\": \"match.naturalKey\", \"key\": [\"Ref\"]", "\"pass\": \"match.naturalKey\", \"key\": []", "MissingParameter", "Pass 'P1' requires key.")]
     [InlineData("\"pass\": \"match.naturalKey\", \"key\": [\"Ref\"]", "\"pass\": \"match.reducedKey\", \"key\": []", "MissingParameter", "Pass 'P1' requires key.")]
     [InlineData("{ \"rule\": \"decimal.parse\", \"from\": \"Price\", \"to\": \"Price\" }", "{ \"rule\": \"decimal.parse\", \"from\": \"Price\", \"to\": \"Px\" }", "FieldNotProduced", "Path 'p' compares 'Price', which a side does not write.")]

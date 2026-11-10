@@ -251,7 +251,7 @@ public class ProfileWriterTests
             "right": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Book", "corrPointsAt": "NEW" } },
             "left": { "packages": [
               { "link": "Link", "role": "Leg", "requiredRoles": ["PAY", "REC"],
-                "aggregate": { "Quantity": "Same", "NetCash": "Sum", "Price": "FromRole(PAY)", "Accrued": "DifferenceByRole(PAY,REC)", "Fees": "DifferenceByRole(PAY)" } },
+                "aggregate": { "Quantity": "Same", "NetCash": "Sum", "Price": "FromRole(PAY)", "Accrued": "DifferenceByRole(PAY,REC)", "Fees": "DifferenceByRole(REC,PAY)" } },
               { "link": "Link", "role": "Leg" }
             ] }
           },
