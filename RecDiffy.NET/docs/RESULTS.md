@@ -27,7 +27,7 @@ A result answers four questions. Each has its own property, and they don't imply
 | Question | Property | Values |
 |---|---|---|
 | Did rows correspond across the two sides? | `ResultEntry.Alignment` | `Matched`, `Ambiguous`, `SearchIncomplete`, `LeftOnly`, `RightOnly` |
-| How were rows grouped? | `ResultEntry.Composition` | `OneToOne`, `ManyToOne`, `OneToMany`, plus the flags `Package` and `LifecycleCollapsed`. Unmatched entries are `None`. |
+| How were rows grouped? | `ResultEntry.Composition` | `OneToOne`, `ManyToOne`, `OneToMany`, plus the flags `Package` and `LifecycleCollapsed`. Entries that aren't matched are `None`. |
 | Do the compared values agree? | `FieldDiff.Outcome`, and `ResultEntry.Outcome` for the entry | `Exact`, `WithinTolerance`, `Break`. `NotCompared` when no comparison ran. |
 | What happened to this input row? | `RowResult.Disposition` | `Matched`, `Ambiguous`, `SearchIncomplete`, `LeftOnly`, `RightOnly`, `Quarantined`, `Suppressed` |
 
@@ -39,7 +39,7 @@ Matching uses the keys a pass declares. Comparison runs afterwards, on every mat
 
 - **The entry outcome is the worst field outcome.** Any `Break` makes the entry a `Break`. Otherwise any `WithinTolerance` makes it `WithinTolerance`. Otherwise it is `Exact`.
 - **`Diffs` lists only the fields that differ.** A field that is `Exact` or `NotCompared` is left out, so an `Exact` entry has an empty list.
-- **An unmatched entry is never compared.** Its outcome is `NotCompared` and its `Diffs` is empty.
+- **Only matched entries are compared.** Every other entry, ambiguous and incomplete ones included, has the outcome `NotCompared` and an empty `Diffs`.
 
 ```csharp
 var breaks = result.Entries.Where(entry => entry is { Alignment: Alignment.Matched, Outcome: FieldOutcome.Break });
@@ -60,7 +60,7 @@ The [README example](../../README.md#see-it-work-two-files-two-readers-one-recon
 - **A relative bound** is a fraction of the larger of the two absolute values.
 - **A tolerance `when`** must hold on both sides. If it fails on either side, any difference in a decimal field is a `Break`. A `days` tolerance on a date field ignores its `when` today; see [PROFILES.md](PROFILES.md#known-gaps).
 - **`applicableWhen`** skips the field, as `NotCompared`, only when it fails on both sides.
-- **`FieldDiff.Tolerance`** names the tolerance kind that applied, such as `Exact`, `Absolute` or `Days`.
+- **`FieldDiff.Tolerance`** names the tolerance kind declared for the field, such as `Exact`, `Absolute` or `Days`. It names the declared kind even when the tolerance didn't apply, for example because its `when` failed.
 
 The comparison code is [FieldDiffer.cs](../src/RecDiffy/Diff/FieldDiffer.cs). The inclusive bound is tested by `Keeps_an_accrued_delta_inside_an_inclusive_absolute_tolerance` in [DiffTests.cs](../src/RecDiffy.Tests/DiffTests.cs) and `Breaks_an_accrued_delta_just_outside_the_tolerance` in [VerificationTests.cs](../src/RecDiffy.Tests/VerificationTests.cs).
 
@@ -73,7 +73,7 @@ A `ManyToOne` or `OneToMany` entry compares one combined row against the single 
 
 ### Attributed differences
 
-The trading pack can explain one field's difference by another's. For example, `trading.netCash` checks whether a net cash difference follows from the quantity, price, accrued and fee differences.
+The trading pack registers attributions that explain one field's difference by another's. For example, `trading.netCash` checks whether a net cash difference follows from the quantity, price, accrued and fee differences.
 
 - **An explained field takes its roots' outcome.** If the quantity breaks and net cash moves only because of it, net cash is a `Break` too.
 - **`FieldDiff.AttributedTo`** names the root fields, so a report can show the root break once and the consequences beside it.
@@ -83,7 +83,7 @@ The trading pack can explain one field's difference by another's. For example, `
 
 A value that isn't there stays unknown all the way through.
 
-- **Reading.** A blank cell becomes null, with no diagnostic. A value that can't be read becomes null, with an `Invalid` diagnostic, and the row is quarantined.
+- **Reading.** A blank cell becomes null, with no diagnostic. A value that can't be read becomes null, with an `Invalid` diagnostic, and the row is quarantined. One rule differs: `date.parse` with `formatBy` reports even a blank as `DateParse` when the row's party has no date format.
 - **Matching.** A pass leaves a row out when any of its key fields is null. The row stays free for later passes. A group pass never treats a null amount as 0 (`Does_not_match_a_blank_or_invalid_quantity_as_zero` in [VerificationTests.cs](../src/RecDiffy.Tests/VerificationTests.cs)).
 - **Comparing.** Null against null is `Exact`. Null against any value, 0 included, is a `Break`.
 - **Combining.** One null member makes a group's sum null. One unknown leg makes a package's total unknown ([AdversarialPackageNullTests.cs](../src/RecDiffy.Tests/AdversarialPackageNullTests.cs)).
@@ -110,7 +110,7 @@ To resolve ambiguity, add a key field that tells the rows apart, or add a pass t
 
 `entry.Explanation.Trail[0].Detail` gives the reason:
 
-- **`BlockTooLarge`:** the component had more rows than `limits.maxBlockItems`, or more targets than `limits.maxTargetsPerComponent`. It was never searched.
+- **`BlockTooLarge`:** the component had more rows on the many side than `limits.maxBlockItems`, or more target rows than `limits.maxTargetsPerComponent`. It was never searched.
 - **`BudgetExhausted`:** the search used `limits.maxNodesPerTarget` nodes without finishing.
 
 Narrow the pass's `block` first. Raise the limits only if the block is right, because the search cost grows quickly with block size. See [Search limits](PROFILES.md#limits-search-limits).
@@ -132,13 +132,14 @@ When a profile declares lifecycle consolidation for a side, cancels and correcti
 
 | Reason | Meaning |
 |---|---|
-| `Superseded` | A later correction replaced this row. |
+| `Superseded` | This row didn't survive its chain: a later correction replaced it, or a cancel removed it while another event survived. |
 | `CancelEvent` | This row is a cancel, in a chain that still has a survivor. |
 | `FullyCancelled` | Every event in the chain was cancelled, so nothing survived. |
 
 - **A superseded row or cancel event** links to the survivor's entry through `EntryId`, so you can trace a match back to every event behind it.
 - **A fully cancelled row** has no entry.
 - **The survivor's entry** has the `LifecycleCollapsed` composition flag.
+- **If the survivor is then merged into a package,** the links and the flag are lost. See [PROFILES.md](PROFILES.md#known-gaps).
 - **A broken chain** is quarantined, not suppressed. See `LifecycleConflict`, `LifecycleCycle`, `MissingLifecycleTarget` and `ChainMemberQuarantined` in [PROFILES.md](PROFILES.md#run-diagnostics).
 
 The behaviour is in [Lifecycle.cs](../src/RecDiffy/Consolidation/Lifecycle.cs) and tested in [LifecycleTests.cs](../src/RecDiffy.Tests/LifecycleTests.cs).
@@ -150,8 +151,9 @@ Every number in a result can be traced back to its input.
 - **`SourceRef`** identifies an input row by side, row key and position. `Source` is the side name, `left` or `right`, not the name you pass to `RecordSources`. `Ordinal` is the row's position in its source.
 - **`ResultEntry.Id`** is a hash of its members' sides and row keys. It doesn't depend on row order or position, so the same rows get the same id in every run (`Keeps_the_group_id_when_the_rows_are_swapped` in [DiffTests.cs](../src/RecDiffy.Tests/DiffTests.cs)).
 - **`ResultEntry.PathId`** is the path that handled the rows.
-- **`Explanation.CommittedBy`** is the pass that made the match. `Explanation.Trail` records the pass, its verdict (`Committed`, `Contest`, `SearchIncomplete` or `NoCandidate`), the key, the rows, and a detail code. `Explanation.Hints` is always empty in this version.
-- **`result.Raw(row, column)`** returns a source cell as text. `result.Canonical(row)` returns the row's values after normalization. `result.Trace(row)` lists each rule that wrote a field, with the raw and canonical text.
+- **`Explanation.CommittedBy`** names the pass that decided the entry: the pass that matched it, or the pass that found it ambiguous or stopped its search. Check `Alignment` before you read it as a match ([#258](https://github.com/m-vaysman/recdiffy.net/issues/258)).
+- **`Explanation.Trail`** records the pass, its verdict (`Committed`, `Contest`, `SearchIncomplete` or `NoCandidate`), the key, the rows, and a detail code. An ambiguous entry's trail has no key today ([#257](https://github.com/m-vaysman/recdiffy.net/issues/257)). `Explanation.Hints` is always empty in this version.
+- **`result.Raw(row, column)`** returns a source cell as text. `result.Canonical(row)` returns the row's values after normalization. `result.Trace(row)` lists each rule that wrote a field, with the raw and canonical text. For a leg of a package, all three read the package's combined item, not the leg: `Raw` returns only the cells every leg holds the same, and null for the others.
 - **`result.Run`** records the profile hash, the reference data id and hash, and each side's culture, so you can tell which configuration produced the result.
 
 Rows that no route accepts get their own `LeftOnly` or `RightOnly` entry with an empty `PathId`, a `NoCandidate` trail step from `route`, and the detail `Unrouted` ([RunSummaryAccountingTests.cs](../src/RecDiffy.Tests/RunSummaryAccountingTests.cs)). An unmatched row that a pass saw but couldn't pair has an empty trail.
@@ -168,7 +170,7 @@ Rows that no route accepts get their own `LeftOnly` or `RightOnly` entry with an
 | `Ambiguous`, `SearchIncomplete` | entries | Clusters. Each can hold many rows. |
 | `Quarantined`, `Suppressed` | rows | Input rows with that disposition. |
 
-In the warehouse example in the [README](../../README.md#your-first-reconciliation), one matched entry accounts for three input rows. To count rows by outcome, group `result.Rows` by `Disposition`.
+As the [README](../../README.md#understand-the-result) notes, one matched entry can account for several input rows. To count rows by outcome, group `result.Rows` by `Disposition`.
 
 ## Before you publish a report
 
