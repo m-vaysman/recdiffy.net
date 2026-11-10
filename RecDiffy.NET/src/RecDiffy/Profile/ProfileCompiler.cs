@@ -37,7 +37,8 @@ internal static class ProfileCompiler
         var pathErrors = ValidatePaths(document, schema, sides);
         var packageErrors = ValidatePackages(document);
         var consolidationErrors = ValidateConsolidation(document, schema);
-        ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. scaleErrors, .. readings.Errors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors, .. packageErrors, .. consolidationErrors];
+        var conditionErrors = ValidateConditions(document);
+        ProfileError[] errors = [.. formatErrors, .. duplicateErrors, .. scaleErrors, .. readings.Errors, .. sides.Values.SelectMany(side => side.Errors), .. pathErrors, .. packageErrors, .. consolidationErrors, .. conditionErrors];
         return errors.Length == 0
             ? new CompileOutcome(
                 new CompiledProfile(document.ProfileId, document.Version, document.FormatVersion, Hash(document), document, SideRules(sides, "left"), SideRules(sides, "right"))
@@ -106,6 +107,28 @@ internal static class ProfileCompiler
                 [new ProfileError("MissingParameter", $"{side} aggregator DifferenceByRole on '{aggregate.Field}' requires two roles.")],
             _ => [],
         };
+
+    // A condition needs an operand, and an in list needs a value (spec v3 §9.3; #219). An empty text operand is a blank
+    // check, because a blank cell is data (§7.5), so it stays valid.
+    private static IEnumerable<ProfileError> ValidateConditions(ProfileDocument document)
+    {
+        var rules = document.Normalization.OrderBy(pair => pair.Key, StringComparer.Ordinal).SelectMany(pair =>
+            Phases(pair.Value).SelectMany(phase => phase.Calls.Select(call => (Where: $"{pair.Key}.{call.Rule} when", call.When))));
+        var diffs = document.Paths.SelectMany(path => (path.Diff?.Fields ?? ImmutableDictionary<string, FieldDiffDeclaration>.Empty)
+            .OrderBy(pair => pair.Key, StringComparer.Ordinal)
+            .SelectMany(pair => (IEnumerable<(string Where, WhenClause? When)>)
+            [
+                ($"Path '{path.Id}' applicableWhen for '{pair.Key}'", pair.Value.ApplicableWhen),
+                ($"Path '{path.Id}' tolerance when for '{pair.Key}'", pair.Value.Tolerance.When),
+            ]));
+        return rules.Concat(diffs).SelectMany(site => site.When switch
+        {
+            { EqualsValue: null, NotEquals: null, In: null } clause =>
+                [new ProfileError("MissingParameter", $"{site.Where} on '{clause.Field}' needs equals, notEquals or in.")],
+            { In: [] } clause => [new ProfileError("MissingParameter", $"{site.Where} on '{clause.Field}' has an empty in list.")],
+            _ => (IEnumerable<ProfileError>)[],
+        });
+    }
 
     // 16 is the hard cap on the profile and on each pass, in front of a subset walk that branches on the group.
     private static IReadOnlyList<ProfileError> ValidatePaths(ProfileDocument document, FieldSchema schema, IReadOnlyDictionary<string, SideCompilation> sides)
@@ -299,16 +322,35 @@ internal static class ProfileCompiler
         }
     }
 
+    // An empty operand is a blank check, so it is written apart from a missing one. Every other operand is written as
+    // before, so a profile with no empty operand keeps its hash (spec v3 §9.3, §10.1; #219).
     private static string? When(string label, WhenClause? when) =>
         when is null
             ? null
             : Delimited.Concat('|', [
                 Delimited.Escape(label),
                 Delimited.Escape(when.Field),
-                Delimited.Escape(when.EqualsValue ?? ""),
-                Delimited.Escape(when.NotEquals ?? ""),
-                when.In is { } values ? Delimited.Join(',', values.OrderBy(value => value, StringComparer.Ordinal)) : "",
+                Operand(when.EqualsValue),
+                Operand(when.NotEquals),
+                when.In switch
+                {
+                    null => "",
+                    [] => EmptyList,
+                    var values => Delimited.Concat(',', values.Order(StringComparer.Ordinal).Select(Operand)),
+                },
             ]);
+
+    // Delimited.Escape never writes a backslash before '0' or '-', so these stand for nothing else.
+    private const string EmptyText = @"\0";
+
+    private const string EmptyList = @"\-";
+
+    private static string Operand(string? value) => value switch
+    {
+        null => "",
+        "" => EmptyText,
+        _ => Delimited.Escape(value),
+    };
 
     private static string MapLine(string name, IReadOnlyDictionary<string, string> map) =>
         Delimited.Concat('|', [Delimited.Escape("map"), Delimited.Escape(name), .. map.OrderBy(entry => entry.Key, StringComparer.Ordinal).Select(entry => Delimited.Join('=', [entry.Key, entry.Value]))]);
