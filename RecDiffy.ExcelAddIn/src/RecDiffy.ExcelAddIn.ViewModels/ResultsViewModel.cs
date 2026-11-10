@@ -62,10 +62,15 @@ public sealed partial class ResultsViewModel : ObservableObject
 
     public string? HiddenExactMatches => (Run, IncludeExactMatches) switch
     {
-        ({ } shown, false) => string.Create(
-            CultureInfo.CurrentCulture,
-            $"{shown.Rows.Count(row => ResultSheets.IsExactMatch(row.Entry)):N0} exact matches aren't listed. The counts include them. Turn them on in Settings."),
+        ({ } shown, false) => HiddenNote(shown.Rows.Count(row => ResultSheets.IsExactMatch(row.Entry))),
         _ => null,
+    };
+
+    private static string? HiddenNote(int hidden) => hidden switch
+    {
+        0 => null,
+        1 => "1 exact match isn't listed. The counts include it. Turn exact matches on in Settings.",
+        _ => string.Create(CultureInfo.CurrentCulture, $"{hidden:N0} exact matches aren't listed. The counts include them. Turn them on in Settings."),
     };
 
     public string WriteStage => WriteProgress is { } progress
