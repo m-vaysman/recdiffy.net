@@ -5,8 +5,11 @@ namespace RecDiffy.RulePacks.Trading;
 
 // Replaced by CultureQuantityRule (#158). It reads text with the invariant culture whatever the profile declares,
 // and converts float and double, so it no longer reads a quantity the way decimal.parse does.
+// Friend tests still construct it; deleting a replaced rule is left to a human.
+#pragma warning disable MA0182
 [Obsolete("Replaced by CultureQuantityRule: reads text with the invariant culture whatever the profile declares, and converts float and double. See #158.")]
 internal sealed class AbsoluteQuantityRule(string from, string to) : INormalizationRule
+#pragma warning restore MA0182
 {
     public string RuleId => "quantity.absolute";
 

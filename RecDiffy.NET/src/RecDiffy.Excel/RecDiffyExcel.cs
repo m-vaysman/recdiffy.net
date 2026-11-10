@@ -83,11 +83,14 @@ public static partial class RecDiffyExcel
         return collapsed.Trim('-', '.') is { Length: > 0 } safe ? safe : "profile";
     }
 
+    // MA0190 wants a partial property. GeneratedRegexAttribute on net8.0 targets methods only, so the property form does not compile for a target this library still ships.
+#pragma warning disable MA0190
     [GeneratedRegex(@"\.{2,}", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex Dots();
 
     [GeneratedRegex("-{2,}", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex Dashes();
+#pragma warning restore MA0190
 
     internal sealed record Composed(ReportKind Kind, string FileName, Workbook? Workbook, string? SkipReason);
 

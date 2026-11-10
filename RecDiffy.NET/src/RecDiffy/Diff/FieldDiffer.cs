@@ -181,7 +181,7 @@ internal static class FieldDiffer
     private static bool Relative(decimal abs, decimal left, decimal right, decimal ratio)
     {
         var scale = Abs(left) > Abs(right) ? Abs(left) : Abs(right);
-        return scale == 0m ? false : CheckedDecimal.Multiply(ratio, scale) is { } allowed && abs <= allowed;
+        return scale is not 0m && CheckedDecimal.Multiply(ratio, scale) is { } allowed && abs <= allowed;
     }
 
     // The left quantity is the base. A zero left quantity is unexplained, and so is an expected value past the decimal

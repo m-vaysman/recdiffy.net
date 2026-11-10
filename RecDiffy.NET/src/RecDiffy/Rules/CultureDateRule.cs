@@ -3,9 +3,11 @@ using System.Globalization;
 namespace RecDiffy.Rules;
 
 // Replaced by DeclaredDateRule (#225). A format with no year takes the year from the clock, and no format guesses one.
-// date.parse no longer builds it.
+// date.parse no longer builds it. Friend tests still construct it; deleting a replaced rule is left to a human.
+#pragma warning disable MA0182
 [Obsolete("Replaced by DeclaredDateRule: a format with no year takes the year from the clock, and no format guesses one. See #225.")]
 internal sealed class CultureDateRule(string from, string to, IReadOnlyList<string> formats, string? formatBy, CultureInfo culture) : INormalizationRule
+#pragma warning restore MA0182
 {
     public string RuleId => "date.parse";
 

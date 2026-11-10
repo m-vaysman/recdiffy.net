@@ -3,10 +3,13 @@ namespace RecDiffy;
 internal sealed class ObjectSource<T>(IEnumerable<T> rows, SourceMap<T> map) : RecordSource
 {
     internal override IReadOnlyList<RawRecord> Materialize(string sideName, string rowKey, CancellationToken cancellation) =>
-        [.. rows.Select((row, ordinal) => Project(sideName, rowKey, ordinal, row, cancellation))];
+        ProjectAll(sideName, rowKey, cancellation);
 
     internal override Task<IReadOnlyList<RawRecord>> MaterializeAsync(string sideName, string rowKey, CancellationToken cancellation) =>
-        Task.FromResult(Materialize(sideName, rowKey, cancellation));
+        Task.FromResult<IReadOnlyList<RawRecord>>(ProjectAll(sideName, rowKey, cancellation));
+
+    private RawRecord[] ProjectAll(string sideName, string rowKey, CancellationToken cancellation) =>
+        [.. rows.Select((row, ordinal) => Project(sideName, rowKey, ordinal, row, cancellation))];
 
     private RawRecord Project(string sideName, string rowKey, int ordinal, T row, CancellationToken cancellation)
     {

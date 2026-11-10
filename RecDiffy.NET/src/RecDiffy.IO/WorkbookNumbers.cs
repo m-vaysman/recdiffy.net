@@ -14,8 +14,16 @@ internal static class WorkbookNumbers
             return null;
         var text = number.ToString("R", CultureInfo.InvariantCulture);
         return decimal.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var exact)
-            && double.Parse(exact.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture) == number
+            && SameValue(double.Parse(exact.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture), number)
             ? exact
             : null;
+    }
+
+    // Finite doubles match when their bits match, and +0 matches -0. A tolerance would accept a value no decimal holds.
+    private static bool SameValue(double left, double right)
+    {
+        var leftBits = BitConverter.DoubleToInt64Bits(left);
+        var rightBits = BitConverter.DoubleToInt64Bits(right);
+        return leftBits == rightBits || ((leftBits | rightBits) << 1) == 0L;
     }
 }

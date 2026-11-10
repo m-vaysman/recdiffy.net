@@ -15,7 +15,10 @@ public sealed record TabularPeek(IReadOnlyList<string> Headers, IReadOnlyList<Ta
     {
         ArgumentOutOfRangeException.ThrowIfNegative(sampleSize);
         var headers = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToArray();
+        // Seeded on purpose: the same file, options, size and seed must return the same sample. A CSPRNG cannot take that seed.
+#pragma warning disable S2245
         var (kept, count) = Sample(reader, sampleSize, new Random(seed), cancellationToken);
+#pragma warning restore S2245
         return new TabularPeek(headers, [.. kept.OrderBy(row => row.Index)], count);
     }
 

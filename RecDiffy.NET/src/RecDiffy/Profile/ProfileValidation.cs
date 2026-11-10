@@ -79,7 +79,7 @@ internal static class ProfileValidation
             : Array.Empty<ProfileProblem>();
         var duplicates = paths
             .GroupBy(path => path.Id, StringComparer.Ordinal)
-            .Where(group => group.Count() > 1)
+            .Where(group => group.Skip(1).Any())
             .Select(group => new ProfileProblem(DuplicatePath, $"Path '{group.Key}' is declared more than once.", $"paths[{group.Key}]"));
         return [.. missing, .. duplicates, .. paths.SelectMany(path => Path(path, declared))];
     }
@@ -92,7 +92,7 @@ internal static class ProfileValidation
             : Array.Empty<ProfileProblem>();
         var duplicates = path.Passes
             .GroupBy(pass => pass.Id, StringComparer.Ordinal)
-            .Where(group => group.Count() > 1)
+            .Where(group => group.Skip(1).Any())
             .Select(group => new ProfileProblem(DuplicatePass, $"Pass '{group.Key}' appears more than once in path '{path.Id}'.", $"{location}.passes[{group.Key}]"));
         var passes = path.Passes.SelectMany(pass =>
             Parts(pass)
