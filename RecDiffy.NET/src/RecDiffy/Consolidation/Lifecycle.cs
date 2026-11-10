@@ -89,12 +89,13 @@ internal static class Consolidation
         var inbound = events.Where(evt => evt.Target is not null).ToLookup(evt => (evt.Scope, evt.Target!), evt => evt.Key);
         var seen = new HashSet<LifeKey>();
         var chains = new List<IReadOnlyList<LifeEvent>>();
-        foreach (var start in events)
+        for (var position = 0; position < events.Count; position++)
         {
-            if (seen.Add(start.Key) is false)
+            var start = events[position].Key;
+            if (seen.Add(start) is false)
                 continue;
             var keys = new List<LifeKey>();
-            var pending = new Stack<LifeKey>([start.Key]);
+            var pending = new Stack<LifeKey>([start]);
             while (pending.TryPop(out var key))
             {
                 keys.Add(key);
