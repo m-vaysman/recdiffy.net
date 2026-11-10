@@ -2,12 +2,12 @@ using RecDiffy.Excel.Tests.Support;
 
 namespace RecDiffy.Excel.Tests;
 
-// An unpaired UTF-16 surrogate is not an XML 1.0 character, like a control character. The writer should replace it
-// with U+FFFD and keep the rest of the text. Today Clean lets every surrogate through, and saving throws (#256).
+// An unpaired UTF-16 surrogate is not an XML 1.0 character, like a control character. The writer replaces it
+// with U+FFFD and keeps the rest of the text (#256).
 // The surrogate is passed as a number: test data that holds a lone surrogate does not survive serialization.
 public class UnpairedSurrogateReportTests
 {
-    [Theory(Skip = "#256: OpenXmlWorkbookWriter.Clean lets an unpaired surrogate through, and saving the workbook throws ArgumentException.")]
+    [Theory]
     [InlineData("A", 0xD800, "B")]
     [InlineData("A", 0xDC00, "B")]
     [InlineData("AB", 0xD800, "")]
