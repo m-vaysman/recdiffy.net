@@ -1,0 +1,193 @@
+name: Packages
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: packages-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  VERSION: 0.0.0-ci.${{ github.run_number }}
+
+jobs:
+  pack:
+    name: Pack (#86, #52)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: RecDiffy.NET
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          global-json-file: RecDiffy.NET/global.json
+
+      - name: Restore cached NuGet packages
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('RecDiffy.NET/**/*.csproj', 'RecDiffy.NET/**/*.props', 'RecDiffy.NET/**/*.targets', 'RecDiffy.NET/global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Pack the whole solution
+        run: dotnet pack RecDiffy.slnx -c Release -o ../artifacts/packages -warnaserror -p:Version="$VERSION"
+
+      - name: Check that only the four libraries were packed
+        working-directory: artifacts/packages
+        run: |
+          expected="RecDiffy RecDiffy.Excel RecDiffy.IO RecDiffy.RulePacks.Trading"
+          status=0
+          for kind in nupkg snupkg; do
+            actual=$(for file in *."$kind"; do echo "${file%."$VERSION.$kind"}"; done | sort | xargs)
+            echo "$kind: $actual"
+            if [[ "$actual" != "$expected" ]]; then
+              echo "::error::Packing the solution made these .$kind files: $actual. Expected exactly: $expected."
+              status=1
+            fi
+          done
+          exit "$status"
+
+      - name: Check that the typed-reconciliation sample builds and packs nothing
+        run: |
+          sample=../docs/typed-reconciliation/sample/TypedReconciliationSample.csproj
+          dotnet build "$sample" -c Release
+          dotnet pack "$sample" -c Release --no-build -o "$RUNNER_TEMP/typed-sample" -p:Version="$VERSION"
+          if compgen -G "$RUNNER_TEMP/typed-sample/*.nupkg" > /dev/null; then
+            echo "::error::The typed-reconciliation sample made a package: $(ls "$RUNNER_TEMP/typed-sample")"
+            exit 1
+          fi
+
+      - name: Upload the packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: artifacts/packages/
+          if-no-files-found: error
+          retention-days: 7
+
+  consumer:
+    name: Consume the packages (#50)
+    needs: pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          global-json-file: RecDiffy.NET/global.json
+
+      - name: Download the packages into the local feed
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: RecDiffy.NET/tests/PackageSmoke/feed
+
+      - name: Restore from the feed, check the packages and run the samples
+        run: bash RecDiffy.NET/tests/PackageSmoke/consume.sh "$VERSION"
+
+  aot-packages:
+    name: Native AOT and trimming from the packages (#51)
+    needs: pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          global-json-file: RecDiffy.NET/global.json
+
+      - name: Download the packages into the local feed
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: RecDiffy.NET/tests/PackageSmoke/feed
+
+      - name: Publish with Native AOT and with trimming, then run
+        run: bash RecDiffy.NET/tests/PackageSmoke/publish-aot.sh "$VERSION"
+
+  aot-host:
+    name: Native AOT host (#51)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: RecDiffy.NET
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          global-json-file: RecDiffy.NET/global.json
+
+      - name: Restore cached NuGet packages
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('RecDiffy.NET/**/*.csproj', 'RecDiffy.NET/**/*.props', 'RecDiffy.NET/**/*.targets', 'RecDiffy.NET/global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Publish RecDiffy.AotHost with Native AOT
+        run: >-
+          dotnet publish src/RecDiffy.AotHost/RecDiffy.AotHost.csproj -c Release -r linux-x64
+          -o "$RUNNER_TEMP/aot-host" -warnaserror -p:TreatWarningsAsErrors=true -p:TrimmerSingleWarn=false
+
+      - name: Run RecDiffy.AotHost
+        run: |
+          exact=$("$RUNNER_TEMP/aot-host/RecDiffy.AotHost")
+          echo "Exact matches: $exact"
+          [[ "$exact" == "1" ]]
+
+  samples:
+    name: Run the samples (#62)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: RecDiffy.NET
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          global-json-file: RecDiffy.NET/global.json
+
+      - name: Restore cached NuGet packages
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('RecDiffy.NET/**/*.csproj', 'RecDiffy.NET/**/*.props', 'RecDiffy.NET/**/*.targets', 'RecDiffy.NET/global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Build the samples
+        run: dotnet build src/RecDiffy.Samples/RecDiffy.Samples.csproj -c Release -warnaserror
+
+      - name: Run the samples
+        run: dotnet run --project src/RecDiffy.Samples/RecDiffy.Samples.csproj -c Release --no-build
