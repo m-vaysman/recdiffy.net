@@ -15,7 +15,12 @@ public class UnpairedSurrogateReportTests
     {
         var path = ArgonExcelHoldsTests.Write(before + (char)surrogate + after);
 
-        Assert.Contains(ArgonExcelHoldsTests.Texts(path), text => text == before + '�' + after);
-        Assert.Empty(Workbooks.SchemaErrors(path));
+        var texts = ArgonExcelHoldsTests.Texts(path).ToArray();
+        var errors = Workbooks.SchemaErrors(path);
+
+        // A lone surrogate in a failure message aborts the test run when the Allure writer encodes it, so the
+        // messages carry counts, not cell text.
+        Assert.True(texts.Contains(before + '\uFFFD' + after, StringComparer.Ordinal), $"No cell holds the cleaned text. Cells that still hold a surrogate: {texts.Count(text => text.Any(char.IsSurrogate))}.");
+        Assert.True(errors.Count == 0, $"The workbook has {errors.Count} schema errors.");
     }
 }
