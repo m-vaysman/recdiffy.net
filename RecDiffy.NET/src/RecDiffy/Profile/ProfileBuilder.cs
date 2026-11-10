@@ -182,13 +182,19 @@ public sealed class ProfileBuilder
         Fields = [.. _draft.Fields],
         Normalization = _draft.Normalization.ToImmutableDictionary(pair => pair.Key, pair => pair.Value.ToSide(), StringComparer.Ordinal),
         Paths = [.. _draft.Paths.Select(path => path.ToDeclaration())],
-        SourceKeys = _draft.SourceKeys,
+        SourceKeys = KeysForEverySide(),
         Limits = _draft.Limits,
         Consolidation = _draft.Consolidation,
         Culture = _draft.Culture,
         StrictDateFormats = _draft.StrictDateFormats,
         SourceReadings = _draft.SourceReadings,
     };
+
+    // The writer puts every side that declares a reading under "sources", and the parser reads a side with no rowKey as ""
+    // (the row ordinal). The built document records that "" too, so it compiles to the same hash after a JSON round trip
+    // (#206).
+    private ImmutableDictionary<string, string> KeysForEverySide() =>
+        _draft.SourceReadings.Keys.Aggregate(_draft.SourceKeys, (keys, side) => keys.ContainsKey(side) ? keys : keys.Add(side, ""));
 
     private ProfileBuilder Reading(Side side, Func<SourceReading, SourceReading> change)
     {
