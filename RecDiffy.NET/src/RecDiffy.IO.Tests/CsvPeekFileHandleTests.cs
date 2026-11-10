@@ -4,7 +4,7 @@ namespace RecDiffy.IO.Tests;
 
 public class CsvPeekFileHandleTests
 {
-    [Fact(Skip = "🔴 #207: PeekCsv(path) leaves the file open when the CSV reader can't be created.")]
+    [Fact]
     public void A_csv_file_that_cannot_be_decoded_is_closed_when_the_peek_fails()
     {
         var path = Path.Combine(TestFiles.Folder(), "latin.csv");

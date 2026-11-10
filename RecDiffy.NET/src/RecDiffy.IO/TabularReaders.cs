@@ -14,15 +14,18 @@ internal static class TabularReaders
     public static IDataReader Csv(Stream stream, CsvOptions options, bool ownsStream)
     {
         var text = new StreamReader(stream, options.Encoding, detectEncodingFromByteOrderMarks: false, bufferSize: -1, leaveOpen: !ownsStream);
-        var reader = CsvDataReader.Create(text, new CsvDataReaderOptions
+        return Owned(text, () =>
         {
-            HasHeaders = options.HasHeader,
-            Delimiter = options.Delimiter.Character,
-            Quote = options.Quote,
-            Escape = options.Escape,
-            OwnsReader = true,
+            var reader = CsvDataReader.Create(text, new CsvDataReaderOptions
+            {
+                HasHeaders = options.HasHeader,
+                Delimiter = options.Delimiter.Character,
+                Quote = options.Quote,
+                Escape = options.Escape,
+                OwnsReader = true,
+            });
+            return Owned(reader, () => new NamedColumns(reader, Names(reader, options.HasHeader, "the CSV file")));
         });
-        return Owned(reader, () => new NamedColumns(reader, Names(reader, options.HasHeader, "the CSV file")));
     }
 
     public static IDataReader Excel(string path, ExcelOptions options)
