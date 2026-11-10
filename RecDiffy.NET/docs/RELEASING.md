@@ -65,82 +65,17 @@ The workflow publishes through nuget.org Trusted Publishing, so no API key is st
 
 Add a repository secret named `NUGET_USER` before the first tag. It holds the nuget.org username of the account that created the policy, not an API key.
 
-### Check the release
-
-The push uses `--skip-duplicate`, so pushing a version that already exists succeeds without publishing anything. A green run doesn't prove all four packages went out. After every release:
-
-1. **Check nuget.org.** Each of the four packages should list the new version. This lists them:
-
-   ```bash
-   for id in recdiffy recdiffy.rulepacks.trading recdiffy.io recdiffy.excel; do echo "$id: $(curl -s https://api.nuget.org/v3-flatcontainer/$id/index.json | tr -d ' \n')"; done
-   ```
-
-   A new version can take a few minutes to appear while nuget.org validates and indexes it.
-2. **Check the GitHub Release.** It should be marked as a prerelease, with four `.nupkg` and four `.snupkg` files.
-3. **Check `dev`.** The repository deletes a pull request's branch when it merges, so the release merge from `dev` to `main` deletes `dev`. If `git ls-remote origin dev` prints nothing, recreate it at `main`: `git push origin origin/main:refs/heads/dev`.
-
 ## GitHub Packages
 
-A push to `main` packs `1.1.0-preview.<run number>` and publishes those packages to GitHub Packages, not nuget.org. The run also uploads them as the `nuget-prerelease` workflow artifact. See [Two version lines](#two-version-lines).
+A push to `main` packs `1.1.0-preview.<run number>` and publishes those packages to GitHub Packages, not nuget.org.
 
-## Release recovery
+## After a release
 
-What to do when a release goes wrong. In every case, two facts set the options:
+The push uses `--skip-duplicate`, so a version that is already on nuget.org is skipped without an error. A green run doesn't prove that all four packages went out.
 
-- **nuget.org never deletes a version, and never takes the same version twice.** You fix a bad release by publishing a higher version, then deprecating or unlisting the bad one.
-- **The release job can be re-run safely.** It rebuilds, retests and repacks the same commit. `--skip-duplicate` skips each package that is already on nuget.org and pushes the rest. Each run gets a fresh one-hour key. `v1.2.0-preview.1` was published this way: the first attempt failed on a flaky test ([#104](https://github.com/m-vaysman/recdiffy.net/issues/104)), and re-running the failed job published it.
-
-### The workflow failed before it pushed
-
-If the run stopped at the build, the tests, the tag check, the pack or the nuget.org login, nothing was published.
-
-1. **Read the failed step.**
-2. **If the cause was transient,** such as a flaky test or a network error, re-run the failed job.
-3. **If the code needs a fix,** merge the fix through `dev` to `main`, and tag the fixed commit with the next number. The failed tag has no packages and no Release. Leave it, or delete it.
-4. **If the tag was wrong,** such as `v1.2.0` with no label, delete it with `git push origin --delete <tag>`, and push a correct one.
-
-### The publish was interrupted
-
-Some packages reached nuget.org and others didn't, or the packages went out but the GitHub Release wasn't created.
-
-1. **Find out what was published.** Run the check in [Check the release](#check-the-release).
-2. **Re-run the failed job.** The packages already on nuget.org are skipped, the rest are pushed, and the GitHub Release is created.
-3. **If the re-run can't publish the missing packages,** for example because the commit no longer builds, treat the release as out of step. See below.
-
-A re-run attaches freshly packed files to the GitHub Release. Builds are deterministic, but the packages on nuget.org are the ones the first run pushed.
-
-### The packages are out of step
-
-One version of `RecDiffy` is on nuget.org without the matching trading, IO or Excel package, or the other way round.
-
-The risk: a consumer who updates only `RecDiffy` gets an engine that the other packages weren't built against. The trading pack calls the engine's internals, so it can fail at run time with `MissingMethodException` or `TypeLoadException`.
-
-1. **Publish the missing packages at the same version,** by re-running the release job for that tag.
-2. **If that isn't possible,** release all four at the next number. Then deprecate the incomplete version of each package that did go out, with the new version as the alternative.
-3. **Say which versions belong together** in the new Release's notes.
-
-### A published package is bad
-
-A package on nuget.org has a defect, a wrong dependency, or the wrong contents.
-
-1. **Fix it on `dev`,** merge to `main`, and release all four packages at the next number. Release all four even if only one was bad, so the versions stay in step.
-2. **Deprecate the bad version on nuget.org,** for each of the four packages. Sign in to the nuget.org account that owns them, open each package's Manage page, select the version, and choose Deprecation. Give the reason, and name the fixed version as the alternative. nuget.org and IDE package managers then mark it as deprecated, and `dotnet list package --deprecated` reports it.
-3. **Unlist it as well if new projects must not pick it up.** An unlisted version is hidden from search, and NuGet won't pick it for a new install, but a project that already references it still restores it.
-4. **Mark the GitHub Release.** Edit its notes to say not to use it, and link the fixed Release. Keep it as a prerelease.
-5. **Tell users.** Open an issue that names the affected versions, the symptom and the fixed version, and link it from the fixed Release's notes.
-
-For a security defect, don't describe it in a public issue before the fix is out. A private way to report vulnerabilities is being set up in [#241](https://github.com/m-vaysman/recdiffy.net/issues/241).
-
-A bad `1.1.0-preview` build on GitHub Packages can be deleted outright from the package's settings on GitHub. Nothing outside this repository should depend on it.
-
-### A version doesn't match
-
-- **The tag isn't `vX.Y.Z-label`.** The workflow stops before packing. Push a correct tag.
-- **The tag names a version already on nuget.org,** for example after a tag was deleted and pushed again. Every push is skipped as a duplicate, so nothing new is published even when the run succeeds. Tag the commit with the next number.
-- **The tag is lower than the latest release,** such as `v1.1.0-preview.9`. It publishes, but it sorts below the latest release, so NuGet never picks it as an update. Deprecate it, and release the next number.
-- **A local pack has no version.** `RecDiffy.csproj` says `1.0.0`, and a pack without `-p:Version=X.Y.Z-label` fails the prerelease check. Pass the version, as the workflows do.
-- **Two previews report the same engine version.** That is expected. See [The engine version in a result](#the-engine-version-in-a-result).
-- **The Excel add-in uses an older preview.** It names its own version. Moving it is a separate PR.
+1. **Check nuget.org.** Each of the four packages should list the new version. A new version can take a few minutes to appear while nuget.org validates and indexes it.
+2. **Check the GitHub Release.** It should be marked as a prerelease, with four `.nupkg` and four `.snupkg` files.
+3. **Check `dev`.** The repository deletes a pull request's branch when it merges, so the release merge from `dev` to `main` deletes `dev`. If `git ls-remote origin dev` prints nothing, recreate it at `main`: `git push origin origin/main:refs/heads/dev`.
 
 ## Known limitations of the preview
 
