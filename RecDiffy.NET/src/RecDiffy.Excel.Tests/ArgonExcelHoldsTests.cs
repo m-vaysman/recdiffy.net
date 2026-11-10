@@ -47,7 +47,7 @@ public class ArgonExcelHoldsTests
     {
         var path = Write("AC\u0001ME\u0007");
 
-        Assert.Contains(Texts(path), text => text == "AC�ME�");
+        Assert.Contains(Texts(path), text => text == "AC\uFFFDME\uFFFD");
         Assert.Empty(Workbooks.SchemaErrors(path));
     }
 
@@ -59,7 +59,7 @@ public class ArgonExcelHoldsTests
 
         var path = Write(text);
 
-        var expected = "�" + new string('A', 20_000) + "�" + new string('B', MaxCellText - 20_002);
+        var expected = "\uFFFD" + new string('A', 20_000) + "\uFFFD" + new string('B', MaxCellText - 20_002);
         Assert.Contains(Texts(path), cell => cell == expected);
         Assert.Empty(Workbooks.SchemaErrors(path));
     }
