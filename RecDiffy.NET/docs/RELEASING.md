@@ -18,7 +18,7 @@ The four packages ship together, from one commit, at one version. The trading pa
 - **Each package depends on `RecDiffy` at its own version, as a minimum.** For example, `RecDiffy.RulePacks.Trading` 1.2.0-preview.3 depends on `RecDiffy` 1.2.0-preview.3 or later. NuGet lets a consumer take a newer `RecDiffy` than the other packages were built with.
 - **The trading pack uses the engine's internals** (`InternalsVisibleTo` in [RecDiffy.csproj](../src/RecDiffy/RecDiffy.csproj)), so it may not work with an engine from another release. Tell consumers to keep all four packages on one version.
 - **Only the four named projects are packed.** The workflows name them one by one. The samples project isn't marked `IsPackable=false` yet ([#86](https://github.com/m-vaysman/recdiffy.net/issues/86)).
-- **The Excel add-in isn't a package.** It references `RecDiffy` and `RecDiffy.IO` from nuget.org by exact version, so a release doesn't change it. Moving it to a new version is its own PR.
+- **The Excel add-in isn't a package.** It references `RecDiffy` and `RecDiffy.IO` from nuget.org at a version it names itself, `1.2.0-preview.2` today, so a release doesn't change it. Moving it to a new version is its own PR.
 
 What runs on which framework and operating system is in [SUPPORT.md](SUPPORT.md).
 
@@ -140,7 +140,7 @@ A bad `1.1.0-preview` build on GitHub Packages can be deleted outright from the 
 - **The tag is lower than the latest release,** such as `v1.1.0-preview.9`. It publishes, but it sorts below the latest release, so NuGet never picks it as an update. Deprecate it, and release the next number.
 - **A local pack has no version.** `RecDiffy.csproj` says `1.0.0`, and a pack without `-p:Version=X.Y.Z-label` fails the prerelease check. Pass the version, as the workflows do.
 - **Two previews report the same engine version.** That is expected. See [The engine version in a result](#the-engine-version-in-a-result).
-- **The Excel add-in uses an older preview.** It pins its version. Moving it is a separate PR.
+- **The Excel add-in uses an older preview.** It names its own version. Moving it is a separate PR.
 
 ## Known limitations of the preview
 
@@ -150,7 +150,7 @@ A bad `1.1.0-preview` build on GitHub Packages can be deleted outright from the 
 - **No package consumer test.** No workflow restores the packed packages in a clean project ([#50](https://github.com/m-vaysman/recdiffy.net/issues/50)).
 - **No XML API documentation** in the packages. No project sets `GenerateDocumentationFile`.
 - **Package metadata gaps,** such as links in the packed README, are tracked in [#46](https://github.com/m-vaysman/recdiffy.net/issues/46).
-- **Attributions are built into the engine,** and an unknown attribution name compiles ([#235](https://github.com/m-vaysman/recdiffy.net/issues/235)). `AttributedTo` can name roots that don't explain the difference ([#254](https://github.com/m-vaysman/recdiffy.net/issues/254)).
+- **`AttributedTo` can name roots that don't explain the difference** ([#254](https://github.com/m-vaysman/recdiffy.net/issues/254)).
 - **The same engine version** for every preview of one release. See [The engine version in a result](#the-engine-version-in-a-result).
 - **In memory.** Both sides are read fully into memory before matching.
 - **Profile gaps** that compile but misbehave are listed in [PROFILES.md](PROFILES.md#known-gaps).
