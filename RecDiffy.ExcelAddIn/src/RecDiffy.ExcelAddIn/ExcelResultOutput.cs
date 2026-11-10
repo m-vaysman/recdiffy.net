@@ -6,6 +6,7 @@ namespace RecDiffy.ExcelAddIn;
 
 internal sealed class ExcelResultOutput : IResultOutput
 {
+    private const int WorkbookType = 5;
     private const int WorksheetType = 1;
     private const int SheetNamesInfo = 1;
     private const int DateSystemInfo = 20;
@@ -69,7 +70,7 @@ internal sealed class ExcelResultOutput : IResultOutput
     private static Created Open()
     {
         var before = OpenWorkbooks();
-        if (XlCall.TryExcel(XlCall.xlcNew, out var made, WorksheetType) is not XlCall.XlReturn.XlReturnSuccess || made is false)
+        if (XlCall.TryExcel(XlCall.xlcNew, out var made, WorkbookType) is not XlCall.XlReturn.XlReturnSuccess || made is false)
             return new Created.Rejected("Excel couldn't create a new workbook.");
 
         return OpenWorkbooks().Except(before, StringComparer.OrdinalIgnoreCase).ToArray() switch

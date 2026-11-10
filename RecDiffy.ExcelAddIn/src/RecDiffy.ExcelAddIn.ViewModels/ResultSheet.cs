@@ -146,10 +146,13 @@ public static class ResultSheets
         ];
     }
 
-    private static string ExactMatchesNote(RunSummary summary, bool included) =>
-        included
-            ? "Listed below."
-            : string.Create(CultureInfo.CurrentCulture, $"Not listed below. The counts include all {summary.Exact:N0} of them.");
+    private static string ExactMatchesNote(RunSummary summary, bool included) => (included, summary.Exact) switch
+    {
+        (true, _) => "Listed below.",
+        (false, 0) => "Not listed below. There aren't any.",
+        (false, 1) => "Not listed below. The counts include it.",
+        _ => string.Create(CultureInfo.CurrentCulture, $"Not listed below. The counts include all {summary.Exact:N0} of them."),
+    };
 
     private static int SideRowCount(ReconciliationResult result, string side) =>
         result.Rows.Count(row => string.Equals(row.Row.Source, side, StringComparison.Ordinal));
