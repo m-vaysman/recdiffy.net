@@ -229,6 +229,7 @@ public class GeneratedProfileOracleSweepTests
             new("P1", "match.sharedRef", [], [], [], null, null),
             new("P2", "match.naturalKey", ["Counterparty", "Instrument", "TradeDate", "Quantity"], [], [], null, null),
             new("P3", "match.groupSum", [], ["Counterparty", "Instrument", "TradeDate", "Price"], ["Quantity", "NetCash"], "left", 6),
+            new("P4", "match.reducedKey", ["Counterparty", "Instrument", "TradeDate", "Quantity"], [], [], null, null),
         ];
 
         var diffFields = new Dictionary<string, FieldDiffDeclaration>(StringComparer.Ordinal)
@@ -376,7 +377,12 @@ public class GeneratedProfileOracleSweepTests
             parse.Add(Rule("decimal.parse", ("from", "Qty"), ("to", "Quantity")));
         }
 
-        return new NormalizationSide(identify, parse, derive, []);
+        RuleCall[] validate =
+        [
+            RuleWithList("required.present", "fields", ["Counterparty", "Instrument", "TradeDate", "Quantity"]),
+        ];
+
+        return new NormalizationSide(identify, parse, derive, validate);
     }
 
     private static RuleCall Rule(string name, params (string Key, string Value)[] strings) =>
