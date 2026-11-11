@@ -154,7 +154,7 @@ internal static class FieldDiffer
         Dates.Compare(in scaledLeft, in scaledRight, out var delta);
         if (delta.Days == 0)
             return new FieldScore(FieldOutcome.Exact, 0m, 0);
-        var allowed = step.Tolerance is { Kind: "Days", Days: { } days } ? days : 0;
+        var allowed = step.Tolerance is { Kind: "Days", Days: { } days } && Holds(step.Tolerance.When, left, right) ? days : 0;
         return new FieldScore(Math.Abs(delta.Days) <= allowed ? FieldOutcome.WithinTolerance : FieldOutcome.Break, 0m, delta.Days);
     }
 
@@ -164,9 +164,7 @@ internal static class FieldDiffer
     // The tolerance when must hold on both sides. One side failing it leaves a Break.
     private static bool Within(DiffStep step, RowContext left, RowContext right, decimal scaledLeft, decimal scaledRight, decimal delta)
     {
-        if (step.Tolerance is not { } tolerance || tolerance.Kind is "Exact" or "Attributed")
-            return false;
-        if (tolerance.When is not null && (WhenMatcher.Holds(tolerance.When, left) is false || WhenMatcher.Holds(tolerance.When, right) is false))
+        if (step.Tolerance is not { } tolerance || tolerance.Kind is "Exact" or "Attributed" || Holds(tolerance.When, left, right) is false)
             return false;
         var abs = delta < 0m ? -delta : delta;
         return tolerance.Kind switch
@@ -177,6 +175,9 @@ internal static class FieldDiffer
             _ => false,
         };
     }
+
+    private static bool Holds(WhenClause? when, RowContext left, RowContext right) =>
+        when is null || (WhenMatcher.Holds(when, left) && WhenMatcher.Holds(when, right));
 
     // An allowance past the decimal range cannot be computed, so the delta is not within it (#224).
     private static bool Relative(decimal abs, decimal left, decimal right, decimal ratio)

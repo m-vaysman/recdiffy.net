@@ -36,11 +36,11 @@ public class DaysToleranceConditionTests
     public void A_days_tolerance_applies_when_its_condition_holds_on_both_sides() =>
         Assert.Equal(FieldOutcome.WithinTolerance, SettleDate("Bond", "Bond"));
 
-    [Fact(Skip = "🔴 #289: FieldDiffer.Date reads only Days and ignores the tolerance's when.")]
+    [Fact]
     public void A_days_tolerance_does_not_apply_when_its_condition_fails_on_both_sides() =>
         Assert.Equal(FieldOutcome.Break, SettleDate("Equity", "Equity"));
 
-    [Fact(Skip = "🔴 #289: FieldDiffer.Date reads only Days and ignores the tolerance's when.")]
+    [Fact]
     public void A_days_tolerance_does_not_apply_when_its_condition_fails_on_one_side() =>
         Assert.Equal(FieldOutcome.Break, SettleDate("Bond", "Equity"));
 
