@@ -20,7 +20,12 @@ internal sealed class ObjectSource<T>(IEnumerable<T> rows, SourceMap<T> map) : R
     }
 }
 
+// Replaced by CancellableAsyncObjectSource (#266). AsyncObjectSource never checks the token itself, so an async enumerable
+// that does not take the token is read to the end after the run is cancelled.
+#pragma warning disable MA0182
+[Obsolete("Replaced by CancellableAsyncObjectSource: checks the cancellation token before each row even when the async enumerable does not take the token. See #266.")]
 internal sealed class AsyncObjectSource<T>(IAsyncEnumerable<T> rows, SourceMap<T> map) : RecordSource
+#pragma warning restore MA0182
 {
     internal override IReadOnlyList<RawRecord> Materialize(string sideName, string rowKey, CancellationToken cancellation) =>
         MaterializeAsync(sideName, rowKey, cancellation).GetAwaiter().GetResult();
