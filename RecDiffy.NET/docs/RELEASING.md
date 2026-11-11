@@ -31,24 +31,18 @@ What runs on which framework and operating system is in [SUPPORT.md](SUPPORT.md)
 - **Numbers may skip.** A gap is harmless. A number lower than one already published isn't.
 - **No stable version yet.** `v1.2.0` and other tags without a label fail the workflow before anything is packed. Lifting that rule is the maintainer's decision. The earlier plan for a `0.1.0` preview line was dropped in favour of `1.2.0-preview.N`.
 
-### Two version lines
+### One public channel
 
-Two workflows publish packages, with different versions, to different feeds.
+nuget.org prereleases are the only public channel. Two other workflows pack the libraries for this repository's own checks. They keep the packages as workflow artifacts, and publish nothing.
 
-| Workflow | Trigger | Version | Feed |
+| Workflow | Trigger | Version | Where the packages go |
 |---|---|---|---|
-| [ci.yml](../../.github/workflows/ci.yml) | Every push to `main` | `1.1.0-preview.<run number>` | GitHub Packages, `https://nuget.pkg.github.com/m-vaysman/index.json` |
-| [release.yml](../../.github/workflows/release.yml) | A pushed `vX.Y.Z-label` tag | The tag without its `v`, such as `1.2.0-preview.3` | nuget.org |
+| [release.yml](../../.github/workflows/release.yml) | A pushed `vX.Y.Z-label` tag | The tag without its `v`, such as `1.2.0-preview.3` | nuget.org, and the GitHub Release |
+| [packages.yml](../../.github/workflows/packages.yml) | Every pull request, and every push to `dev` and `main` | `0.0.0-ci.<run number>` | The `packages` workflow artifact, kept for seven days |
+| [ci.yml](../../.github/workflows/ci.yml) | Every push to `main` | `1.1.0-preview.<run number>` | The `nuget-prerelease` workflow artifact |
 
-What that means in practice:
-
-- **One commit gets two versions.** A release merge to `main` publishes `1.1.0-preview.<run>` to GitHub Packages. Tagging the same commit then publishes `1.2.0-preview.N` to nuget.org.
-- **GitHub Packages builds sort lower.** NuGet orders every `1.1.0-preview` below every `1.2.0-preview`. A consumer with both feeds gets the nuget.org release, even when a GitHub Packages build has newer code.
-- **The run number counts every CI run,** including pull requests and pushes to `dev`, so the GitHub Packages numbers jump.
-- **GitHub Packages builds are for this repository's own checks.** Point consumers at nuget.org.
-- **A third version never leaves CI.** The [Packages workflow](../../.github/workflows/packages.yml) packs `0.0.0-ci.<run number>` on every pull request and push, to check the packages. It keeps them as a workflow artifact for seven days and publishes nothing.
-
-Whether to align the two lines is an open decision for the maintainer. The workflows are unchanged until it is made.
+- **Point consumers at nuget.org.** Nothing else is a release.
+- **GitHub Packages still holds older `1.1.0-preview` builds** from before CI stopped publishing there. NuGet orders every `1.1.0-preview` below every `1.2.0-preview`, so a consumer with both feeds still gets the nuget.org release.
 
 ### The engine version in a result
 
@@ -68,7 +62,7 @@ Add a repository secret named `NUGET_USER` before the first tag. It holds the nu
 
 ## GitHub Packages
 
-A push to `main` packs `1.1.0-preview.<run number>` and publishes those packages to GitHub Packages, not nuget.org.
+Nothing is published to GitHub Packages. The `1.1.0-preview.<run number>` builds there are from before CI stopped publishing them. See [One public channel](#one-public-channel).
 
 ## After a release
 

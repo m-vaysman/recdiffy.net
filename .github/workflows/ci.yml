@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -89,15 +88,3 @@ jobs:
             artifacts/*.nupkg
             artifacts/*.snupkg
           if-no-files-found: error
-
-      - name: Publish to GitHub Packages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          dotnet nuget add source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
-            --name github \
-            --username "${{ github.actor }}" \
-            --password "$GITHUB_TOKEN" \
-            --store-password-in-clear-text
-          dotnet nuget push "artifacts/*.nupkg" --source github --api-key "$GITHUB_TOKEN" --skip-duplicate
