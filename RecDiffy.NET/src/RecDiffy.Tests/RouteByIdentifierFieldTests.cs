@@ -39,7 +39,7 @@ public class RouteByIdentifierFieldTests
         .Text("Book", row => row.Book)
         .Text("Amount", row => row.Amount);
 
-    [Fact(Skip = "#284: route.byField on an Identifier field compares scheme and value, so it never matches.")]
+    [Fact]
     public void A_route_on_an_identifier_field_takes_the_rows_whose_value_it_names()
     {
         var result = Reconciler.Run(

@@ -56,7 +56,7 @@ public class SharedRefBrokerPairTests
 
     // Each side numbered its own trades B-7 and B-9, crosswise. P2 pairs the trades whose economics agree. Today P1 pairs
     // them by the broker text first, so both pairs commit on P1 and break on quantity.
-    [Fact(Skip = "#283: match.sharedRef pairs two broker references that have the same text.")]
+    [Fact]
     public void Broker_references_with_the_same_text_do_not_pair_on_the_shared_reference_pass()
     {
         var result = Run(

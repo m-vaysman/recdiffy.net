@@ -28,9 +28,10 @@ internal sealed record PairIndex(
         IReadOnlyList<string> fields,
         bool veto,
         MatchWorkspace workspace,
-        MatchCounters counters)
+        MatchCounters counters,
+        bool sharedOnly = false)
     {
-        var placed = Placed(workspace, fields);
+        var placed = Placed(workspace, fields, sharedOnly);
         var keyed = placed.ToImmutableDictionary(row => row.Index, row => row.Key);
         var seeded = new PairIndex(
             passId,
@@ -67,7 +68,7 @@ internal sealed record PairIndex(
     // A key with rows on only one side is not residue. Those rows stay free for a later pass.
     private IEnumerable<ResidueCluster> Cluster(string key) =>
         Sides(key) is { Left: { Length: > 0 } left, Right: { Length: > 0 } right } && (left.Length is not 1 || right.Length is not 1)
-            ? [new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows([.. left, .. right]))]
+            ? [new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows([.. left, .. right]), key)]
             : [];
 
     private PairIndex Without(int index) =>
@@ -118,9 +119,9 @@ internal sealed record PairIndex(
             .ToImmutableDictionary(group => group.Key, group => group.Select(row => row.Index).ToImmutableArray(), StringComparer.Ordinal);
 
     // A null key part is not placed. The row stays free for a later pass.
-    private static IReadOnlyList<PlacedRow> Placed(MatchWorkspace workspace, IReadOnlyList<string> fields) =>
+    private static IReadOnlyList<PlacedRow> Placed(MatchWorkspace workspace, IReadOnlyList<string> fields, bool sharedOnly) =>
         [.. workspace.Free
-            .Select(index => MatchKeys.Compose(workspace.Items[index], fields, workspace.Schema) is { } key
+            .Select(index => MatchKeys.Compose(workspace.Items[index], fields, workspace.Schema, sharedOnly) is { } key
                 ? new PlacedRow(index, workspace.Items[index].Side, key)
                 : null)
             .OfType<PlacedRow>()];
