@@ -19,19 +19,6 @@ public class DiffTests
         new("NetCash", FieldType.Decimal, FieldRole.Economic, 2),
     ];
 
-    [Fact(Skip = "Replaced by DiffAllocationTests: a background GC can add up to 8 KB of this thread's unused allocation context to the count (#104).")]
-    public void Allocates_nothing_for_an_exact_pair()
-    {
-        var plan = Plan();
-        var left = Trade("L", Side.Left, 100m, 2m, 50m, 10m, 240m, "SELL", "Equity");
-        var right = Trade("R", Side.Right, 100m, 2m, 50m, 10m, 240m, "SELL", "Equity");
-        _ = FieldDiffer.Compare(left, right, plan);
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var index = 0; index < 1_000; index++)
-            _ = FieldDiffer.Compare(left, right, plan);
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
-    }
-
     [Fact]
     public void Keeps_an_accrued_delta_inside_an_inclusive_absolute_tolerance()
     {
