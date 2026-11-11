@@ -40,7 +40,7 @@ public class DeclaredDateRuleTests
 
     [Fact]
     public void Date_parse_is_registered_to_the_declared_rule() =>
-        Assert.IsType<DeclaredDateRule>(Rule("en-US", ["dd/MM/yyyy"]));
+        Assert.IsType<PartyFormatDateRule>(Rule("en-US", ["dd/MM/yyyy"]));
 
     [Theory]
     [InlineData("dd/MM")]

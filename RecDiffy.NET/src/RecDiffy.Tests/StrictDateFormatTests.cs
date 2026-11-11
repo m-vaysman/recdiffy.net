@@ -10,7 +10,7 @@ public class StrictDateFormatTests
 
     [Fact]
     public void Date_parse_is_registered_to_the_culture_rule() =>
-        Assert.IsType<DeclaredDateRule>(Rule("en-US", true, "dd/MM/yyyy"));
+        Assert.IsType<PartyFormatDateRule>(Rule("en-US", true, "dd/MM/yyyy"));
 
     // Strict: "/" and ":" mean exactly those characters, whatever the culture's own separators are.
     [Theory]

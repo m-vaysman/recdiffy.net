@@ -7,9 +7,9 @@ internal static class WhenMatcher
     public static bool Holds(WhenClause? when, RowContext row) => when switch
     {
         null => true,
-        { EqualsValue: { } expected } => Text(row, when.Field) == expected,
-        { NotEquals: { } excluded } => Text(row, when.Field) != excluded,
-        { In: { } values } => Text(row, when.Field) is { } actual && Contains(values, actual),
+        { EqualsValue: { } expected } => (Text(row, when.Field) ?? "") == expected,
+        { NotEquals: { } excluded } => (Text(row, when.Field) ?? "") != excluded,
+        { In: { } values } => Contains(values, Text(row, when.Field) ?? ""),
         _ => true,
     };
 
