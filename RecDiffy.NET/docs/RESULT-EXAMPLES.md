@@ -151,7 +151,7 @@ SideBySideCell { Left = 440.00, Right = 505.03, Delta = 65.03, LeftOnly = -40.00
 
 - **Only matched, left-only and right-only rows are in it.** L6 (quarantined), and L7, B7 and B8 (ambiguous), aren't in these totals at all. Suppressed and search-incomplete rows are left out the same way.
 - **Unmatched amounts have their own columns.** `LeftOnly` (shown negative) and `RightOnly` hold them, apart from `MatchedDelta`. The matched rows alone differ by -4.97.
-- **A blank amount adds 0 to a total.** L4's blank adds nothing to `Left`. Its break is in the entry's diffs, not in these totals.
+- **A blank amount adds 0 to a total.** L4's blank adds nothing to `Left`. Its break is in the entry's diffs, not in these totals. This is a known bug, [#300](https://github.com/m-vaysman/recdiffy.net/issues/300), and this section will change when it's fixed.
 
 So a side-by-side total isn't a file total. Read it with the summary, which says how many rows it doesn't cover.
 
