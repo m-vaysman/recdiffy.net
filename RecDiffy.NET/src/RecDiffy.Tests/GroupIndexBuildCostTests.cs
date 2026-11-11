@@ -9,7 +9,7 @@ namespace RecDiffy.Tests;
 // The benchmark project is referenced on net10.0 only.
 public class GroupIndexBuildCostTests
 {
-    [Fact(Skip = "🔴 #273: GroupIndex.Drop walks every ready proposal on each block evaluation, so the group index builds in quadratic time and memory.")]
+    [Fact]
     public void Building_the_group_index_for_eight_times_the_rows_allocates_about_eight_times_as_much()
     {
         var small = Allocated(500);

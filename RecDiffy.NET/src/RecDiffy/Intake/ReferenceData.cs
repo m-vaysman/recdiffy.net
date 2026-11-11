@@ -46,11 +46,24 @@ internal sealed record InstrumentMaster(
         new Dictionary<(string Scheme, string Value), string>(),
         new HashSet<(string Scheme, string Value)>());
 
-    public static InstrumentMaster FromRows(IReadOnlyList<IReadOnlyDictionary<string, object?>> rows, IReadOnlyList<string> columns) =>
-        columns
-            .SelectMany(column => rows.Select(row => (Scheme: SchemeOf(column), Raw: Text(row, column), Canonical: First(row, columns))))
-            .Where(entry => entry.Raw is not null && entry.Canonical is not null)
-            .Aggregate(Empty, (master, entry) => master.Add(entry.Scheme, entry.Raw!, entry.Canonical!));
+    public static InstrumentMaster FromRows(IReadOnlyList<IReadOnlyDictionary<string, object?>> rows, IReadOnlyList<string> columns)
+    {
+        var schemes = columns.Select(SchemeOf).ToArray();
+        var map = new Dictionary<(string Scheme, string Value), string>();
+        var conflicts = new HashSet<(string Scheme, string Value)>();
+        foreach (var row in rows)
+        {
+            if (First(row, columns) is not { } canonical)
+                continue;
+            for (var index = 0; index < columns.Count; index++)
+            {
+                if (Text(row, columns[index]) is { } raw)
+                    Record(map, conflicts, (schemes[index], raw), canonical);
+            }
+        }
+
+        return map.Count is 0 && conflicts.Count is 0 ? Empty : new(map, conflicts);
+    }
 
     public InstrumentMaster Add(string scheme, string value, string canonical) =>
         (Conflicts.Contains((scheme, value)), Map.TryGetValue((scheme, value), out var existing) ? existing : null, canonical) switch
@@ -65,6 +78,27 @@ internal sealed record InstrumentMaster(
             },
         };
 
+    private static void Record(
+        Dictionary<(string Scheme, string Value), string> map,
+        HashSet<(string Scheme, string Value)> conflicts,
+        (string Scheme, string Value) key,
+        string canonical)
+    {
+        if (conflicts.Contains(key))
+            return;
+        if (map.TryGetValue(key, out var existing) is false)
+        {
+            map[key] = canonical;
+            return;
+        }
+
+        if (existing != canonical)
+        {
+            map.Remove(key);
+            conflicts.Add(key);
+        }
+    }
+
     private static string SchemeOf(string column) => column.ToUpperInvariant() switch
     {
         "TICKER" => "TICKER",
@@ -74,8 +108,16 @@ internal sealed record InstrumentMaster(
     private static string? Text(IReadOnlyDictionary<string, object?> row, string column) =>
         row.TryGetValue(column, out var value) ? value?.ToString()?.Trim() : null;
 
-    private static string? First(IReadOnlyDictionary<string, object?> row, IReadOnlyList<string> columns) =>
-        columns.Select(column => Text(row, column)).FirstOrDefault(text => text is not null);
+    private static string? First(IReadOnlyDictionary<string, object?> row, IReadOnlyList<string> columns)
+    {
+        for (var index = 0; index < columns.Count; index++)
+        {
+            if (Text(row, columns[index]) is { } text)
+                return text;
+        }
+
+        return null;
+    }
 }
 
 internal static class DictionaryAdds

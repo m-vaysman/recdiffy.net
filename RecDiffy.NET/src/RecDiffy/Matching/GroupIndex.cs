@@ -19,6 +19,7 @@ internal sealed record GroupIndex(
     ImmutableDictionary<int, string> BlockOf,
     ImmutableDictionary<string, ImmutableArray<Decision>> Decisions,
     ImmutableDictionary<string, ImmutableList<ReadyProposal>> Ready,
+    ImmutableDictionary<string, ImmutableArray<string>> ReadyByBlock,
     ImmutableSortedSet<string> ReadyOrder) : PassIndex(PassId)
 {
     public override ImmutableHashSet<int> WorkspaceFree => Workspace.Free;
@@ -54,6 +55,7 @@ internal sealed record GroupIndex(
             blockOf,
             ImmutableDictionary.Create<string, ImmutableArray<Decision>>(StringComparer.Ordinal),
             ImmutableDictionary.Create<string, ImmutableList<ReadyProposal>>(StringComparer.Ordinal),
+            ImmutableDictionary.Create<string, ImmutableArray<string>>(StringComparer.Ordinal),
             ImmutableSortedSet.Create<string>(StringComparer.Ordinal));
         return EvaluateAll(seeded, seeded.Blocks.Keys.OrderBy(key => key, StringComparer.Ordinal), counters.Built(), false);
     }
@@ -120,22 +122,38 @@ internal sealed record GroupIndex(
             : this with { Blocks = Blocks.SetItem(key, Blocks[key].Remove(index)), BlockOf = BlockOf.Remove(index) };
 
     private GroupIndex Drop(string blockKey) =>
-        Ready.Keys.Aggregate(this, (state, key) =>
-        {
-            var kept = state.Ready[key].RemoveAll(ready => ready.Block == blockKey);
-            return kept.IsEmpty
-                ? state with { Ready = state.Ready.Remove(key), ReadyOrder = state.ReadyOrder.Remove(key) }
-                : state with { Ready = state.Ready.SetItem(key, kept) };
-        });
+        ReadyByBlock.TryGetValue(blockKey, out var keys) is false
+            ? this
+            : keys.Aggregate(
+                this with { ReadyByBlock = ReadyByBlock.Remove(blockKey) },
+                (state, key) => state.RemoveReady(blockKey, key));
 
-    private GroupIndex Add(string blockKey, MatchProposal proposal) =>
-        Ready.TryGetValue(proposal.Key, out var list)
-            ? this with { Ready = Ready.SetItem(proposal.Key, list.Add(new ReadyProposal(proposal, blockKey))) }
+    private GroupIndex RemoveReady(string blockKey, string key)
+    {
+        if (Ready.TryGetValue(key, out var proposals) is false)
+            return this;
+        var kept = proposals.RemoveAll(ready => ready.Block == blockKey);
+        return kept.IsEmpty
+            ? this with { Ready = Ready.Remove(key), ReadyOrder = ReadyOrder.Remove(key) }
+            : this with { Ready = Ready.SetItem(key, kept) };
+    }
+
+    private GroupIndex Add(string blockKey, MatchProposal proposal)
+    {
+        var keys = ReadyByBlock.TryGetValue(blockKey, out var existing) ? existing.Add(proposal.Key) : [proposal.Key];
+        return Ready.TryGetValue(proposal.Key, out var list)
+            ? this with
+            {
+                Ready = Ready.SetItem(proposal.Key, list.Add(new ReadyProposal(proposal, blockKey))),
+                ReadyByBlock = ReadyByBlock.SetItem(blockKey, keys),
+            }
             : this with
             {
                 Ready = Ready.SetItem(proposal.Key, [new ReadyProposal(proposal, blockKey)]),
+                ReadyByBlock = ReadyByBlock.SetItem(blockKey, keys),
                 ReadyOrder = ReadyOrder.Add(proposal.Key),
             };
+    }
 
     // The block limits count targets and eligible rows, and they are applied before any search.
     private (Decision Decision, MatchCounters Counters) Decide(Component component, MatchCounters counters, bool dirty) =>
