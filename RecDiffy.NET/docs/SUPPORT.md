@@ -78,6 +78,6 @@ What holds today, and how each part is checked:
 | Gap | Issue |
 |---|---|
 | Run the library tests, and the AOT publish, on Windows and macOS | [#53](https://github.com/m-vaysman/recdiffy.net/issues/53) |
-| Check the packages a release pushes, not only the ones each pull request packs | No issue yet |
+| Check the packages a release pushes, not only the ones each pull request packs | [#296](https://github.com/m-vaysman/recdiffy.net/issues/296) |
 
 When one of these lands, update the matching row above, and link the workflow step.

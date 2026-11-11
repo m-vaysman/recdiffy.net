@@ -52,7 +52,7 @@ Whether to align the two lines is an open decision for the maintainer. The workf
 
 ### The engine version in a result
 
-`result.Run.EngineVersion` is the `RecDiffy` assembly version. A prerelease version is dropped from it, so every `1.2.0` preview reports `1.2.0.0`, and the `1.1.0` builds report `1.1.0.0`. To tell previews apart, read the assembly's informational version, which carries the full version and the commit, such as `1.2.0-preview.3+<commit>`.
+`result.Run.EngineVersion` is the `RecDiffy` assembly version. A prerelease version is dropped from it, so every `1.2.0` preview reports `1.2.0.0`, and the `1.1.0` builds report `1.1.0.0`. To tell previews apart, read the assembly's informational version, which carries the full version and the commit, such as `1.2.0-preview.3+<commit>`. Making `EngineVersion` carry the full version is [#295](https://github.com/m-vaysman/recdiffy.net/issues/295).
 
 ## Release to nuget.org
 
@@ -76,17 +76,18 @@ The push uses `--skip-duplicate`, so a version that is already on nuget.org is s
 
 1. **Check nuget.org.** Each of the four packages should list the new version. A new version can take a few minutes to appear while nuget.org validates and indexes it.
 2. **Check the GitHub Release.** It should be marked as a prerelease, with four `.nupkg` and four `.snupkg` files.
-3. **Check `dev`.** The repository deletes a pull request's branch when it merges, so the release merge from `dev` to `main` deletes `dev`. If `git ls-remote origin dev` prints nothing, recreate it at `main`: `git push origin origin/main:refs/heads/dev`.
+
+**`dev` is never deleted or recreated.** Releases move `main` to `dev` by fast-forward only. The ruleset `dev-no-delete` blocks deleting `dev`.
 
 ## Known limitations of the preview
 
 - **Prerelease API.** Names and behaviour can change between previews. The API review before 1.0 is [#45](https://github.com/m-vaysman/recdiffy.net/issues/45), and the compatibility promise is [#74](https://github.com/m-vaysman/recdiffy.net/issues/74).
 - **Linux-only CI.** The library tests run only on Ubuntu ([#53](https://github.com/m-vaysman/recdiffy.net/issues/53)).
-- **Release packages aren't smoke-tested.** The Packages workflow checks packages packed from each pull request. The release workflow packs again from the tag, and those files go to nuget.org without the consumer and AOT checks.
+- **Release packages aren't smoke-tested.** The Packages workflow checks packages packed from each pull request. The release workflow packs again from the tag, and those files go to nuget.org without the consumer and AOT checks ([#296](https://github.com/m-vaysman/recdiffy.net/issues/296)).
 - **No XML API documentation** in the packages. No project sets `GenerateDocumentationFile`.
 - **Package metadata gaps,** such as links in the packed README, are tracked in [#46](https://github.com/m-vaysman/recdiffy.net/issues/46).
 - **`AttributedTo` can name roots that don't explain the difference** ([#254](https://github.com/m-vaysman/recdiffy.net/issues/254)).
-- **The same engine version** for every preview of one release. See [The engine version in a result](#the-engine-version-in-a-result).
+- **The same engine version** for every preview of one release ([#295](https://github.com/m-vaysman/recdiffy.net/issues/295)). See [The engine version in a result](#the-engine-version-in-a-result).
 - **In memory.** Both sides are read fully into memory before matching.
 - **Profile gaps** that compile but misbehave are listed in [PROFILES.md](PROFILES.md#known-gaps).
 - **Deferred:** installing the Excel add-in ([#198](https://github.com/m-vaysman/recdiffy.net/issues/198)), profile authoring tools ([#143](https://github.com/m-vaysman/recdiffy.net/issues/143), [#144](https://github.com/m-vaysman/recdiffy.net/issues/144), [#145](https://github.com/m-vaysman/recdiffy.net/issues/145)) and typed columns from a sample file ([#122](https://github.com/m-vaysman/recdiffy.net/issues/122)).
