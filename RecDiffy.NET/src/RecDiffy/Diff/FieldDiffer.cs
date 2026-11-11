@@ -91,7 +91,7 @@ internal static class FieldDiffer
                 new Delta(step.Field.Type switch { FieldType.Date => DeltaKind.Days, FieldType.Decimal => DeltaKind.Number, _ => DeltaKind.None }, score.Number, score.Days),
                 new ToleranceId(step.Tolerance?.Kind ?? "Exact"),
                 new AttributionId(step.Attribution ?? ""),
-                Roots(step, new RootOutcomes(plan.Steps, outcomes))));
+                Roots(step, score, new RootOutcomes(plan.Steps, outcomes), plan, left, right)));
         }
 
         return [.. diffs];
@@ -107,10 +107,10 @@ internal static class FieldDiffer
                 _ => score.Outcome,
             };
 
-    private static ImmutableArray<string> Roots(DiffStep step, RootOutcomes outcomes) => step.Formula switch
+    private static ImmutableArray<string> Roots(DiffStep step, FieldScore score, RootOutcomes outcomes, DiffPlan plan, RowContext left, RowContext right) => step.Formula switch
     {
-        { } attribution => attribution.AttributedTo(outcomes),
-        null => [],
+        { } attribution when attribution.Explains(left, right, step.Field, score.Number, plan.Midpoint) => attribution.AttributedTo(outcomes),
+        _ => [],
     };
 
     // Both null cells are Exact, and one null cell is a Break.

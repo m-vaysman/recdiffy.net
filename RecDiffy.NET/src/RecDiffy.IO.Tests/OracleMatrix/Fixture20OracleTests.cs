@@ -18,8 +18,6 @@ public class Fixture20OracleTests
 
     private static readonly Lazy<ReconciliationResult> Result = new(Run);
 
-    private const string CompositionDefects = "🔴 #307 and #308: every match whose street row is a lone NEW is flagged LifecycleCollapsed, and the 12 allocation and 8 swap packages are OneToOne + Package, not ManyToOne + Package";
-
     private const string Everything = "Waits on #307, #308, #309, price.dirtyToClean (8 known exact), cash.toPerspective (dealer-view rows), fees.inferFromNet (18 near-matches), and the lead's call on the swap coupon";
 
     // The swap price break CASE-BCC487E33A290260 also lists the coupon, which for a swap is the fixed rate. The engine
@@ -70,14 +68,22 @@ public class Fixture20OracleTests
         OracleAssert.None(comparison.Outcomes());
     }
 
-    [Fact(Skip = CompositionDefects)]
+    [Fact]
     public void AC2_each_entry_has_the_composition_its_label_maps_to() =>
         OracleAssert.None(Compare().Compositions(allocationsArePackages: true));
 
-    // 19 of the 20 breaks; the swap coupon is the lead's call.
+    // 16 of the 20 breaks: the swap coupon is the lead's call, and the three signed-cash BUY breaks wait on
+    // cash.toPerspective so trading.netCash can explain NetCash (#254).
     [Fact]
     public void AC3_each_break_is_rooted_in_the_field_the_oracle_names_and_no_other() =>
-        OracleAssert.None(Compare(item => item.Id == "CASE-BCC487E33A290260" ? CouponIsTheRate : null).BreakRoots(Field));
+        OracleAssert.None(Compare(BreakRootDeferred).BreakRoots(Field));
+
+    private static string? BreakRootDeferred(OracleCase item) => item.Id switch
+    {
+        "CASE-BCC487E33A290260" => CouponIsTheRate,
+        "CASE-32BADE5493F96F8D" or "CASE-AD2E22ECBC168DF4" or "CASE-B3C99CCF3208F735" => Deferral.CashToPerspective,
+        _ => null,
+    };
 
     // Every expected difference: the 18 near-matches and the 20 breaks, fee breaks included as net cash.
     [Fact]

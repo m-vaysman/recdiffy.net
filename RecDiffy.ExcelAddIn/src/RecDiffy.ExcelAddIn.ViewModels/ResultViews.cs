@@ -141,7 +141,7 @@ public static class ResultText
             new("Outcome", [Outcome(entry), .. Composition(entry)]),
             new("Matching",
             [
-                explanation.CommittedBy is { } pass ? $"Matched by {Pass(pass)}." : "No pass made a match.",
+                entry is { Alignment: Alignment.Matched, Explanation.CommittedBy: { } pass } ? $"Matched by {Pass(pass)}." : "No pass made a match.",
                 .. explanation.Trail.Count == 0 ? ["No pass attempts were recorded for this result."] : explanation.Trail.Select(Attempt),
             ]),
             .. explanation.Hints.Count == 0 ? Array.Empty<ExplanationSection>() : [new("Hints", [.. explanation.Hints.Select(hint => $"{hint.Code}: {hint.Detail}")])],

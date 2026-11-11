@@ -7,7 +7,7 @@ namespace RecDiffy.Tests;
 // matrix (#39): fixture 2.0's 12 linked allocations and 8 swaps, and Sonnet's 8 swaps, come out OneToOne + Package.
 public class PackageCompositionTests
 {
-    [Fact(Skip = "🔴 #308: a package of several rows matched to one row is OneToOne + Package, not ManyToOne + Package")]
+    [Fact]
     public void Two_legs_against_one_street_row_are_ManyToOne_and_Package()
     {
         var result = Run(
@@ -21,7 +21,7 @@ public class PackageCompositionTests
         Assert.Equal(Composition.ManyToOne | Composition.Package, entry.Composition);
     }
 
-    [Fact(Skip = "🔴 #308: a package of several rows matched to one row is OneToOne + Package, not ManyToOne + Package")]
+    [Fact]
     public void Three_linked_allocations_against_one_block_are_ManyToOne_and_Package()
     {
         var result = Run(
