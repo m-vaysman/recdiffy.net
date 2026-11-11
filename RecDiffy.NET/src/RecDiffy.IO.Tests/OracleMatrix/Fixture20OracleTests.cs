@@ -18,24 +18,19 @@ public class Fixture20OracleTests
 
     private static readonly Lazy<ReconciliationResult> Result = new(Run);
 
-    private const string Everything = "Waits on #307, #308, #309, price.dirtyToClean (8 known exact), cash.toPerspective (dealer-view rows), fees.inferFromNet (18 near-matches), and the lead's call on the swap coupon";
+    private const string Everything = "Waits on price.dirtyToClean (8 known exact), cash.toPerspective (dealer-view rows), fees.inferFromNet (18 near-matches), and the lead's call on the swap coupon";
 
     // The swap price break CASE-BCC487E33A290260 also lists the coupon, which for a swap is the fixed rate. The engine
     // reports both as roots; the oracle blames the price alone, and no attribution ties the coupon to the price.
     private const string CouponIsTheRate = "Oracle note: a swap's coupon is its fixed rate, so the engine finds two roots where the oracle blames one";
 
-    private const string CancelChain = "CASE-A70E609FA227681F";
-
     // Each check leaves out only the cases it can't judge, and says why.
     private static OracleComparison Compare(Func<OracleCase, string?>? deferred = null) => new(Result.Value, Dataset.Cases(), deferred);
-
-    private static string? ChainDeferred(OracleCase item) => item.Id == CancelChain ? Deferral.CancelRunsTradeRules : null;
 
     // Outcomes: a near-match's net cash is settled by trading.netCash only when every root, Fees included, is compared.
     private static string? OutcomeDeferred(OracleCase item) => item switch
     {
         { Kind: CaseKind.WithinTolerance } => Deferral.InferFees,
-        { Id: CancelChain } => Deferral.CancelRunsTradeRules,
         _ when Deferral.RightHas(Dataset, item, "Price_Quote_Convention", "DIRTY_PERCENT") => Deferral.DirtyToClean,
         _ when Deferral.RightHas(Dataset, item, "Reporting_Perspective", "DEALER_BILATERAL_VIEW") => Deferral.CashToPerspective,
         _ => null,
@@ -56,15 +51,15 @@ public class Fixture20OracleTests
 
     [Fact]
     public void AC1_each_case_is_one_entry_with_exactly_its_rows_and_there_are_no_other_entries() =>
-        OracleAssert.None(Compare(ChainDeferred).Membership());
+        OracleAssert.None(Compare().Membership());
 
-    // 42 deferred: 18 near-matches, 8 dirty prices, 15 dealer-view cases and the CANC chain.
+    // 41 deferred: 18 near-matches, 8 dirty prices and 15 dealer-view cases.
     [Fact]
     public void AC2_each_entry_has_the_alignment_and_outcome_its_label_maps_to()
     {
         var comparison = Compare(OutcomeDeferred);
 
-        Assert.Equal(275 - 42, comparison.Checked);
+        Assert.Equal(275 - 41, comparison.Checked);
         OracleAssert.None(comparison.Outcomes());
     }
 
@@ -92,7 +87,7 @@ public class Fixture20OracleTests
 
     [Fact]
     public void AC4_each_chain_survivor_is_the_oracles_active_report_and_the_rest_are_suppressed() =>
-        OracleAssert.None(Compare(ChainDeferred).Lifecycle());
+        OracleAssert.None(Compare().Lifecycle());
 
     [Fact]
     public void AC5_every_input_row_has_exactly_one_disposition() =>
