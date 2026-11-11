@@ -151,4 +151,54 @@ public class R3CompileValidationTests
 
         Assert.Equal(1, result.Summary.Exact);
     }
+
+    [Theory]
+    [InlineData(
+        "\"parse\": [ { \"rule\": \"symbol.map\", \"from\": \"Ref\", \"to\": \"TradeRef\" } ]",
+        "WrongPhase")]
+    [InlineData(
+        "\"paths\": [ { \"id\": \"p1\", \"route\": { \"rule\": \"route.all\" }, \"passes\": [ { \"id\": \"P1\", \"pass\": \"match.naturalKey\", \"key\": [\"TradeRef\"] } ] }, { \"id\": \"p2\", \"route\": { \"rule\": \"route.all\" }, \"passes\": [ { \"id\": \"P1\", \"pass\": \"match.naturalKey\", \"key\": [\"TradeRef\"] } ] } ]",
+        "OverlappingRoute")]
+    [InlineData(
+        "\"paths\": [ { \"id\": \"main\", \"route\": { \"rule\": \"route.all\" }, \"passes\": [ { \"id\": \"P1\", \"pass\": \"match.naturalKey\", \"key\": [\"TradeRef\"] } ], \"diff\": { \"fields\": { \"TradeRef\": { \"tolerance\": { \"days\": 1 } } } } } ]",
+        "ToleranceMismatch")]
+    public void Compile_rejects_wrong_phase_overlapping_route_and_tolerance_mismatch_with_named_codes(string replacement, string expectedCode)
+    {
+        const string baseProfile = """
+            {
+              "formatVersion": 1,
+              "profileId": "r3-compile-codes",
+              "version": "1.0.0",
+              "culture": "en-US",
+              "sources": { "left": { "rowKey": "Id" }, "right": { "rowKey": "Id" } },
+              "fields": [
+                { "name": "TradeRef", "type": "Identifier", "role": "Key" }
+              ],
+              "normalization": {
+                "left": {
+                  "identify": [ { "rule": "identifier.map", "from": "Ref", "to": "TradeRef", "scheme": "shared" } ]
+                },
+                "right": {
+                  "identify": [ { "rule": "identifier.map", "from": "Ref", "to": "TradeRef", "scheme": "shared" } ]
+                }
+              },
+              "paths": [ { "id": "main", "route": { "rule": "route.all" }, "passes": [ { "id": "P1", "pass": "match.naturalKey", "key": ["TradeRef"] } ] } ]
+            }
+            """;
+
+        var mutated = expectedCode is "WrongPhase"
+            ? baseProfile.Replace(
+                "\"identify\": [ { \"rule\": \"identifier.map\", \"from\": \"Ref\", \"to\": \"TradeRef\", \"scheme\": \"shared\" } ]",
+                replacement,
+                StringComparison.Ordinal)
+            : baseProfile.Replace(
+                "\"paths\": [ { \"id\": \"main\", \"route\": { \"rule\": \"route.all\" }, \"passes\": [ { \"id\": \"P1\", \"pass\": \"match.naturalKey\", \"key\": [\"TradeRef\"] } ] } ]",
+                replacement,
+                StringComparison.Ordinal);
+
+        var exception = Assert.Throws<ProfileCompileException>(() =>
+            Reconciler.Compile(ProfileDocument.Parse(mutated), RuleRegistry.CreateCore()));
+
+        Assert.Contains(exception.Errors, error => error.Code == expectedCode);
+    }
 }
