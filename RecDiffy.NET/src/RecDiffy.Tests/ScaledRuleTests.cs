@@ -14,7 +14,7 @@ public class ScaledRuleTests
         var rules = Rules(MidpointMode.ToEven);
 
         Assert.IsType<ScaledQuantityRule>(rules.Build("quantity.absolute", Columns("Quantity")));
-        Assert.IsType<Scaled32ndsRule>(rules.Build("price.from32nds", Columns("Parsed")));
+        Assert.IsType<BlankAware32ndsRule>(rules.Build("price.from32nds", Columns("Parsed")));
     }
 
     [Theory]

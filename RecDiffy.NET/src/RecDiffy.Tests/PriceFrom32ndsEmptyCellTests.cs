@@ -9,9 +9,7 @@ namespace RecDiffy.Tests;
 // only a null is blank to Treasury32nds.Apply. So "" is PriceParse, and a FromObjects row with an empty price is quarantined (#274).
 public class PriceFrom32ndsEmptyCellTests
 {
-    private const string Skip = "#274: Treasury32nds.Apply treats only a null cell as blank, so an empty price cell is PriceParse.";
-
-    [Fact(Skip = Skip)]
+    [Fact]
     public void An_empty_price_cell_is_a_silent_null()
     {
         var row = new RuleBench("price.from32nds").With("from", "Px").With("to", "Price").Apply(("Px", ""));
@@ -20,7 +18,7 @@ public class PriceFrom32ndsEmptyCellTests
         Assert.Empty(row.Diagnostics);
     }
 
-    [Fact(Skip = Skip)]
+    [Fact]
     public void A_row_with_an_empty_price_is_not_quarantined()
     {
         var registry = TradingRulePack.AddTo(RuleRegistry.CreateCore());

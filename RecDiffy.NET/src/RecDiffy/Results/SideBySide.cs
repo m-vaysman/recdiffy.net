@@ -26,6 +26,7 @@ internal static class SideBySideBuilder
     {
         var totals = new Dictionary<(string Row, string Column, string Measure), Bucket>();
         var counted = new HashSet<object>(ReferenceEqualityComparer.Instance);
+        var entries = result.Entries.ToDictionary(entry => entry.Id);
         foreach (var row in result.Rows)
         {
             if (row.Disposition is Disposition.Suppressed or Disposition.Quarantined or Disposition.Ambiguous or Disposition.SearchIncomplete)
@@ -41,7 +42,9 @@ internal static class SideBySideBuilder
             var columnLabel = Label(canonical, spec.Columns);
             foreach (var measure in spec.Measures)
             {
-                var amount = canonical.IsNull(measure.Field) ? 0m : canonical[measure.Field].Number;
+                if (HasMeasure(result, entries, row, canonical, measure.Field) is false)
+                    continue;
+                var amount = canonical[measure.Field].Number;
                 var key = (rowKey, columnKey, measure.Field);
                 totals[key] = totals.TryGetValue(key, out var current)
                     ? current with { Total = current.Total.Add(row.Disposition, row.Row.Source, amount) }
@@ -60,6 +63,13 @@ internal static class SideBySideBuilder
             .ToArray();
         return new SideBySideView(lines);
     }
+
+    private static bool HasMeasure(ReconciliationResult result, Dictionary<GroupId, ResultEntry> entries, RowResult row, CanonicalRow canonical, string field) =>
+        canonical.IsNull(field) is false
+        && (row.Disposition is not Disposition.Matched
+            || row.EntryId is not { } id
+            || entries.TryGetValue(id, out var entry) is false
+            || entry.Left.Concat(entry.Right).All(member => result.Canonical(member).IsNull(field) is false));
 
     private static string GroupKey(CanonicalRow row, IReadOnlyList<string> fields) =>
         fields.Count == 0 ? "All" : Delimited.Join('|', fields.Select(field => row.Text(field)));

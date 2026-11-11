@@ -5,11 +5,9 @@ namespace RecDiffy.Tests;
 // has no reference-data format, DeclaredDateParsing.Apply rejects the cell before it looks at it, so both are DateParse (#275).
 public class DateParseFormatByUnknownPartyTests
 {
-    private const string Skip = "#275: DeclaredDateParsing.Apply rejects every cell, blank and typed too, when the formatBy party has no reference-data format.";
-
     private static readonly RuleBench Parse = new RuleBench("date.parse").With("from", "Raw").With("to", "Day").With("formatBy", "Party");
 
-    [Theory(Skip = Skip)]
+    [Theory]
     [InlineData("GAMMA")]
     [InlineData("")]
     public void A_blank_cell_is_a_silent_null_whatever_the_party(string party)
@@ -20,7 +18,7 @@ public class DateParseFormatByUnknownPartyTests
         Assert.Empty(row.Diagnostics);
     }
 
-    [Theory(Skip = Skip)]
+    [Theory]
     [InlineData("GAMMA")]
     [InlineData("")]
     public void A_typed_date_reads_whatever_the_party(string party)

@@ -22,7 +22,7 @@ public sealed class SourceMap<T>
     {
         ArgumentNullException.ThrowIfNull(column);
         ArgumentNullException.ThrowIfNull(read);
-        return new SourceMap<T>([.. _binders, (row, cells) => cells[column] = read(row)?.Trim()]);
+        return new SourceMap<T>([.. _binders, (row, cells) => cells[column] = read(row)?.Trim() is { Length: > 0 } text ? text : null]);
     }
 
     public SourceMap<T> Date(string column, Func<T, DateOnly?> read)
