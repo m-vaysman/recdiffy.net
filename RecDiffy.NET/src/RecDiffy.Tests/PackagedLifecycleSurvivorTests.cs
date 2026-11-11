@@ -61,7 +61,7 @@ public class PackagedLifecycleSurvivorTests
         Assert.Equal((Disposition.Suppressed, SuppressionReason.Superseded), Superseded(result));
     }
 
-    [Fact(Skip = "🔴 #290: Packages.Build makes the package row without the survivor's Lineage and LifecycleCollapsed.")]
+    [Fact]
     public void The_superseded_leg_links_to_the_package_entry_its_correction_joined()
     {
         var (result, entry) = Run();
@@ -69,12 +69,12 @@ public class PackagedLifecycleSurvivorTests
         Assert.Equal(entry.Id, Assert.Single(result.Rows, row => row.Row.RowKey == "L1").EntryId);
     }
 
-    [Fact(Skip = "🔴 #290: Packages.Build makes the package row without the survivor's Lineage and LifecycleCollapsed.")]
+    [Fact]
     public void The_package_entry_is_marked_as_a_collapsed_lifecycle()
     {
         var (_, entry) = Run();
 
-        Assert.Equal(Composition.OneToOne | Composition.Package | Composition.LifecycleCollapsed, entry.Composition);
+        Assert.Equal(Composition.ManyToOne | Composition.Package | Composition.LifecycleCollapsed, entry.Composition);
     }
 
     private static (ReconciliationResult Result, ResultEntry Entry) Run()

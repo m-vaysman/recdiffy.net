@@ -17,7 +17,7 @@ public class UnexplainedAttributionTests
         new("NetCash", FieldType.Decimal, FieldRole.Economic, 2),
     ];
 
-    [Fact(Skip = "🔴 #254: an attributed field its formula does not explain still lists roots in AttributedTo")]
+    [Fact]
     public void A_pro_rata_field_its_formula_does_not_explain_is_attributed_to_no_root()
     {
         var accrued = Diff("Accrued", Trade(1_000_000m, 4_784.72m, 1_004_834.72m), Trade(800_000m, 4_000.00m, 804_050.00m));
@@ -25,7 +25,7 @@ public class UnexplainedAttributionTests
         Assert.Equal((FieldOutcome.Break, 0), (accrued.Outcome, accrued.AttributedTo.Length));
     }
 
-    [Fact(Skip = "🔴 #254: an attributed field its formula does not explain still lists roots in AttributedTo")]
+    [Fact]
     public void A_net_cash_its_formula_does_not_explain_is_attributed_to_no_root()
     {
         var cash = Diff("NetCash", Trade(1_000_000m, 4_784.72m, 1_004_834.72m), Trade(800_000m, 3_827.78m, 900_000.00m));

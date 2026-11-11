@@ -36,7 +36,7 @@ public class AmbiguousResultTextTests
         Assert.Contains("Pass 1: 3 records share key T-2, so none was picked.", matching, StringComparer.Ordinal);
     }
 
-    [Fact(Skip = "🔴 #258: ResultText.Explain says \"Matched by Pass 1.\" whenever CommittedBy is set, and the engine sets it on ambiguous entries too.")]
+    [Fact]
     public async Task The_explanation_of_an_ambiguous_result_does_not_say_a_pass_matched_it()
     {
         var row = await AmbiguousRow();

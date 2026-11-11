@@ -19,7 +19,7 @@ public class LoneLifecycleEventCompositionTests
         Assert.Equal(Composition.OneToOne | Composition.LifecycleCollapsed, entry.Composition);
     }
 
-    [Fact(Skip = "🔴 #307: a lone NEW report, with nothing to collapse, is flagged LifecycleCollapsed")]
+    [Fact]
     public void A_lone_NEW_report_with_nothing_to_collapse_is_OneToOne()
     {
         var result = Run([new("L1", "T1", null, null)], [new("R1", "T1", "NEW", null)]);

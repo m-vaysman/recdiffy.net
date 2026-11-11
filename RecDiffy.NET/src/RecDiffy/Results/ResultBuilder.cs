@@ -275,7 +275,9 @@ internal static class ResultBuilder
 
     private static Composition Compose(CommittedMatch group)
     {
-        var composition = (group.Left.Count, group.Right.Count) switch
+        var leftCount = group.Left.Sum(row => row.Packaged ? row.Members.Count : 1);
+        var rightCount = group.Right.Sum(row => row.Packaged ? row.Members.Count : 1);
+        var composition = (leftCount, rightCount) switch
         {
             (1, 1) => Composition.OneToOne,
             (_, 1) => Composition.ManyToOne,
@@ -283,10 +285,16 @@ internal static class ResultBuilder
         };
         if (group.Left.Concat(group.Right).Any(row => row.Packaged))
             composition |= Composition.Package;
-        if (group.Left.Concat(group.Right).Any(row => row.LifecycleCollapsed))
+        if (group.Left.Concat(group.Right).Any(CollapsedLifecycle))
             composition |= Composition.LifecycleCollapsed;
         return composition;
     }
+
+    private static bool CollapsedLifecycle(ConsolidatedRow row) =>
+        row.LifecycleCollapsed
+        && (row.Lineage is null
+            || row.Lineage.Select(member => member.RowKey).Distinct(StringComparer.Ordinal).Count()
+                > row.Members.Select(member => member.RowKey).Distinct(StringComparer.Ordinal).Count());
 
     private static SourceRef[] Members(IReadOnlyList<ConsolidatedRow> left, IReadOnlyList<ConsolidatedRow> right) =>
         [.. left.SelectMany(row => row.Members), .. right.SelectMany(row => row.Members)];

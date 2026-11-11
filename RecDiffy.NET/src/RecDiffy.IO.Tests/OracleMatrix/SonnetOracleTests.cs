@@ -17,8 +17,6 @@ public class SonnetOracleTests
 
     private static readonly Lazy<ReconciliationResult> Result = new(Run);
 
-    private const string CompositionDefects = "🔴 #307 and #308: every match whose street row is a lone NEW is flagged LifecycleCollapsed, and the 8 swap packages are OneToOne + Package, not ManyToOne + Package";
-
     private const string Everything = "Waits on #307, #308, price.dirtyToClean (8 known exact) and fees.inferFromNet (18 near-matches, 5 fee breaks)";
 
     // Each check leaves out only the cases it can't judge, and says why.
@@ -34,6 +32,8 @@ public class SonnetOracleTests
     };
 
     private static bool FeeBreak(OracleCase item) => item.BreakFields.Contains("Commission_Fees", StringComparer.Ordinal);
+
+    private static bool QuantityBreak(OracleCase item) => item.BreakFields.Contains("Quantity_Notional", StringComparer.Ordinal);
 
     private static bool FeeDelta(OracleCase item) => item.Deltas.Any(delta => delta.Field == "Commission_Fees");
 
@@ -63,7 +63,7 @@ public class SonnetOracleTests
         OracleAssert.None(comparison.Outcomes());
     }
 
-    [Fact(Skip = CompositionDefects)]
+    [Fact]
     public void AC2_each_entry_has_the_composition_its_label_maps_to() =>
         OracleAssert.None(Compare().Compositions(allocationsArePackages: false));
 
@@ -76,10 +76,11 @@ public class SonnetOracleTests
         Assert.Equal((145, 18, 20, 85, 7), (summary.Exact, summary.WithinTolerance, summary.Break, summary.LeftOnly, summary.RightOnly));
     }
 
-    // 15 of the 20 breaks: a fee break waits on fees.inferFromNet.
+    // 11 of the 20 breaks: a fee break, or an 80% quantity break whose street cash embeds an 80% fee, waits on
+    // fees.inferFromNet so trading.netCash can explain NetCash (#254).
     [Fact]
     public void AC3_each_break_is_rooted_in_the_field_the_oracle_names_and_no_other() =>
-        OracleAssert.None(Compare(item => FeeBreak(item) ? Deferral.InferFees : null).BreakRoots(Field));
+        OracleAssert.None(Compare(item => FeeBreak(item) || QuantityBreak(item) ? Deferral.InferFees : null).BreakRoots(Field));
 
     // 12 of the 18 near-matches: an accrued or FX rate delta. A fee delta waits on fees.inferFromNet.
     [Fact]
