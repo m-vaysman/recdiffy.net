@@ -19,7 +19,7 @@ public class DiffTests
         new("NetCash", FieldType.Decimal, FieldRole.Economic, 2),
     ];
 
-    [Fact]
+    [Fact(Skip = "Replaced by DiffAllocationTests: a background GC can add up to 8 KB of this thread's unused allocation context to the count (#104).")]
     public void Allocates_nothing_for_an_exact_pair()
     {
         var plan = Plan();
