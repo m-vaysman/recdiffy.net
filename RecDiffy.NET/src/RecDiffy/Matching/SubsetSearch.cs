@@ -94,6 +94,7 @@ internal static class SubsetSearch
 
             var cls = classes[index];
             var room = cls.Items.Length;
+            var saved = sums.ToArray();
             for (var k = room; k >= 0 && !_stop; k--)
             {
                 var next = size + k;
@@ -105,19 +106,19 @@ internal static class SubsetSearch
                 Add(cls, k);
                 if (nonNegative && sums[0] > target[0])
                 {
-                    Add(cls, -k);
+                    Array.Copy(saved, sums, sums.Length);
                     continue;
                 }
 
                 if (nonNegative && CheckedDecimal.Add(sums[0], suffix[index + 1]) is { } reach && reach < target[0])
                 {
-                    Add(cls, -k);
+                    Array.Copy(saved, sums, sums.Length);
                     break;
                 }
 
                 counts[index] = k;
                 Go(index + 1, next);
-                Add(cls, -k);
+                Array.Copy(saved, sums, sums.Length);
             }
 
             counts[index] = 0;
@@ -158,7 +159,10 @@ internal static class SubsetSearch
         {
             for (var field = 0; field < sums.Length; field++)
             {
-                if (CheckedDecimal.Add(sums[field], CheckedDecimal.Multiply(cls.Values[field], count)) is null)
+                if (CheckedDecimal.Multiply(cls.Values[field], count) is not { } delta
+                    || CheckedDecimal.Add(sums[field], delta) is not { } next
+                    || CheckedDecimal.Subtract(next, delta) != sums[field]
+                    || CheckedDecimal.Subtract(next, sums[field]) != delta)
                     return false;
             }
 

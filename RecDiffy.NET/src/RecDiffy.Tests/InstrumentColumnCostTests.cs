@@ -8,7 +8,7 @@ public class InstrumentColumnCostTests
     // reads that master. Its cost is what the same run allocates with the column, less what it allocates without.
     // Linear growth doubles that cost when the rows double. The intake runs on the calling thread, so the count is
     // that thread's allocations, which other tests running in parallel do not touch.
-    [Fact(Skip = "🔴 #267: InstrumentMaster.Add copies the whole map for every entry, so the cost grows with the square of the left rows.")]
+    [Fact]
     public void An_isin_column_adds_a_cost_that_grows_linearly_with_the_left_rows()
     {
         _ = Allocated(500, isin: true);
