@@ -104,6 +104,28 @@ public class RegistryCoverageGateTests
     }
 
     [Fact]
+    public void Every_registered_normalization_rule_pass_and_route_is_exercised_in_GeneratedProfileOracleSweepTests()
+    {
+        var sweepPath = Path.Combine(ProfileCorpus.Source, "RecDiffy.Tests", nameof(GeneratedProfileOracleSweepTests) + ".cs");
+        var sweepSource = File.ReadAllText(sweepPath);
+
+        var rules = FullRegistry.Normalization.Keys.OrderBy(name => name, StringComparer.Ordinal).ToArray();
+        var missingRules = rules
+            .Where(rule => !sweepSource.Contains($"\"{rule}\"", StringComparison.Ordinal))
+            .ToArray();
+        var missingPasses = RegisteredPasses
+            .Where(pass => !sweepSource.Contains($"\"{pass}\"", StringComparison.Ordinal))
+            .ToArray();
+        var missingRoutes = RegisteredRoutes
+            .Where(route => !sweepSource.Contains($"\"{route}\"", StringComparison.Ordinal))
+            .ToArray();
+
+        Assert.Empty(missingRules);
+        Assert.Empty(missingPasses);
+        Assert.Empty(missingRoutes);
+    }
+
+    [Fact]
     public void Every_compile_error_code_and_profile_problem_code_has_dedicated_test_coverage()
     {
         var problemCodes = typeof(ProfileProblemCodes)

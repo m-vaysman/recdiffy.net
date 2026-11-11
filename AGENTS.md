@@ -228,6 +228,17 @@ Do not rename, reformat, reorder, fold, extract, modernize, or improve unrelated
   - If sibling sites are inside your `CHANGE` scope, fix them in the same PR.
   - If sibling sites are in locked types outside your scope, stop and list them for the lead before writing a partial fix.
 
+### Engine invariants & CI gates (#331)
+
+`ArchitectureInvariantGateTests`, `RegistryCoverageGateTests`, `KeyAndDecimalBoundaryPropertyTests`, and `GeneratedProfileOracleSweepTests` enforce these invariants on every build:
+
+- **R1 (Delimiters & blanks):** Every composite key, class key, or fingerprint must go through `Delimited.Join` / `Delimited.Escape` or `MatchKeys.Compose` (never raw `string.Join('\u001f', ...)`). At intake (`RecordSources`), `null`, `DBNull`, `""`, and whitespace-only strings normalize to `null`, and blank key fields never match each other.
+- **R2 (Identifier key vs. value & decimal-only math):** `MatchKeys.KeyText` (`scheme + "\u001e" + value`) is internal to `Matching/MatchKeys.cs`; everywhere a rule or person sees an identifier (`route.byField`, conditions, Contest key display, explanations) uses `MatchKeys.ValueText`. Never use `double` or `float` in `Matching`, `Consolidation`, `Diff`, or `Results`.
+- **R3 (Single-pass compile validation):** Every profile error knowable from `ProfileDocument` and `RuleRegistry` (including unproduced fields in `route.byField`, passes, diffs, tolerances, and sequential rules) must be rejected at compile time in `ProfileCompiler` with a named `ProfileProblemCodes` diagnostic.
+- **R4 (Composition & lineage in one place):** `Composition` flags (`OneToOne`, `ManyToOne`, `OneToMany`, `Package`, `LifecycleCollapsed`) and survivor lineage are computed only in `ResultBuilder` from the final consolidated members, combining cardinality and mechanism bits with `|`.
+- **R5 (Linear loop builders & `CheckedDecimal`):** Hot-path index construction (`ReferenceData`, `GroupIndex`) uses local mutable builders instead of copy-in-loop allocations, and all engine decimal sums/deltas (`Packages`, `ResultBuilder`, `SubsetSearch`, `FieldDiffer`, `SideBySideBuilder`, trading attributions) go through `CheckedDecimal`.
+- **Keep T1 & T2 gates in sync:** Adding a new rule, pass, route, attribution, `AggregateKind`, or `ProfileProblemCodes` constant requires adding coverage in `RegistryCoverageGateTests` and `GeneratedProfileOracleSweepTests` in the same PR.
+
 ### Diff shape
 
 For an EXTEND ticket, the expected diff is:
