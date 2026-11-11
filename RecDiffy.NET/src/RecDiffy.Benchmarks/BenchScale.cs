@@ -7,6 +7,7 @@ internal static class BenchScale
 {
     public const int Small = 1_000;
     public const int Large = 4_000;
+    public const int XLarge = 100_000;
 
     public const int LaunchCount = 1;
     public const int WarmupCount = 1;

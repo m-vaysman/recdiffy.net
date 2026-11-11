@@ -212,10 +212,10 @@ internal sealed record GroupIndex(
         [.. EligibleFor(target, component)
             .Select(index => (Index: index, Values: Conserved(Workspace.Items[index].Row.Context)))
             .Where(pair => pair.Values is not null)
-            .GroupBy(pair => string.Join('\u001f', pair.Values!.Select(value => value.ToString(CultureInfo.InvariantCulture))), StringComparer.Ordinal)
+            .GroupBy(pair => Delimited.Join('\u001f', pair.Values!.Select(value => value.ToString(CultureInfo.InvariantCulture))), StringComparer.Ordinal)
             .Select(group => new ConservedClass(group.First().Values!, [.. group.Select(pair => pair.Index)]))
             .OrderByDescending(cls => cls.Values[0])
-            .ThenBy(cls => string.Join('\u001f', cls.Values.Select(value => value.ToString(CultureInfo.InvariantCulture))), StringComparer.Ordinal)];
+            .ThenBy(cls => Delimited.Join('\u001f', cls.Values.Select(value => value.ToString(CultureInfo.InvariantCulture))), StringComparer.Ordinal)];
 
     private decimal[]? Conserved(RowContext row)
     {

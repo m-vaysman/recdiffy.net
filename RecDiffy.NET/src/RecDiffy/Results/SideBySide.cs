@@ -53,13 +53,15 @@ internal static class SideBySideBuilder
         }
 
         var lines = totals
-            .GroupBy(pair => (pair.Key.Row, pair.Key.Column))
-            .OrderBy(group => group.First().Value.RowLabel, StringComparer.Ordinal)
-            .ThenBy(group => group.First().Value.ColumnLabel, StringComparer.Ordinal)
+            .Select(pair => (pair.Key, pair.Value.RowLabel, pair.Value.ColumnLabel, Cell: pair.Value.Total.Cell()))
+            .Where(item => item.Cell is not null)
+            .GroupBy(item => (item.Key.Row, item.Key.Column))
+            .OrderBy(group => group.First().RowLabel, StringComparer.Ordinal)
+            .ThenBy(group => group.First().ColumnLabel, StringComparer.Ordinal)
             .Select(group => new SideBySideLine(
-                group.First().Value.RowLabel,
-                group.First().Value.ColumnLabel,
-                group.ToDictionary(pair => pair.Key.Measure, pair => pair.Value.Total.Cell(), StringComparer.Ordinal)))
+                group.First().RowLabel,
+                group.First().ColumnLabel,
+                group.ToDictionary(item => item.Key.Measure, item => item.Cell!.Value, StringComparer.Ordinal)))
             .ToArray();
         return new SideBySideView(lines);
     }
@@ -80,20 +82,31 @@ internal static class SideBySideBuilder
 
     private readonly record struct Bucket(string RowLabel, string ColumnLabel, Accumulator Total);
 
-    private readonly record struct Accumulator(decimal Left, decimal Right, decimal LeftOnly, decimal RightOnly, decimal MatchedLeft, decimal MatchedRight)
+    private readonly record struct Accumulator(decimal? Left, decimal? Right, decimal? LeftOnly, decimal? RightOnly, decimal? MatchedLeft, decimal? MatchedRight)
     {
         public static Accumulator Start(Disposition disposition, string source, decimal amount) => new Accumulator(0m, 0m, 0m, 0m, 0m, 0m).Add(disposition, source, amount);
 
         public Accumulator Add(Disposition disposition, string source, decimal amount) => (disposition, source) switch
         {
-            (Disposition.Matched, "left") => this with { Left = Left + amount, MatchedLeft = MatchedLeft + amount },
-            (Disposition.Matched, _) => this with { Right = Right + amount, MatchedRight = MatchedRight + amount },
-            (Disposition.LeftOnly, _) => this with { Left = Left + amount, LeftOnly = LeftOnly + amount },
-            (Disposition.RightOnly, _) => this with { Right = Right + amount, RightOnly = RightOnly + amount },
+            (Disposition.Matched, "left") => this with { Left = CheckedDecimal.Add(Left, amount), MatchedLeft = CheckedDecimal.Add(MatchedLeft, amount) },
+            (Disposition.Matched, _) => this with { Right = CheckedDecimal.Add(Right, amount), MatchedRight = CheckedDecimal.Add(MatchedRight, amount) },
+            (Disposition.LeftOnly, _) => this with { Left = CheckedDecimal.Add(Left, amount), LeftOnly = CheckedDecimal.Add(LeftOnly, amount) },
+            (Disposition.RightOnly, _) => this with { Right = CheckedDecimal.Add(Right, amount), RightOnly = CheckedDecimal.Add(RightOnly, amount) },
             _ => this,
         };
 
         // LeftOnly is negated on the cell. RightOnly stays positive.
-        public SideBySideCell Cell() => new(Left, Right, Right - Left, -LeftOnly, RightOnly, MatchedRight - MatchedLeft);
+        public SideBySideCell? Cell() =>
+            Left is { } left
+            && Right is { } right
+            && LeftOnly is { } leftOnly
+            && RightOnly is { } rightOnly
+            && MatchedLeft is { } matchedLeft
+            && MatchedRight is { } matchedRight
+            && CheckedDecimal.Subtract(right, left) is { } delta
+            && CheckedDecimal.Subtract(0m, leftOnly) is { } minusLeftOnly
+            && CheckedDecimal.Subtract(matchedRight, matchedLeft) is { } matchedDelta
+                ? new SideBySideCell(left, right, delta, minusLeftOnly, rightOnly, matchedDelta)
+                : null;
     }
 }

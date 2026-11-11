@@ -8,7 +8,7 @@ namespace RecDiffy.Tests;
 // The benchmark project is referenced on net10.0 only.
 public class BmfReportParameterTests
 {
-    [Fact(Skip = "🔴 #265: BmfReport splits parameters on commas, so a benchmark with two parameters gets no throughput.")]
+    [Fact]
     public void Publishes_throughput_when_benchmarkdotnet_joins_two_parameters_with_an_ampersand()
     {
         const string report = """

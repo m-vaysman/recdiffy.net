@@ -147,7 +147,7 @@ public static class BmfReport
     private static int? RowsPerSide(JsonElement benchmark)
     {
         var parameters = Text(benchmark, "Parameters");
-        foreach (var part in parameters.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        foreach (var part in parameters.Split([',', '&', ';'], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
         {
             if (part.Split('=', 2) is ["Rows", var value]
                 && int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var rows))

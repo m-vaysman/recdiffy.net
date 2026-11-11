@@ -201,4 +201,47 @@ public class R3CompileValidationTests
 
         Assert.Contains(exception.Errors, error => error.Code == expectedCode);
     }
+
+    [Fact]
+    public void Route_by_field_not_written_by_both_sides_fails_compile_with_FieldNotProduced()
+    {
+        const string json = """
+            {
+              "formatVersion": 1,
+              "profileId": "r3-route-field-not-produced",
+              "version": "1.0.0",
+              "culture": "en-US",
+              "sources": { "left": { "rowKey": "Id" }, "right": { "rowKey": "Id" } },
+              "fields": [
+                { "name": "TradeRef", "type": "Identifier", "role": "Key" },
+                { "name": "Desk", "type": "Symbol", "role": "Key" }
+              ],
+              "normalization": {
+                "left": {
+                  "identify": [
+                    { "rule": "identifier.map", "from": "Ref", "to": "TradeRef", "scheme": "shared" },
+                    { "rule": "symbol.map", "from": "DeskCol", "to": "Desk" }
+                  ]
+                },
+                "right": {
+                  "identify": [
+                    { "rule": "identifier.map", "from": "Ref", "to": "TradeRef", "scheme": "shared" }
+                  ]
+                }
+              },
+              "paths": [
+                {
+                  "id": "rates",
+                  "route": { "rule": "route.byField", "field": "Desk", "equals": "RATES" },
+                  "passes": [ { "id": "P1", "pass": "match.naturalKey", "key": ["TradeRef"] } ]
+                }
+              ]
+            }
+            """;
+
+        var exception = Assert.Throws<ProfileCompileException>(() =>
+            Reconciler.Compile(ProfileDocument.Parse(json), RuleRegistry.CreateCore()));
+
+        Assert.Contains(exception.Errors, error => error.Code == "FieldNotProduced");
+    }
 }

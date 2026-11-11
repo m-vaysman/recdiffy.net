@@ -1,0 +1,68 @@
+# T4 (#312): Nightly Stryker.NET mutation testing on Matching, Consolidation, Diff, and ProfileCompiler.
+# Informational only — runs off the PR path and never fails the workflow.
+name: Mutation Testing
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mutate:
+    name: Stryker.NET
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: RecDiffy.NET
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          global-json-file: RecDiffy.NET/global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('RecDiffy.NET/**/*.csproj', 'RecDiffy.NET/**/*.props', 'RecDiffy.NET/**/*.targets', 'RecDiffy.NET/global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Install Stryker.NET
+        run: |
+          dotnet tool install --global dotnet-stryker
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Run Stryker.NET
+        continue-on-error: true
+        run: |
+          dotnet stryker \
+            --project "src/RecDiffy/RecDiffy.csproj" \
+            --test-project "src/RecDiffy.Tests/RecDiffy.Tests.csproj" \
+            --target-framework net10.0 \
+            --mutate "Matching/**/*.cs" \
+            --mutate "Consolidation/**/*.cs" \
+            --mutate "Diff/**/*.cs" \
+            --mutate "Profile/ProfileCompiler.cs" \
+            --reporter html \
+            --reporter json \
+            --reporter cleartext
+
+      - name: Upload Stryker report
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: stryker-mutation-report
+          path: RecDiffy.NET/StrykerOutput/**
+          if-no-files-found: ignore
