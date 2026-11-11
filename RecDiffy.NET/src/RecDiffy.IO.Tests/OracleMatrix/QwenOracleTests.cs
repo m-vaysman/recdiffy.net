@@ -18,14 +18,13 @@ public class QwenOracleTests
     // disagree with the oracle for reasons outside the engine, listed in the PR for #39, and for #307 and #308.
     private const string Decoy = "Oracle note: P4's reduced key pairs this orphan with an alleged trade on the same counterparty, instrument, date and side";
 
-    private const string Unverified = "Unverified (spec v3 §12.1): no §9.2 profile, missing rules (price.dirtyToClean, fees.inferFromNet), oracle notes in the PR for #39, and #307, #308, #309";
+    private const string Unverified = "Unverified (spec v3 §12.1): no §9.2 profile, missing rules (price.dirtyToClean, fees.inferFromNet), and oracle notes in the PR for #39";
 
     private static OracleComparison Compare() => new(Result.Value, Dataset.Cases(), Deferred);
 
     private static string? Deferred(OracleCase item) => item switch
     {
         { Kind: CaseKind.MultiLeg } => "Qwen's legs carry different notionals, so Same fails with PackageInconsistent; §9.2 has no Qwen leg rule",
-        { Id: "cancel_correct_lifecycle_chains[0]" or "cancel_correct_lifecycle_chains[2]" or "cancel_correct_lifecycle_chains[3]" } => Deferral.CancelRunsTradeRules,
         { Id: "unmatched_internal_orphans[1]" or "unmatched_internal_orphans[2]" or "unmatched_internal_orphans[31]" or "unmatched_counterparty_alleged_trades[3]" or "unmatched_counterparty_alleged_trades[5]" or "unmatched_counterparty_alleged_trades[6]" } => Decoy,
         _ => null,
     };
@@ -69,8 +68,8 @@ public class QwenOracleTests
         OracleAssert.None(Compare().RowAccounting(Dataset.LeftRows(), Dataset.RightRows()));
 
     [Fact]
-    public void The_checks_cover_all_but_the_17_deferred_cases() =>
-        Assert.Equal(Dataset.Cases().Count - 17, Compare().Checked);
+    public void The_checks_cover_all_but_the_14_deferred_cases() =>
+        Assert.Equal(Dataset.Cases().Count - 14, Compare().Checked);
 
     private static ReconciliationResult Run() =>
         RunOn(

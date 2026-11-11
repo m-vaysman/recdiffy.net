@@ -19,7 +19,7 @@ public class CancelEventTradeRuleTests
         Assert.Equal(Disposition.Suppressed, Of(result, "R2"));
     }
 
-    [Fact(Skip = "🔴 #309: a CANC runs the trade rules, so a reversal (code B, negative quantity) quarantines its chain")]
+    [Fact]
     public void A_cancel_that_reverses_the_new_skips_the_trade_rules_and_collapses_its_chain()
     {
         var result = Run([new("R1", "NEW", null, "B", "100"), new("R2", "CANC", "R1", "B", "-100"), new("R3", "CORR", "R2", "B", "100")]);

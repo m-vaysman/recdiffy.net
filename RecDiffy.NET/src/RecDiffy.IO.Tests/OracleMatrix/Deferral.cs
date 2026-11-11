@@ -10,8 +10,6 @@ internal static class Deferral
 
     public const string CashToPerspective = "cash.toPerspective is not registered: a dealer-view row's cash is not negated";
 
-    public const string CancelRunsTradeRules = "🔴 #309: a reversal CANC runs the trade rules and quarantines its chain";
-
     // True when any of the case's right rows holds the value in the column.
     public static bool RightHas(OracleDataset dataset, OracleCase item, string column, string value) =>
         item.Right.Any(key => dataset.RightRow(key) is { } row && SheetRows.Text(row.GetValueOrDefault(column)) == value);
