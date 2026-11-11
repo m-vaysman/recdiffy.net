@@ -2,7 +2,7 @@
 
 Reconcile two datasets without leaving Excel. Choose the data for each side, from an open workbook, a closed workbook or a CSV file. Say which columns match records and which values must agree. RecDiffy lines the records up and lists every difference.
 
-> **Preview.** The add-in works end to end, but there's no installer yet. To try it, [build it from source](#try-it).
+> **Preview.** The add-in works end to end. Its installer isn't signed yet, so Windows warns before it runs it. See [Install](#install).
 
 ![Reconciling a broker's CSV against a blotter workbook in Excel: open RecDiffy from the ribbon, select the left data, choose the right CSV, pair the columns, run, explain a break, and write the results to a new workbook](docs/readme-flow.gif)
 
@@ -54,12 +54,42 @@ Select a result and open **Explain selected result** to see which pass matched i
 
 The **Settings** tab has two switches. One chooses whether exact matches are listed. The counts always include them. The other chooses whether **Explain selected result** is offered. Both are remembered for your Windows account.
 
+## Install
+
+You need:
+
+- Windows;
+- Excel for Windows: Microsoft 365, or Excel 2016 or later, in 64-bit or 32-bit;
+- the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0), in the same bitness as Excel.
+
+1. **Get the installer,** `RecDiffy.ExcelAddIn.msi`. Use the `recdiffy-excel-addin-installer` artifact of a CI run, which needs a GitHub sign-in, or [build it](#build-and-test). There's no public download until the installer is signed (#198).
+2. **Close Excel.** Excel rewrites its list of add-ins when it closes, so the installer stops if Excel is open.
+3. **Run the installer.** It isn't signed yet, so Windows SmartScreen asks first: choose **More info**, then **Run anyway**.
+
+The installer:
+
+- installs for you only, with no administrator rights;
+- puts both packed add-ins in `%LOCALAPPDATA%\Programs\RecDiffy`;
+- registers the one that matches Excel's bitness, so Excel loads it every time it starts.
+
+It stops with a message if Excel is open, if Excel isn't found, or if the .NET Desktop Runtime for Excel's bitness is missing. The next time you start Excel, a **RecDiffy** tab appears on the ribbon.
+
+- **To upgrade,** run a newer installer. It replaces the old version.
+- **To uninstall,** close Excel, then remove **RecDiffy Excel add-in** in Settings → Apps.
+- **To install without questions,** for example from a script, run:
+
+  ```
+  msiexec /i RecDiffy.ExcelAddIn.msi /qn
+  ```
+
+  To uninstall the same way, use `/x` instead of `/i`.
+
 ## Try it
 
-You need Windows, 64-bit Excel and the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) (x64).
+To load a build into one Excel session without installing it:
 
-1. [Build the add-in](#build-and-test). The build writes the packed add-in `RecDiffy.ExcelAddIn-AddIn64-packed.xll` to `src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/`.
-2. Open the `.xll` in Excel, using File → Open or a double-click.
+1. [Build the add-in](#build-and-test).
+2. Open the packed add-in for Excel's bitness in Excel, using File → Open or a double-click. For 64-bit Excel, that's `src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/RecDiffy.ExcelAddIn-AddIn64-packed.xll`.
 3. The build is unsigned, so Excel shows a security notice. Choose "Enable this add-in for this session only".
 4. A **RecDiffy** tab appears on the ribbon. **Reconcile datasets** opens the window.
 
@@ -115,6 +145,9 @@ Agents: read `.agents/skills/excel-dna/SKILL.md` before changing this code. No E
 | `RecDiffy.ExcelAddIn.ViewModels` | `net10.0`, RecDiffy 1.2.0-preview.2 | View models (CommunityToolkit.Mvvm) and the serializable reconciliation setup (#193), with no Excel or WPF types |
 | `RecDiffy.ExcelAddIn.ViewModels.Tests` | `net10.0` | xunit tests of the view models, which run without Excel |
 | `RecDiffy.ExcelAddIn.Tests` | `net10.0-windows` | xunit tests of the cell conversions and the table built from a picked range, which run without Excel |
+| `RecDiffy.ExcelAddIn.Installer` | WiX v5 (`WixToolset.Sdk` 5.0.2) | The per-user MSI: both packed add-ins, the checks it makes before installing, and the registration |
+| `RecDiffy.ExcelAddIn.InstallerActions` | `net472`, `WixToolset.Dtf.CustomAction` 5.0.2 | The installer's custom actions. They find Excel and its bitness, and add the add-in to Excel's `OPEN` values under `HKCU\Software\Microsoft\Office\16.0\Excel\Options`, or remove it. |
+| `RecDiffy.ExcelAddIn.InstallerActions.Tests` | `net10.0` | xunit tests of the `OPEN` values and of reading an executable's bitness |
 
 ### Logging
 
@@ -130,6 +163,12 @@ dotnet test RecDiffy.ExcelAddIn/RecDiffy.ExcelAddIn.slnx -c Release
 ```
 
 The build writes packed add-ins to `src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/`: `RecDiffy.ExcelAddIn-AddIn64-packed.xll` for 64-bit Excel, and `RecDiffy.ExcelAddIn-AddIn-packed.xll` for 32-bit Excel.
+
+It also writes the installer, `src/RecDiffy.ExcelAddIn.Installer/bin/Release/RecDiffy.ExcelAddIn.msi`.
+
+- **Version:** the installer's version is the `InstallerVersion` property, 0.1.0 by default. CI builds 0.1.<run number>, so each CI installer upgrades the one before it.
+- **Runtime:** `DesktopRuntimeVersion`, 10.0.0 by default, is the .NET Desktop Runtime it checks for.
+- **Building it:** WiX v5 is free to use. From v6, WiX requires its Open Source Maintenance Fee to generate revenue (#198).
 
 ### The README's images
 

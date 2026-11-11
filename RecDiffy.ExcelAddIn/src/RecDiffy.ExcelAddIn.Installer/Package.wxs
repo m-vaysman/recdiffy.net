@@ -1,0 +1,67 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:netfx="http://wixtoolset.org/schemas/v4/wxs/netfx">
+
+  <Package Name="RecDiffy Excel add-in"
+           Manufacturer="RecDiffy.NET"
+           Version="$(var.Version)"
+           UpgradeCode="{6B0E3E3C-5F1B-4C38-9B0D-6E4E2F1A9C21}"
+           Scope="perUser"
+           Language="1033">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of the RecDiffy Excel add-in is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="RecDiffy.ico" SourceFile="$(var.Icon)" />
+    <Property Id="ARPPRODUCTICON" Value="RecDiffy.ico" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/m-vaysman/recdiffy.net" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+    <Property Id="ARPNOREPAIR" Value="1" />
+
+    <netfx:DotNetCompatibilityCheck Property="DOTNETDESKTOP64" RuntimeType="desktop" Platform="x64" Version="$(var.DesktopRuntimeVersion)" RollForward="latestMinor" />
+    <netfx:DotNetCompatibilityCheck Property="DOTNETDESKTOP86" RuntimeType="desktop" Platform="x86" Version="$(var.DesktopRuntimeVersion)" RollForward="latestMinor" />
+
+    <Binary Id="AddInActions" SourceFile="$(var.RecDiffy.ExcelAddIn.InstallerActions.TargetDir)$(var.RecDiffy.ExcelAddIn.InstallerActions.TargetName).CA.dll" />
+
+    <CustomAction Id="FindExcel" BinaryRef="AddInActions" DllEntry="FindExcel" Execute="immediate" Return="check" />
+    <CustomAction Id="RegisterAddIn" BinaryRef="AddInActions" DllEntry="RegisterAddIn" Execute="deferred" Impersonate="yes" Return="check" />
+    <CustomAction Id="RollbackRegisterAddIn" BinaryRef="AddInActions" DllEntry="UnregisterAddIn" Execute="rollback" Impersonate="yes" Return="ignore" />
+    <CustomAction Id="UnregisterAddIn" BinaryRef="AddInActions" DllEntry="UnregisterAddIn" Execute="deferred" Impersonate="yes" Return="ignore" />
+
+    <SetProperty Id="RegisterAddIn" Value="AddIn=[INSTALLFOLDER][ADDINFILE]" Before="RegisterAddIn" Sequence="execute" />
+    <SetProperty Id="RollbackRegisterAddIn" Value="Folder=[INSTALLFOLDER]" Before="RollbackRegisterAddIn" Sequence="execute" />
+    <SetProperty Id="UnregisterAddIn" Value="Folder=[INSTALLFOLDER]" Before="UnregisterAddIn" Sequence="execute" />
+
+    <InstallUISequence>
+      <Custom Action="FindExcel" Before="LaunchConditions" />
+    </InstallUISequence>
+
+    <InstallExecuteSequence>
+      <Custom Action="FindExcel" Before="LaunchConditions" />
+      <Custom Action="UnregisterAddIn" Before="RemoveFiles" Condition="REMOVE~=&quot;ALL&quot;" />
+      <Custom Action="RollbackRegisterAddIn" After="InstallFiles" Condition="NOT REMOVE" />
+      <Custom Action="RegisterAddIn" After="RollbackRegisterAddIn" Condition="NOT REMOVE" />
+    </InstallExecuteSequence>
+
+    <Launch Condition="NOT EXCELRUNNING"
+            Message="Excel is running. Close every Excel window, then run this again. Excel rewrites its list of add-ins when it closes, so it would undo the change." />
+    <Launch Condition="Installed OR EXCELBITNESS"
+            Message="The RecDiffy add-in needs Microsoft Excel for Windows (Microsoft 365, or Excel 2016 or later), and Excel wasn't found on this computer." />
+    <Launch Condition="Installed OR (EXCELBITNESS=&quot;x64&quot; AND DOTNETDESKTOP64=&quot;0&quot;) OR (EXCELBITNESS=&quot;x86&quot; AND DOTNETDESKTOP86=&quot;0&quot;)"
+            Message="The RecDiffy add-in needs the .NET 10 Desktop Runtime for the same bitness as Excel ([EXCELBITNESS]). Install it from https://dotnet.microsoft.com/download/dotnet/10.0, then run this again." />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="LocalPrograms" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="RecDiffy" />
+      </Directory>
+    </StandardDirectory>
+
+    <Component Id="AddIn" Directory="INSTALLFOLDER" Guid="{A5FFA664-706D-45A1-8CD8-9EDDF55B889B}">
+      <File Id="AddIn64" Source="$(var.AddInPublish)RecDiffy.ExcelAddIn-AddIn64-packed.xll" />
+      <File Id="AddIn32" Source="$(var.AddInPublish)RecDiffy.ExcelAddIn-AddIn-packed.xll" />
+      <RegistryValue Root="HKCU" Key="Software\RecDiffy\ExcelAddIn" Name="InstallFolder" Value="[INSTALLFOLDER]" Type="string" KeyPath="yes" />
+      <RemoveFolder Id="RemoveInstallFolder" Directory="INSTALLFOLDER" On="uninstall" />
+      <RemoveFolder Id="RemoveLocalPrograms" Directory="LocalPrograms" On="uninstall" />
+      <RemoveRegistryKey Root="HKCU" Key="Software\RecDiffy\ExcelAddIn" Action="removeOnUninstall" />
+    </Component>
+  </Package>
+</Wix>
