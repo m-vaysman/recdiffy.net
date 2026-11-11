@@ -120,7 +120,7 @@ internal static class ResultBuilder
             left,
             right,
             [],
-            new Explanation(cluster.PassId, cluster.PassId is null ? [] : [new PassAttempt(cluster.PassId, verdict, null, members, cluster.Code)], []));
+            new Explanation(cluster.PassId, cluster.PassId is null ? [] : [new PassAttempt(cluster.PassId, verdict, cluster.Key, members, cluster.Code)], []));
     }
 
     // Lineage members inherit the survivor's entry.

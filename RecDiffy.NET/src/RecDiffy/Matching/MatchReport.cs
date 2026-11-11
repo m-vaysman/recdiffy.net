@@ -4,7 +4,7 @@ namespace RecDiffy;
 
 internal sealed record CommittedMatch(string PassId, string Key, IReadOnlyList<ConsolidatedRow> Left, IReadOnlyList<ConsolidatedRow> Right);
 
-internal sealed record ResidueCluster(Alignment Alignment, string? Code, string? PassId, IReadOnlyList<ConsolidatedRow> Rows);
+internal sealed record ResidueCluster(Alignment Alignment, string? Code, string? PassId, IReadOnlyList<ConsolidatedRow> Rows, string? Key = null);
 
 internal sealed record MatchReport(IReadOnlyList<CommittedMatch> Committed, IReadOnlyList<ResidueCluster> Residue, MatchCounters Counters);
 

@@ -80,7 +80,7 @@ internal sealed record GroupIndex(
     }
 
     public override IReadOnlyList<ResidueCluster> Residue() =>
-        [.. Decisions.SelectMany(pair => pair.Value.SelectMany(decision => FromDecision(decision)))];
+        [.. Decisions.SelectMany(pair => pair.Value.SelectMany(decision => FromDecision(pair.Key, decision)))];
 
     private (GroupIndex Index, MatchCounters Counters) Evaluate(string key, MatchCounters counters, bool dirty)
     {
@@ -336,13 +336,13 @@ internal sealed record GroupIndex(
 
     private static int[] EligibleFor(int target, Component component) => component.ByTarget[target];
 
-    private IEnumerable<ResidueCluster> FromDecision(Decision decision) => decision.Kind switch
+    private IEnumerable<ResidueCluster> FromDecision(string key, Decision decision) => decision.Kind switch
     {
-        DecisionKind.Contest => [new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows(decision.Contest))],
+        DecisionKind.Contest => [new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows(decision.Contest), key)],
         DecisionKind.Incomplete => [new ResidueCluster(Alignment.SearchIncomplete, decision.Code, PassId, Rows(decision.Incomplete))],
         DecisionKind.Split =>
         [
-            new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows(decision.Contest)),
+            new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows(decision.Contest), key),
             new ResidueCluster(Alignment.SearchIncomplete, decision.Code, PassId, Rows(decision.Incomplete)),
         ],
         _ => [],

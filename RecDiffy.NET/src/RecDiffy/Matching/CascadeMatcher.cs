@@ -130,7 +130,7 @@ internal static class CascadeMatcher
     // Any many value other than "right" puts the many rows on the left.
     private static CascadePass Create(PassDeclaration pass, SearchLimits limits) => pass.Pass switch
     {
-        "match.sharedRef" => new PairPass(pass.Id, pass.Key.Count is 0 ? ["Counterparty", "TradeRef"] : pass.Key, false, limits.MaxGroupSize),
+        "match.sharedRef" => new PairPass(pass.Id, pass.Key.Count is 0 ? ["Counterparty", "TradeRef"] : pass.Key, false, limits.MaxGroupSize, sharedOnly: true),
         "match.naturalKey" or "match.reducedKey" => new PairPass(pass.Id, pass.Key, true, pass.MaxGroupSize ?? limits.MaxGroupSize),
         "match.groupSum" => new GroupPass(
             pass.Id,

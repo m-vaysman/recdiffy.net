@@ -26,7 +26,7 @@ public class ContestKeyTests
     private static readonly SourceMap<(string Id, string Ref, string Amount)> Map = new SourceMap<(string Id, string Ref, string Amount)>()
         .Text("Id", row => row.Id).Text("Ref", row => row.Ref).Text("Amount", row => row.Amount);
 
-    [Fact(Skip = "🔴 #257: an ambiguous entry's Contest attempt has no key; ResidueCluster has nowhere to keep it and ResultBuilder.Open writes null.")]
+    [Fact]
     public void An_ambiguous_entry_names_the_key_its_records_share_as_a_matched_entry_does()
     {
         var result = Run(

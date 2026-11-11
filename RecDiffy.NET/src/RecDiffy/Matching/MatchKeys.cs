@@ -5,14 +5,23 @@ namespace RecDiffy;
 
 internal static class MatchKeys
 {
-    public static string? Compose(ActiveItem item, IReadOnlyList<string> fields, IReadOnlyDictionary<string, FieldDeclaration> schema)
+    public static string? Compose(ActiveItem item, IReadOnlyList<string> fields, IReadOnlyDictionary<string, FieldDeclaration> schema, bool sharedOnly = false)
     {
-        var parts = fields.Select(field => Text(item.Row.Context, schema[field])).ToArray();
+        var parts = fields.Select(field => KeyText(item.Row.Context, schema[field], sharedOnly)).ToArray();
         return parts.Any(part => part is null) ? null : Delimited.Join('\u001f', parts.Select(part => part!));
     }
 
     // Decimal key text is fixed-point at the field scale, so 1.5 and 1.50 at scale 2 share a key.
-    public static string? Text(RowContext row, FieldDeclaration field) =>
+    public static string? KeyText(RowContext row, FieldDeclaration field, bool sharedOnly = false) =>
+        row.IsNull(field.Name)
+            ? null
+            : field.Type switch
+            {
+                FieldType.Identifier => IdentifierKeyText(row, field, sharedOnly),
+                _ => ValueText(row, field),
+            };
+
+    public static string? ValueText(RowContext row, FieldDeclaration field) =>
         row.IsNull(field.Name)
             ? null
             : field.Type switch
@@ -20,7 +29,7 @@ internal static class MatchKeys
                 FieldType.Decimal => row.Values[field.Name].Number.ToString("F" + field.Scale, CultureInfo.InvariantCulture),
                 FieldType.Date => row.Values[field.Name].Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 FieldType.Symbol => row.Pool.Symbol(row.Values[field.Name].Interned),
-                FieldType.Identifier => IdentifierText(row, field),
+                FieldType.Identifier => row.Pool.Identifier(row.Values[field.Name].Interned).Value,
                 FieldType.Text => row.Values[field.Name].Text,
                 _ => null,
             };
@@ -37,10 +46,12 @@ internal static class MatchKeys
 
     // Pair keys keep the identifier scheme. A broker reference must not share a bucket with a shared-scheme reference.
     // Scheme and value are joined with a record separator, so a value cannot collide with the next key field.
-    private static string IdentifierText(RowContext row, FieldDeclaration field)
+    private static string? IdentifierKeyText(RowContext row, FieldDeclaration field, bool sharedOnly)
     {
         var identifier = row.Pool.Identifier(row.Values[field.Name].Interned);
-        return identifier.Scheme + "\u001e" + identifier.Value;
+        return sharedOnly && IsShared(identifier.Scheme) is false
+            ? null
+            : identifier.Scheme + "\u001e" + identifier.Value;
     }
 
     private static (string? Scheme, string? Value) Identity(RowContext row, FieldDeclaration field) =>
@@ -50,7 +61,7 @@ internal static class MatchKeys
             {
                 FieldType.Identifier => (row.Pool.Identifier(row.Values[field.Name].Interned).Scheme, row.Pool.Identifier(row.Values[field.Name].Interned).Value),
                 FieldType.Symbol => ("shared", row.Pool.Symbol(row.Values[field.Name].Interned)),
-                _ => ("shared", Text(row, field)),
+                _ => ("shared", ValueText(row, field)),
             };
 
     // The comparison is ordinal. "Broker" still counts as shared.

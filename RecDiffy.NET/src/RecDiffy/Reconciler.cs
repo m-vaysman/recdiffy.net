@@ -137,7 +137,7 @@ internal static class RunPipeline
         {
             "route.all" => true,
             "route.byField" when route.Field is { } name && schema.TryGetValue(name, out var field) =>
-                MatchKeys.Text(row.Context, field) == route.EqualsValue,
+                MatchKeys.ValueText(row.Context, field) == route.EqualsValue,
             _ => false,
         };
 }
