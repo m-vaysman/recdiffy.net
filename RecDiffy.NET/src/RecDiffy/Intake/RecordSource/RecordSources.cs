@@ -27,7 +27,7 @@ public static class RecordSources
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(map);
-        return new AsyncObjectSource<T>(rows, map);
+        return new CancellableAsyncObjectSource<T>(rows, map);
     }
 
     // The name is checked and then dropped. Materialize receives the side name from the reconciler.
