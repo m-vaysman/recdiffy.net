@@ -62,7 +62,7 @@ You need:
 - Excel for Windows: Microsoft 365, or Excel 2016 or later, in 64-bit or 32-bit;
 - the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0), in the same bitness as Excel.
 
-1. **Get the installer,** `RecDiffy.ExcelAddIn.msi`. Use the `recdiffy-excel-addin-installer` artifact of a CI run, which needs a GitHub sign-in, or [build it](#build-and-test). There's no public download until the installer is signed (#198).
+1. **Get the installer,** `RecDiffy.ExcelAddIn.msi`, by [building it](#build-and-test). There's no public download until the installer is signed (#198).
 2. **Close Excel.** Excel rewrites its list of add-ins when it closes, so the installer stops if Excel is open.
 3. **Run the installer.** It isn't signed yet, so Windows SmartScreen asks first: choose **More info**, then **Run anyway**.
 
@@ -166,7 +166,7 @@ The build writes packed add-ins to `src/RecDiffy.ExcelAddIn/bin/Release/net10.0-
 
 It also writes the installer, `src/RecDiffy.ExcelAddIn.Installer/bin/Release/RecDiffy.ExcelAddIn.msi`.
 
-- **Version:** the installer's version is the `InstallerVersion` property, 0.1.0 by default. CI builds 0.1.<run number>, so each CI installer upgrades the one before it.
+- **Version:** the installer's version is the `InstallerVersion` property, 0.1.0 by default. Pass a higher one, for example `-p:InstallerVersion=0.1.1`, for an installer that upgrades the one before it.
 - **Runtime:** `DesktopRuntimeVersion`, 10.0.0 by default, is the .NET Desktop Runtime it checks for.
 - **Building it:** WiX v5 is free to use. From v6, WiX requires its Open Source Maintenance Fee to generate revenue (#198).
 
