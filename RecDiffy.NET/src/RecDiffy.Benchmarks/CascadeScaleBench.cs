@@ -7,7 +7,7 @@ namespace RecDiffy.Benchmarks;
 [SimpleJob(launchCount: BenchScale.LaunchCount, warmupCount: BenchScale.WarmupCount, iterationCount: BenchScale.IterationCount)]
 public class CascadeScaleBench
 {
-    [Params(BenchScale.Small, BenchScale.Large)]
+    [Params(BenchScale.Small, BenchScale.Large, BenchScale.XLarge)]
     public int Rows { get; set; }
 
     private ConsolidatedRow[] _left = null!;

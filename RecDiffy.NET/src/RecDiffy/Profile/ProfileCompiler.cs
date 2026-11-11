@@ -141,7 +141,7 @@ internal static class ProfileCompiler
         var missingPaths = document.Paths.Count == 0
             ? new[] { new ProfileError("MissingParameter", "paths must contain a route.") }
             : [];
-        var routeErrors = document.Paths.SelectMany(path => ValidateRoute(path, schema));
+        var routeErrors = document.Paths.SelectMany(path => ValidateRoute(path, schema, sides));
         var overlap = document.Paths.SelectMany((path, index) => document.Paths.Take(index).Where(earlier => RoutesOverlap(earlier.Route, path.Route)).Select(_ =>
             new ProfileError("OverlappingRoute", $"Path '{path.Id}' overlaps another route.")));
         var passErrors = document.Paths.SelectMany(path => path.Passes.SelectMany(pass => ValidatePass(path, pass, document, schema, sides)));
@@ -153,13 +153,15 @@ internal static class ProfileCompiler
         return [.. missingPaths, .. routeErrors, .. overlap, .. passErrors, .. diffErrors, .. limit];
     }
 
-    private static IEnumerable<ProfileError> ValidateRoute(PathDeclaration path, FieldSchema schema) => path.Route.Rule switch
+    private static IEnumerable<ProfileError> ValidateRoute(PathDeclaration path, FieldSchema schema, IReadOnlyDictionary<string, SideCompilation> sides) => path.Route.Rule switch
     {
         "route.all" => [],
         "route.byField" when path.Route.Field is null || path.Route.EqualsValue is null =>
             [new ProfileError("MissingParameter", $"Path '{path.Id}' route.byField requires field and equals.")],
         "route.byField" when schema.TryGet(path.Route.Field!, out _) is false =>
             [new ProfileError("UnknownField", $"Path '{path.Id}' route names unknown field '{path.Route.Field}'.")],
+        "route.byField" when sides.Values.Any(side => !side.Written.Contains(path.Route.Field!)) =>
+            [new ProfileError("FieldNotProduced", $"Path '{path.Id}' routes on '{path.Route.Field}', which a side does not write.")],
         "route.byField" => [],
         _ => [new ProfileError("UnknownRule", $"Route '{path.Route.Rule}' is not registered.")],
     };
