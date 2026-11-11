@@ -18,6 +18,7 @@ Issue: #
 - [ ] If the Excel add-in changed: `RecDiffy.ExcelAddIn/tools/Test-ExcelExit.ps1` passes, run by hand on a machine with Excel. It leaves no `EXCEL.EXE` behind.
 - [ ] New tests are in new files.
 - [ ] All test data is synthetic.
+- [ ] For a fix: I searched for the same pattern elsewhere (sibling sites) and fixed or ticketed each one. Sites found: …
 
 ## 🔴 Bugs found
 
