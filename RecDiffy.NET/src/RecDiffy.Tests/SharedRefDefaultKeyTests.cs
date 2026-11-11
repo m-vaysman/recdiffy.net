@@ -25,7 +25,7 @@ public class SharedRefDefaultKeyTests
         .Text("Id", row => row.Id).Text("Sku", row => row.Sku).Text("Quantity", row => row.Quantity);
 
     // Either outcome is a fix: compile rejects the default key it can't use, or the run goes ahead without it.
-    [Fact(Skip = "🔴 #288: compile does not check the default key Counterparty, TradeRef, so MatchKeys.Compose throws at run time.")]
+    [Fact]
     public void A_shared_ref_pass_without_a_key_never_throws_KeyNotFoundException_at_run_time()
     {
         var thrown = Record.Exception(() => Reconciler.Run(

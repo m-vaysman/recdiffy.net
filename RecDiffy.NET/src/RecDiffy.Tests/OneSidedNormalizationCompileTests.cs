@@ -20,7 +20,7 @@ public class OneSidedNormalizationCompileTests
         }
         """;
 
-    [Fact(Skip = "🔴 #287: a side with no normalization block is never checked, so FieldNotProduced misses a key it never writes.")]
+    [Fact]
     public void A_side_with_no_normalization_block_fails_compile_because_it_writes_no_key_field()
     {
         var error = Assert.Throws<ProfileCompileException>(() => Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()));

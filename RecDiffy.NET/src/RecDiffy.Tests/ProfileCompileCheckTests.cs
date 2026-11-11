@@ -12,7 +12,9 @@ public class ProfileCompileCheckTests
           "sources": { "left": { "rowKey": "Id" }, "right": { "rowKey": "Id" } },
           "fields": [
             { "name": "Book", "type": "Symbol", "role": "Key" },
+            { "name": "Counterparty", "type": "Symbol", "role": "Key" },
             { "name": "Ref", "type": "Identifier", "role": "Key" },
+            { "name": "TradeRef", "type": "Identifier", "role": "Identity" },
             { "name": "EventAction", "type": "Symbol", "role": "Lifecycle" },
             { "name": "EventTarget", "type": "Text", "role": "Lifecycle" },
             { "name": "PackageRef", "type": "Text", "role": "Package" },
@@ -24,7 +26,9 @@ public class ProfileCompileCheckTests
             "left": {
               "identify": [
                 { "rule": "symbol.map", "from": "Book", "to": "Book" },
+                { "rule": "symbol.map", "from": "Cpty", "to": "Counterparty" },
                 { "rule": "identifier.map", "from": "Ref", "to": "Ref", "scheme": "ref" },
+                { "rule": "identifier.map", "from": "TradeRef", "to": "TradeRef", "scheme": "shared" },
                 { "rule": "text.copy", "from": "Link", "to": "PackageRef" },
                 { "rule": "symbol.map", "from": "Role", "to": "LegRole" }
               ],
@@ -33,7 +37,9 @@ public class ProfileCompileCheckTests
             "right": {
               "identify": [
                 { "rule": "symbol.map", "from": "Book", "to": "Book" },
+                { "rule": "symbol.map", "from": "Cpty", "to": "Counterparty" },
                 { "rule": "identifier.map", "from": "Ref", "to": "Ref", "scheme": "ref" },
+                { "rule": "identifier.map", "from": "TradeRef", "to": "TradeRef", "scheme": "shared" },
                 { "rule": "symbol.map", "from": "Action", "to": "EventAction" },
                 { "rule": "text.copy", "from": "Target", "to": "EventTarget" }
               ],

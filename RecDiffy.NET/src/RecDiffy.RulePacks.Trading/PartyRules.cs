@@ -45,7 +45,11 @@ internal sealed class PartyLeiRule(string from, string to) : INormalizationRule
     public void Apply(ref RowContext row) => row = PartyLookup.Lei(row, from, to, RuleId);
 }
 
+// Replaced by FallbackPartyAliasRule (#291). PartyAliasRule declares no read of to, so compile rejects it after party.resolveLei as AmbiguousWrite.
+#pragma warning disable MA0182
+[Obsolete("Replaced by FallbackPartyAliasRule: declares a read of 'to' so it can follow party.resolveLei as a fallback without AmbiguousWrite. See #291.")]
 internal sealed class PartyAliasRule(string from, string to) : INormalizationRule
+#pragma warning restore MA0182
 {
     public string RuleId => "party.resolveAlias";
 
