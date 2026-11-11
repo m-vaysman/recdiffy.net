@@ -8,17 +8,17 @@ internal static class AddInServices
 {
     private static readonly CultureInfo ExcelCulture = CultureInfo.CurrentCulture;
 
-    private static readonly ExcelDnaSources Excel = new(ShowAbove);
+    private static readonly IExcelSources Excel = new LoggedExcelSources(new ExcelDnaSources(ShowAbove), AddInLogs.Log, AddInLogs.Clock);
 
-    private static readonly CsvFileSources Csv = new();
+    private static readonly ICsvSources Csv = new LoggedCsvSources(new CsvFileSources(), AddInLogs.Log, AddInLogs.Clock);
 
-    private static readonly EngineRuns Runs = new(Excel, TimeProvider.System);
+    private static readonly IReconciliationRuns Runs = new LoggedRuns(new EngineRuns(Excel, TimeProvider.System), AddInLogs.Log, AddInLogs.Clock);
 
-    private static readonly ExcelResultOutput Output = new();
+    private static readonly IResultOutput Output = new LoggedResultOutput(new ExcelResultOutput(), AddInLogs.Log, AddInLogs.Clock);
 
-    private static readonly JsonSettingsStore SettingsStore = new(JsonSettingsStore.ForWindowsUser());
+    private static readonly ISettingsStore SettingsStore = new LoggedSettingsStore(new JsonSettingsStore(JsonSettingsStore.ForWindowsUser()), AddInLogs.Log, AddInLogs.Clock);
 
-    public static WindowHost Window { get; } = new(CreateShell);
+    public static WindowHost Window { get; } = new(LoggedWindows.Wrap(CreateShell, AddInLogs.Log, LogAreas.Window, "The reconciliation window"));
 
     private static Task ShowAbove(nint owner) => Window.ShowAbove(owner);
 

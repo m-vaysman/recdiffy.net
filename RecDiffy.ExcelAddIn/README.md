@@ -69,7 +69,35 @@ To repeat the animation, use the files in [docs/typed-reconciliation/data](../do
 2. On Rules, pair `Trade ID` with `TradeRef` as the key, `Qty` with `Quantity`, and `Net Consideration` with `NetAmount`.
 3. Set `NetAmount` to within 0.01.
 
+## The log
+
+The add-in logs what it does:
+
+- each source it reads, with its rows and how long it took;
+- each run, with its counts;
+- each write;
+- settings saved;
+- every error.
+
+It never logs workbook contents or full paths.
+
+- **See it:** on the **Add-ins** tab, choose **RecDiffy → Show log**. The window lists this Excel session's entries. It can show only warnings and errors, and **Copy** copies the entries shown. When the add-in hits an unexpected error, the window opens by itself.
+- **Find it later:** each Excel session also writes `%LOCALAPPDATA%\RecDiffy\Logs\RecDiffy-<date>-<process id>.log`. When the add-in loads, it deletes log files older than 14 days.
+
+![The add-in log: the add-in loaded, the settings, the reconciliation window, a rejected CSV file in red, and a CSV file read](docs/logging-window.png)
+
 ## Troubleshooting
+
+**The add-in doesn't load.** The add-in's own log starts only once the add-in has loaded. For a failure before that, turn on Excel-DNA's file logging for one Excel session. In a Command Prompt, run:
+
+```
+set EXCELDNA_DIAGNOSTICS_FILE_LEVEL=Verbose
+set EXCELDNA_DIAGNOSTICS_SOURCE_LEVEL=Verbose
+set EXCELDNA_DIAGNOSTICS_FILE_NAME=%TEMP%\exceldna.log
+start excel
+```
+
+Then open the `.xll` in that Excel, and read `%TEMP%\exceldna.log`. The settings apply only to an Excel started from that Command Prompt. To keep them, put the same values under `HKCU\Software\ExcelDna\Diagnostics` as `FileLevel`, `SourceLevel` and `FileName`.
 
 **One .NET runtime per Excel process.** Excel-DNA can load only one .NET runtime into an Excel process. If another .NET add-in loads an older runtime first, this add-in won't load. Excel-DNA then reports, for example, "The required .NET Desktop Runtime 10.0.0 x64 is incompatible with the runtime 6.0.36 already loaded in this process". In that case, turn the other add-in off for the session, or have it target .NET 10 or allow `RollForward="LatestMajor"`.
 
@@ -87,6 +115,12 @@ Agents: read `.agents/skills/excel-dna/SKILL.md` before changing this code. No E
 | `RecDiffy.ExcelAddIn.ViewModels` | `net10.0`, RecDiffy 1.2.0-preview.2 | View models (CommunityToolkit.Mvvm) and the serializable reconciliation setup (#193), with no Excel or WPF types |
 | `RecDiffy.ExcelAddIn.ViewModels.Tests` | `net10.0` | xunit tests of the view models, which run without Excel |
 | `RecDiffy.ExcelAddIn.Tests` | `net10.0-windows` | xunit tests of the cell conversions and the table built from a picked range, which run without Excel |
+
+### Logging
+
+- **One trace source:** the add-in owns a single `TraceSource`, `RecDiffy.ExcelAddIn`. It writes to the log window's in-memory book and to the daily file.
+- **Decorators:** `AddInServices` wraps each service in a `Logged…` decorator, which logs the outcome, counts and time. View models see only `IAddInLog` and the service interfaces, with no Excel-DNA types.
+- **Internal types:** the listener types are internal. With `ExplicitExports="false"`, Excel-DNA would try to register a public static method of a public type as a worksheet function.
 
 ### Build and test
 
