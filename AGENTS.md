@@ -221,6 +221,13 @@ If a change is not required by the ticket, it does not belong in the diff.
 
 Do not rename, reformat, reorder, fold, extract, modernize, or improve unrelated code.
 
+### No call-site shims, and check sibling sites
+
+- **Do not bypass a broken shared helper at one call site.** If a shared non-registered type on `main` (such as `MatchKeys`, `ProfileCompiler`, `ResultBuilder`, `Consolidation`, or an intake reader) has a defect, adding a new helper for only the one caller named in the ticket (for example, adding `RouteText.Of` for `OnRoute` while leaving `MatchKeys.Text` broken for other callers) is a wrapper that hides the bug. Stop and ask for `CHANGE` on the shared type instead.
+- **Audit sibling sites before coding.** When fixing a bug, search for every other caller of the broken method and every other site that uses the same pattern (for example, every intake reader, every rule stage, or every decimal addition).
+  - If sibling sites are inside your `CHANGE` scope, fix them in the same PR.
+  - If sibling sites are in locked types outside your scope, stop and list them for the lead before writing a partial fix.
+
 ### Diff shape
 
 For an EXTEND ticket, the expected diff is:
