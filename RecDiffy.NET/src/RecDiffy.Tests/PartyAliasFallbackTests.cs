@@ -36,7 +36,7 @@ public class PartyAliasFallbackTests
     private static readonly SourceMap<(string Id, string Ref, string Lei, string Name)> Map = new SourceMap<(string Id, string Ref, string Lei, string Name)>()
         .Text("Id", row => row.Id).Text("Ref", row => row.Ref).Text("Lei", row => row.Lei).Text("Name", row => row.Name);
 
-    [Fact(Skip = "🔴 #291: neither party rule declares a read of to, so the alias fallback is AmbiguousWrite.")]
+    [Fact]
     public void An_alias_resolves_the_counterparty_of_a_row_whose_LEI_is_blank()
     {
         var result = Reconciler.Run(

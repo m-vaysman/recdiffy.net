@@ -30,9 +30,12 @@ internal static class ProfileCompiler
 
         var schema = new FieldSchema(document.Fields);
         var readings = SideReadings.Resolve(document, server);
-        var sides = document.Normalization.ToImmutableDictionary(
-            pair => pair.Key,
-            pair => CompileSide(pair.Key, pair.Value, schema, Settings(document.Midpoint, readings, pair.Key), registry),
+        var sideNames = document.Normalization.Count == 0
+            ? []
+            : document.Normalization.Keys.Concat(["left", "right"]).Distinct(StringComparer.Ordinal);
+        var sides = sideNames.ToImmutableDictionary(
+            name => name,
+            name => CompileSide(name, document.Normalization.GetValueOrDefault(name) ?? new NormalizationSide([], [], [], []), schema, Settings(document.Midpoint, readings, name), registry),
             StringComparer.Ordinal);
         var pathErrors = ValidatePaths(document, schema, sides);
         var packageErrors = ValidatePackages(document);
@@ -174,7 +177,8 @@ internal static class ProfileCompiler
         var key = pass is { Pass: "match.naturalKey" or "match.reducedKey", Key.Count: 0 }
             ? new[] { new ProfileError("MissingParameter", $"Pass '{pass.Id}' requires key.") }
             : [];
-        var fields = ((string[])[.. pass.Key, .. pass.Block, .. pass.Conserve]).SelectMany(field => ValidateKeyField(path.Id, field, schema, sides));
+        var passKeys = pass is { Pass: "match.sharedRef", Key.Count: 0 } ? ["Counterparty", "TradeRef"] : pass.Key;
+        var fields = ((string[])[.. passKeys, .. pass.Block, .. pass.Conserve]).SelectMany(field => ValidateKeyField(path.Id, field, schema, sides));
         return [.. unknown, .. group, .. cap, .. key, .. fields];
     }
 
@@ -404,7 +408,7 @@ internal sealed record SideCompilation(ImmutableDictionary<string, WriteSite> Wr
     private SideCompilation Bind(string side, RuleCall call, NormalizationRegistration registration, FieldSchema schema, RuleSettings settings)
     {
         var rule = registration.CreateWithSettings(call, schema, settings);
-        var readErrors = rule.Reads.Where(read => !WrittenSites.ContainsKey(read.Name)).Select(read =>
+        var readErrors = rule.Reads.Where(read => !WrittenSites.ContainsKey(read.Name) && !rule.Writes.Contains(read)).Select(read =>
             new ProfileError("FieldReadBeforeWrite", $"{side}.{call.Rule} reads '{read.Name}' before any rule writes it."));
         // Rewriting a field this rule also reads is allowed. Two writers that do not read the field conflict unless their when clauses exclude each other.
         var writeErrors = rule.Writes.Where(write =>
@@ -412,7 +416,7 @@ internal sealed record SideCompilation(ImmutableDictionary<string, WriteSite> Wr
             && !rule.Reads.Any(read => read.Name == write.Name)
             && !WhenClause.MutuallyExclusive(previous.When, call.When)).Select(write =>
             new ProfileError("AmbiguousWrite", $"{side} field '{write.Name}' is written by '{WrittenSites[write.Name].Rule}' and '{call.Rule}'."));
-        var unknown = ((FieldId[])[.. rule.Reads, .. rule.Writes]).Where(field => schema.TryGet(field.Name, out _) is false).Select(field =>
+        var unknown = ((FieldId[])[.. rule.Reads, .. rule.Writes]).Distinct().Where(field => schema.TryGet(field.Name, out _) is false).Select(field =>
             new ProfileError("UnknownField", $"{side}.{call.Rule} uses undeclared field '{field.Name}'."));
         ProfileError[] errors = [.. readErrors, .. writeErrors, .. unknown];
         var written = rule.Writes.Aggregate(WrittenSites, (sites, write) => sites.SetItem(write.Name, new WriteSite(call.Rule, call.When)));
