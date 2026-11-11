@@ -1,0 +1,21 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+
+  <PropertyGroup>
+    <OutputName>RecDiffy.ExcelAddIn</OutputName>
+    <InstallerVersion Condition="'$(InstallerVersion)' == ''">0.1.0</InstallerVersion>
+    <DesktopRuntimeVersion Condition="'$(DesktopRuntimeVersion)' == ''">10.0.0</DesktopRuntimeVersion>
+    <AddInPublish>$(MSBuildThisFileDirectory)..\RecDiffy.ExcelAddIn\bin\$(Configuration)\net10.0-windows\publish\</AddInPublish>
+    <SuppressIces>ICE91</SuppressIces>
+    <DefineConstants>Version=$(InstallerVersion);DesktopRuntimeVersion=$(DesktopRuntimeVersion);AddInPublish=$(AddInPublish);Icon=$(MSBuildThisFileDirectory)..\RecDiffy.ExcelAddIn\Resources\RecDiffy.ico</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Netfx.wixext" Version="5.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RecDiffy.ExcelAddIn\RecDiffy.ExcelAddIn.csproj" />
+    <ProjectReference Include="..\RecDiffy.ExcelAddIn.InstallerActions\RecDiffy.ExcelAddIn.InstallerActions.csproj" />
+  </ItemGroup>
+
+</Project>
