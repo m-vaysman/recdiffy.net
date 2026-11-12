@@ -290,11 +290,15 @@ internal static class ResultBuilder
         return composition;
     }
 
-    private static bool CollapsedLifecycle(ConsolidatedRow row) =>
-        row.LifecycleCollapsed
-        && (row.Lineage is null
-            || row.Lineage.Select(member => member.RowKey).Distinct(StringComparer.Ordinal).Count()
-                > row.Members.Select(member => member.RowKey).Distinct(StringComparer.Ordinal).Count());
+    private static bool CollapsedLifecycle(ConsolidatedRow row)
+    {
+        if (row.LifecycleCollapsed is false)
+            return false;
+        if (row.Lineage is null)
+            return true;
+        var memberCount = row.Members.Select(member => member.RowKey).ToHashSet(StringComparer.Ordinal).Count;
+        return row.Lineage.Select(member => member.RowKey).Distinct(StringComparer.Ordinal).Skip(memberCount).Any();
+    }
 
     private static SourceRef[] Members(IReadOnlyList<ConsolidatedRow> left, IReadOnlyList<ConsolidatedRow> right) =>
         [.. left.SelectMany(row => row.Members), .. right.SelectMany(row => row.Members)];

@@ -11,7 +11,10 @@ namespace RecDiffy.Excel;
 /// <summary>Writes formatted Excel reports, one .xlsx file per report, from a RecDiffy <see cref="ReconciliationResult"/>.</summary>
 public static partial class RecDiffyExcel
 {
+    // IWorkbookWriter is the replace-and-repoint seam for the workbook serializer (#256).
+#pragma warning disable CA1859
     private static readonly IWorkbookWriter Writer = new OpenXmlSpreadsheetWriter();
+#pragma warning restore CA1859
 
     /// <summary>Writes one report to a stream. Returns the outcome; when the report is skipped, nothing is written and the reason is returned.</summary>
     public static ReportOutcome WriteReport(this ReconciliationResult result, ReportKind kind, Stream output, ExcelReportOptions options)

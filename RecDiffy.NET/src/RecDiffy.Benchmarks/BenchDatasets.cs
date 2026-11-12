@@ -166,9 +166,9 @@ public static class BenchDatasets
         if (fewest > most)
             throw new ArgumentOutOfRangeException(nameof(total), total, string.Create(CultureInfo.InvariantCulture, $"No sizes from {min} to {max} add up to {total}."));
 
-        var count = Math.Clamp((int)Math.Round(2.0 * total / (min + max)), fewest, most);
+        var count = Math.Clamp((int)Math.Round(2.0 * total / (min + max), MidpointRounding.ToEven), fewest, most);
         var room = max - min;
-        var spare = total - count * min;
+        var spare = total - (count * min);
         var sizes = new int[count];
         for (var index = 0; index < count; index++)
         {
@@ -206,7 +206,7 @@ public static class BenchDatasets
 
     // Net cash is quantity times price plus a fee, so a different subset with the same quantity rarely has the same cash.
     private static decimal Cash(Random random, decimal quantity, decimal price) =>
-        Math.Round(quantity * price, 2, MidpointRounding.ToEven) + random.Next(0, 5_000) / 100m;
+        Math.Round(quantity * price, 2, MidpointRounding.ToEven) + (random.Next(0, 5_000) / 100m);
 
     private enum Claim
     {

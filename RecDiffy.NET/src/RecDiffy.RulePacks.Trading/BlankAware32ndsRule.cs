@@ -34,12 +34,12 @@ internal sealed class BlankAware32ndsRule(string from, string to, int scale, Mid
             return null;
         var plus = text[^1] is '+';
         var body = plus ? text[..^1] : text;
-        var dash = body.IndexOf('-');
+        var dash = body.IndexOf('-', StringComparison.Ordinal);
         return dash is > 0 && body[(dash + 1)..] is { Length: 2 } ticksText
             && int.TryParse(body[..dash], NumberStyles.None, CultureInfo.InvariantCulture, out var whole)
             && int.TryParse(ticksText, NumberStyles.None, CultureInfo.InvariantCulture, out var ticks)
             && ticks is >= 0 and <= 31
-                ? whole + ticks / 32m + (plus ? 1m / 64m : 0m)
+                ? whole + (ticks / 32m) + (plus ? 1m / 64m : 0m)
                 : null;
     }
 

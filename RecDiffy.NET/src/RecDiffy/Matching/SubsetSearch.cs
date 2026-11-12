@@ -163,7 +163,9 @@ internal static class SubsetSearch
                     || CheckedDecimal.Add(sums[field], delta) is not { } next
                     || CheckedDecimal.Subtract(next, delta) != sums[field]
                     || CheckedDecimal.Subtract(next, sums[field]) != delta)
+                {
                     return false;
+                }
             }
 
             return true;
