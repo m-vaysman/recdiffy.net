@@ -6,6 +6,8 @@
     <Project Path="src/RecDiffy.ExcelAddIn.Tests/RecDiffy.ExcelAddIn.Tests.csproj" />
     <Project Path="src/RecDiffy.ExcelAddIn.InstallerActions/RecDiffy.ExcelAddIn.InstallerActions.csproj" />
     <Project Path="src/RecDiffy.ExcelAddIn.InstallerActions.Tests/RecDiffy.ExcelAddIn.InstallerActions.Tests.csproj" />
-    <Project Path="src/RecDiffy.ExcelAddIn.Installer/RecDiffy.ExcelAddIn.Installer.wixproj" />
+    <Project Path="src/RecDiffy.ExcelAddIn.Installer/RecDiffy.ExcelAddIn.Installer.wixproj">
+      <Build Project="true" />
+    </Project>
   </Folder>
 </Solution>
