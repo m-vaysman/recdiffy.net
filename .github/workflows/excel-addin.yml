@@ -11,9 +11,13 @@ on:
     paths:
       - 'RecDiffy.ExcelAddIn/**'
       - '.github/workflows/excel-addin.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  INSTALLER_VERSION: 0.1.${{ github.run_number }}
 
 jobs:
   build:
@@ -32,7 +36,7 @@ jobs:
         run: dotnet restore RecDiffy.ExcelAddIn/RecDiffy.ExcelAddIn.slnx
 
       - name: Build
-        run: dotnet build RecDiffy.ExcelAddIn/RecDiffy.ExcelAddIn.slnx -c Release --no-restore -warnaserror
+        run: dotnet build RecDiffy.ExcelAddIn/RecDiffy.ExcelAddIn.slnx -c Release --no-restore -warnaserror -p:InstallerVersion=${{ env.INSTALLER_VERSION }}
 
       - name: Test
         run: dotnet test RecDiffy.ExcelAddIn/RecDiffy.ExcelAddIn.slnx -c Release --no-build
@@ -43,3 +47,40 @@ jobs:
           name: recdiffy-excel-addin
           path: RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/*-packed.xll
           if-no-files-found: error
+
+      - name: Upload the installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: recdiffy-excel-addin-installer
+          path: RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn.Installer/bin/Release/RecDiffy.ExcelAddIn.msi
+          if-no-files-found: error
+
+  publish:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: excel-addin-release
+      cancel-in-progress: false
+
+    steps:
+      - name: Download the installer
+        uses: actions/download-artifact@v4
+        with:
+          name: recdiffy-excel-addin-installer
+          path: installer
+
+      - name: Publish it to the excel-addin release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          notes="Version $INSTALLER_VERSION of the RecDiffy Excel add-in installer, built from ${GITHUB_SHA::7} on main. It's replaced each time the add-in changes on main. It isn't signed yet, so Windows asks before it runs it. To install it, see $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/main/RecDiffy.ExcelAddIn#install"
+          if gh release view excel-addin > /dev/null 2>&1; then
+            gh release upload excel-addin installer/RecDiffy.ExcelAddIn.msi --clobber
+            gh release edit excel-addin --notes "$notes"
+          else
+            gh release create excel-addin installer/RecDiffy.ExcelAddIn.msi --target "$GITHUB_SHA" --prerelease --title "RecDiffy Excel add-in" --notes "$notes"
+          fi

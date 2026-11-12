@@ -62,9 +62,9 @@ You need:
 - Excel for Windows: Microsoft 365, or Excel 2016 or later, in 64-bit or 32-bit;
 - the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0), in the same bitness as Excel.
 
-1. **Get the installer,** `RecDiffy.ExcelAddIn.msi`, by [building it](#build-and-test). There's no public download until the installer is signed (#198).
+1. **Download the installer,** [`RecDiffy.ExcelAddIn.msi`](https://github.com/m-vaysman/recdiffy.net/releases/download/excel-addin/RecDiffy.ExcelAddIn.msi). It's rebuilt each time the add-in changes. It isn't signed yet, so your browser may warn that it isn't commonly downloaded: choose to keep it. To build it yourself, see [Build and test](#build-and-test).
 2. **Close Excel.** Excel rewrites its list of add-ins when it closes, so the installer stops if Excel is open.
-3. **Run the installer.** It isn't signed yet, so Windows SmartScreen asks first: choose **More info**, then **Run anyway**.
+3. **Open the downloaded file.** Windows SmartScreen asks first, because the file isn't signed: choose **More info**, then **Run anyway**.
 
 The installer:
 
@@ -74,7 +74,7 @@ The installer:
 
 It stops with a message if Excel is open, if Excel isn't found, or if the .NET Desktop Runtime for Excel's bitness is missing. The next time you start Excel, a **RecDiffy** tab appears on the ribbon.
 
-- **To upgrade,** run a newer installer. It replaces the old version.
+- **To upgrade,** download the installer again and run it. It replaces the old version.
 - **To uninstall,** close Excel, then remove **RecDiffy Excel add-in** in Settings → Apps.
 - **To install without questions,** for example from a script, run:
 
@@ -166,7 +166,8 @@ The build writes packed add-ins to `src/RecDiffy.ExcelAddIn/bin/Release/net10.0-
 
 It also writes the installer, `src/RecDiffy.ExcelAddIn.Installer/bin/Release/RecDiffy.ExcelAddIn.msi`.
 
-- **Version:** the installer's version is the `InstallerVersion` property, 0.1.0 by default. Pass a higher one, for example `-p:InstallerVersion=0.1.1`, for an installer that upgrades the one before it.
+- **Version:** the installer's version is the `InstallerVersion` property, 0.1.0 by default. Pass a higher one, for example `-p:InstallerVersion=0.1.1`, for an installer that upgrades the one before it. CI passes `0.1.<run number>`, so each CI installer upgrades the one before it.
+- **Publishing:** when the add-in changes on `main`, or when the workflow is run by hand on `main`, CI replaces the installer on the `excel-addin` release. The Install section links to that file, so the link never changes.
 - **Runtime:** `DesktopRuntimeVersion`, 10.0.0 by default, is the .NET Desktop Runtime it checks for.
 - **Building it:** WiX v5 is free to use. From v6, WiX requires its Open Source Maintenance Fee to generate revenue (#198).
 
