@@ -32,7 +32,10 @@ internal sealed record Book(IReadOnlyList<string> SheetNames, IReadOnlyDictionar
                     .Select(cell => Cell(cell, strings))
                     .ToDictionary(cell => cell.Address, StringComparer.Ordinal),
                 StringComparer.Ordinal),
-            workbook.Workbook.DefinedNames?.Elements<DefinedName>().ToDictionary(name => name.Name!.Value!, name => name.Text, StringComparer.Ordinal)
+            workbook.Workbook.DefinedNames?.Elements<DefinedName>().ToDictionary(
+                name => name.LocalSheetId?.Value is { } sheetId ? $"{sheets[sheetId].Name!.Value!}!{name.Name!.Value!}" : name.Name!.Value!,
+                name => name.Text,
+                StringComparer.Ordinal)
                 ?? new Dictionary<string, string>(StringComparer.Ordinal));
     }
 
