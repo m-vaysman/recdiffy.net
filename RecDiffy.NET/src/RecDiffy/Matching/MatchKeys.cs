@@ -5,10 +5,10 @@ namespace RecDiffy;
 
 internal static class MatchKeys
 {
-    public static string? Compose(ActiveItem item, IReadOnlyList<string> fields, IReadOnlyDictionary<string, FieldDeclaration> schema, bool sharedOnly = false)
+    public static MatchKey? Compose(ActiveItem item, IReadOnlyList<string> fields, IReadOnlyDictionary<string, FieldDeclaration> schema, bool sharedOnly = false)
     {
         var parts = fields.Select(field => KeyText(item.Row.Context, schema[field], sharedOnly)).ToArray();
-        return parts.Any(part => part is null) ? null : Delimited.Join('\u001f', parts.Select(part => part!));
+        return parts.Any(part => part is null) ? null : MatchKey.FromEncoded(Delimited.Join('\u001f', parts.Select(part => part!)));
     }
 
     // Decimal key text is fixed-point at the field scale, so 1.5 and 1.50 at scale 2 share a key.
