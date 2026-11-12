@@ -14,7 +14,7 @@ public class IdentityJoinTests
         var crossed = Compose(Nasty, "Z");
         var other = Compose("A", "Z" + Nasty);
 
-        Assert.NotEqual(crossed, other, StringComparer.Ordinal);
+        Assert.NotEqual(crossed, other);
         Assert.Equal(crossed, Compose(Nasty, "Z"));
     }
 
@@ -123,7 +123,7 @@ public class IdentityJoinTests
     private static CompiledProfile Compile(string key) =>
         Reconciler.Compile(ProfileDocument.Parse(Profile(key)), RuleRegistry.CreateCore());
 
-    private static string? Compose(string first, string second)
+    private static MatchKey? Compose(string first, string second)
     {
         var schema = new Dictionary<string, FieldDeclaration>(StringComparer.Ordinal)
         {
