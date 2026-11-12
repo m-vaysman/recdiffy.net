@@ -14,17 +14,6 @@ internal abstract class CascadePass : IMatchPass
 
     public abstract (PassIndex Index, MatchCounters Counters) Build(MatchWorkspace workspace, MatchCounters counters);
 
-    // Only a proposal whose rows are still free is kept, and the ordinal-smallest key is the one returned.
-    public MatchProposal? ProposeFirst(MatchWorkspace workspace)
-    {
-        var sink = new ProposalSink();
-        Propose(new PassContext(workspace), sink);
-        return sink.Proposals
-            .Where(proposal => proposal.Left.All(workspace.Free.Contains) && proposal.Right.All(workspace.Free.Contains))
-            .OrderBy(proposal => proposal.Key, StringComparer.Ordinal)
-            .FirstOrDefault();
-    }
-
     protected static void Publish(ProposalSink sink, IEnumerable<MatchProposal> proposals)
     {
         foreach (var proposal in proposals)
