@@ -88,6 +88,11 @@ public class MatchKeyBucketIsolationTests
         }
         """;
 
+    private static readonly Dictionary<string, FieldDeclaration> Schema = new(StringComparer.Ordinal)
+    {
+        ["Ref"] = new("Ref", FieldType.Identifier, FieldRole.Key, 0),
+    };
+
     private static readonly SourceMap<(string Id, string Ref, string Quantity)> Rows = new SourceMap<(string Id, string Ref, string Quantity)>()
         .Text("Id", row => row.Id)
         .Text("Ref", row => row.Ref)
@@ -96,32 +101,24 @@ public class MatchKeyBucketIsolationTests
     [Fact]
     public void Compose_separates_one_value_under_two_identifier_schemes_while_its_value_text_stays_equal()
     {
-        var schema = new Dictionary<string, FieldDeclaration>(StringComparer.Ordinal)
-        {
-            ["Ref"] = new("Ref", FieldType.Identifier, FieldRole.Key, 0),
-        };
-        var isin = Item(schema, "isin", "X");
-        var cusip = Item(schema, "cusip", "X");
+        var isin = Item("isin", "X");
+        var cusip = Item("cusip", "X");
 
-        Assert.Equal(MatchKeys.ValueText(isin.Row.Context, schema["Ref"]), MatchKeys.ValueText(cusip.Row.Context, schema["Ref"]));
-        Assert.NotEqual(MatchKeys.Compose(isin, ["Ref"], schema), MatchKeys.Compose(cusip, ["Ref"], schema));
-        Assert.Equal(MatchKeys.Compose(isin, ["Ref"], schema), MatchKeys.Compose(isin, ["Ref"], schema));
+        Assert.Equal(MatchKeys.ValueText(isin.Row.Context, Schema["Ref"]), MatchKeys.ValueText(cusip.Row.Context, Schema["Ref"]));
+        Assert.NotEqual(MatchKeys.Compose(isin, ["Ref"], Schema), MatchKeys.Compose(cusip, ["Ref"], Schema));
+        Assert.Equal(MatchKeys.Compose(isin, ["Ref"], Schema), MatchKeys.Compose(isin, ["Ref"], Schema));
     }
 
     [Fact]
     public void Compose_shared_only_refuses_a_broker_scheme()
     {
-        var schema = new Dictionary<string, FieldDeclaration>(StringComparer.Ordinal)
-        {
-            ["Ref"] = new("Ref", FieldType.Identifier, FieldRole.Key, 0),
-        };
-        var shared = Item(schema, "isin", "X");
-        var broker = Item(schema, "broker", "X");
+        var shared = Item("isin", "X");
+        var broker = Item("broker", "X");
 
-        Assert.Equal(MatchKeys.ValueText(shared.Row.Context, schema["Ref"]), MatchKeys.ValueText(broker.Row.Context, schema["Ref"]));
-        Assert.NotEqual(MatchKeys.Compose(shared, ["Ref"], schema), MatchKeys.Compose(broker, ["Ref"], schema));
-        Assert.NotNull(MatchKeys.Compose(shared, ["Ref"], schema, sharedOnly: true));
-        Assert.Null(MatchKeys.Compose(broker, ["Ref"], schema, sharedOnly: true));
+        Assert.Equal(MatchKeys.ValueText(shared.Row.Context, Schema["Ref"]), MatchKeys.ValueText(broker.Row.Context, Schema["Ref"]));
+        Assert.NotEqual(MatchKeys.Compose(shared, ["Ref"], Schema), MatchKeys.Compose(broker, ["Ref"], Schema));
+        Assert.NotNull(MatchKeys.Compose(shared, ["Ref"], Schema, sharedOnly: true));
+        Assert.Null(MatchKeys.Compose(broker, ["Ref"], Schema, sharedOnly: true));
     }
 
     [Fact]
@@ -168,7 +165,7 @@ public class MatchKeyBucketIsolationTests
             ReferenceDataSet.Empty);
     }
 
-    private static ActiveItem Item(IReadOnlyDictionary<string, FieldDeclaration> schema, string scheme, string value)
+    private static ActiveItem Item(string scheme, string value)
     {
         var row = RowContext.Create("row", Side.Left, new Dictionary<string, object?>(StringComparer.Ordinal));
         var (pool, id) = row.Pool.InternIdentifier(scheme, "", value);
