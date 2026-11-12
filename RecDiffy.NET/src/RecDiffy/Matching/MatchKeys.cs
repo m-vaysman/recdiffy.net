@@ -12,7 +12,7 @@ internal static class MatchKeys
     }
 
     // Decimal key text is fixed-point at the field scale, so 1.5 and 1.50 at scale 2 share a key.
-    public static string? KeyText(RowContext row, FieldDeclaration field, bool sharedOnly = false) =>
+    private static string? KeyText(RowContext row, FieldDeclaration field, bool sharedOnly = false) =>
         row.IsNull(field.Name)
             ? null
             : field.Type switch
