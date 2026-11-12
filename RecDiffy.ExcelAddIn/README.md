@@ -116,6 +116,10 @@ It never logs workbook contents or full paths.
 
 ![The add-in log: the add-in loaded, the settings, the reconciliation window, a rejected CSV file in red, and a CSV file read](docs/logging-window.png)
 
+## Privacy
+
+The add-in sends nothing over the network. It keeps only its log and its settings, on your computer. See the [privacy policy](PRIVACY.md).
+
 ## Troubleshooting
 
 **The add-in doesn't load.** The add-in's own log starts only once the add-in has loaded. For a failure before that, turn on Excel-DNA's file logging for one Excel session. In a Command Prompt, run:
