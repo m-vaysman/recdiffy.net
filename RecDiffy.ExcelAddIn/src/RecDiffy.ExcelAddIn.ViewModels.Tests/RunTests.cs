@@ -234,6 +234,7 @@ public class RunTests
     [InlineData("Ref\u001eT-1", "T-1")]
     [InlineData("Ref\u001eT-1\u001fTradeDate\u001e2026-11-05", "T-1 · 2026-11-05")]
     [InlineData("T-1", "T-1")]
+    [InlineData("T-1 · 2026-11-05", "T-1 · 2026-11-05")]
     [InlineData(null, "(none)")]
     public void A_match_key_shows_its_values_without_the_engines_separators(string? key, string expected)
     {

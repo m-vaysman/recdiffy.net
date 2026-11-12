@@ -1,0 +1,50 @@
+using RecDiffy.Results;
+
+namespace RecDiffy.Tests;
+
+// #338: PassAttempt.Key is a person-facing surface, so it carries the value form of an identifier, never the scheme and
+// record separator the matcher keys on (R2, AGENTS.md).
+public class TrailKeyValueFormTests
+{
+    private const string Profile = """
+        {
+          "formatVersion": 1,
+          "profileId": "trail-value-form",
+          "version": "1.0.0",
+          "culture": "",
+          "sources": { "left": { "rowKey": "Id" }, "right": { "rowKey": "Id" } },
+          "fields": [
+            { "name": "Ref", "type": "Identifier", "role": "Key" },
+            { "name": "Amount", "type": "Decimal", "scale": 2, "role": "Economic" }
+          ],
+          "normalization": {
+            "left": { "identify": [ { "rule": "identifier.map", "from": "Ref", "to": "Ref", "scheme": "ref" } ], "parse": [ { "rule": "decimal.parse", "from": "Amount", "to": "Amount" } ] },
+            "right": { "identify": [ { "rule": "identifier.map", "from": "Ref", "to": "Ref", "scheme": "ref" } ], "parse": [ { "rule": "decimal.parse", "from": "Amount", "to": "Amount" } ] }
+          },
+          "paths": [ { "id": "p", "route": { "rule": "route.all" }, "passes": [ { "id": "P1", "pass": "match.naturalKey", "key": ["Ref"] } ] } ]
+        }
+        """;
+
+    private static readonly SourceMap<(string Id, string Ref, string Amount)> Map = new SourceMap<(string Id, string Ref, string Amount)>()
+        .Text("Id", row => row.Id).Text("Ref", row => row.Ref).Text("Amount", row => row.Amount);
+
+    [Fact]
+    public void A_trail_key_names_an_identifier_by_its_value_for_a_matched_and_a_contested_entry()
+    {
+        var result = Run(
+            [("L1", "T-1", "100"), ("L2", "T-2", "250")],
+            [("R1", "T-1", "100"), ("R2", "T-2", "250"), ("R3", "T-2", "250")]);
+
+        var matched = Assert.Single(Assert.Single(result.Entries, entry => entry.Alignment is Alignment.Matched).Explanation.Trail);
+        var contest = Assert.Single(Assert.Single(result.Entries, entry => entry.Alignment is Alignment.Ambiguous).Explanation.Trail);
+
+        Assert.Equal([(PassVerdict.Committed, "T-1"), (PassVerdict.Contest, "T-2")], [(matched.Verdict, matched.Key), (contest.Verdict, contest.Key)]);
+    }
+
+    private static ReconciliationResult Run((string Id, string Ref, string Amount)[] left, (string Id, string Ref, string Amount)[] right) =>
+        Reconciler.Run(
+            Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
+            RecordSources.FromObjects("left", left, Map),
+            RecordSources.FromObjects("right", right, Map),
+            ReferenceDataSet.Empty);
+}

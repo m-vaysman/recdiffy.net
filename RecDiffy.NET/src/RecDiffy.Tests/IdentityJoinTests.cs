@@ -199,15 +199,16 @@ public class IdentityJoinTests
         }
         """;
 
-    // Decimal class keys cannot contain U+001F. Diagnostic text is not an identity.
-    // The side-by-side display label stays pipe-joined; grouping uses Delimited.
-    // Group ids join already-escaped member lines with a newline.
+    // Every composite key, class key and fingerprint goes through Delimited or MatchKeys. The allowlist is for joins that
+    // are not an identity: a side-by-side display label (pipe-joined), and a trail key's value form, which is display only
+    // (#338), so a value that holds the separator is shown as written and never has to round-trip.
     private static readonly string[] Allowed =
     [
         "string.Join('\\u001f', pair.Values!",
         "string.Join('\\u001f', cls.Values.Select",
         "string.Join(\"; \", errors.Select",
         "string.Join(\"|\", fields.Select",
+        "string.Join(ValueSeparator, parts)",
         "var text = string.Join(",
     ];
 }

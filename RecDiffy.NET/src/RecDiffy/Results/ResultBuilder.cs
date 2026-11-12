@@ -29,7 +29,7 @@ internal static class ResultBuilder
             {
                 cancellation.ThrowIfCancellationRequested();
                 var plan = DiffPlan.From(jobs[index].Path, profile.Document.Fields, profile.Document.Midpoint, profile.Attributions);
-                built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan, EqualByConstruction(jobs[index].Path, jobs[index].Group.PassId), use);
+                built[index] = Matched(jobs[index].Path, jobs[index].Group, plan, EqualByConstruction(jobs[index].Path, jobs[index].Group.PassId), use);
             }
         }
         else
@@ -41,7 +41,7 @@ internal static class ResultBuilder
                 index =>
                 {
                     var plan = DiffPlan.From(jobs[index].Path, profile.Document.Fields, profile.Document.Midpoint, profile.Attributions);
-                    built[index] = Matched(jobs[index].Path.Id, jobs[index].Group, plan, EqualByConstruction(jobs[index].Path, jobs[index].Group.PassId), use);
+                    built[index] = Matched(jobs[index].Path, jobs[index].Group, plan, EqualByConstruction(jobs[index].Path, jobs[index].Group.PassId), use);
                 });
         }
 
@@ -56,7 +56,7 @@ internal static class ResultBuilder
         foreach (var item in routed)
         {
             foreach (var cluster in item.Match.Residue)
-                entries.Add(Open(item.Path.Id, cluster));
+                entries.Add(Open(item.Path.Id, cluster, item.Path.Passes, use));
         }
 
         entries.AddRange(Unrouted(entries, left.Concat(right)));
@@ -74,7 +74,7 @@ internal static class ResultBuilder
     }
 
     // An empty diff list is Exact. NotCompared fields are absent from that list and do not lower the outcome.
-    private static (ResultEntry Entry, RowContext Left, RowContext Right) Matched(string pathId, CommittedMatch group, DiffPlan plan, IReadOnlySet<string> equal, FieldUse use)
+    private static (ResultEntry Entry, RowContext Left, RowContext Right) Matched(PathDeclaration path, CommittedMatch group, DiffPlan plan, IReadOnlySet<string> equal, FieldUse use)
     {
         var left = Aggregate(group.Left, plan, equal, use);
         var right = Aggregate(group.Right, plan, equal, use);
@@ -87,20 +87,32 @@ internal static class ResultBuilder
         return (
             new ResultEntry(
                 id,
-                pathId,
+                path.Id,
                 Alignment.Matched,
                 Compose(group),
                 outcome,
                 [.. group.Left.SelectMany(row => row.Members)],
                 [.. group.Right.SelectMany(row => row.Members)],
                 diffs,
-                new Explanation(group.PassId, [new PassAttempt(group.PassId, PassVerdict.Committed, group.Key, members, null)], [])),
+                new Explanation(group.PassId, [new PassAttempt(group.PassId, PassVerdict.Committed, TrailKey(path, group, use), members, null)], [])),
             left,
             right);
     }
 
+    // The trail key a person reads is the value form of the pass's key fields (#338, R2), never the encoded key.
+    // A committed group keys on its target row's RowKey, which is already the value form.
+    private static string? TrailKey(PathDeclaration path, CommittedMatch group, FieldUse use) =>
+        TrailRow(group) is { } row
+            ? MatchKeys.CommittedTrailKey(Pass(path.Passes, group.PassId), group.Key, row, use.Fields)
+            : null;
+
+    private static RowContext? TrailRow(CommittedMatch group) =>
+        group.Left is [var first, ..] ? first.Context
+        : group.Right is [var only, ..] ? only.Context
+        : null;
+
     // LeftOnly and RightOnly residue record NoCandidate. Ambiguous records Contest.
-    private static ResultEntry Open(string pathId, ResidueCluster cluster)
+    private static ResultEntry Open(string pathId, ResidueCluster cluster, IReadOnlyList<PassDeclaration> passes, FieldUse use)
     {
         var left = cluster.Rows.Where(row => row.Context.Side == Side.Left).SelectMany(row => row.Members).ToArray();
         var right = cluster.Rows.Where(row => row.Context.Side == Side.Right).SelectMany(row => row.Members).ToArray();
@@ -120,8 +132,16 @@ internal static class ResultBuilder
             left,
             right,
             [],
-            new Explanation(cluster.PassId, cluster.PassId is null ? [] : [new PassAttempt(cluster.PassId, verdict, cluster.Key, members, cluster.Code)], []));
+            new Explanation(cluster.PassId, cluster.PassId is null ? [] : [new PassAttempt(cluster.PassId, verdict, OpenTrailKey(cluster, passes, use), members, cluster.Code)], []));
     }
+
+    private static string? OpenTrailKey(ResidueCluster cluster, IReadOnlyList<PassDeclaration> passes, FieldUse use) =>
+        cluster is { PassId: { } passId, Rows: [var row, ..] }
+            ? MatchKeys.OpenTrailKey(Pass(passes, passId), cluster.Key, row.Context, use.Fields)
+            : null;
+
+    private static PassDeclaration? Pass(IReadOnlyList<PassDeclaration> passes, string passId) =>
+        passes.FirstOrDefault(pass => string.Equals(pass.Id, passId, StringComparison.Ordinal));
 
     // Lineage members inherit the survivor's entry.
     // A member that already has one keeps it, and a suppressed row publishes nothing.
@@ -182,7 +202,7 @@ internal static class ResultBuilder
         var placed = entries.SelectMany(entry => entry.Left.Concat(entry.Right)).ToHashSet();
         return rows
             .Where(row => row is { Quarantined: false, Suppression: null } && Invalid(row) is false && row.Members.Any(member => placed.Contains(member) is false))
-            .Select(row => Open("", new ResidueCluster(row.Context.Side == Side.Left ? Alignment.LeftOnly : Alignment.RightOnly, "Unrouted", "route", [row])))
+            .Select(row => Open("", new ResidueCluster(row.Context.Side == Side.Left ? Alignment.LeftOnly : Alignment.RightOnly, "Unrouted", "route", [row]), [], FieldUse.Everything))
             .Select(entry => entry with { Explanation = entry.Explanation with { CommittedBy = null } })
             .ToArray();
     }
