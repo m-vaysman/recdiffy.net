@@ -9,11 +9,11 @@ internal sealed record PairIndex(
     IReadOnlyList<string> Fields,
     bool ApplyVeto,
     MatchWorkspace Workspace,
-    ImmutableDictionary<string, ImmutableArray<int>> Left,
-    ImmutableDictionary<string, ImmutableArray<int>> Right,
-    ImmutableDictionary<int, string> KeyOf,
-    ImmutableDictionary<string, MatchProposal> Ready,
-    ImmutableSortedSet<string> ReadyOrder) : PassIndex(PassId)
+    ImmutableDictionary<MatchKey, ImmutableArray<int>> Left,
+    ImmutableDictionary<MatchKey, ImmutableArray<int>> Right,
+    ImmutableDictionary<int, MatchKey> KeyOf,
+    ImmutableDictionary<MatchKey, MatchProposal> Ready,
+    ImmutableSortedSet<MatchKey> ReadyOrder) : PassIndex(PassId)
 {
     public override ImmutableHashSet<int> WorkspaceFree => Workspace.Free;
 
@@ -21,7 +21,7 @@ internal sealed record PairIndex(
 
     // Commit order is the ordinal key, not the row index.
     public override MatchProposal? NextReady() =>
-        ReadyOrder.IsEmpty || ReadyOrder.Min is not { } key ? null : Ready[key];
+        ReadyOrder.IsEmpty ? null : Ready[ReadyOrder.Min];
 
     public static (PairIndex Index, MatchCounters Counters) Create(
         string passId,
@@ -41,20 +41,20 @@ internal sealed record PairIndex(
             SideMap(placed, Side.Left),
             SideMap(placed, Side.Right),
             keyed,
-            ImmutableDictionary.Create<string, MatchProposal>(StringComparer.Ordinal),
-            ImmutableSortedSet.Create<string>(StringComparer.Ordinal));
-        var ready = RefreshAll(seeded, seeded.Left.Keys.Union(seeded.Right.Keys, StringComparer.Ordinal));
+            ImmutableDictionary.Create<MatchKey, MatchProposal>(MatchKey.OrdinalEquality),
+            ImmutableSortedSet.Create(MatchKey.Ordinal));
+        var ready = RefreshAll(seeded, seeded.Left.Keys.Union(seeded.Right.Keys, MatchKey.OrdinalEquality));
         return (ready, counters.Built());
     }
 
     public override (PassIndex Index, MatchCounters Counters) Release(IReadOnlyList<int> taken, MatchCounters counters)
     {
-        var dirty = taken.Where(KeyOf.ContainsKey).Select(index => KeyOf[index]).Distinct(StringComparer.Ordinal);
+        var dirty = taken.Where(KeyOf.ContainsKey).Select(index => KeyOf[index]).Distinct(MatchKey.OrdinalEquality);
         var removed = taken.Aggregate(this, (state, index) => state.Without(index));
         return (RefreshAll(removed, dirty), counters);
     }
 
-    private static PairIndex RefreshAll(PairIndex index, IEnumerable<string> keys)
+    private static PairIndex RefreshAll(PairIndex index, IEnumerable<MatchKey> keys)
     {
         var current = index;
         foreach (var key in keys)
@@ -63,12 +63,12 @@ internal sealed record PairIndex(
     }
 
     public override IReadOnlyList<ResidueCluster> Residue() =>
-        [.. Left.Keys.Union(Right.Keys, StringComparer.Ordinal).OrderBy(key => key, StringComparer.Ordinal).SelectMany(Cluster)];
+        [.. Left.Keys.Union(Right.Keys, MatchKey.OrdinalEquality).OrderBy(key => key, MatchKey.Ordinal).SelectMany(Cluster)];
 
     // A key with rows on only one side is not residue. Those rows stay free for a later pass.
-    private IEnumerable<ResidueCluster> Cluster(string key) =>
+    private IEnumerable<ResidueCluster> Cluster(MatchKey key) =>
         Sides(key) is { Left: { Length: > 0 } left, Right: { Length: > 0 } right } && (left.Length is not 1 || right.Length is not 1)
-            ? [new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows([.. left, .. right]), key)]
+            ? [new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows([.. left, .. right]), key.Encoded)]
             : [];
 
     private PairIndex Without(int index) =>
@@ -80,14 +80,14 @@ internal sealed record PairIndex(
                 _ => this with { Right = Right.SetItem(key, Right[key].Remove(index)), KeyOf = KeyOf.Remove(index) },
             };
 
-    private PairIndex Refresh(string key)
+    private PairIndex Refresh(MatchKey key)
     {
         var cleared = this with { Ready = Ready.Remove(key), ReadyOrder = ReadyOrder.Remove(key) };
         var (left, right) = cleared.Sides(key);
         return left.Length is 1 && right.Length is 1
             ? cleared with
             {
-                Ready = cleared.Ready.SetItem(key, new MatchProposal([left[0]], [right[0]], key)),
+                Ready = cleared.Ready.SetItem(key, new MatchProposal([left[0]], [right[0]], key.Encoded)),
                 ReadyOrder = cleared.ReadyOrder.Add(key),
             }
             : cleared;
@@ -95,7 +95,7 @@ internal sealed record PairIndex(
 
     // A row stays when any opposite row does not veto it, including a row the other side then drops.
     // One clean pair can remain ambiguous.
-    private (int[] Left, int[] Right) Sides(string key)
+    private (int[] Left, int[] Right) Sides(MatchKey key)
     {
         var left = Members(Left, key);
         var right = Members(Right, key);
@@ -110,13 +110,13 @@ internal sealed record PairIndex(
     private IReadOnlyList<ConsolidatedRow> Rows(IReadOnlyList<int> indexes) =>
         [.. indexes.Select(index => Workspace.Items[index].Row)];
 
-    private static ImmutableArray<int> Members(ImmutableDictionary<string, ImmutableArray<int>> side, string key) =>
+    private static ImmutableArray<int> Members(ImmutableDictionary<MatchKey, ImmutableArray<int>> side, MatchKey key) =>
         side.TryGetValue(key, out var members) ? members : [];
 
-    private static ImmutableDictionary<string, ImmutableArray<int>> SideMap(IReadOnlyList<PlacedRow> rows, Side side) =>
+    private static ImmutableDictionary<MatchKey, ImmutableArray<int>> SideMap(IReadOnlyList<PlacedRow> rows, Side side) =>
         rows.Where(row => row.Side == side)
-            .GroupBy(row => row.Key, StringComparer.Ordinal)
-            .ToImmutableDictionary(group => group.Key, group => group.Select(row => row.Index).ToImmutableArray(), StringComparer.Ordinal);
+            .GroupBy(row => row.Key, MatchKey.OrdinalEquality)
+            .ToImmutableDictionary(group => group.Key, group => group.Select(row => row.Index).ToImmutableArray(), MatchKey.OrdinalEquality);
 
     // A null key part is not placed. The row stays free for a later pass.
     private static IReadOnlyList<PlacedRow> Placed(MatchWorkspace workspace, IReadOnlyList<string> fields, bool sharedOnly) =>
@@ -126,5 +126,5 @@ internal sealed record PairIndex(
                 : null)
             .OfType<PlacedRow>()];
 
-    private sealed record PlacedRow(int Index, Side Side, string Key);
+    private sealed record PlacedRow(int Index, Side Side, MatchKey Key);
 }
