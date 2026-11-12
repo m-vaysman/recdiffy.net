@@ -135,7 +135,7 @@ public class KeyAndDecimalBoundaryPropertyTests
                         && decimal.Round(a.QtyVal!.Value, 2) == decimal.Round(b.QtyVal!.Value, 2);
                     var keyA = MatchKeys.Compose(a.Item, fields, schema, sharedOnly: false);
                     var keyB = MatchKeys.Compose(b.Item, fields, schema, sharedOnly: false);
-                    Assert.Equal(sameCanonical, string.Equals(keyA, keyB, StringComparison.Ordinal));
+                    Assert.Equal(sameCanonical, keyA == keyB);
                 }
             }
         }

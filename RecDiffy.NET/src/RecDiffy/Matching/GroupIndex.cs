@@ -5,7 +5,7 @@ using RecDiffy.Rules;
 
 namespace RecDiffy;
 
-internal sealed record ReadyProposal(MatchProposal Proposal, string Block);
+internal sealed record ReadyProposal(MatchProposal Proposal, MatchKey Block);
 
 // A row belongs to one block. Evaluate rewrites only blocks that contained a removed row.
 internal sealed record GroupIndex(
@@ -15,11 +15,11 @@ internal sealed record GroupIndex(
     Side Many,
     int MaxGroup,
     MatchWorkspace Workspace,
-    ImmutableDictionary<string, ImmutableArray<int>> Blocks,
-    ImmutableDictionary<int, string> BlockOf,
-    ImmutableDictionary<string, ImmutableArray<Decision>> Decisions,
+    ImmutableDictionary<MatchKey, ImmutableArray<int>> Blocks,
+    ImmutableDictionary<int, MatchKey> BlockOf,
+    ImmutableDictionary<MatchKey, ImmutableArray<Decision>> Decisions,
     ImmutableDictionary<string, ImmutableList<ReadyProposal>> Ready,
-    ImmutableDictionary<string, ImmutableArray<string>> ReadyByBlock,
+    ImmutableDictionary<MatchKey, ImmutableArray<string>> ReadyByBlock,
     ImmutableSortedSet<string> ReadyOrder) : PassIndex(PassId)
 {
     public override ImmutableHashSet<int> WorkspaceFree => Workspace.Free;
@@ -41,8 +41,8 @@ internal sealed record GroupIndex(
         MatchCounters counters)
     {
         var placed = Placed(workspace, block);
-        var blocks = placed.GroupBy(row => row.Key, StringComparer.Ordinal)
-            .ToImmutableDictionary(group => group.Key, group => group.Select(row => row.Index).ToImmutableArray(), StringComparer.Ordinal);
+        var blocks = placed.GroupBy(row => row.Key, MatchKey.OrdinalEquality)
+            .ToImmutableDictionary(group => group.Key, group => group.Select(row => row.Index).ToImmutableArray(), MatchKey.OrdinalEquality);
         var blockOf = placed.ToImmutableDictionary(row => row.Index, row => row.Key);
         var seeded = new GroupIndex(
             passId,
@@ -53,21 +53,21 @@ internal sealed record GroupIndex(
             workspace,
             blocks,
             blockOf,
-            ImmutableDictionary.Create<string, ImmutableArray<Decision>>(StringComparer.Ordinal),
+            ImmutableDictionary.Create<MatchKey, ImmutableArray<Decision>>(MatchKey.OrdinalEquality),
             ImmutableDictionary.Create<string, ImmutableList<ReadyProposal>>(StringComparer.Ordinal),
-            ImmutableDictionary.Create<string, ImmutableArray<string>>(StringComparer.Ordinal),
+            ImmutableDictionary.Create<MatchKey, ImmutableArray<string>>(MatchKey.OrdinalEquality),
             ImmutableSortedSet.Create<string>(StringComparer.Ordinal));
-        return EvaluateAll(seeded, seeded.Blocks.Keys.OrderBy(key => key, StringComparer.Ordinal), counters.Built(), false);
+        return EvaluateAll(seeded, seeded.Blocks.Keys.OrderBy(key => key, MatchKey.Ordinal), counters.Built(), false);
     }
 
     public override (PassIndex Index, MatchCounters Counters) Release(IReadOnlyList<int> taken, MatchCounters counters)
     {
-        var dirty = taken.Where(BlockOf.ContainsKey).Select(index => BlockOf[index]).Distinct(StringComparer.Ordinal);
+        var dirty = taken.Where(BlockOf.ContainsKey).Select(index => BlockOf[index]).Distinct(MatchKey.OrdinalEquality);
         var removed = taken.Aggregate(this, (state, index) => state.Without(index));
         return EvaluateAll(removed, dirty, counters, true);
     }
 
-    private static (GroupIndex Index, MatchCounters Counters) EvaluateAll(GroupIndex index, IEnumerable<string> keys, MatchCounters counters, bool dirty)
+    private static (GroupIndex Index, MatchCounters Counters) EvaluateAll(GroupIndex index, IEnumerable<MatchKey> keys, MatchCounters counters, bool dirty)
     {
         var current = index;
         foreach (var key in keys)
@@ -84,7 +84,7 @@ internal sealed record GroupIndex(
     public override IReadOnlyList<ResidueCluster> Residue() =>
         [.. Decisions.SelectMany(pair => pair.Value.SelectMany(decision => FromDecision(pair.Key, decision)))];
 
-    private (GroupIndex Index, MatchCounters Counters) Evaluate(string key, MatchCounters counters, bool dirty)
+    private (GroupIndex Index, MatchCounters Counters) Evaluate(MatchKey key, MatchCounters counters, bool dirty)
     {
         var dropped = Drop(key);
         if (dropped.Blocks.TryGetValue(key, out var members) is false || members.IsEmpty)
@@ -97,7 +97,7 @@ internal sealed record GroupIndex(
 
     private (GroupIndex Index, MatchCounters Counters) PostComponents(
         GroupIndex dropped,
-        string key,
+        MatchKey key,
         IEnumerable<Component> components,
         MatchCounters counters,
         bool dirty)
@@ -121,14 +121,14 @@ internal sealed record GroupIndex(
             ? this
             : this with { Blocks = Blocks.SetItem(key, Blocks[key].Remove(index)), BlockOf = BlockOf.Remove(index) };
 
-    private GroupIndex Drop(string blockKey) =>
+    private GroupIndex Drop(MatchKey blockKey) =>
         ReadyByBlock.TryGetValue(blockKey, out var keys) is false
             ? this
             : keys.Aggregate(
                 this with { ReadyByBlock = ReadyByBlock.Remove(blockKey) },
                 (state, key) => state.RemoveReady(blockKey, key));
 
-    private GroupIndex RemoveReady(string blockKey, string key)
+    private GroupIndex RemoveReady(MatchKey blockKey, string key)
     {
         if (Ready.TryGetValue(key, out var proposals) is false)
             return this;
@@ -138,7 +138,7 @@ internal sealed record GroupIndex(
             : this with { Ready = Ready.SetItem(key, kept) };
     }
 
-    private GroupIndex Add(string blockKey, MatchProposal proposal)
+    private GroupIndex Add(MatchKey blockKey, MatchProposal proposal)
     {
         var keys = ReadyByBlock.TryGetValue(blockKey, out var existing) ? existing.Add(proposal.Key) : [proposal.Key];
         return Ready.TryGetValue(proposal.Key, out var list)
@@ -354,13 +354,13 @@ internal sealed record GroupIndex(
 
     private static int[] EligibleFor(int target, Component component) => component.ByTarget[target];
 
-    private IEnumerable<ResidueCluster> FromDecision(string key, Decision decision) => decision.Kind switch
+    private IEnumerable<ResidueCluster> FromDecision(MatchKey key, Decision decision) => decision.Kind switch
     {
-        DecisionKind.Contest => [new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows(decision.Contest), key)],
+        DecisionKind.Contest => [new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows(decision.Contest), key.Encoded)],
         DecisionKind.Incomplete => [new ResidueCluster(Alignment.SearchIncomplete, decision.Code, PassId, Rows(decision.Incomplete))],
         DecisionKind.Split =>
         [
-            new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows(decision.Contest), key),
+            new ResidueCluster(Alignment.Ambiguous, null, PassId, Rows(decision.Contest), key.Encoded),
             new ResidueCluster(Alignment.SearchIncomplete, decision.Code, PassId, Rows(decision.Incomplete)),
         ],
         _ => [],
@@ -375,7 +375,7 @@ internal sealed record GroupIndex(
             .Select(index => MatchKeys.Compose(workspace.Items[index], block, workspace.Schema) is { } key ? new BlockedRow(index, key) : null)
             .OfType<BlockedRow>()];
 
-    private sealed record BlockedRow(int Index, string Key);
+    private sealed record BlockedRow(int Index, MatchKey Key);
 
     private sealed record Component(int[] Targets, int[] Eligible, ImmutableDictionary<int, int[]> ByTarget);
 }
