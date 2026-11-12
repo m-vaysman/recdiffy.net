@@ -29,8 +29,13 @@ public readonly struct PassContext
 
     public Side SideOf(int item) => Workspace.Items[item].Side;
 
-    public string? KeyOf(int item, IReadOnlyList<string> fields) =>
-        MatchKeys.Compose(Workspace.Items[item], fields, Workspace.Schema);
+    // A key a pass author sees is the value form (#338, R2), the same form the trail shows. The scheme-carrying key form
+    // stays inside matching.
+    public string? KeyOf(int item, IReadOnlyList<string> fields)
+    {
+        ArgumentNullException.ThrowIfNull(fields);
+        return MatchKeys.ValueForm(Workspace.Items[item].Row.Context, fields, Workspace.Schema);
+    }
 
     public bool Vetoed(int left, int right) =>
         MatchKeys.Vetoed(Workspace.Items[left], Workspace.Items[right], Workspace.SharedField, Workspace.Schema);

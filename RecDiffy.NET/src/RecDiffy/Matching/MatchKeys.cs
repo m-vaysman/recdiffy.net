@@ -34,6 +34,41 @@ internal static class MatchKeys
                 _ => null,
             };
 
+    // The form a person reads (#338, R2): each key field by its value, joined with a middle dot, and no scheme. The join is
+    // display only, so a value that holds the separator itself is shown as written. A missing field has no value form.
+    public static string? ValueForm(RowContext row, IReadOnlyList<string> fields, IReadOnlyDictionary<string, FieldDeclaration> schema)
+    {
+        var parts = fields.Select(field => schema.TryGetValue(field, out var declaration) ? ValueText(row, declaration) : null).ToArray();
+        return parts.Any(part => part is null) ? null : string.Join(ValueSeparator, parts);
+    }
+
+    // A committed group keys on its target row's RowKey, which already reads as a value. Every other commit keys on the
+    // pass's key fields, whose key form carries a scheme, so the trail shows their values instead.
+    public static string? CommittedTrailKey(PassDeclaration? pass, string key, RowContext row, IReadOnlyDictionary<string, FieldDeclaration> schema) =>
+        pass switch
+        {
+            { Pass: "match.groupSum" } => key,
+            { Pass: "match.sharedRef", Key.Count: 0 } => ValueForm(row, SharedRefKey, schema),
+            { Key.Count: > 0 } pair => ValueForm(row, pair.Key, schema),
+            _ => null,
+        };
+
+    // A contested pair keys on its key fields. A contested group has no key of its own, so it keys on its block fields.
+    // Any other verdict carries no key. An unknown pass yields null rather than the encoded key.
+    public static string? OpenTrailKey(PassDeclaration? pass, string? key, RowContext? row, IReadOnlyDictionary<string, FieldDeclaration> schema) =>
+        (pass, key, row) switch
+        {
+            (_, null, _) or (null, _, _) or (_, _, null) => null,
+            ({ Pass: "match.groupSum" } group, _, { } context) => ValueForm(context, group.Block, schema),
+            ({ Pass: "match.sharedRef", Key.Count: 0 }, _, { } context) => ValueForm(context, SharedRefKey, schema),
+            ({ Key.Count: > 0 } pair, _, { } context) => ValueForm(context, pair.Key, schema),
+            _ => null,
+        };
+
+    private const string ValueSeparator = " · ";
+
+    private static readonly string[] SharedRefKey = ["Counterparty", "TradeRef"];
+
     // A broker scheme never vetoes, and a missing value never vetoes. Two shared schemes veto when the values differ.
     public static bool Vetoed(ActiveItem left, ActiveItem right, string? sharedField, IReadOnlyDictionary<string, FieldDeclaration> schema) =>
         sharedField is not null

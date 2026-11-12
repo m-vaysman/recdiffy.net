@@ -168,10 +168,15 @@ public static class ResultText
         return $"{Pass(attempt.PassId)}: {Reason(attempt)}";
     }
 
+    // The engine's key form and its value form both read here (#338). The package this project builds against still sends
+    // the encoded key, so the decoder stays until the RecDiffy reference moves past 1.2.0-preview.4.
     public static string KeyText(string? key) =>
-        key is null
-            ? "(none)"
-            : string.Join(" · ", key.Split(KeyPartSeparator).Select(part => part.Split(SchemeSeparator) is [_, var value] ? value : part));
+        key switch
+        {
+            null => "(none)",
+            { } text when text.AsSpan().IndexOfAny(KeyPartSeparator, SchemeSeparator) < 0 => text,
+            { } encoded => string.Join(" · ", encoded.Split(KeyPartSeparator).Select(part => part.Split(SchemeSeparator) is [_, var value] ? value : part)),
+        };
 
     private const char KeyPartSeparator = '\u001f';
 

@@ -219,6 +219,6 @@ public class IdentifierKeyVsValueTests
         var entry = Assert.Single(result.Entries);
         Assert.Equal(Alignment.Ambiguous, entry.Alignment);
         var contest = Assert.Single(entry.Explanation.Trail);
-        Assert.Equal(("P3", PassVerdict.Contest, "book\u001eRATES", 4), (contest.PassId, contest.Verdict, contest.Key, contest.Candidates.Count));
+        Assert.Equal(("P3", PassVerdict.Contest, "RATES", 4), (contest.PassId, contest.Verdict, contest.Key, contest.Candidates.Count));
     }
 }

@@ -61,7 +61,7 @@ internal static class AuditTrail
             .. explanation.Trail.Select(attempt => new Step(
                 attempt.PassId,
                 attempt.Verdict.ToString(),
-                string.Join("  ·  ", new[] { attempt.Key is { } key ? $"key {Readable(key)}" : null, attempt.Detail }.OfType<string>()),
+                string.Join("  ·  ", new[] { attempt.Key is { } key ? $"key {key}" : null, attempt.Detail }.OfType<string>()),
                 string.Join(", ", attempt.Candidates.Select(candidate => $"{candidate.Source}:{candidate.RowKey}")))),
             .. explanation.Hints.Select(hint => new Step("Hint", hint.Code, hint.Detail, "", Hint: true)),
             new Step("Result", entry.Entry.Alignment.ToString(), Result(entry), ""),
@@ -104,8 +104,4 @@ internal static class AuditTrail
     }
 
     private static string Or(string keys) => keys.Length == 0 ? "—" : keys;
-
-    // Composite keys are joined with control characters; show them as a readable separator.
-    private static string Readable(string key) =>
-        string.Concat(key.Select(character => char.IsControl(character) ? " | " : character.ToString()));
 }
