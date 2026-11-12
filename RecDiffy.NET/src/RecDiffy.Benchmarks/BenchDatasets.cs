@@ -53,7 +53,10 @@ public static class BenchDatasets
         if (shape is BenchShape.ExactPairs or BenchShape.Unmatched && width is not 1)
             throw new ArgumentOutOfRangeException(nameof(width), width, "A pair shape has one target per block.");
 
+        // Seeded on purpose: every benchmark run must generate the same synthetic dataset so results stay comparable. A CSPRNG cannot take a seed.
+#pragma warning disable S2245
         var random = new Random(Seed);
+#pragma warning restore S2245
         var units = shape switch
         {
             BenchShape.ExactPairs => Pairs(random, rows),
