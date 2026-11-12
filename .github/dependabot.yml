@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /RecDiffy.ExcelAddIn
+    target-branch: dev
+    schedule:
+      interval: daily
+    allow:
+      - dependency-name: "RecDiffy*"
+    groups:
+      recdiffy:
+        patterns:
+          - "RecDiffy*"
+    commit-message:
+      prefix: "Excel add-in"

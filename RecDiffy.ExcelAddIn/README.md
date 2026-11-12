@@ -141,13 +141,19 @@ Agents: read `.agents/skills/excel-dna/SKILL.md` before changing this code. No E
 
 | Project | Target | Holds |
 |---|---|---|
-| `RecDiffy.ExcelAddIn` | `net10.0-windows`, WPF, Excel-DNA 1.9.0, RecDiffy.IO 1.2.0-preview.2 | The ribbon, the window host, the views, the Excel reader and the CSV reader. The Excel reader uses the C API and the cell conversions registered at startup. The CSV reader uses `RecDiffy.IO`. |
-| `RecDiffy.ExcelAddIn.ViewModels` | `net10.0`, RecDiffy 1.2.0-preview.2 | View models (CommunityToolkit.Mvvm) and the serializable reconciliation setup (#193), with no Excel or WPF types |
+| `RecDiffy.ExcelAddIn` | `net10.0-windows`, WPF, Excel-DNA 1.9.0, RecDiffy.IO | The ribbon, the window host, the views, the Excel reader and the CSV reader. The Excel reader uses the C API and the cell conversions registered at startup. The CSV reader uses `RecDiffy.IO`. |
+| `RecDiffy.ExcelAddIn.ViewModels` | `net10.0`, RecDiffy | View models (CommunityToolkit.Mvvm) and the serializable reconciliation setup (#193), with no Excel or WPF types |
 | `RecDiffy.ExcelAddIn.ViewModels.Tests` | `net10.0` | xunit tests of the view models, which run without Excel |
 | `RecDiffy.ExcelAddIn.Tests` | `net10.0-windows` | xunit tests of the cell conversions and the table built from a picked range, which run without Excel |
 | `RecDiffy.ExcelAddIn.Installer` | WiX v5 (`WixToolset.Sdk` 5.0.2) | The per-user MSI: both packed add-ins, the checks it makes before installing, and the registration |
 | `RecDiffy.ExcelAddIn.InstallerActions` | `net472`, `WixToolset.Dtf.CustomAction` 5.0.2 | The installer's custom actions. They find Excel and its bitness, and add the add-in to Excel's `OPEN` values under `HKCU\Software\Microsoft\Office\16.0\Excel\Options`, or remove it. |
 | `RecDiffy.ExcelAddIn.InstallerActions.Tests` | `net10.0` | xunit tests of the `OPEN` values and of reading an executable's bitness |
+
+### The RecDiffy packages
+
+The add-in uses the published `RecDiffy` and `RecDiffy.IO` packages from nuget.org, not the source in `RecDiffy.NET`, so each installer ships an engine version you can name. Both are pinned to the same version in the two projects' files.
+
+When a new version is on nuget.org, Dependabot opens one pull request into `dev` that moves both. It checks every day, and it only looks at packages whose names start with `RecDiffy` (`.github/dependabot.yml`). The add-in's CI builds and tests that pull request like any other.
 
 ### Logging
 
