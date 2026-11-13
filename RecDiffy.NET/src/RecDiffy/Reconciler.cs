@@ -132,12 +132,14 @@ internal static class RunPipeline
 
     // An unknown route rule matches no row. Compile rejects that rule; a document that skipped compile drops the
     // path.
+    // A blank cell reads as the empty text, so `"equals": ""` takes it, as a condition and a side-by-side filter read
+    // the same cell (#337).
     private static bool OnRoute(RouteDeclaration route, ConsolidatedRow row, IReadOnlyDictionary<string, FieldDeclaration> schema) =>
         route.Rule switch
         {
             "route.all" => true,
             "route.byField" when route.Field is { } name && schema.TryGetValue(name, out var field) =>
-                MatchKeys.ValueText(row.Context, field) == route.EqualsValue,
+                (MatchKeys.ValueText(row.Context, field) ?? "") == route.EqualsValue,
             _ => false,
         };
 }
