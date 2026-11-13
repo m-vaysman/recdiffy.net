@@ -77,7 +77,7 @@ for id in RecDiffy.RulePacks.Trading RecDiffy.IO RecDiffy.Excel; do
   check_core_dependency "$id"
 done
 
-for framework in net8.0 net10.0; do
+for framework in net8.0 net9.0 net10.0; do
   echo "::group::Samples on $framework, from the packages"
   output=$(dotnet run --project Consumer -c Release --no-build -f "$framework" -p:RecDiffyVersion="$version") \
     || fail "A sample did not get its expected result on $framework, run from the packages."
@@ -90,4 +90,4 @@ for framework in net8.0 net10.0; do
 done
 
 [[ $failures == 0 ]] || { echo "$failures package check(s) failed."; exit 1; }
-echo "The packages restore from the local feed, hold their files and run every sample on net8.0 and net10.0."
+echo "The packages restore from the local feed, hold their files and run every sample on net8.0, net9.0 and net10.0."
