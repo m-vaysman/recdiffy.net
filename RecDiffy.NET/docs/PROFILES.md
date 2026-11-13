@@ -238,7 +238,7 @@ A condition is used by a rule's `when`, a field's `applicableWhen`, and a tolera
 ```
 
 - **Give exactly one operand.** A condition with none is `MissingParameter`, and so is an empty `in` list. A condition with more than one is `MultipleOperands`, and the message names the clause: the matcher would read `equals` first, then `notEquals`, then `in`, and drop the rest with no sign.
-- **`"equals": ""`** holds when the value is an empty string. A data reader turns a blank cell into null, and null never equals `""`, so on CSV and Excel sources this check never holds. See [Known gaps](#known-gaps).
+- **`"equals": ""`** holds when the value is blank: null, an empty string, or whitespace only, from any source.
 - **The value read** is the field's canonical value when a rule has written it: a decimal as invariant text, a date as `yyyy-MM-dd`, an identifier as its value. Otherwise it is the raw column, trimmed. A null cell reads as null.
 - **A missing value** fails `equals` and `in`, and passes `notEquals`.
 - **Comparison is ordinal.**
@@ -542,7 +542,6 @@ These behaviours on `dev` are defects, each tracked in an issue with a skipped f
 - **A side with no `normalization` block compiles.** That side writes no fields, so none of its rows can be matched. `FieldNotProduced` checks only the sides that have a block. Declare rules for both sides. ([#287](https://github.com/m-vaysman/recdiffy.net/issues/287))
 - **`match.sharedRef` with no `key`** uses `Counterparty` and `TradeRef`, but compile doesn't check that they are declared. If either is missing, the run throws `KeyNotFoundException`. Give every `match.sharedRef` pass a `key`. ([#288](https://github.com/m-vaysman/recdiffy.net/issues/288))
 - **A `days` tolerance ignores its `when`.** The gap is allowed even when the condition fails on one side or both. ([#289](https://github.com/m-vaysman/recdiffy.net/issues/289))
-- **`"equals": ""` never holds on a CSV or Excel source.** A data reader turns a blank cell into null, and the check compares with an empty string. It does hold on an object source, whose blank text stays `""`, so the same profile behaves differently by source. ([#280](https://github.com/m-vaysman/recdiffy.net/issues/280))
 - **`party.resolveAlias` can't follow `party.resolveLei` on the same field.** It writes only when the field is still empty, but compile counts it as a second writer (`AmbiguousWrite`). Give the two rules `when` clauses that exclude each other, or resolve into separate fields. ([#291](https://github.com/m-vaysman/recdiffy.net/issues/291))
 - **A lifecycle survivor merged into a package loses its history.** The package's entry has no `LifecycleCollapsed` flag, and the superseded and cancel rows get no `EntryId`. ([#290](https://github.com/m-vaysman/recdiffy.net/issues/290))
 - **`AttributedTo` is filled when the formula doesn't explain the difference.** [#254](https://github.com/m-vaysman/recdiffy.net/issues/254).

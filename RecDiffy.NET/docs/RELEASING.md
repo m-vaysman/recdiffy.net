@@ -50,7 +50,7 @@ nuget.org prereleases are the only public channel. Two other workflows pack the 
 
 - **A prerelease label survives.** The assembly version drops it, so it is not used unless the informational version is missing. Every `1.2.0` preview before [#295](https://github.com/m-vaysman/recdiffy.net/issues/295) reported `1.2.0.0`, and a result could not say which preview made it.
 - **A local build that sets no version** reports `1.0.0`, the `<Version>` in [RecDiffy.csproj](../src/RecDiffy/RecDiffy.csproj).
-- **The PackageSmoke consumer check pins it.** `consume.sh` packs `0.0.0-ci.<run>`, runs the samples from the packages, and fails unless `EngineVersion` equals the packed version, on both frameworks. `publish-aot.sh` runs the same sample from the Native AOT and trimmed builds.
+- **The PackageSmoke consumer check pins it.** `consume.sh` packs `0.0.0-ci.<run>`, runs the samples from the packages, and fails unless `EngineVersion` equals the packed version, on `net8.0`, `net9.0` and `net10.0`. `publish-aot.sh` runs the same sample from the Native AOT and trimmed builds.
 
 ## Release to nuget.org
 
@@ -62,7 +62,7 @@ The workflow builds, runs the tests, packs all four projects as that version, ch
 
 **The pushed files are the checked files.** Before `Log in to nuget.org`, the job copies `artifacts/*.nupkg` into `RecDiffy.NET/tests/PackageSmoke/feed` and runs the two checks the [Packages workflow](../../.github/workflows/packages.yml) runs on every pull request:
 
-- `RecDiffy.NET/tests/PackageSmoke/consume.sh "$VERSION"` restores each package from the local feed, checks its files, dependencies and metadata, runs every sample on `net8.0` and `net10.0`, and asserts that `EngineVersion` equals the packed version.
+- `RecDiffy.NET/tests/PackageSmoke/consume.sh "$VERSION"` restores each package from the local feed, checks its files, dependencies and metadata, runs every sample on `net8.0`, `net9.0` and `net10.0`, and asserts that `EngineVersion` equals the packed version.
 - `RecDiffy.NET/tests/PackageSmoke/publish-aot.sh "$VERSION"` publishes the AOT-safe samples with Native AOT and with trimming, on `net8.0` and `net10.0`, with every warning an error, and runs them.
 
 Either script exits nonzero on a failure, and the job stops before anything is pushed. Before [#296](https://github.com/m-vaysman/recdiffy.net/issues/296) the release packed again from the tag and pushed without either check, so nuget.org got files no check had seen.
