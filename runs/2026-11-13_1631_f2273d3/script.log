@@ -1,0 +1,26 @@
+﻿[2026-11-13 16:31:06] run 2026-11-13_1631_f2273d3 for origin/dev at f2273d387ee1ef63f57d986bc1c167b74c4886c7
+[2026-11-13 16:31:06] host COBBLER1A, work root G:\RecDiffyCapacity
+[2026-11-13 16:31:06] resolve remote: git -C G:\Projects\recdiffy_deepseek\recdiffy.net remote get-url origin
+[2026-11-13 16:31:06] repository m-vaysman/recdiffy.net
+[2026-11-13 16:31:06] list runners: gh api repos/m-vaysman/recdiffy.net/actions/runners?per_page=100
+[2026-11-13 16:31:07] cobbler1 runner is idle
+[2026-11-13 16:31:45] background CPU average 2.0%
+[2026-11-13 16:31:45] checkout: git -C G:\Projects\recdiffy_deepseek\recdiffy.net worktree add --detach G:\RecDiffyCapacity\work\2026-11-13_1631_f2273d3 f2273d387ee1ef63f57d986bc1c167b74c4886c7
+[2026-11-13 16:31:46] build: dotnet build G:\RecDiffyCapacity\work\2026-11-13_1631_f2273d3\RecDiffy.NET\capacity\RecDiffy.Capacity\RecDiffy.Capacity.csproj -c Release -warnaserror -f net10.0
+[2026-11-13 16:32:10] run G:\RecDiffyCapacity\work\2026-11-13_1631_f2273d3\RecDiffy.NET\capacity\RecDiffy.Capacity\bin\Release\net10.0\RecDiffy.Capacity.dll --sweep sizes --out G:\RecDiffyCapacity\runs\2026-11-13_1631_f2273d3 --seed 377 --repeats 1 --break-rate 0.1 --unmatched-rate 0.05 --commit f2273d387ee1ef63f57d986bc1c167b74c4886c7 --ref origin/dev --sizes 10000,100000 --case-timeout-seconds 1800
+[2026-11-13 16:32:10] harness: dotnet G:\RecDiffyCapacity\work\2026-11-13_1631_f2273d3\RecDiffy.NET\capacity\RecDiffy.Capacity\bin\Release\net10.0\RecDiffy.Capacity.dll --sweep sizes --out G:\RecDiffyCapacity\runs\2026-11-13_1631_f2273d3 --seed 377 --repeats 1 --break-rate 0.1 --unmatched-rate 0.05 --commit f2273d387ee1ef63f57d986bc1c167b74c4886c7 --ref origin/dev --sizes 10000,100000 --case-timeout-seconds 1800
+[2026-11-13 16:33:13]   RecDiffy capacity run 2026-11-13_1632_f2273d3
+[2026-11-13 16:33:13]     sweep   sizes
+[2026-11-13 16:33:13]     profile capacity.mixed 1.0.0 (ea100672412fede34f7ad0f9e703f1d6d75b10d6109cece2c1457d8360adf7d0), seed 377
+[2026-11-13 16:33:13]     output  G:\RecDiffyCapacity\runs\2026-11-13_1631_f2273d3
+[2026-11-13 16:33:13]     10000 rows/side: Completed, engine 2.503 s, excel 2.275 s, 7992 rows/s, peak heap 298.2 MB
+[2026-11-13 16:33:13]     100000 rows/side: Completed, engine 24.035 s, excel 22.210 s, 8321 rows/s, peak heap 2547.7 MB
+[2026-11-13 16:33:13]   results  G:\RecDiffyCapacity\runs\2026-11-13_1631_f2273d3\results.json
+[2026-11-13 16:33:13]   markdown G:\RecDiffyCapacity\runs\2026-11-13_1631_f2273d3\report.md
+[2026-11-13 16:33:13]   html     G:\RecDiffyCapacity\runs\2026-11-13_1631_f2273d3\report.html
+[2026-11-13 16:33:13]   OK: no known outcome mismatched.
+[2026-11-13 16:33:13] reports written; status ok
+[2026-11-13 16:33:13] list worktrees: git -C G:\Projects\recdiffy_deepseek\recdiffy.net worktree list --porcelain
+[2026-11-13 16:33:13] fetch results branch: git -C G:\Projects\recdiffy_deepseek\recdiffy.net fetch origin capacity-results
+[2026-11-13 16:33:13] results worktree: git -C G:\Projects\recdiffy_deepseek\recdiffy.net worktree add --detach G:\RecDiffyCapacity\branch\2026-11-13_1631_f2273d3 origin/capacity-results
+[2026-11-13 16:33:14] results branch: git -C G:\RecDiffyCapacity\branch\2026-11-13_1631_f2273d3 checkout -B capacity-results
