@@ -110,6 +110,8 @@ internal sealed record ReportCase(
     int TotalRows,
     string Outcome,
     bool? KnownOutcomeMatches,
+    string? FailureStage,
+    double TimeToFailureSeconds,
     ReportCounts Expected,
     ReportCounts Actual,
     IReadOnlyList<ReportSample> Samples,
@@ -122,6 +124,11 @@ internal sealed record ReportCase(
     long PeakWorkingSetBytes,
     long AllocatedBytes,
     double GcPauseSeconds,
+    long RetainedHeapBytes,
+    double BytesPerInputRow,
+    int RowsSearched,
+    int RowsBlocked,
+    int AggregateOverflowFields,
     IReadOnlyList<ReportStage> Stages,
     IReadOnlyList<ReportFile> Files,
     IReadOnlyList<string> Notes)
@@ -133,8 +140,11 @@ internal sealed record ReportCase(
 
 internal sealed record ReportDerived(
     int? LargestCompletedSize,
+    ReportFailure? FirstFailure,
     IReadOnlyList<ReportScaling> Scaling,
     IReadOnlyList<ReportUnmeasuredStage> UnmeasuredStages);
+
+internal sealed record ReportFailure(int Size, string Outcome, string? Stage, double Seconds);
 
 internal sealed record ReportScaling(int FromSize, int ToSize, double SecondsRatio, double RowsRatio, double Exponent, string Verdict);
 

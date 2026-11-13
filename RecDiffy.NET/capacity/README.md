@@ -1,9 +1,9 @@
 # The capacity harness
 
-Phases 1 and 3 of the capacity and performance work in [#377](https://github.com/m-vaysman/recdiffy.net/issues/377): a
-console harness that runs the reconciliation engine through its public API, records what it cost, and writes a run
-folder with `results.json`, `report.md` and a static `report.html`. It has two sweeps: sizes (phase 1) and concurrency
-(phase 3).
+Phases 1, 3 and 4 of the capacity and performance work in [#377](https://github.com/m-vaysman/recdiffy.net/issues/377):
+a console harness that runs the reconciliation engine through its public API, records what it cost, and writes a run
+folder with `results.json`, `report.md` and a static `report.html`. It has two sweeps: sizes with the failure boundary
+(phases 1 and 4) and concurrency (phase 3).
 
 It is **outside `RecDiffy.slnx`**. No workflow builds or runs it, `ci.yml` never sees it, and it is `IsPackable=false`,
 so it adds nothing to the packed packages. It lives in this repository so it always measures the engine at the commit
@@ -94,6 +94,42 @@ Rows per run are fixed, so total work grows with N; the curve is throughput, not
 style and sharing warms JIT and thread start-up. A first-batch penalty can still make one combination's N = 1
 throughput lower than another's, so compare efficiency within a combination, not across.
 
+## The failure boundary (phase 4)
+
+The sizes sweep is also the failure probe: any row count can be passed, and each case ends in exactly one recorded
+outcome rather than a hang or a silent exit.
+
+| Outcome | Meaning |
+|---|---|
+| `Completed` | The run finished and matched the outcome the dataset was built to produce. |
+| `CompletedWithSearchIncomplete` | Finished, but the search limits refused rows (`BlockTooLarge` or `BudgetExhausted`). The report shows rows blocked next to rows searched. |
+| `OutOfMemory` | A managed allocation failed. The report records the stage (`engine` or `excel`), the time to failure, and the sampled peak heap. |
+| `Cancelled` | Only when `--case-timeout-seconds` fires. |
+
+The report states the largest size that completed, the first size that failed with its stage and time, and per case:
+rows searched and blocked, `AggregateOverflow` diagnostics, bytes of peak heap per input row, and the retained heap
+after the result is dropped and two full blocking collections run.
+
+A managed heap cap is a property of the process, not a switch the harness can flip. Set it in the environment and the
+run records it in the host header:
+
+```
+$env:DOTNET_GCHeapHardLimit = '0x400000000'   # 16 GB; also 0x200000000 (8 GB) and 0x800000000 (32 GB)
+dotnet run --project RecDiffy.NET/capacity/RecDiffy.Capacity -- --sizes 100000,1000000 --excel none
+```
+
+Use `--excel none` from 1M rows: the Excel writer holds a second copy of the data, and the issue reports it as its own
+stage. The 10M probe is the same command with `--sizes 10000000`; on a 64 GB host it is expected to end `OutOfMemory`,
+which is the answer, not a harness failure.
+
+An OS kill cannot be caught in the process: if the host kills the run, no report is written. The run script records
+that case from the job (phase 6), which is why every capacity run is started by the script rather than by hand.
+
+The per-stage search counters (`Components`, `SubsetSearches`, `DirtyResearches`, `IndexBuilds`) live on the matcher's
+internal `MatchCounters`, which a package consumer cannot see. The harness reports rows searched and blocked from the
+public result instead. Reading the counters needs an `InternalsVisibleTo` line in `RecDiffy.csproj`, a decision for the
+lead, not taken here.
+
 ## What the harness does not measure yet
 
 - **Stages inside `Reconciler.Run`.** Intake, normalization, consolidation, matching, diff and result building are one
@@ -102,10 +138,10 @@ throughput lower than another's, so compare efficiency within a combination, not
 - **Concurrency leftovers.** Culture isolation across threads, a second host (N processes with one run each), and a
   `dotnet-trace` race-detection pass are phase 3's remaining items; the sweep and the field-by-field baseline check are
   in.
-- **Large sizes and the memory ceiling.** Phase 4 sweeps 1M and probes 10M, under heap caps, and records how a run
-  fails.
-- **Heap caps and GC modes.** Phase 4/5 set `DOTNET_GCHeapHardLimit` and compare server and workstation GC; the
-  concurrency sweep records the mode it ran under, and must be run once per mode.
+- **The size axis matrix.** Cardinality, record width, duplicate ratios, group shapes and raised limits, each swept on
+  its own and then in combination, are the rest of phase 4; the failure boundary above is the size axis only.
+- **Heap caps and GC modes.** The caps are set by the launcher (`DOTNET_GCHeapHardLimit`) and recorded; comparing server
+  and workstation GC is phase 5, and needs one process per mode.
 - **Cold and warm runs, ReadyToRun, Native AOT, `net8.0`.** Phase 5.
 - **The run script and the GitHub comment.** Phase 6.
 - **Comparison with the previous run.** The run script will hand over the previous run's `results.json`; the harness
