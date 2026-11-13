@@ -26,8 +26,6 @@
     <InternalsVisibleTo Include="RecDiffy.Tests" />
     <InternalsVisibleTo Include="RecDiffy.Benchmarks" />
     <InternalsVisibleTo Include="RecDiffy.RulePacks.Trading" />
-    <InternalsVisibleTo Include="RecDiffy.Excel" />
-    <InternalsVisibleTo Include="RecDiffy.Samples" />
   </ItemGroup>
 
 </Project>
