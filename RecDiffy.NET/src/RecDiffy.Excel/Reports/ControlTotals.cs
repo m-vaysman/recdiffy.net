@@ -72,11 +72,11 @@ internal static class ControlTotals
             ("left", "Matched"), ("right", "Matched"), ("left", "LeftOnly"), ("right", "RightOnly"), ("left", "Ambiguous"), ("right", "Ambiguous"),
         ];
         string Other(string side, int row) =>
-            $"COUNTIFS({source},\"{side}\",{counterparty},$A{row},{asset},$B{row})-COUNTIFS({source},\"{side}\",{disposition},\"Matched\",{counterparty},$A{row},{asset},$B{row})" +
-            $"-COUNTIFS({source},\"{side}\",{disposition},\"{(side == "left" ? "LeftOnly" : "RightOnly")}\",{counterparty},$A{row},{asset},$B{row})-COUNTIFS({source},\"{side}\",{disposition},\"Ambiguous\",{counterparty},$A{row},{asset},$B{row})";
+            $"COUNTIFS({source},\"{side}\",{counterparty},$A{row.ToInvariant()},{asset},$B{row.ToInvariant()})-COUNTIFS({source},\"{side}\",{disposition},\"Matched\",{counterparty},$A{row.ToInvariant()},{asset},$B{row.ToInvariant()})" +
+            $"-COUNTIFS({source},\"{side}\",{disposition},\"{(side == "left" ? "LeftOnly" : "RightOnly")}\",{counterparty},$A{row.ToInvariant()},{asset},$B{row.ToInvariant()})-COUNTIFS({source},\"{side}\",{disposition},\"Ambiguous\",{counterparty},$A{row.ToInvariant()},{asset},$B{row.ToInvariant()})";
         string Condition(int row) => others
-            ? $"AND(C{row}=E{row}+G{row}+I{row}+K{row},D{row}=F{row}+H{row}+J{row}+L{row})"
-            : $"AND(C{row}=E{row}+G{row}+I{row},D{row}=F{row}+H{row}+J{row})";
+            ? $"AND(C{row.ToInvariant()}=E{row.ToInvariant()}+G{row.ToInvariant()}+I{row.ToInvariant()}+K{row.ToInvariant()},D{row.ToInvariant()}=F{row.ToInvariant()}+H{row.ToInvariant()}+J{row.ToInvariant()}+L{row.ToInvariant()})"
+            : $"AND(C{row.ToInvariant()}=E{row.ToInvariant()}+G{row.ToInvariant()}+I{row.ToInvariant()},D{row.ToInvariant()}=F{row.ToInvariant()}+H{row.ToInvariant()}+J{row.ToInvariant()})";
         string RowCheck(int row) => $"IF({Condition(row)},\"✓\",\"✗\")";
 
         var part1 = ReportSheet.Head(context, info)
@@ -90,7 +90,7 @@ internal static class ControlTotals
             .Fold(pairs, (sheet, pair, index) =>
             {
                 var row = p1First + index;
-                var criteria = $"{counterparty},$A{row},{asset},$B{row}";
+                var criteria = $"{counterparty},$A{row.ToInvariant()},{asset},$B{row.ToInvariant()}";
                 return sheet
                     .Put(row, 1, pair.Counterparty, Styles.Bold)
                     .Put(row, 2, pair.Asset)
@@ -107,11 +107,11 @@ internal static class ControlTotals
             .Put(p1Total, 1, context.Label("Total"), Styles.Total)
             .Put(p1Total, 2, null, Styles.Total)
             .Fold(Enumerable.Range(3, checkColumn - 3), (sheet, column, _) =>
-                sheet.PutFormula(p1Total, column, $"SUM({Address.Column(column)}{p1First}:{Address.Column(column)}{Math.Max(p1First, p1Last)})", Styles.Total with { Format = Formats.Count }))
+                sheet.PutFormula(p1Total, column, $"SUM({Address.Column(column)}{p1First.ToInvariant()}:{Address.Column(column)}{Math.Max(p1First, p1Last).ToInvariant()})", Styles.Total with { Format = Formats.Count }))
             .PutFormula(
                 p1Total,
                 checkColumn,
-                $"IF(AND(C{p1Total}=COUNTIF({source},\"left\"),D{p1Total}=COUNTIF({source},\"right\"),{Condition(p1Total)}),\"✓\",\"✗\")",
+                $"IF(AND(C{p1Total.ToInvariant()}=COUNTIF({source},\"left\"),D{p1Total.ToInvariant()}=COUNTIF({source},\"right\"),{Condition(p1Total)}),\"✓\",\"✗\")",
                 Styles.Total with { Align = HorizontalAlign.Center });
 
         // Part 2 · quantity side-by-side
@@ -152,9 +152,9 @@ internal static class ControlTotals
         var span = Span + extra;
         ImmutableArray<int> summed = [4, 5, 6, 7, 8, 9, 11, 12, 13, 14, .. Enumerable.Range(15, extra), fileOurs, fileTheirs];
         string Col(int column) => Address.Column(column);
-        string Parts(int row, int first) => string.Concat(addBacks.Select((_, index) => $"+{Col(first + 2 * index)}{row}"));
+        string Parts(int row, int first) => string.Concat(addBacks.Select((_, index) => $"+{Col(first + 2 * index)}{row.ToInvariant()}"));
         string Tie(int row) =>
-            $"IF(AND({Col(fileOurs)}{row}=D{row}+M{row}{Parts(row, 15)},{Col(fileTheirs)}{row}=E{row}+N{row}{Parts(row, 16)}),\"✓\",\"✗\")";
+            $"IF(AND({Col(fileOurs)}{row.ToInvariant()}=D{row.ToInvariant()}+M{row.ToInvariant()}{Parts(row, 15)},{Col(fileTheirs)}{row.ToInvariant()}=E{row.ToInvariant()}+N{row.ToInvariant()}{Parts(row, 16)}),\"✓\",\"✗\")";
 
         var part2 = part1
             .Put(p2Title, 1, context.Label("Part 2 · Quantity side-by-side by currency (engine BuildSideBySide), with the difference decomposed and tied back to the files"), Styles.Section)
@@ -171,21 +171,21 @@ internal static class ControlTotals
                 .Fold(block.Lines, (inner, line, _) =>
                 {
                     var row = line.Row;
-                    var criteria = $"{counterparty},$B{row},{asset},$C{row},{currency},$A{row}";
-                    string Engine(string column) => $"={DataTabs.SideBySideName}!{column}{sideBySide.RowOf(line.Line)}";
+                    var criteria = $"{counterparty},$B{row.ToInvariant()},{asset},$C{row.ToInvariant()},{currency},$A{row.ToInvariant()}";
+                    string Engine(string column) => $"={DataTabs.SideBySideName}!{column}{sideBySide.RowOf(line.Line).ToInvariant()}";
                     return inner
                         .Put(row, 1, block.Currency)
                         .Put(row, 2, line.Value.Row, Styles.Bold)
                         .Put(row, 3, line.Value.Column)
                         .PutFormula(row, 4, Engine("D"), Styles.Link(Formats.Quantity))
                         .PutFormula(row, 5, Engine("E"), Styles.Link(Formats.Quantity))
-                        .PutFormula(row, 6, $"E{row}-D{row}", Styles.Number(Formats.Quantity, bold: true))
+                        .PutFormula(row, 6, $"E{row.ToInvariant()}-D{row.ToInvariant()}", Styles.Number(Formats.Quantity, bold: true))
                         .PutFormula(row, 7, Engine("G"), Styles.Link(Formats.Quantity))
                         .PutFormula(row, 8, Engine("H"), Styles.Link(Formats.Quantity))
                         .PutFormula(row, 9, Engine("I"), Styles.Link(Formats.Quantity))
-                        .PutFormula(row, 10, $"IF(AND(F{row}=G{row}+H{row}+I{row},F{row}={DataTabs.SideBySideName}!F{sideBySide.RowOf(line.Line)}),\"✓\",\"✗\")", Styles.Check)
+                        .PutFormula(row, 10, $"IF(AND(F{row.ToInvariant()}=G{row.ToInvariant()}+H{row.ToInvariant()}+I{row.ToInvariant()},F{row.ToInvariant()}={DataTabs.SideBySideName}!F{sideBySide.RowOf(line.Line).ToInvariant()}),\"✓\",\"✗\")", Styles.Check)
                         .PutFormula(row, 11, $"SUMIFS({quantity},{source},\"right\",{disposition},\"Matched\",{split},\"Y\",{criteria})-SUMIFS({quantity},{source},\"left\",{disposition},\"Matched\",{split},\"Y\",{criteria})", Styles.Number(Formats.Quantity))
-                        .PutFormula(row, 12, $"I{row}-K{row}", Styles.Number(Formats.Quantity))
+                        .PutFormula(row, 12, $"I{row.ToInvariant()}-K{row.ToInvariant()}", Styles.Number(Formats.Quantity))
                         .PutFormula(row, 13, $"SUMIFS({quantity},{source},\"left\",{disposition},\"Ambiguous\",{criteria})", Styles.Number(Formats.Quantity))
                         .PutFormula(row, 14, $"SUMIFS({quantity},{source},\"right\",{disposition},\"Ambiguous\",{criteria})", Styles.Number(Formats.Quantity))
                         .Fold(addBacks, (cells, addBack, index) => cells
@@ -201,9 +201,9 @@ internal static class ControlTotals
                 .Fold(summed, (inner, column, _) => inner.PutFormula(
                     block.Subtotal,
                     column,
-                    $"SUM({Address.Column(column)}{block.First}:{Address.Column(column)}{Math.Max(block.First, block.Subtotal - 1)})",
+                    $"SUM({Address.Column(column)}{block.First.ToInvariant()}:{Address.Column(column)}{Math.Max(block.First, block.Subtotal - 1).ToInvariant()})",
                     Styles.Total with { Format = Formats.Quantity }))
-                .PutFormula(block.Subtotal, 10, $"IF(F{block.Subtotal}=G{block.Subtotal}+H{block.Subtotal}+I{block.Subtotal},\"✓\",\"✗\")", Styles.Total with { Align = HorizontalAlign.Center })
+                .PutFormula(block.Subtotal, 10, $"IF(F{block.Subtotal.ToInvariant()}=G{block.Subtotal.ToInvariant()}+H{block.Subtotal.ToInvariant()}+I{block.Subtotal.ToInvariant()},\"✓\",\"✗\")", Styles.Total with { Align = HorizontalAlign.Center })
                 .PutFormula(block.Subtotal, tie, Tie(block.Subtotal), Styles.Total with { Align = HorizontalAlign.Center }))
             .Put(p2Last + 1, 1, "Quantities are summed within a currency only. Units differ by asset (face for bonds, shares for equity, notional for FX and swaps), so compare a line across its own row, not down the column.", Styles.Note);
 
@@ -253,11 +253,11 @@ internal static class ControlTotals
         var sheet = part3
             .Widths([14, 16, 12, 15, 15, 16, 15, 15, 15, 11, 15, 15, 15, 15, .. Enumerable.Repeat(17.0, extra), 15, 15, 8])
             .FreezeAt(p1First, 1)
-            .Rule(new ExpressionRule(new CellRange(p2Head + 1, 6, p2Last, 6), $"AND(ISNUMBER(F{p2Head + 1}),F{p2Head + 1}<>0)", Styles.Red))
+            .Rule(new ExpressionRule(new CellRange(p2Head + 1, 6, p2Last, 6), $"AND(ISNUMBER(F{(p2Head + 1).ToInvariant()}),F{(p2Head + 1).ToInvariant()}<>0)", Styles.Red))
             .CheckRules(new CellRange(p1First, checkColumn, p1Total, checkColumn))
             .CheckRules(new CellRange(p2Head + 1, 10, p2Last, 10))
             .CheckRules(new CellRange(p2Head + 1, tie, p2Last, tie))
-            .Rule(new ExpressionRule(new CellRange(p2Head + 1, 11, p2Last, 11), $"AND(ISNUMBER(K{p2Head + 1}),K{p2Head + 1}<>0)", Styles.Amber));
+            .Rule(new ExpressionRule(new CellRange(p2Head + 1, 11, p2Last, 11), $"AND(ISNUMBER(K{(p2Head + 1).ToInvariant()}),K{(p2Head + 1).ToInvariant()}<>0)", Styles.Amber));
         return new ReportBody(sheet, [rows, sideBySide]);
     }
 }

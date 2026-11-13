@@ -64,11 +64,11 @@ internal static class Allocations
                 .Outline(block + 1 + pair.index, 1));
         var finished = withMembers
             .Put(total, 1, context.Label("Allocations total"), Styles.Bold)
-            .PutFormula(total, 4, $"SUM(D{block + 1}:D{total - 1})", Styles.Number(Formats.Quantity, bold: true))
-            .PutFormula(total, 7, $"IF(D{total}=D{block},\"✓ equal\",\"✗ \"&TEXT(D{total}-D{block},\"#,##0.00\"))", Styles.Bold)
+            .PutFormula(total, 4, $"SUM(D{(block + 1).ToInvariant()}:D{(total - 1).ToInvariant()})", Styles.Number(Formats.Quantity, bold: true))
+            .PutFormula(total, 7, $"IF(D{total.ToInvariant()}=D{block.ToInvariant()},\"✓ equal\",\"✗ \"&TEXT(D{total.ToInvariant()}-D{block.ToInvariant()},\"#,##0.00\"))", Styles.Bold)
             .Fold(netCash ? [total] : Array.Empty<int>(), (current, line, _) => current
-                .PutFormula(line, 6, $"SUM(F{block + 1}:F{line - 1})", Styles.Number(Formats.Amount, bold: true))
-                .PutFormula(line, 8, $"IF(ROUND(F{line}-F{block},2)=0,\"✓ equal\",\"✗ \"&TEXT(F{line}-F{block},\"#,##0.00\"))", Styles.Bold))
+                .PutFormula(line, 6, $"SUM(F{(block + 1).ToInvariant()}:F{(line - 1).ToInvariant()})", Styles.Number(Formats.Amount, bold: true))
+                .PutFormula(line, 8, $"IF(ROUND(F{line.ToInvariant()}-F{block.ToInvariant()},2)=0,\"✓ equal\",\"✗ \"&TEXT(F{line.ToInvariant()}-F{block.ToInvariant()},\"#,##0.00\"))", Styles.Bold))
             .CheckPrefixRules(new CellRange(total, 7, total, 7))
             .CheckPrefixRules(new CellRange(total, 8, total, 8));
         return (finished, total + 2);
