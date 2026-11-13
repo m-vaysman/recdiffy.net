@@ -276,6 +276,7 @@ public static class ProfileProblemCodes
     public const string DuplicatePath = "DuplicatePath";
     public const string DuplicatePass = "DuplicatePass";
     public const string MissingPath = "MissingPath";
+    public const string MultipleOperands = "MultipleOperands";
 }
 
 /// <summary>Conditions for a rule's <c>when</c>, a tolerance's <c>when</c>, or a field's <c>applicableWhen</c>.</summary>

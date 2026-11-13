@@ -47,6 +47,7 @@ public class ConditionOperandHashTests
 
     // One bond on each side, accrued 10 against 99. Each case swaps one condition for two spellings that treat the
     // bond differently. The first four come from the issue; the last three are blank checks that also shared a hash.
+    // A clause with two operands is rejected at compile (#339), so no case declares two.
     [Theory]
     [InlineData("applicableWhen with an empty in list", Applicable, "{ \"field\": \"AssetClass\" }", "{ \"field\": \"AssetClass\", \"in\": [] }")]
     [InlineData("applicableWhen that equals the empty text", Applicable, "{ \"field\": \"AssetClass\" }", "{ \"field\": \"AssetClass\", \"equals\": \"\" }")]
@@ -54,7 +55,7 @@ public class ConditionOperandHashTests
     [InlineData("rule when that equals the empty text", RuleWhen, "\"when\": { \"field\": \"Asset\" }", "\"when\": { \"field\": \"Asset\", \"equals\": \"\" }")]
     [InlineData("rule when that equals or does not equal the empty text", RuleWhen, "\"when\": { \"field\": \"Asset\", \"equals\": \"\" }", "\"when\": { \"field\": \"Asset\", \"notEquals\": \"\" }")]
     [InlineData("rule when with an in list of the empty text", RuleWhen, "\"when\": { \"field\": \"Asset\", \"in\": [\"\"] }", "\"when\": { \"field\": \"Asset\", \"notEquals\": \"\" }")]
-    [InlineData("applicableWhen with an empty equals beside an in list", Applicable, "{ \"field\": \"AssetClass\", \"in\": [\"Bond\"] }", "{ \"field\": \"AssetClass\", \"equals\": \"\", \"in\": [\"Bond\"] }")]
+    [InlineData("applicableWhen that lists a bond beside an equals", Applicable, "{ \"field\": \"AssetClass\", \"in\": [\"Bond\", \"Bill\"] }", "{ \"field\": \"AssetClass\", \"equals\": \"Bill\" }")]
     public void Profiles_that_share_a_hash_give_the_same_result(string what, string from, string firstSpelling, string secondSpelling)
     {
         var first = Compile(from, firstSpelling);
