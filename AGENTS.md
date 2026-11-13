@@ -45,6 +45,10 @@ Docs follow the code: when a README or other doc disagrees with the code, fix th
 
 - **No `[GeneratedRegex]` in test projects.** The Sonar build strips source generators from test projects, so that code fails there with CS8795 even though `ci.yml` passes. Use `new Regex(pattern, options, TimeSpan)` fields instead.
 
+### Culture-invariant formatting
+
+- **Read the skill first.** Before you write or review an interpolated string, Excel formula, cell reference, key, or any other text a machine reads back, read [.agents/skills/invariant-formatting/SKILL.md](.agents/skills/invariant-formatting/SKILL.md). In short: call `ToInvariant()` on each non-string value inside the interpolation, never wrap the whole string with `FormattableString.Invariant` or `string.Create`, and fix MA0076 rather than suppressing it.
+
 ### Excel-DNA add-in
 
 - **Read the skill first.** Before you plan, write or review Excel-DNA code (#192), read [.agents/skills/excel-dna/SKILL.md](.agents/skills/excel-dna/SKILL.md) and the references it points to. Codex loads it from `.agents/skills` on its own; every other agent opens it from here.
