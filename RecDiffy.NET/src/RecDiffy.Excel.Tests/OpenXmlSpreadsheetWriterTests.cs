@@ -56,7 +56,9 @@ public class OpenXmlSpreadsheetWriterTests
     {
         var path = Path.Combine(Paths.Scratch("spreadsheet-writer"), "book.xlsx");
         using (var file = File.Create(path))
+#pragma warning disable CS0618
             new OpenXmlSpreadsheetWriter().Write(workbook, file);
+#pragma warning restore CS0618
         return path;
     }
 
