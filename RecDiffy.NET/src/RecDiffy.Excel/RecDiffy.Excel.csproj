@@ -6,8 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>RecDiffy.Excel</RootNamespace>
-    <Description>Formatted Excel reports (back and middle office) from a RecDiffy.NET ReconciliationResult.</Description>
-    <PackageTags>reconciliation;diff;matching;dotnet;excel;xlsx;reports</PackageTags>
+    <Title>Reconciliation: Excel reports from RecDiffy.NET</Title>
+    <Description>Reconciliation for .NET: write formatted back- and middle-office Excel reports (.xlsx) from a RecDiffy.NET reconciliation result, with every difference decomposed and checked.</Description>
+    <PackageTags>reconciliation;reconcile;data-reconciliation;matching;diff;dotnet;excel;xlsx;reports</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

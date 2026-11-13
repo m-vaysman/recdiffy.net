@@ -1,8 +1,10 @@
 <Project>
   <PropertyGroup>
     <Authors>Michael Vaysman</Authors>
-    <Description>A general-purpose reconciliation and diffing library for .NET.</Description>
-    <PackageTags>reconciliation;diff;matching;dotnet</PackageTags>
+    <Title>Reconciliation: RecDiffy.NET</Title>
+    <Description>Reconciliation for .NET: a general-purpose library that matches two datasets, diffs their fields and explains every difference.</Description>
+    <!-- Searchable terms first: reconciliation, then the synonyms people search for, then the technical ones. -->
+    <PackageTags>reconciliation;reconcile;data-reconciliation;matching;diff;dotnet</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Copyright (c) 2026 Michael Vaysman</Copyright>
     <RepositoryUrl>https://github.com/m-vaysman/recdiffy.net</RepositoryUrl>
