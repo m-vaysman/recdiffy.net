@@ -138,14 +138,29 @@ internal static class ConcurrencySweep
         var gen2 = GC.CollectionCount(2);
         var cpu = process.TotalProcessorTime;
         var contention = Monitor.LockContentionCount;
-        using var sampler = new ConcurrencySampler(process);
-        var watch = Stopwatch.StartNew();
-        Switch(style, level, profiles, workload, latencies, fingerprints);
-        watch.Stop();
-        sampler.SampleNow();
+        double wall;
+        long peakHeap;
+        long peakWorkingSet;
+        int peakThreadPoolThreads;
+        int peakPendingWorkItems;
+        int peakThreads;
+        using (var sampler = new ConcurrencySampler(process))
+        {
+            var watch = Stopwatch.StartNew();
+            Switch(style, level, profiles, workload, latencies, fingerprints);
+            watch.Stop();
+            sampler.SampleNow();
+            wall = watch.Elapsed.TotalSeconds;
+            peakHeap = sampler.PeakHeapBytes;
+            peakWorkingSet = sampler.PeakWorkingSetBytes;
+            peakThreadPoolThreads = sampler.PeakThreadPoolThreads;
+            peakPendingWorkItems = sampler.PeakPendingWorkItems;
+            peakThreads = sampler.PeakThreads;
+        }
 
+        // Process and the counters are read after the sampler stops: Process is not documented as thread-safe.
         return new BatchResult(
-            watch.Elapsed.TotalSeconds,
+            wall,
             latencies,
             fingerprints,
             GC.GetTotalAllocatedBytes() - allocated,
@@ -155,11 +170,11 @@ internal static class ConcurrencySweep
             GC.CollectionCount(2) - gen2,
             (process.TotalProcessorTime - cpu).TotalSeconds,
             Monitor.LockContentionCount - contention,
-            sampler.PeakHeapBytes,
-            sampler.PeakWorkingSetBytes,
-            sampler.PeakThreadPoolThreads,
-            sampler.PeakPendingWorkItems,
-            sampler.PeakThreads);
+            peakHeap,
+            peakWorkingSet,
+            peakThreadPoolThreads,
+            peakPendingWorkItems,
+            peakThreads);
     }
 
     private static void Switch(
