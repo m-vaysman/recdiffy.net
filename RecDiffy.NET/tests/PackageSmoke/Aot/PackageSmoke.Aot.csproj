@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(SamplesFolder)SampleReport.cs;$(SamplesFolder)FirstReconciliation.cs;$(SamplesFolder)ResultReading.cs;$(SamplesFolder)SideBySideReport.cs;$(SamplesFolder)AsyncRun.cs;$(SamplesFolder)TradingReference.cs;$(SamplesFolder)BuiltProfile.cs;$(SamplesFolder)TypedReconciliation.cs" Link="Samples/%(Filename)%(Extension)" />
+    <Compile Include="$(SamplesFolder)SampleReport.cs;$(SamplesFolder)FirstReconciliation.cs;$(SamplesFolder)ResultReading.cs;$(SamplesFolder)SideBySideReport.cs;$(SamplesFolder)AsyncRun.cs;$(SamplesFolder)TradingReference.cs;$(SamplesFolder)BuiltProfile.cs;$(SamplesFolder)TypedReconciliation.cs;$(SamplesFolder)EngineVersionReport.cs" Link="Samples/%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>

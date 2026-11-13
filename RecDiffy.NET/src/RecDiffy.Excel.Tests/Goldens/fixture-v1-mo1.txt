@@ -3,7 +3,7 @@ MO1_ControlTotals!A2	Middle office  ·  Users: Product control, reconciliation o
 MO1_ControlTotals!A3	Row counts and quantity by currency, counterparty and asset from the engine's side-by-side view, with each difference decomposed and tied back to the files.
 MO1_ControlTotals!A4	As of
 MO1_ControlTotals!B4	=AsOf
-MO1_ControlTotals!D4	fixture-v1 acceptance run  ·  Profile fixture-v1  ·  Engine 1.0.0.0
+MO1_ControlTotals!D4	fixture-v1 acceptance run  ·  Profile fixture-v1  ·  Engine 1.0.0
 MO1_ControlTotals!A7	Part 1 · Row counts by counterparty and asset (COUNTIFS on Result_Rows)
 MO1_ControlTotals!A8	Counterparty
 MO1_ControlTotals!B8	Asset

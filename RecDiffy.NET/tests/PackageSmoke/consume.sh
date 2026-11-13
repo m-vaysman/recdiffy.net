@@ -48,8 +48,13 @@ done
 
 for framework in net8.0 net10.0; do
   echo "::group::Samples on $framework, from the packages"
-  dotnet run --project Consumer -c Release --no-build -f "$framework" -p:RecDiffyVersion="$version" \
+  output=$(dotnet run --project Consumer -c Release --no-build -f "$framework" -p:RecDiffyVersion="$version") \
     || fail "A sample did not get its expected result on $framework, run from the packages."
+  echo "$output"
+  # #295: the engine reports the package version, without build metadata. A prerelease label has to survive,
+  # because the assembly version drops it.
+  engine=$(grep -F "engine version: " <<< "$output" | sed 's/.*engine version: //')
+  [[ $engine == "$version" ]] || fail "The engine reported '$engine' on $framework, but the packed version is '$version'."
   echo "::endgroup::"
 done
 

@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using RecDiffy.Results;
@@ -347,8 +348,15 @@ internal static class ResultBuilder
         rows.Count(row => row.Disposition == Disposition.Quarantined),
         rows.Count(row => row.Disposition == Disposition.Suppressed));
 
-    // A missing assembly version is reported as 1.0.0.
-    private static string EngineVersion() => typeof(Reconciler).Assembly.GetName().Version?.ToString() ?? "1.0.0";
+    // The package version is the informational version without its build metadata: the assembly version drops the
+    // prerelease label, so every 1.2.0 preview would report 1.2.0.0. A missing informational version falls back to the
+    // assembly version, and a missing assembly version to 1.0.0.
+    private static string EngineVersion()
+    {
+        var assembly = typeof(Reconciler).Assembly;
+        var informational = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        return informational is { Length: > 0 } ? informational.Split('+', 2)[0] : assembly.GetName().Version?.ToString() ?? "1.0.0";
+    }
 }
 
 public sealed class ReconciliationResult

@@ -15,6 +15,7 @@ public static class Program
             BuiltProfile.Run(),
             FileReaders.Run(),
             TypedReconciliation.Run(),
+            EngineVersionReport.Run(),
         };
         return outcomes.All(outcome => outcome) ? 0 : 1;
     }
