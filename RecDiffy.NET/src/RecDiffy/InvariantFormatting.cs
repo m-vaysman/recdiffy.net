@@ -10,8 +10,10 @@ namespace RecDiffy;
 /// references and other machine-readable text must not change with the machine's culture: on de-DE a decimal
 /// prints <c>0,5</c>, which breaks a formula, and a date prints in an order the reader does not expect. These
 /// methods fix the culture of one value, so the rest of the interpolated string stays as written.
+/// This type is public because the samples are compiled against the packed package, where an internal
+/// helper is not visible.
 /// </remarks>
-internal static class InvariantFormatting
+public static class InvariantFormatting
 {
     /// <summary>
     /// Formats <paramref name="value"/> with the invariant culture, using the type's default format.
