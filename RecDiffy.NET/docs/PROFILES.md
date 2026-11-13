@@ -237,7 +237,7 @@ A condition is used by a rule's `when`, a field's `applicableWhen`, and a tolera
 { "field": "AssetClass", "in": ["Bond", "Bill"] }
 ```
 
-- **Give exactly one operand.** A condition with none is `MissingParameter`, and so is an empty `in` list. If you give more than one, `equals` wins, then `notEquals`, then `in`.
+- **Give exactly one operand.** A condition with none is `MissingParameter`, and so is an empty `in` list. A condition with more than one is `MultipleOperands`, and the message names the clause: the matcher would read `equals` first, then `notEquals`, then `in`, and drop the rest with no sign.
 - **`"equals": ""`** holds when the value is an empty string. A data reader turns a blank cell into null, and null never equals `""`, so on CSV and Excel sources this check never holds. See [Known gaps](#known-gaps).
 - **The value read** is the field's canonical value when a rule has written it: a decimal as invariant text, a date as `yyyy-MM-dd`, an identifier as its value. Otherwise it is the raw column, trimmed. A null cell reads as null.
 - **A missing value** fails `equals` and `in`, and passes `notEquals`.
@@ -466,6 +466,7 @@ Each error is a `ProfileError` with a `Code` and a `Message`. The message names 
 | `FieldNotProduced` | A pass or diff names a field that a side's rules never write. | Add a rule on that side that writes it. |
 | `ToleranceMismatch` | The tolerance kind doesn't fit the field type. | See the fit rules under [`diff`](#diff). |
 | `OverlappingRoute` | Two paths' routes overlap. | Give each path a distinct route. |
+| `MultipleOperands` | A condition's `when` or `applicableWhen` declares two or more of `equals`, `notEquals` and `in`. | Give exactly one operand. |
 | `LimitExceeded` | `maxGroupSize` is over 16, in `limits` or on a pass. | Use 16 or less. |
 
 When `date.parse` has a format with no year, compile stops at that error and reports nothing else. When two fields share a name, compile stops after the `DuplicateField` check and reports only `DuplicateField`, `UnsupportedFormat` and scale errors.

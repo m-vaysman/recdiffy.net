@@ -73,7 +73,8 @@ public class ConditionOperandCompileTests
     public void A_blank_check_compiles(string from, string to) =>
         Assert.NotNull(Compile(Changed(from, to)));
 
-    // Each spelling is a different condition, so no two share a hash.
+    // Each spelling is a different condition, so no two share a hash. A clause with two operands is rejected at
+    // compile (#339), so every spelling here declares exactly one.
     [Fact]
     public void Blank_checks_hash_apart_from_each_other_and_from_other_operands()
     {
@@ -83,9 +84,9 @@ public class ConditionOperandCompileTests
             "\"when\": { \"field\": \"Asset\", \"notEquals\": \"\" }",
             "\"when\": { \"field\": \"Asset\", \"in\": [\"\"] }",
             "\"when\": { \"field\": \"Asset\", \"in\": [\"\", \"Bond\"] }",
-            "\"when\": { \"field\": \"Asset\", \"equals\": \"\", \"in\": [\"Bond\"] }",
             "\"when\": { \"field\": \"Asset\", \"in\": [\"Bond\"] }",
-            "\"when\": { \"field\": \"Asset\", \"notEquals\": \"\", \"in\": [\"Bond\"] }",
+            "\"when\": { \"field\": \"Asset\", \"in\": [\"Bond\", \"Swap\"] }",
+            "\"when\": { \"field\": \"Book\", \"in\": [\"Bond\"] }",
         ];
 
         var hashes = spellings.Select(spelling => Compile(Changed(RuleWhen, spelling)).Hash).ToArray();

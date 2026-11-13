@@ -114,7 +114,8 @@ internal static class ProfileCompiler
         };
 
     // A condition needs an operand, and an in list needs a value (spec v3 §9.3; #219). An empty text operand is a blank
-    // check, because a blank cell is data (§7.5), so it stays valid.
+    // check, because a blank cell is data (§7.5), so it stays valid. Two operands in one clause are rejected: the matcher
+    // would read one of them, in the order equals, notEquals, in, and drop the other with no sign (#339).
     private static IEnumerable<ProfileError> ValidateConditions(ProfileDocument document)
     {
         var rules = document.Normalization.OrderBy(pair => pair.Key, StringComparer.Ordinal).SelectMany(pair =>
@@ -131,9 +132,20 @@ internal static class ProfileCompiler
             { EqualsValue: null, NotEquals: null, In: null } clause =>
                 [new ProfileError("MissingParameter", $"{site.Where} on '{clause.Field}' needs equals, notEquals or in.")],
             { In: [] } clause => [new ProfileError("MissingParameter", $"{site.Where} on '{clause.Field}' has an empty in list.")],
+            { EqualsValue: { }, NotEquals: { }, In: { } } clause =>
+                TwoOperands(site.Where, clause, "equals, notEquals and in"),
+            { EqualsValue: { }, NotEquals: { } } clause =>
+                TwoOperands(site.Where, clause, "equals and notEquals"),
+            { EqualsValue: { }, In: { } } clause =>
+                TwoOperands(site.Where, clause, "equals and in"),
+            { NotEquals: { }, In: { } } clause =>
+                TwoOperands(site.Where, clause, "notEquals and in"),
             _ => (IEnumerable<ProfileError>)[],
         });
     }
+
+    private static ProfileError[] TwoOperands(string where, WhenClause clause, string operands) =>
+        [new ProfileError(ProfileProblemCodes.MultipleOperands, $"{where} on '{clause.Field}' declares {operands}, so the rest would be ignored. Give exactly one operand.")];
 
     // 16 is the hard cap on the profile and on each pass, in front of a subset walk that branches on the group.
     private static IReadOnlyList<ProfileError> ValidatePaths(ProfileDocument document, FieldSchema schema, IReadOnlyDictionary<string, SideCompilation> sides)

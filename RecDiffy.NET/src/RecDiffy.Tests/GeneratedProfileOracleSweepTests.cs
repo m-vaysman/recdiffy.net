@@ -72,6 +72,20 @@ public class GeneratedProfileOracleSweepTests
         Assert.Contains(choices, c => c.LeftSource is SourceKind.DataReader || c.RightSource is SourceKind.DataReader);
     }
 
+    // A two-operand clause is rejected at compile (#339), and the sweep's one generated condition declares one operand.
+    [Theory]
+    [InlineData(0)]
+    [InlineData(7)]
+    public void The_sweep_profile_still_compiles_with_one_operand_conditions(int seed)
+    {
+        var document = BuildProfile(ProfileChoice.FromSeed(seed));
+
+        Assert.NotNull(Reconciler.Compile(document, Registry));
+        Assert.All(
+            document.Paths.SelectMany(path => path.Diff?.Fields.Values ?? []).Select(diff => diff.Tolerance.When).OfType<WhenClause>(),
+            when => Assert.Single(new object?[] { when.EqualsValue, when.NotEquals, when.In }.OfType<object>()));
+    }
+
     private static void VerifyRows(GeneratedRun plan, ReconciliationResult result)
     {
         var actualRows = result.Rows.ToDictionary(r => (r.Row.Source, r.Row.RowKey));

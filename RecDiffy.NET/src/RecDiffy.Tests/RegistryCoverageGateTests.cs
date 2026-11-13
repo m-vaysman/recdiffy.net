@@ -40,6 +40,7 @@ public class RegistryCoverageGateTests
         "TextKey",
         "FieldNotProduced",
         "ToleranceMismatch",
+        "MultipleOperands",
     ];
 
     private static readonly Lazy<string> OtherTestSources = new(() =>
