@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RecDiffy capacity run 2026-11-13_1257_2d16975</title>
+<style>
+:root { color-scheme: light dark; --ink: #1b1b1b; --muted: #5c5c5c; --rule: #d8d8d8; --paper: #fdfdfc; --engine: #35618f; --excel: #8a6240; --bad: #a32020; }
+@media (prefers-color-scheme: dark) { :root { --ink: #e8e8e6; --muted: #a8a8a4; --rule: #3a3a38; --paper: #161615; --engine: #79a7d6; --excel: #c39a6b; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif; }
+main { max-width: 1080px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+h1 { font-size: 1.7rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.2rem; margin: 2.4rem 0 .6rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+h3 { font-size: 1rem; margin: 1.6rem 0 .5rem; }
+p.lede { color: var(--muted); margin: 0 0 1.5rem; }
+p.note, p.flag { color: var(--muted); }
+p.flag strong { color: var(--ink); }
+a { color: var(--engine); }
+table { border-collapse: collapse; width: 100%; margin: .4rem 0 1rem; font-size: .92rem; }
+th, td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th { color: var(--muted); font-weight: 600; }
+tbody tr:hover { background: color-mix(in srgb, var(--rule) 28%, transparent); }
+table.stages { width: auto; min-width: 60%; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: .3rem 1rem; }
+dt { font-weight: 600; }
+dd { margin: 0; color: var(--muted); }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: .25rem 1rem; margin: .5rem 0 1rem; }
+.fact { display: contents; }
+.fact .name { color: var(--muted); }
+code { font-size: .85em; }
+.chart { display: grid; grid-template-columns: 7rem 1fr 6rem; align-items: center; gap: .5rem; margin: .3rem 0; }
+.chart .label { color: var(--muted); font-size: .85rem; text-align: right; }
+.chart .bar { display: flex; height: 1.1rem; background: color-mix(in srgb, var(--rule) 45%, transparent); border-radius: 3px; overflow: hidden; }
+.chart .fill { display: block; height: 100%; background: var(--engine); }
+.chart .fill.heap { background: var(--excel); }
+.chart .fill.excel { background: var(--excel); }
+.chart .fill.shared { background: var(--engine); }
+.chart .fill.separate { background: var(--excel); }
+.chart .value { color: var(--muted); font-size: .85rem; }
+.bad { color: var(--bad); }
+footer { margin-top: 3rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .85rem; }
+</style></head>
+<body>
+<main>
+<h1>RecDiffy capacity run</h1>
+<p class="lede">Phase 1 and phase 3 of <a href="https://github.com/m-vaysman/recdiffy.net/issues/377">issue #377</a>: the sizes sweep and the concurrency sweep, through the public API, on one host. Measured, not promised.</p>
+<section id="run">
+<h2>Run</h2>
+<table>
+<tr><th>Commit</th><td><code>2d1697519076887d97b0859c4c11e6dff7d00cb8</code> on <code>origin/dev</code>, working tree clean</td></tr>
+<tr><th>Sweep</th><td>concurrency</td></tr>
+<tr><th>Started (UTC)</th><td>2026-11-13T17:57:07Z</td></tr>
+<tr><th>Duration</th><td>2332.581 s (compile 0.168 s)</td></tr>
+<tr><th>Harness</th><td>1.0.0, engine 1.0.0</td></tr>
+<tr><th>Profile</th><td>capacity.mixed 1.0.0, hash <code>ea100672412fede34f7ad0f9e703f1d6d75b10d6109cece2c1457d8360adf7d0</code></td></tr>
+<tr><th>Dataset</th><td>seed 377, 3 batch(es) per level</td></tr>
+<tr><th>Command</th><td><code>G:\RecDiffyCapacity\work\2026-11-13_1256_2d16975\RecDiffy.NET\capacity\RecDiffy.Capacity\bin\Release\net10.0\RecDiffy.Capacity.dll --sweep concurrency --out G:\RecDiffyCapacity\runs\2026-11-13_1256_2d16975 --seed 377 --repeats 3 --break-rate 0.1 --unmatched-rate 0.05 --commit 2d1697519076887d97b0859c4c11e6dff7d00cb8 --ref origin/dev --levels 1,2,4,8,10,20,40 --concurrency-rows 10000</code></td></tr>
+</table>
+</section>
+<section id="host">
+<h2>Host</h2>
+<table>
+<tr><th>Machine</th><td>COBBLER1</td></tr>
+<tr><th>OS</th><td>Microsoft Windows 10.0.19045</td></tr>
+<tr><th>Architecture</th><td>X64</td></tr>
+<tr><th>Logical processors</th><td>40</td></tr>
+<tr><th>Runtime</th><td>.NET 10.0.14</td></tr>
+<tr><th>SDK</th><td>10.0.403</td></tr>
+<tr><th>GC</th><td>workstation GC, Interactive</td></tr>
+<tr><th>GC heap limit</th><td>63.9 GB</td></tr>
+<tr><th>Dynamic code</th><td>yes, JIT</td></tr>
+</table>
+</section>
+<section id="concurrency">
+<h2>Concurrency</h2>
+<p class="note">Each batch starts all N runs together over the same seeded dataset. Rows per run are fixed, so total work grows with N; the numbers below are throughput, not total batch time.</p>
+<div class="facts">
+<div class="fact"><span class="name">Rows per run</span><span class="value">10000 per side</span></div>
+<div class="fact"><span class="name">Batches per level</span><span class="value">3</span></div>
+<div class="fact"><span class="name">GC</span><span class="value">workstation GC</span></div>
+<div class="fact"><span class="name">Logical processors</span><span class="value">40</span></div>
+<div class="fact"><span class="name">Baseline fingerprint</span><span class="value"><code>20A304CC7AD8E65D</code></span></div>
+<div class="fact"><span class="name">Results against the baseline</span><span class="value"><strong>every run matched, field by field</strong></span></div>
+</div>
+<h3>Rows per second against concurrency</h3>
+<h4>threads</h4>
+<div class="chart"><span class="label">N=1</span><span class="bar"><span class="fill shared" style="width:51.7%"></span><span class="fill separate" style="width:55.3%"></span></span><span class="value">7998 shared / 8549 separate rows/s</span></div>
+<div class="chart"><span class="label">N=2</span><span class="bar"><span class="fill shared" style="width:70.3%"></span><span class="fill separate" style="width:64.7%"></span></span><span class="value">10875 shared / 10004 separate rows/s</span></div>
+<div class="chart"><span class="label">N=4</span><span class="bar"><span class="fill shared" style="width:88.9%"></span><span class="fill separate" style="width:81.6%"></span></span><span class="value">13741 shared / 12617 separate rows/s</span></div>
+<div class="chart"><span class="label">N=8</span><span class="bar"><span class="fill shared" style="width:93.4%"></span><span class="fill separate" style="width:94.3%"></span></span><span class="value">14446 shared / 14589 separate rows/s</span></div>
+<div class="chart"><span class="label">N=10</span><span class="bar"><span class="fill shared" style="width:96.5%"></span><span class="fill separate" style="width:93.4%"></span></span><span class="value">14916 shared / 14444 separate rows/s</span></div>
+<div class="chart"><span class="label">N=20</span><span class="bar"><span class="fill shared" style="width:97.6%"></span><span class="fill separate" style="width:95.2%"></span></span><span class="value">15085 shared / 14715 separate rows/s</span></div>
+<div class="chart"><span class="label">N=40</span><span class="bar"><span class="fill shared" style="width:85.2%"></span><span class="fill separate" style="width:84.4%"></span></span><span class="value">13178 shared / 13045 separate rows/s</span></div>
+<h4>tasks</h4>
+<div class="chart"><span class="label">N=1</span><span class="bar"><span class="fill shared" style="width:48.0%"></span><span class="fill separate" style="width:52.6%"></span></span><span class="value">7415 shared / 8129 separate rows/s</span></div>
+<div class="chart"><span class="label">N=2</span><span class="bar"><span class="fill shared" style="width:65.4%"></span><span class="fill separate" style="width:66.6%"></span></span><span class="value">10120 shared / 10302 separate rows/s</span></div>
+<div class="chart"><span class="label">N=4</span><span class="bar"><span class="fill shared" style="width:75.4%"></span><span class="fill separate" style="width:86.9%"></span></span><span class="value">11656 shared / 13440 separate rows/s</span></div>
+<div class="chart"><span class="label">N=8</span><span class="bar"><span class="fill shared" style="width:83.0%"></span><span class="fill separate" style="width:91.0%"></span></span><span class="value">12837 shared / 14079 separate rows/s</span></div>
+<div class="chart"><span class="label">N=10</span><span class="bar"><span class="fill shared" style="width:82.9%"></span><span class="fill separate" style="width:92.8%"></span></span><span class="value">12820 shared / 14356 separate rows/s</span></div>
+<div class="chart"><span class="label">N=20</span><span class="bar"><span class="fill shared" style="width:84.9%"></span><span class="fill separate" style="width:100.0%"></span></span><span class="value">13134 shared / 15463 separate rows/s</span></div>
+<div class="chart"><span class="label">N=40</span><span class="bar"><span class="fill shared" style="width:78.9%"></span><span class="fill separate" style="width:83.2%"></span></span><span class="value">12208 shared / 12864 separate rows/s</span></div>
+<h4>parallel</h4>
+<div class="chart"><span class="label">N=1</span><span class="bar"><span class="fill shared" style="width:31.0%"></span><span class="fill separate" style="width:55.8%"></span></span><span class="value">4791 shared / 8622 separate rows/s</span></div>
+<div class="chart"><span class="label">N=2</span><span class="bar"><span class="fill shared" style="width:65.0%"></span><span class="fill separate" style="width:76.9%"></span></span><span class="value">10045 shared / 11891 separate rows/s</span></div>
+<div class="chart"><span class="label">N=4</span><span class="bar"><span class="fill shared" style="width:86.4%"></span><span class="fill separate" style="width:83.1%"></span></span><span class="value">13362 shared / 12852 separate rows/s</span></div>
+<div class="chart"><span class="label">N=8</span><span class="bar"><span class="fill shared" style="width:91.3%"></span><span class="fill separate" style="width:92.6%"></span></span><span class="value">14110 shared / 14325 separate rows/s</span></div>
+<div class="chart"><span class="label">N=10</span><span class="bar"><span class="fill shared" style="width:92.0%"></span><span class="fill separate" style="width:88.3%"></span></span><span class="value">14224 shared / 13661 separate rows/s</span></div>
+<div class="chart"><span class="label">N=20</span><span class="bar"><span class="fill shared" style="width:95.7%"></span><span class="fill separate" style="width:99.0%"></span></span><span class="value">14798 shared / 15316 separate rows/s</span></div>
+<div class="chart"><span class="label">N=40</span><span class="bar"><span class="fill shared" style="width:86.2%"></span><span class="fill separate" style="width:85.2%"></span></span><span class="value">13323 shared / 13177 separate rows/s</span></div>
+<h3>Every batch</h3>
+<table>
+<thead><tr><th>Fan-out</th><th>Profiles</th><th>Runs</th><th>Wall s</th><th>Runs/min</th><th>Rows/s</th><th>Efficiency</th><th>Cores used</th><th>Peak heap</th><th>p50</th><th>p95</th><th>p99</th><th>Matches</th></tr></thead>
+<tbody>
+<tr><td>threads</td><td>shared</td><td>1</td><td>2.501</td><td>24.0</td><td>7998</td><td>100.0%</td><td>1.1</td><td>198.9 MB</td><td>2.296</td><td>2.296</td><td>2.296</td><td>yes</td></tr>
+<tr><td>threads</td><td>shared</td><td>2</td><td>3.678</td><td>32.6</td><td>10875</td><td>68.0%</td><td>1.7</td><td>354.9 MB</td><td>3.415</td><td>3.468</td><td>3.468</td><td>yes</td></tr>
+<tr><td>threads</td><td>shared</td><td>4</td><td>5.822</td><td>41.2</td><td>13741</td><td>43.0%</td><td>2.1</td><td>716.8 MB</td><td>5.562</td><td>5.571</td><td>5.571</td><td>yes</td></tr>
+<tr><td>threads</td><td>shared</td><td>8</td><td>11.075</td><td>43.3</td><td>14446</td><td>22.6%</td><td>2.5</td><td>1763.8 MB</td><td>10.388</td><td>10.471</td><td>10.471</td><td>yes</td></tr>
+<tr><td>threads</td><td>shared</td><td>10</td><td>13.408</td><td>44.7</td><td>14916</td><td>18.6%</td><td>2.6</td><td>2199.9 MB</td><td>13.031</td><td>13.118</td><td>13.118</td><td>yes</td></tr>
+<tr><td>threads</td><td>shared</td><td>20</td><td>26.516</td><td>45.3</td><td>15085</td><td>9.4%</td><td>3.6</td><td>5063.2 MB</td><td>25.842</td><td>26.006</td><td>26.034</td><td>yes</td></tr>
+<tr><td>threads</td><td>shared</td><td>40</td><td>60.709</td><td>39.5</td><td>13178</td><td>4.1%</td><td>6.3</td><td>12406.5 MB</td><td>59.289</td><td>59.548</td><td>59.602</td><td>yes</td></tr>
+<tr><td>threads</td><td>separate</td><td>1</td><td>2.339</td><td>25.6</td><td>8549</td><td>100.0%</td><td>1.2</td><td>12459.9 MB</td><td>2.119</td><td>2.119</td><td>2.119</td><td>yes</td></tr>
+<tr><td>threads</td><td>separate</td><td>2</td><td>3.998</td><td>30.0</td><td>10004</td><td>58.5%</td><td>1.6</td><td>396.8 MB</td><td>3.759</td><td>3.786</td><td>3.786</td><td>yes</td></tr>
+<tr><td>threads</td><td>separate</td><td>4</td><td>6.341</td><td>37.9</td><td>12617</td><td>36.9%</td><td>2.1</td><td>636.3 MB</td><td>5.818</td><td>5.878</td><td>5.878</td><td>yes</td></tr>
+<tr><td>threads</td><td>separate</td><td>8</td><td>10.967</td><td>43.8</td><td>14589</td><td>21.3%</td><td>2.7</td><td>1650.5 MB</td><td>10.486</td><td>10.516</td><td>10.516</td><td>yes</td></tr>
+<tr><td>threads</td><td>separate</td><td>10</td><td>13.847</td><td>43.3</td><td>14444</td><td>16.9%</td><td>2.6</td><td>2508.4 MB</td><td>13.211</td><td>13.311</td><td>13.311</td><td>yes</td></tr>
+<tr><td>threads</td><td>separate</td><td>20</td><td>27.184</td><td>44.1</td><td>14715</td><td>8.6%</td><td>3.7</td><td>3999.0 MB</td><td>26.504</td><td>26.610</td><td>26.648</td><td>yes</td></tr>
+<tr><td>threads</td><td>separate</td><td>40</td><td>61.328</td><td>39.1</td><td>13045</td><td>3.8%</td><td>5.8</td><td>15379.5 MB</td><td>60.173</td><td>60.371</td><td>60.384</td><td>yes</td></tr>
+<tr><td>tasks</td><td>shared</td><td>1</td><td>2.697</td><td>22.2</td><td>7415</td><td>100.0%</td><td>1.2</td><td>14095.3 MB</td><td>2.475</td><td>2.475</td><td>2.475</td><td>yes</td></tr>
+<tr><td>tasks</td><td>shared</td><td>2</td><td>3.953</td><td>30.4</td><td>10120</td><td>68.2%</td><td>1.5</td><td>479.9 MB</td><td>3.590</td><td>3.605</td><td>3.605</td><td>yes</td></tr>
+<tr><td>tasks</td><td>shared</td><td>4</td><td>6.863</td><td>35.0</td><td>11656</td><td>39.3%</td><td>2.0</td><td>932.9 MB</td><td>6.585</td><td>6.626</td><td>6.626</td><td>yes</td></tr>
+<tr><td>tasks</td><td>shared</td><td>8</td><td>12.464</td><td>38.5</td><td>12837</td><td>21.6%</td><td>2.4</td><td>1823.8 MB</td><td>12.096</td><td>12.165</td><td>12.165</td><td>yes</td></tr>
+<tr><td>tasks</td><td>shared</td><td>10</td><td>15.600</td><td>38.5</td><td>12820</td><td>17.3%</td><td>2.7</td><td>2032.2 MB</td><td>14.744</td><td>15.006</td><td>15.006</td><td>yes</td></tr>
+<tr><td>tasks</td><td>shared</td><td>20</td><td>30.456</td><td>39.4</td><td>13134</td><td>8.9%</td><td>3.2</td><td>3906.7 MB</td><td>28.277</td><td>28.679</td><td>28.854</td><td>yes</td></tr>
+<tr><td>tasks</td><td>shared</td><td>40</td><td>65.532</td><td>36.6</td><td>12208</td><td>4.1%</td><td>6.5</td><td>16972.5 MB</td><td>63.314</td><td>63.666</td><td>63.759</td><td>yes</td></tr>
+<tr><td>tasks</td><td>separate</td><td>1</td><td>2.460</td><td>24.4</td><td>8129</td><td>100.0%</td><td>1.3</td><td>10231.0 MB</td><td>2.255</td><td>2.255</td><td>2.255</td><td>yes</td></tr>
+<tr><td>tasks</td><td>separate</td><td>2</td><td>3.883</td><td>30.9</td><td>10302</td><td>63.4%</td><td>1.6</td><td>1012.9 MB</td><td>3.655</td><td>3.670</td><td>3.670</td><td>yes</td></tr>
+<tr><td>tasks</td><td>separate</td><td>4</td><td>5.953</td><td>40.3</td><td>13440</td><td>41.3%</td><td>2.1</td><td>787.1 MB</td><td>5.700</td><td>5.714</td><td>5.714</td><td>yes</td></tr>
+<tr><td>tasks</td><td>separate</td><td>8</td><td>11.364</td><td>42.2</td><td>14079</td><td>21.6%</td><td>2.4</td><td>1747.2 MB</td><td>10.553</td><td>10.704</td><td>10.704</td><td>yes</td></tr>
+<tr><td>tasks</td><td>separate</td><td>10</td><td>13.931</td><td>43.1</td><td>14356</td><td>17.7%</td><td>2.4</td><td>2033.9 MB</td><td>13.040</td><td>13.185</td><td>13.185</td><td>yes</td></tr>
+<tr><td>tasks</td><td>separate</td><td>20</td><td>25.868</td><td>46.4</td><td>15463</td><td>9.5%</td><td>3.6</td><td>6253.7 MB</td><td>24.864</td><td>25.103</td><td>25.103</td><td>yes</td></tr>
+<tr><td>tasks</td><td>separate</td><td>40</td><td>62.187</td><td>38.6</td><td>12864</td><td>4.0%</td><td>4.6</td><td>12293.0 MB</td><td>59.783</td><td>61.340</td><td>61.499</td><td>yes</td></tr>
+<tr><td>parallel</td><td>shared</td><td>1</td><td>4.174</td><td>14.4</td><td>4791</td><td>100.0%</td><td>1.3</td><td>10609.2 MB</td><td>3.985</td><td>3.985</td><td>3.985</td><td>yes</td></tr>
+<tr><td>parallel</td><td>shared</td><td>2</td><td>3.982</td><td>30.1</td><td>10045</td><td>104.8%</td><td>1.6</td><td>911.4 MB</td><td>3.782</td><td>3.784</td><td>3.784</td><td>yes</td></tr>
+<tr><td>parallel</td><td>shared</td><td>4</td><td>5.987</td><td>40.1</td><td>13362</td><td>69.7%</td><td>2.1</td><td>824.4 MB</td><td>5.730</td><td>5.757</td><td>5.757</td><td>yes</td></tr>
+<tr><td>parallel</td><td>shared</td><td>8</td><td>11.339</td><td>42.3</td><td>14110</td><td>36.8%</td><td>2.4</td><td>1969.2 MB</td><td>10.512</td><td>10.715</td><td>10.715</td><td>yes</td></tr>
+<tr><td>parallel</td><td>shared</td><td>10</td><td>14.061</td><td>42.7</td><td>14224</td><td>29.7%</td><td>2.7</td><td>2053.3 MB</td><td>13.618</td><td>13.770</td><td>13.770</td><td>yes</td></tr>
+<tr><td>parallel</td><td>shared</td><td>20</td><td>27.030</td><td>44.4</td><td>14798</td><td>15.4%</td><td>3.6</td><td>5014.1 MB</td><td>26.075</td><td>26.307</td><td>26.329</td><td>yes</td></tr>
+<tr><td>parallel</td><td>shared</td><td>40</td><td>60.049</td><td>40.0</td><td>13323</td><td>7.0%</td><td>6.2</td><td>12125.8 MB</td><td>57.809</td><td>58.007</td><td>59.183</td><td>yes</td></tr>
+<tr><td>parallel</td><td>separate</td><td>1</td><td>2.320</td><td>25.9</td><td>8622</td><td>100.0%</td><td>1.2</td><td>14734.7 MB</td><td>2.142</td><td>2.142</td><td>2.142</td><td>yes</td></tr>
+<tr><td>parallel</td><td>separate</td><td>2</td><td>3.364</td><td>35.7</td><td>11891</td><td>69.0%</td><td>1.7</td><td>15290.9 MB</td><td>3.156</td><td>3.157</td><td>3.157</td><td>yes</td></tr>
+<tr><td>parallel</td><td>separate</td><td>4</td><td>6.225</td><td>38.6</td><td>12852</td><td>37.3%</td><td>2.0</td><td>982.3 MB</td><td>5.717</td><td>5.726</td><td>5.726</td><td>yes</td></tr>
+<tr><td>parallel</td><td>separate</td><td>8</td><td>11.169</td><td>43.0</td><td>14325</td><td>20.8%</td><td>2.5</td><td>1957.8 MB</td><td>10.299</td><td>10.459</td><td>10.459</td><td>yes</td></tr>
+<tr><td>parallel</td><td>separate</td><td>10</td><td>14.640</td><td>41.0</td><td>13661</td><td>15.8%</td><td>2.6</td><td>2432.6 MB</td><td>14.024</td><td>14.102</td><td>14.102</td><td>yes</td></tr>
+<tr><td>parallel</td><td>separate</td><td>20</td><td>26.117</td><td>45.9</td><td>15316</td><td>8.9%</td><td>3.9</td><td>6246.3 MB</td><td>25.088</td><td>25.325</td><td>25.446</td><td>yes</td></tr>
+<tr><td>parallel</td><td>separate</td><td>40</td><td>60.713</td><td>39.5</td><td>13177</td><td>3.8%</td><td>5.4</td><td>14884.6 MB</td><td>58.917</td><td>59.204</td><td>59.297</td><td>yes</td></tr>
+</tbody>
+</table>
+</section>
+<section id="notes">
+<h2>Not measured yet</h2>
+<dl>
+<dt>intake</dt><dd>Reconciler.Run materializes both sides; the public API exposes no separate stage.</dd>
+<dt>normalization</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+<dt>consolidation</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+<dt>matching</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+<dt>diff</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+<dt>results</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+</dl>
+<h2>Notes</h2>
+<ul>
+<li>A batch starts all N runs together over the same seeded dataset. Rows per run are fixed, so total work grows with N; the numbers are throughput (rows per second and runs per minute), not total batch time.</li>
+<li>One discarded batch per fan-out style runs before the measurements, so JIT and thread start-up are not charged to the first measured batch.</li>
+<li>Scaling efficiency is rows per second at N divided by N times rows per second at 1, for the same fan-out style and profile sharing.</li>
+<li>Every run&#39;s result is compared field by field with a single-threaded baseline: the summary, every entry with its diffs and both projections, and every row with its disposition and diagnostics. One difference fails the run.</li>
+<li>Separate profiles are compiled before the batch starts, so the difference between shared and separate is profile sharing, not compile cost.</li>
+<li>The GC mode is set by the process (DOTNET_gcServer). This report records the mode the sweep ran under; run the sweep once per mode.</li>
+<li>CPU is the process&#39;s total processor time over the batch divided by the batch wall time, so it counts every thread the run used.</li>
+<li>Not in this phase: culture isolation across threads, a second host, and a dotnet-trace race-detection pass. Both profile sharings and all three fan-out styles are measured.</li>
+<li>Per-run latency is one reconciliation&#39;s wall time inside the batch; p50, p95 and p99 are over the runs of the batch.</li>
+</ul>
+</section>
+<footer>
+<p>Source of truth: <code>results.json</code> in the run folder, next to this page and <code>report.md</code>. Generated by the RecDiffy capacity harness for <a href="https://github.com/m-vaysman/recdiffy.net/issues/377">issue #377</a>.</p>
+</footer>
+</main>
+</body>
+</html>

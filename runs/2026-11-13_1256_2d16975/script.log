@@ -1,0 +1,65 @@
+﻿[2026-11-13 12:56:07] run 2026-11-13_1256_2d16975 for origin/dev at 2d1697519076887d97b0859c4c11e6dff7d00cb8
+[2026-11-13 12:56:07] host COBBLER1, work root G:\RecDiffyCapacity
+[2026-11-13 12:56:07] resolve remote: git -C G:\Projects\recdiffy_deepseek\recdiffy.net remote get-url origin
+[2026-11-13 12:56:07] repository m-vaysman/recdiffy.net
+[2026-11-13 12:56:07] list runners: gh api repos/m-vaysman/recdiffy.net/actions/runners?per_page=100
+[2026-11-13 12:56:08] cobbler1 runner is idle
+[2026-11-13 12:56:46] background CPU average 6.9%
+[2026-11-13 12:56:46] checkout: git -C G:\Projects\recdiffy_deepseek\recdiffy.net worktree add --detach G:\RecDiffyCapacity\work\2026-11-13_1256_2d16975 2d1697519076887d97b0859c4c11e6dff7d00cb8
+[2026-11-13 12:56:47] build: dotnet build G:\RecDiffyCapacity\work\2026-11-13_1256_2d16975\RecDiffy.NET\capacity\RecDiffy.Capacity\RecDiffy.Capacity.csproj -c Release -warnaserror -f net10.0
+[2026-11-13 12:57:07] run G:\RecDiffyCapacity\work\2026-11-13_1256_2d16975\RecDiffy.NET\capacity\RecDiffy.Capacity\bin\Release\net10.0\RecDiffy.Capacity.dll --sweep concurrency --out G:\RecDiffyCapacity\runs\2026-11-13_1256_2d16975 --seed 377 --repeats 3 --break-rate 0.1 --unmatched-rate 0.05 --commit 2d1697519076887d97b0859c4c11e6dff7d00cb8 --ref origin/dev --levels 1,2,4,8,10,20,40 --concurrency-rows 10000
+[2026-11-13 12:57:07] harness: dotnet G:\RecDiffyCapacity\work\2026-11-13_1256_2d16975\RecDiffy.NET\capacity\RecDiffy.Capacity\bin\Release\net10.0\RecDiffy.Capacity.dll --sweep concurrency --out G:\RecDiffyCapacity\runs\2026-11-13_1256_2d16975 --seed 377 --repeats 3 --break-rate 0.1 --unmatched-rate 0.05 --commit 2d1697519076887d97b0859c4c11e6dff7d00cb8 --ref origin/dev --levels 1,2,4,8,10,20,40 --concurrency-rows 10000
+[2026-11-13 13:36:04]   RecDiffy capacity run 2026-11-13_1257_2d16975
+[2026-11-13 13:36:04]     sweep   concurrency
+[2026-11-13 13:36:04]     profile capacity.mixed 1.0.0 (ea100672412fede34f7ad0f9e703f1d6d75b10d6109cece2c1457d8360adf7d0), seed 377
+[2026-11-13 13:36:04]     output  G:\RecDiffyCapacity\runs\2026-11-13_1256_2d16975
+[2026-11-13 13:36:04]     threads/shared N=1: 24.0 runs/min, 7998 rows/s, 100.0% efficiency, 1.1 cores, p50 2.296 s
+[2026-11-13 13:36:04]     threads/shared N=2: 32.6 runs/min, 10875 rows/s, 68.0% efficiency, 1.7 cores, p50 3.415 s
+[2026-11-13 13:36:04]     threads/shared N=4: 41.2 runs/min, 13741 rows/s, 43.0% efficiency, 2.1 cores, p50 5.562 s
+[2026-11-13 13:36:04]     threads/shared N=8: 43.3 runs/min, 14446 rows/s, 22.6% efficiency, 2.5 cores, p50 10.388 s
+[2026-11-13 13:36:04]     threads/shared N=10: 44.7 runs/min, 14916 rows/s, 18.6% efficiency, 2.6 cores, p50 13.031 s
+[2026-11-13 13:36:04]     threads/shared N=20: 45.3 runs/min, 15085 rows/s, 9.4% efficiency, 3.6 cores, p50 25.842 s
+[2026-11-13 13:36:04]     threads/shared N=40: 39.5 runs/min, 13178 rows/s, 4.1% efficiency, 6.3 cores, p50 59.289 s
+[2026-11-13 13:36:04]     threads/separate N=1: 25.6 runs/min, 8549 rows/s, 100.0% efficiency, 1.2 cores, p50 2.119 s
+[2026-11-13 13:36:04]     threads/separate N=2: 30.0 runs/min, 10004 rows/s, 58.5% efficiency, 1.6 cores, p50 3.759 s
+[2026-11-13 13:36:04]     threads/separate N=4: 37.9 runs/min, 12617 rows/s, 36.9% efficiency, 2.1 cores, p50 5.818 s
+[2026-11-13 13:36:04]     threads/separate N=8: 43.8 runs/min, 14589 rows/s, 21.3% efficiency, 2.7 cores, p50 10.486 s
+[2026-11-13 13:36:04]     threads/separate N=10: 43.3 runs/min, 14444 rows/s, 16.9% efficiency, 2.6 cores, p50 13.211 s
+[2026-11-13 13:36:04]     threads/separate N=20: 44.1 runs/min, 14715 rows/s, 8.6% efficiency, 3.7 cores, p50 26.504 s
+[2026-11-13 13:36:04]     threads/separate N=40: 39.1 runs/min, 13045 rows/s, 3.8% efficiency, 5.8 cores, p50 60.173 s
+[2026-11-13 13:36:04]     tasks/shared N=1: 22.2 runs/min, 7415 rows/s, 100.0% efficiency, 1.2 cores, p50 2.475 s
+[2026-11-13 13:36:04]     tasks/shared N=2: 30.4 runs/min, 10120 rows/s, 68.2% efficiency, 1.5 cores, p50 3.590 s
+[2026-11-13 13:36:04]     tasks/shared N=4: 35.0 runs/min, 11656 rows/s, 39.3% efficiency, 2.0 cores, p50 6.585 s
+[2026-11-13 13:36:04]     tasks/shared N=8: 38.5 runs/min, 12837 rows/s, 21.6% efficiency, 2.4 cores, p50 12.096 s
+[2026-11-13 13:36:04]     tasks/shared N=10: 38.5 runs/min, 12820 rows/s, 17.3% efficiency, 2.7 cores, p50 14.744 s
+[2026-11-13 13:36:04]     tasks/shared N=20: 39.4 runs/min, 13134 rows/s, 8.9% efficiency, 3.2 cores, p50 28.277 s
+[2026-11-13 13:36:04]     tasks/shared N=40: 36.6 runs/min, 12208 rows/s, 4.1% efficiency, 6.5 cores, p50 63.314 s
+[2026-11-13 13:36:04]     tasks/separate N=1: 24.4 runs/min, 8129 rows/s, 100.0% efficiency, 1.3 cores, p50 2.255 s
+[2026-11-13 13:36:04]     tasks/separate N=2: 30.9 runs/min, 10302 rows/s, 63.4% efficiency, 1.6 cores, p50 3.655 s
+[2026-11-13 13:36:04]     tasks/separate N=4: 40.3 runs/min, 13440 rows/s, 41.3% efficiency, 2.1 cores, p50 5.700 s
+[2026-11-13 13:36:04]     tasks/separate N=8: 42.2 runs/min, 14079 rows/s, 21.6% efficiency, 2.4 cores, p50 10.553 s
+[2026-11-13 13:36:04]     tasks/separate N=10: 43.1 runs/min, 14356 rows/s, 17.7% efficiency, 2.4 cores, p50 13.040 s
+[2026-11-13 13:36:04]     tasks/separate N=20: 46.4 runs/min, 15463 rows/s, 9.5% efficiency, 3.6 cores, p50 24.864 s
+[2026-11-13 13:36:04]     tasks/separate N=40: 38.6 runs/min, 12864 rows/s, 4.0% efficiency, 4.6 cores, p50 59.783 s
+[2026-11-13 13:36:04]     parallel/shared N=1: 14.4 runs/min, 4791 rows/s, 100.0% efficiency, 1.3 cores, p50 3.985 s
+[2026-11-13 13:36:04]     parallel/shared N=2: 30.1 runs/min, 10045 rows/s, 104.8% efficiency, 1.6 cores, p50 3.782 s
+[2026-11-13 13:36:04]     parallel/shared N=4: 40.1 runs/min, 13362 rows/s, 69.7% efficiency, 2.1 cores, p50 5.730 s
+[2026-11-13 13:36:04]     parallel/shared N=8: 42.3 runs/min, 14110 rows/s, 36.8% efficiency, 2.4 cores, p50 10.512 s
+[2026-11-13 13:36:04]     parallel/shared N=10: 42.7 runs/min, 14224 rows/s, 29.7% efficiency, 2.7 cores, p50 13.618 s
+[2026-11-13 13:36:04]     parallel/shared N=20: 44.4 runs/min, 14798 rows/s, 15.4% efficiency, 3.6 cores, p50 26.075 s
+[2026-11-13 13:36:04]     parallel/shared N=40: 40.0 runs/min, 13323 rows/s, 7.0% efficiency, 6.2 cores, p50 57.809 s
+[2026-11-13 13:36:04]     parallel/separate N=1: 25.9 runs/min, 8622 rows/s, 100.0% efficiency, 1.2 cores, p50 2.142 s
+[2026-11-13 13:36:04]     parallel/separate N=2: 35.7 runs/min, 11891 rows/s, 69.0% efficiency, 1.7 cores, p50 3.156 s
+[2026-11-13 13:36:04]     parallel/separate N=4: 38.6 runs/min, 12852 rows/s, 37.3% efficiency, 2.0 cores, p50 5.717 s
+[2026-11-13 13:36:04]     parallel/separate N=8: 43.0 runs/min, 14325 rows/s, 20.8% efficiency, 2.5 cores, p50 10.299 s
+[2026-11-13 13:36:04]     parallel/separate N=10: 41.0 runs/min, 13661 rows/s, 15.8% efficiency, 2.6 cores, p50 14.024 s
+[2026-11-13 13:36:04]     parallel/separate N=20: 45.9 runs/min, 15316 rows/s, 8.9% efficiency, 3.9 cores, p50 25.088 s
+[2026-11-13 13:36:04]     parallel/separate N=40: 39.5 runs/min, 13177 rows/s, 3.8% efficiency, 5.4 cores, p50 58.917 s
+[2026-11-13 13:36:04]   results  G:\RecDiffyCapacity\runs\2026-11-13_1256_2d16975\results.json
+[2026-11-13 13:36:04]   markdown G:\RecDiffyCapacity\runs\2026-11-13_1256_2d16975\report.md
+[2026-11-13 13:36:04]   html     G:\RecDiffyCapacity\runs\2026-11-13_1256_2d16975\report.html
+[2026-11-13 13:36:04]   OK: no known outcome mismatched.
+[2026-11-13 13:36:04] reports written; status ok
+[2026-11-13 13:36:04] list worktrees: git -C G:\Projects\recdiffy_deepseek\recdiffy.net worktree list --porcelain
+[2026-11-13 13:36:04] results worktree: git -C G:\Projects\recdiffy_deepseek\recdiffy.net worktree add --detach G:\RecDiffyCapacity\branch\2026-11-13_1256_2d16975 capacity-results
+[2026-11-13 13:36:04] results branch: git -C G:\RecDiffyCapacity\branch\2026-11-13_1256_2d16975 checkout -B capacity-results
