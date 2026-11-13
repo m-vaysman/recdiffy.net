@@ -191,6 +191,7 @@ To reconcile objects you already hold in memory, replace the two `FileSources.Fr
 - **[What a result means](https://github.com/m-vaysman/recdiffy.net/blob/main/RecDiffy.NET/docs/RESULTS.md):** how to read a result.
 - **[Profile reference](https://github.com/m-vaysman/recdiffy.net/blob/main/RecDiffy.NET/docs/PROFILES.md):** what a profile can declare.
 - **[Support matrix](https://github.com/m-vaysman/recdiffy.net/blob/main/RecDiffy.NET/docs/SUPPORT.md):** what each package supports.
+- **[Capacity and concurrency](https://github.com/m-vaysman/recdiffy.net/blob/main/RecDiffy.NET/docs/CAPACITY.md):** how large a reconciliation can be, and how many can run at once.
 - **[Typed reconciliation](https://github.com/m-vaysman/recdiffy.net/blob/main/docs/typed-reconciliation/README.md):** `RecBuilder` with your own objects, step by step.
 - **[Excel report layouts](https://github.com/m-vaysman/recdiffy.net/blob/main/RecDiffy.NET/docs/report-specs/README.md):** what each Excel report shows.
 
