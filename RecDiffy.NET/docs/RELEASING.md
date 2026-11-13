@@ -58,7 +58,14 @@ nuget.org prereleases are the only public channel. Two other workflows pack the 
 2. Tag that commit `vX.Y.Z-label`, for example `v1.2.0-preview.1`.
 3. Push the tag: `git push origin v1.2.0-preview.1`.
 
-The workflow builds, runs the tests, packs all four projects as that version, pushes the packages to nuget.org, and opens a GitHub Release marked as a prerelease, with the packages attached.
+The workflow builds, runs the tests, packs all four projects as that version, checks those exact files the way a consumer gets them, pushes the packages to nuget.org, and opens a GitHub Release marked as a prerelease, with the packages attached.
+
+**The pushed files are the checked files.** Before `Log in to nuget.org`, the job copies `artifacts/*.nupkg` into `RecDiffy.NET/tests/PackageSmoke/feed` and runs the two checks the [Packages workflow](../../.github/workflows/packages.yml) runs on every pull request:
+
+- `RecDiffy.NET/tests/PackageSmoke/consume.sh "$VERSION"` restores each package from the local feed, checks its files, dependencies and metadata, runs every sample on `net8.0` and `net10.0`, and asserts that `EngineVersion` equals the packed version.
+- `RecDiffy.NET/tests/PackageSmoke/publish-aot.sh "$VERSION"` publishes the AOT-safe samples with Native AOT and with trimming, on `net8.0` and `net10.0`, with every warning an error, and runs them.
+
+Either script exits nonzero on a failure, and the job stops before anything is pushed. Before [#296](https://github.com/m-vaysman/recdiffy.net/issues/296) the release packed again from the tag and pushed without either check, so nuget.org got files no check had seen.
 
 The workflow publishes through nuget.org Trusted Publishing, so no API key is stored. GitHub gives the release job a signed token, `NuGet/login` exchanges it for a nuget.org key that lasts one hour, and the push uses that key. The nuget.org policy `RecDiffy` trusts only `release.yml` in `m-vaysman/recdiffy.net`, for the packages `RecDiffy` and `RecDiffy.*`, owned by `cobblerhill`.
 
@@ -83,7 +90,7 @@ The push uses `--skip-duplicate`, so a version that is already on nuget.org is s
 
 - **Prerelease API.** Names and behaviour can change between previews. The API review before 1.0 is [#45](https://github.com/m-vaysman/recdiffy.net/issues/45), and the compatibility promise is [#74](https://github.com/m-vaysman/recdiffy.net/issues/74).
 - **Linux-only CI.** The library tests run only on Ubuntu ([#53](https://github.com/m-vaysman/recdiffy.net/issues/53)).
-- **Release packages aren't smoke-tested.** The Packages workflow checks packages packed from each pull request. The release workflow packs again from the tag, and those files go to nuget.org without the consumer and AOT checks ([#296](https://github.com/m-vaysman/recdiffy.net/issues/296)).
+- **Release packages are smoke-tested before the push.** The release workflow copies the packed files into the PackageSmoke feed and runs the consumer and AOT checks on them ([#296](https://github.com/m-vaysman/recdiffy.net/issues/296)). They are not re-run on the files nuget.org serves after indexing, and the Excel add-in tests are not part of a release.
 - **No XML API documentation** in the packages. No project sets `GenerateDocumentationFile`.
 - **Package metadata gaps,** such as links in the packed README, are tracked in [#46](https://github.com/m-vaysman/recdiffy.net/issues/46).
 - **`AttributedTo` can name roots that don't explain the difference** ([#254](https://github.com/m-vaysman/recdiffy.net/issues/254)).

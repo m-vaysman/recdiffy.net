@@ -32,6 +32,7 @@ Each script deletes `packages/` first, so a new pack with the same version is pi
 - Each package has `lib/net8.0` and `lib/net10.0`.
 - Trading, IO and Excel each depend on `RecDiffy` at the same version, for both frameworks.
 - Every sample gets its expected result on `net8.0` and on `net10.0`. A dependency missing from a nuspec fails here, because the sample that needs it can't load the assembly. On `net8.0` that includes `System.Text.Json`.
+- `EngineVersion` equals the version that was packed, on both frameworks ([#295](https://github.com/m-vaysman/recdiffy.net/issues/295)). The `EngineVersionReport` sample prints it, so this also proves the version survives the package.
 
 `publish-aot.sh`:
 

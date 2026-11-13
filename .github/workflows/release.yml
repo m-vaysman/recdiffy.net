@@ -61,6 +61,24 @@ jobs:
           dotnet pack RecDiffy.NET/src/RecDiffy.Excel/RecDiffy.Excel.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true
           dotnet pack RecDiffy.NET/src/RecDiffy.IO/RecDiffy.IO.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true
 
+      # #296: the files pushed to nuget.org are the files these checks see. Both scripts read the packages from
+      # RecDiffy.NET/tests/PackageSmoke/feed, so copy them there first, and let either script fail the job before
+      # anything is pushed. The checks are the ones packages.yml runs on each pull request.
+      - name: Put the packed files in the package smoke feed
+        run: |
+          feed=RecDiffy.NET/tests/PackageSmoke/feed
+          rm -rf "$feed"
+          mkdir -p "$feed"
+          cp artifacts/*.nupkg "$feed/"
+          echo "The feed holds:"
+          ls "$feed"
+
+      - name: Consume the packed files as a consumer gets them
+        run: bash RecDiffy.NET/tests/PackageSmoke/consume.sh "$VERSION"
+
+      - name: Publish the packed files with Native AOT and with trimming
+        run: bash RecDiffy.NET/tests/PackageSmoke/publish-aot.sh "$VERSION"
+
       - name: Log in to nuget.org
         id: login
         uses: NuGet/login@v1
