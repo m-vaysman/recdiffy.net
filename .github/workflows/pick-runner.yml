@@ -1,0 +1,118 @@
+# Which runner may a job use?
+#
+# GitHub has no fallback in runs-on: an array of labels means "all of these", not
+# "any of these". A workflow that prefers the self-hosted COBBLER1 runner therefore
+# calls this reusable workflow as a job, and reads its answer:
+#
+#   pick-runner:
+#     uses: ./.github/workflows/pick-runner.yml
+#     secrets:
+#       RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
+#     with:
+#       hosted_fallback: ubuntu-latest        # or windows-latest
+#
+#   some-job:
+#     needs: pick-runner
+#     runs-on: ${{ fromJSON(needs.pick-runner.outputs.runs_on_json) }}
+#
+# It answers ["self-hosted", "cobbler1-bench"] only when all of these hold:
+#
+#   * the event is not a pull request from a fork. This repository is public, so
+#     code from a fork never runs on the self-hosted machine;
+#   * RUNNER_STATUS_TOKEN is set, so the repository's runners can be listed;
+#   * a runner named or labelled cobbler1-bench is online and not busy.
+#
+# Otherwise it answers the job's own GitHub-hosted image, and says why in the job
+# log and the run summary. A missing secret, an offline runner, a busy runner and
+# a failed API call are all fallbacks. This job never fails the run, because a
+# failed pick would skip every job that needs it.
+#
+# The busy test is a point-in-time read, and the box has a single slot. A job can
+# still queue behind benchmarks.yml when the runner becomes busy a moment later.
+# A job that queues waits for that slot; it is not moved to the hosted image.
+name: Pick a runner
+
+on:
+  workflow_call:
+    inputs:
+      hosted_fallback:
+        description: The GitHub-hosted image a job runs on when the self-hosted runner is unavailable.
+        required: true
+        type: string
+      runner_label:
+        description: The self-hosted runner label to prefer.
+        required: false
+        type: string
+        default: cobbler1-bench
+    secrets:
+      RUNNER_STATUS_TOKEN:
+        description: Fine-grained PAT with Administration read, used to list the repository's runners.
+        required: false
+    outputs:
+      runs_on_json:
+        description: A JSON array of runs-on labels, to pass to fromJSON.
+        value: ${{ jobs.pick.outputs.runs_on_json }}
+
+permissions:
+  contents: read
+
+jobs:
+  pick:
+    name: Pick a runner
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      runs_on_json: ${{ steps.choose.outputs.runs_on_json }}
+    steps:
+      - name: Choose the runner
+        id: choose
+        uses: actions/github-script@v7
+        env:
+          RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
+          HOSTED_FALLBACK: ${{ inputs.hosted_fallback }}
+          RUNNER_LABEL: ${{ inputs.runner_label }}
+          FROM_A_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+        with:
+          # An empty token makes github-script fail before the script runs, and a
+          # failed pick skips every job that needs it. github.token is always set
+          # and keeps the action loading; the script decides before it reads runners.
+          github-token: ${{ secrets.RUNNER_STATUS_TOKEN || github.token }}
+          script: |
+            const label = process.env.RUNNER_LABEL;
+            const hosted = [process.env.HOSTED_FALLBACK];
+            const selfHosted = ['self-hosted', label];
+
+            const pick = async () => {
+              if (process.env.FROM_A_FORK === 'true') {
+                return [hosted, 'this is a pull request from a fork'];
+              }
+              if (!process.env.RUNNER_STATUS_TOKEN) {
+                return [hosted, 'RUNNER_STATUS_TOKEN is not set'];
+              }
+
+              const response = await github.rest.actions.listSelfHostedRunnersForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                per_page: 100,
+              });
+              const runners = response.data.runners || [];
+              const matching = runners.filter(
+                (runner) => runner.name === label || (runner.labels || []).some((each) => each.name === label),
+              );
+
+              if (matching.length === 0) {
+                return [hosted, `no runner is registered with the name or label ${label}`];
+              }
+              if (!matching.some((runner) => runner.status === 'online' && runner.busy === false)) {
+                const state = matching.map((each) => (each.busy ? `${each.status} and busy` : each.status)).join(', ');
+                return [hosted, `runner ${label} is ${state}`];
+              }
+              return [selfHosted, `runner ${label} is online and idle`];
+            };
+
+            const [runsOn, why] = await pick().catch((error) => [hosted, `listing the runners failed: ${error.message}`]);
+            const answer = JSON.stringify(runsOn);
+            core.setOutput('runs_on_json', answer);
+            core.info(`Runner: ${answer}, because ${why}.`);
+            // The summary is a convenience. Failing to write it must not fail the pick.
+            await core.summary.addRaw(`**Runner:** \`${answer}\`, because ${why}.\n`).write().catch(() => {});

@@ -11,9 +11,27 @@ permissions:
   contents: read
 
 jobs:
+  # Routing is decided per run by .github/workflows/pick-runner.yml.
+  pick-runner:
+    uses: ./.github/workflows/pick-runner.yml
+    secrets:
+      RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
+    with:
+      hosted_fallback: ubuntu-latest
+
+  # Self-hosted first. Every step is dotnet: install the tool, then run Stryker against
+  # the same project, test project, framework and mutate patterns. Both run steps are
+  # bash and say so, which is already how ubuntu-latest runs them, so nothing about the
+  # run changes. The tool goes on PATH through $HOME, which dotnet resolves to the same
+  # tools folder on Windows, so the next step finds dotnet-stryker.
+  #
+  # It takes up to two hours and the box has one slot, so it can queue behind
+  # benchmarks.yml, or they behind it. The pick only answers the self-hosted runner when
+  # it is idle, so a busy box sends this to ubuntu-latest instead.
   mutate:
     name: Stryker.NET
-    runs-on: ubuntu-latest
+    needs: pick-runner
+    runs-on: ${{ fromJSON(needs.pick-runner.outputs.runs_on_json) }}
     continue-on-error: true
     timeout-minutes: 120
     defaults:
@@ -39,12 +57,16 @@ jobs:
           restore-keys: nuget-${{ runner.os }}-
 
       - name: Install Stryker.NET
+        shell: bash
         run: |
           dotnet tool install --global dotnet-stryker
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Run Stryker.NET
         continue-on-error: true
+        # bash on both machines: the arguments below use trailing backslash
+        # continuations, which is already how ubuntu-latest runs this step.
+        shell: bash
         # Run outside RecDiffy.NET so Stryker does not enter solution context
         # (RecDiffy.slnx lives there) and abort with zero mutants tested.
         working-directory: RecDiffy.NET/src/RecDiffy

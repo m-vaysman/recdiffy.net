@@ -6,11 +6,29 @@ on:
     types: [opened, reopened, synchronize, edited]
 
 jobs:
+  # Routing is decided per run by .github/workflows/pick-runner.yml. The answer is only
+  # the self-hosted runner when it is idle, so this check does not sit behind the single
+  # slot: a busy runner answers ubuntu-latest.
+  pick-runner:
+    uses: ./.github/workflows/pick-runner.yml
+    secrets:
+      RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
+    with:
+      hosted_fallback: ubuntu-latest
+
+  # Self-hosted first. The step is one short bash script built from `[ ]` and `echo`,
+  # with no Linux utility in it, so `shell: bash` runs the identical script on either
+  # machine. It is already bash on ubuntu-latest, so nothing about the check changes.
+  #
+  # The job id and the name below are the required check name branch protection
+  # matches. They keep exactly the same value; only runs-on and shell are stated.
   main-source-is-dev:
     name: main-source-is-dev
-    runs-on: ubuntu-latest
+    needs: pick-runner
+    runs-on: ${{ fromJSON(needs.pick-runner.outputs.runs_on_json) }}
     steps:
       - name: Require head branch is dev on this repository
+        shell: bash
         env:
           HEAD_REF: ${{ github.head_ref }}
           HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}

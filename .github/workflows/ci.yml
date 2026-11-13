@@ -10,6 +10,16 @@ permissions:
   contents: read
 
 jobs:
+  # Hosted-only, and deliberately without a pick-runner job. This job cannot move to
+  # the Windows self-hosted runner without changing what it tests:
+  #   - "Install LibreOffice" is .github/actions/install-libreoffice: sudo, apt-get and
+  #     Linux package names. On a Windows runner that step fails outright, and it is the
+  #     only reason the Excel recalc tests run: without soffice they skip. Guarding it
+  #     with runner.os would turn a passing suite into a partially skipped one, which is
+  #     a change to what CI tests, so the whole job stays where it can install it;
+  #   - "Publish Allure report" runs python3 against a Linux script;
+  #   - "Pack prerelease" uses mkdir -p.
+  # The dotnet steps alone are portable; these three are not, and the first is coverage.
   build:
     runs-on: ubuntu-latest
     permissions:

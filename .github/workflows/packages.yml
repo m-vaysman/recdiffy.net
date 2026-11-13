@@ -19,6 +19,19 @@ env:
   VERSION: 0.0.0-ci.${{ github.run_number }}
 
 jobs:
+  # Routing for the jobs that may run on the Windows self-hosted runner. The jobs
+  # that name ubuntu-latest below cannot, and each says why.
+  pick-runner:
+    uses: ./.github/workflows/pick-runner.yml
+    secrets:
+      RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
+    with:
+      hosted_fallback: ubuntu-latest
+
+  # Hosted-only. The packing checks are bash: the step after the pack uses [[ ]],
+  # arrays and compgen, verify-sourcelink.sh needs unzip and python3, and the Source
+  # Link check runs a bash script. A stock Windows runner has none of unzip or
+  # python3, so this job cannot run there without rewriting what it checks.
   pack:
     name: "Pack (#86, #52)"
     runs-on: ubuntu-latest
@@ -93,6 +106,11 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # Hosted-only. consume.sh captures a sample's console output and compares it exactly:
+  # `engine=$(... | grep -F "engine version: ")`, then `[[ $engine == "$version" ]]`.
+  # On Windows that output ends a line with CRLF, and command substitution strips only
+  # the LF, so $engine keeps a trailing \r and the check fails for every package. Fixing
+  # it means changing what the script compares, so this job stays where it runs today.
   consumer:
     name: Consume the packages (#50)
     needs: pack
@@ -119,6 +137,9 @@ jobs:
       - name: Restore from the feed, check the packages and run the samples
         run: bash RecDiffy.NET/tests/PackageSmoke/consume.sh "$VERSION"
 
+  # Hosted-only. publish-aot.sh is bash and publishes with --use-current-runtime, so
+  # on a Windows runner it would build win-x64 Native AOT and need the Visual Studio
+  # C++ toolchain. That is a different build from the linux-x64 one this check makes.
   aot-packages:
     name: Native AOT and trimming from the packages (#51)
     needs: pack
@@ -143,6 +164,9 @@ jobs:
       - name: Publish with Native AOT and with trimming, then run
         run: bash RecDiffy.NET/tests/PackageSmoke/publish-aot.sh "$VERSION"
 
+  # Hosted-only. Publishes -r linux-x64 with Native AOT, which needs clang and runs
+  # the binary at a Linux path. Windows needs clang, a Windows SDK and the Visual
+  # Studio C++ tools, so it cannot build or run this check as written.
   aot-host:
     name: Native AOT host (#51)
     runs-on: ubuntu-latest
@@ -178,9 +202,17 @@ jobs:
           echo "Exact matches: $exact"
           [[ "$exact" == "1" ]]
 
+  # Self-hosted first. Every step is plain dotnet against RecDiffy.Samples: build, then
+  # run. The samples write to Path.GetTempPath(), so no Linux path is involved, and a
+  # sample that reads a value differently returns false and fails the job rather than
+  # passing quietly.
+  # Caveat: the sample profiles declare no culture, so the machine culture reads their
+  # ASCII decimals and ISO dates. ubuntu-latest reads them as invariant and COBBLER1 as
+  # en-US, which agree for this data. A non-English Windows locale would not.
   samples:
     name: Run the samples (#62)
-    runs-on: ubuntu-latest
+    needs: pick-runner
+    runs-on: ${{ fromJSON(needs.pick-runner.outputs.runs_on_json) }}
     timeout-minutes: 15
     defaults:
       run:

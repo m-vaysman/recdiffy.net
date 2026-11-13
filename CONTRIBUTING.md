@@ -58,6 +58,38 @@ dotnet build RecDiffy.NET/RecDiffy.slnx -c Release -warnaserror --no-incremental
 
 **What CI runs.** [CI](.github/workflows/ci.yml) runs on every PR into `dev`. It builds the solution with `-warnaserror` and runs `RecDiffy.Tests`, `RecDiffy.IO.Tests` and `RecDiffy.Excel.Tests`. It installs LibreOffice first, so the recalc tests run there even when they skip on your machine.
 
+### Where CI runs
+
+Some jobs run on the self-hosted Windows machine COBBLER1, and fall back to their GitHub-hosted image when it is unavailable. Nothing about what those jobs build, test or publish changes; only the machine does.
+
+GitHub has no fallback in `runs-on`. An array of labels means "all of these", not "any of these", so the choice is made by a job instead:
+
+1. [`pick-runner.yml`](.github/workflows/pick-runner.yml) is a reusable workflow. A workflow calls it as a job and reads its `runs_on_json` output.
+2. The real job declares `needs: pick-runner` and `runs-on: ${{ fromJSON(needs.pick-runner.outputs.runs_on_json) }}`.
+3. `pick-runner` answers `["self-hosted", "cobbler1-bench"]` only when the event is not a pull request from a fork, the token below is set, and the runner is online and idle. Otherwise it answers that job's own hosted image and says why in the job log and the run summary. A missing token, an offline runner, a busy runner and a failed API call are all fallbacks, never a failure.
+
+**`RUNNER_STATUS_TOKEN`.** A fine-grained personal access token scoped to this repository with **Administration: read**, stored as an Actions secret. It is the only way a workflow can list the repository's runners. Without it, or if the call fails, every job takes its hosted image, which is what happened before this routing existed. Nothing else reads it.
+
+**Fork pull requests never use COBBLER1.** The repository is public, so a pull request from a fork always gets the hosted image. That is checked before the token is, so a fork run cannot reach the self-hosted machine at all.
+
+**One slot.** COBBLER1 runs one job at a time. `pick-runner` reads `busy` once, so a job can still queue behind [`benchmarks.yml`](.github/workflows/benchmarks.yml) if the runner becomes busy a moment later. A job that queues waits for the slot; it is not moved to the hosted image. If a run sits queued for a long time, wait or cancel and re-run it.
+
+**A job that stays hosted** has a comment at its `runs-on` line saying why. The reason is always that running it on Windows would change what it builds or tests: an `apt-get` step such as the LibreOffice install, a shell script that needs `unzip` or `python3`, a `-r linux-x64` Native AOT publish, or a coverage difference.
+
+**Bash on COBBLER1.** A routed job whose steps were already bash keeps `shell: bash`, so it runs the same script on either machine. `bash` on a Windows runner is Git Bash, from Git for Windows. COBBLER1 has it, because it checks out this repository. If it ever stops being present, that job fails at its first step; the fix is to install Git for Windows on COBBLER1, not to rewrite the script.
+
+**Which jobs route, today.** `benchmarks.yml` already ran on COBBLER1 and is unchanged.
+
+| Workflow | Self-hosted first | Hosted-only, with the reason in the file |
+|---|---|---|
+| `ci.yml` | — | `build` |
+| `packages.yml` | `samples` | `pack`, `consumer`, `aot-packages`, `aot-host` |
+| `sonarqube.yml` | — | `sonarqube` |
+| `excel-addin.yml` | `build`, `publish` | — |
+| `release.yml` | — | `release` |
+| `main-source-guard.yml` | `main-source-is-dev` | — |
+| `mutation.yml` | `mutate` | — |
+
 ### The Excel add-in
 
 The add-in is a separate solution, and it builds only on Windows:

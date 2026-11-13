@@ -10,6 +10,15 @@ permissions:
   id-token: write
 
 jobs:
+  # Hosted-only, and deliberately without a pick-runner job. A release builds and
+  # checks exactly what is pushed to nuget.org, and three steps cannot run on the
+  # Windows runner without changing what that is:
+  #   - "Read the version from the tag" is bash with [[ =~ ]];
+  #   - consume.sh is bash (grep/sed/tr over the nuspec);
+  #   - publish-aot.sh publishes with --use-current-runtime, so on Windows it would
+  #     build win-x64 Native AOT with the Visual Studio C++ toolchain instead of the
+  #     linux-x64 build this check makes today.
+  # The tag trigger and everything this job publishes are unchanged.
   release:
     runs-on: ubuntu-latest
     steps:

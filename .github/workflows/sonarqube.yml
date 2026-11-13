@@ -16,6 +16,16 @@ permissions:
   contents: read
 
 jobs:
+  # Hosted-only, and deliberately not given a pick-runner job. This is the one
+  # workflow in the runner-routing change that keeps its GitHub-hosted image, because
+  # moving it would change the analysis this job produces:
+  #   - "Install LibreOffice" is .github/actions/install-libreoffice: bash, sudo and
+  #     apt-get. It is what lets the Excel recalc tests run, so on a Windows runner
+  #     those tests would skip and the coverage uploaded to Sonar would be smaller;
+  #   - the secret check and every run step are bash, and SonarScanner, the JDK and
+  #     the coverlet collector are installed the Linux way.
+  # Either change would alter the Sonar setup and its coverage, which this change
+  # must not touch. Routing is therefore left as ubuntu-latest.
   sonarqube:
     name: Analyze
     runs-on: ubuntu-latest

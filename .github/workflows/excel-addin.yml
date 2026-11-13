@@ -20,8 +20,29 @@ env:
   INSTALLER_VERSION: 0.1.${{ github.run_number }}
 
 jobs:
+  # Routing for this workflow. build is Windows-only work, so it falls back to
+  # windows-latest. publish was on ubuntu-latest and keeps ubuntu-latest as its own
+  # fallback, so each job preserves the hosted image it has today.
+  pick-runner:
+    uses: ./.github/workflows/pick-runner.yml
+    secrets:
+      RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
+    with:
+      hosted_fallback: windows-latest
+
+  pick-runner-linux:
+    uses: ./.github/workflows/pick-runner.yml
+    secrets:
+      RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
+    with:
+      hosted_fallback: ubuntu-latest
+
+  # Self-hosted first. This job is Windows-only either way (net10.0-windows and a WiX
+  # MSI), and every step is dotnet against the solution, so a Windows runner runs the
+  # same build, the same tests and the same installer. Nothing here needs a Linux tool.
   build:
-    runs-on: windows-latest
+    needs: pick-runner
+    runs-on: ${{ fromJSON(needs.pick-runner.outputs.runs_on_json) }}
 
     steps:
       - name: Check out
@@ -55,10 +76,15 @@ jobs:
           path: RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn.Installer/bin/Release/RecDiffy.ExcelAddIn.msi
           if-no-files-found: error
 
+  # Self-hosted first, with its own pick so its fallback stays ubuntu-latest. The one
+  # run step is bash and says so, so it is the same script with the same
+  # ${GITHUB_SHA::7} and gh calls on either machine; gh is already on COBBLER1, which
+  # the capacity harness uses. It runs only on a push to main, never on a pull request,
+  # and it waits for the pick so it never races the pick it reads.
   publish:
     if: github.ref == 'refs/heads/main'
-    needs: build
-    runs-on: ubuntu-latest
+    needs: [build, pick-runner-linux]
+    runs-on: ${{ fromJSON(needs.pick-runner-linux.outputs.runs_on_json) }}
     permissions:
       contents: write
     concurrency:
@@ -73,6 +99,7 @@ jobs:
           path: installer
 
       - name: Publish it to the excel-addin release
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
