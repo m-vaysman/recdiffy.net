@@ -20,11 +20,12 @@ This folder is the formatting and layout spec for the RecDiffy.Excel report writ
 
 ## Running the builders
 
-Both need Python 3.10+ and openpyxl, and run from any folder.
+Both need Python 3.10+ with openpyxl installed, and run from any folder. On Linux the interpreter is usually `python3`, since a stock Ubuntu has no `python` on `PATH`; the commands below use `python3`, and `python` works on Windows.
 
 ```
-python workbook-13-views/build_xlsx.py out/RecDiffy_Reconciliation_Views_BO_MO.xlsx
-python engine-mo1/build_engine_mo1.py engine-mo1/fixture-v1-engine-result.json out/RecDiffy_Engine_MO1_Control_Totals_fixture-v1.xlsx
+python3 -m pip install openpyxl   # once
+python3 workbook-13-views/build_xlsx.py out/RecDiffy_Reconciliation_Views_BO_MO.xlsx
+python3 engine-mo1/build_engine_mo1.py engine-mo1/fixture-v1-engine-result.json out/RecDiffy_Engine_MO1_Control_Totals_fixture-v1.xlsx
 ```
 
 openpyxl writes formulas without cached values. Excel calculates them on open. To check them headless, recalculate them in LibreOffice with formula recalculation on load set to Always, then read the values back. The reference workbooks recalculate with 0 formula errors and every ✓ check passing.

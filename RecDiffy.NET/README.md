@@ -215,7 +215,7 @@ A profile declares:
 
 - **Fields:** canonical names, types, and roles.
 - **Normalization:** how source values become canonical values.
-- **Consolidation:** optional lifecycle and package processing before matching.
+- **Consolidation:** optional lifecycle and package processing before matching. See [Consolidation](https://github.com/m-vaysman/recdiffy.net/blob/main/README.md#consolidation).
 - **Routes:** which matching path receives each row.
 - **Matching passes:** ordered strategies for finding corresponding records.
 - **Comparison rules:** fields to compare and tolerances to apply.
@@ -281,14 +281,20 @@ File.WriteAllText("ledger.profile.json", result.Profile.ToJson());
 
 The separate `RecDiffy.Excel` package writes formatted back- and middle-office reports from a `ReconciliationResult`, one `.xlsx` file per report. Numbers on a report tab are formulas that link to the engine's output in the same file, every decomposition has a ✓/✗ check, and ageing is a formula on a named `AsOf` cell.
 
+It is the third of the four packages, so the quickstart project above does not have it yet. Add it before running this section:
+
+```shell
+dotnet add package RecDiffy.Excel --version 1.2.0-preview.3
+```
+
 ```csharp
 using RecDiffy.Excel;
 
 var options = new ExcelReportOptions
 {
-    AsOf = new DateOnly(2025, 6, 13),
-    Profile = profile, // profile id, tolerances, pass order; also maps report roles to same-named fields
-    FieldMap = FieldMap.FromProfile(profile).With(ReportRole.Asset, "AssetClass"), // optional override
+    AsOf = new DateOnly(2026, 11, 13),
+    Profile = profile, // profile id, tolerances, pass order; also maps report roles to fields of the same name
+    FieldMap = FieldMap.FromProfile(profile).With(ReportRole.Asset, "AssetClass"), // optional; only a field the profile declares can be mapped
 };
 
 foreach (var outcome in result.WriteAll("reports", options))
@@ -301,6 +307,48 @@ foreach (var outcome in result.WriteAll("reports", options))
 | Middle office | MO1 ControlTotals, MO2 Scorecard, MO3 CascadeFunnel, MO4 BreakHeatmap, MO5 Ageing, MO6 ToleranceUsage, MO7 AuditTrail |
 
 Files are named `<ID>_<ReportName>_<profileId>_<asOf yyyy-MM-dd>.xlsx`. Reports read fields only through `FieldMap`; a report whose required roles are unmapped, or that has nothing to show, is skipped and the reason is returned. `RecDiffyExcel.RunAndWrite` runs the engine and writes in one call, and `WriteReport` writes one report to a stream. `Labels` replaces report wording with your own column names. The layout spec is in [docs/report-specs](https://github.com/m-vaysman/recdiffy.net/blob/main/RecDiffy.NET/docs/report-specs/README.md).
+
+A run writes into the as-of date, so a second run on the same day silently replaces the workbooks already in the folder. Pick a new folder, or a new `AsOf`, when you want to keep both.
+
+### Report roles
+
+`FieldMap.FromProfile` looks for each role's field names in the order below, and maps the role only when the profile declares one. Any other name needs an explicit `With` call, which must also name a field the profile declares. A role a report needs, but the map does not supply, skips that report and names it.
+
+| Role | Field names `FromProfile` looks for | Required by |
+|---|---|---|
+| `Counterparty` | `Counterparty` | BO1, BO2, MO1, MO2, MO4 |
+| `Instrument` | `Instrument` | BO1, BO2 |
+| `Asset` | `Asset`, then `AssetClass` | MO1 |
+| `Side` | `Side` | BO1, BO2, BO6 |
+| `TradeDate` | `TradeDate` | BO1, MO5 |
+| `SettleDate` | `SettleDate` | BO1, BO6, MO5 |
+| `Quantity` | `Quantity` | BO5, MO1 |
+| `Price` | `Price` | none; shown by BO2, and by BO5 beside the quantity |
+| `Currency` | `Currency` | BO1, BO2, BO6, MO1 |
+| `NetCash` | `NetCash` | BO6 |
+| `Accrued` | `Accrued` | none; shown by BO2 and BO5 |
+| `Fees` | `Fees` | none; shown by BO2 and BO5 |
+| `Book` | `Book` | none; one line per allocation on BO5 |
+| `LifecycleAction` | `EventAction` | BO4 |
+| `LifecycleTarget` | `EventTarget` | BO4 |
+
+- **The quickstart profile maps only `Quantity`.** Run against it with `Profile` set, as the snippet above does, 4 of the 13 reports write: BO3, BO5, MO3 and MO7. The other 9 skip, and each reason names the roles it wanted. Declare the trade-shaped fields in this table to reach the rest.
+- **BO3 RawVsNormalized and MO6 ToleranceUsage need the profile, not a role.** BO3 reads each side's original columns, and MO6 reads the tolerance amounts; both come from `ExcelReportOptions.Profile`.
+- **BO2 needs at least one compared field mapped:** one of `Quantity`, `Price`, `SettleDate`, `Accrued`, `Fees` or `NetCash`.
+- **MO3 CascadeFunnel and MO7 AuditTrail need no role at all.** They report the engine's own counts and explanation trail.
+- **A report also needs something to show.** BO5 skips when no entry was matched many-to-one or one-to-many, and MO6 skips when no difference landed `WithinTolerance`. Both return that reason, so a mapped role alone does not produce a file.
+
+BO4 needs lifecycle consolidation, not just the two roles. It draws the chains that `consolidation.lifecycle` collapsed, so a profile without that block writes no BO4 rows. The block names the fields holding each event's action (`NEW`, `CANC`, `CORR`) and the row key it acts on, and the `scope` field that groups row keys so a target is looked up inside the same counterparty:
+
+```json
+"consolidation": {
+  "right": {
+    "lifecycle": { "action": "EventAction", "target": "EventTarget", "scope": "Counterparty", "corrTarget": "CANC" }
+  }
+}
+```
+
+The collapsed rows keep a disposition of `Suppressed`, and the survivor carries the `LifecycleCollapsed` composition flag. [Consolidation](https://github.com/m-vaysman/recdiffy.net/blob/main/README.md#consolidation) in the repository README has a worked example, and [`consolidation` in PROFILES.md](https://github.com/m-vaysman/recdiffy.net/blob/main/RecDiffy.NET/docs/PROFILES.md#consolidation-lifecycles-and-packages) has every key and diagnostic code.
 
 ## Read CSV and Excel files
 
@@ -320,7 +368,7 @@ var result = Reconciler.Run(profile, left, right, referenceData);
 - **With a header,** row 1 names the columns and every later row is data. A header row with an empty or repeated name is refused, with a message naming the columns.
 - **Without a header,** columns are named `Column1` to `ColumnN` and every row, including the first, is data, so profiles map columns by position.
 - **Excel data starts at cell A1** of the chosen sheet. Blank rows and columns are not skipped to find a table.
-- **Values pass through.** CSV cells reach the profile as text, so all parsing stays in the profile as policy. Excel cells keep the type the workbook stores: a number (as a double), a date, or text, so a text ID such as `00123` keeps its leading zeros.
+- **Values pass through.** CSV cells reach the profile as text, so all parsing stays in the profile as policy. Excel cells keep the type the workbook stores: a number (as a `decimal`), a date, or text, so a text ID such as `00123` keeps its leading zeros. A number no `decimal` holds exactly, because it is too large or has more than 28 significant digits, stays a `double` and is `Invalid` with `FloatValue`.
 - **Each side is independent.** CSV against Excel, Excel against CSV, and a file against objects or another data reader all work.
 
 **Sheet numbers start at 1.** `ExcelSheet.Numbered(1)` is the first tab and `ExcelSheet.Numbered(2)` the second, because that is how users count tabs in Excel. This is intentional, not an off-by-one error. Hidden tabs count, in workbook order. Sheet 0, a number past the last tab, or a name that does not exist fails with a message that lists the sheets the workbook has; no other sheet is read instead. `FileSources.ExcelSheetNames(path)` lists them in tab order.

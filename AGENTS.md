@@ -7,6 +7,10 @@ Read the whole file before you change anything. After the repository basics and 
 1. [Extend, not edit](#extend-not-edit): code on `main` is closed.
 2. [Functional C# first](#functional-c-first): how to write C# here.
 
+## Source of truth
+
+Docs follow the code: when a README or other doc disagrees with the code, fix the doc. Never change public types, signatures, names or behavior to match a README or doc. Exception: a spec (e.g. `docs/report-specs`, `PROFILES.md` spec sections, a design spec) outranks the code. When code disagrees with a spec, do not silently change either: stop, report the mismatch, and change code only when your task is explicitly to implement that spec.
+
 ## Repository basics
 
 ### Build and test
