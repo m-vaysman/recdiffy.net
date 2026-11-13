@@ -1,9 +1,10 @@
 # The capacity harness
 
-Phases 1, 3 and 4 of the capacity and performance work in [#377](https://github.com/m-vaysman/recdiffy.net/issues/377):
+Phases 1, 3, 4 and 5 of the capacity and performance work in [#377](https://github.com/m-vaysman/recdiffy.net/issues/377):
 a console harness that runs the reconciliation engine through its public API, records what it cost, and writes a run
 folder with `results.json`, `report.md` and a static `report.html`. It has two sweeps: sizes with the failure boundary
-(phases 1 and 4) and concurrency (phase 3).
+(phases 1 and 4) and concurrency (phase 3), and it runs on `net10.0` and `net8.0`, JIT, ReadyToRun or Native AOT
+(phase 5).
 
 It is **outside `RecDiffy.slnx`**. No workflow builds or runs it, `ci.yml` never sees it, and it is `IsPackable=false`,
 so it adds nothing to the packed packages. It lives in this repository so it always measures the engine at the commit
@@ -130,6 +131,47 @@ internal `MatchCounters`, which a package consumer cannot see. The harness repor
 public result instead. Reading the counters needs an `InternalsVisibleTo` line in `RecDiffy.csproj`, a decision for the
 lead, not taken here.
 
+## Environments (phase 5)
+
+The harness targets **`net10.0`** (primary, including Native AOT) and **`net8.0`** (spot-check). On `net8.0` the
+harness references `System.Text.Json`; that package is in the harness only, never in a shipping package.
+
+```
+dotnet run --project RecDiffy.NET/capacity/RecDiffy.Capacity -f net8.0 -- --sizes 1000
+```
+
+The reports serialize through a source-generated `JsonSerializerContext`, so they work under Native AOT, where
+reflection-based `System.Text.Json` is off. Publish and run:
+
+```
+# ReadyToRun: JIT-capable, precompiled
+dotnet publish RecDiffy.NET/capacity/RecDiffy.Capacity -c Release -f net10.0 -r win-x64 --self-contained true -p:PublishReadyToRun=true -o G:\RecDiffyCapacity\publish\r2r
+G:\RecDiffyCapacity\publish\r2r\RecDiffy.Capacity.exe --out G:\RecDiffyCapacity\runs\<id>
+
+# Native AOT: no JIT
+dotnet publish RecDiffy.NET/capacity/RecDiffy.Capacity -c Release -f net10.0 -r win-x64 -p:PublishAot=true -o G:\RecDiffyCapacity\publish\aot
+G:\RecDiffyCapacity\publish\aot\RecDiffy.Capacity.exe --out G:\RecDiffyCapacity\runs\<id>
+```
+
+The host section records which one ran: **Dynamic code** is `no, Native AOT` under AOT and `yes, JIT` otherwise, next
+to the runtime, SDK, GC mode and GC heap limit.
+
+**GC modes.** `GCSettings` is process-wide, so a mode is chosen when the process starts:
+
+```
+$env:DOTNET_gcServer = '1'   # server GC; unset or 0 for workstation
+dotnet run --project RecDiffy.NET/capacity/RecDiffy.Capacity -- --sizes 10000 --out G:\RecDiffyCapacity\runs\<id>
+```
+
+The report records `server` or `workstation`; run the sweep once per mode and compare the two reports.
+
+**Cold and warm.** A cold run is a fresh process: one measured run, no warmup (`--repeats 1`, and ignore the discarded
+warmup by reading the second run of a two-run process). A warm run is the median of `--repeats` after the discarded
+warmup, which is the default shape. `--repeats 5` is the issue's default for a case under a minute.
+
+Every environment run that produces capacity numbers still goes through the COBBLER1 run script (phase 6): this
+machine is Windows like COBBLER1, but its numbers are not capacity evidence.
+
 ## What the harness does not measure yet
 
 - **Stages inside `Reconciler.Run`.** Intake, normalization, consolidation, matching, diff and result building are one
@@ -142,7 +184,9 @@ lead, not taken here.
   its own and then in combination, are the rest of phase 4; the failure boundary above is the size axis only.
 - **Heap caps and GC modes.** The caps are set by the launcher (`DOTNET_GCHeapHardLimit`) and recorded; comparing server
   and workstation GC is phase 5, and needs one process per mode.
-- **Cold and warm runs, ReadyToRun, Native AOT, `net8.0`.** Phase 5.
+- **Environment numbers.** ReadyToRun, Native AOT, `net8.0` and both GC modes can be run (see above), but the reports
+  that answer capacity questions must come from COBBLER1 through the run script (phase 6), because one host cannot
+  compare machines.
 - **The run script and the GitHub comment.** Phase 6.
 - **Comparison with the previous run.** The run script will hand over the previous run's `results.json`; the harness
   has no history yet.

@@ -73,6 +73,7 @@ internal static class HtmlReport
         Row(text, "SDK", Escape(JsonView.Text(host, "sdk")));
         Row(text, "GC", $"{Escape(JsonView.Text(host, "gcMode"))} GC, {Escape(JsonView.Text(host, "gcLatencyMode"))}");
         Row(text, "GC heap limit", $"{Format.Gigabytes(JsonView.Integer(host, "gcHeapLimitBytes"))} GB");
+        Row(text, "Dynamic code", JsonView.Field(host, "aot").GetBoolean() ? "no, Native AOT" : "yes, JIT");
         text.Append("</table>\n</section>\n");
     }
 
