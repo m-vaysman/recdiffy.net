@@ -73,7 +73,7 @@ Repointing a name fixes every profile that uses it. No profile needs an edit, an
 If your task is to test RecDiffy, read these first, in this order, before you write a test.
 
 1. **This file.** In particular, new tests go in new files, and you report bugs; you don't fix shipped rules.
-2. **The architecture spec, v3:** `RecDiffy.NET/docs/ARCHITECTURE-SPEC-v3.md`. It is kept out of git, so ask whoever gave you the task for it. The committed `ARCHITECTURE-SPEC.md` is v1 and out of date. For testing, read these sections:
+2. **The architecture spec, v3.1:** `RecDiffy.NET/docs/ARCHITECTURE-SPEC-v3.1.md`. It is kept out of git, so ask whoever gave you the task for it. The committed `ARCHITECTURE-SPEC.md` is v1, historical, and must not be implemented; [SPEC-STATUS.md](RecDiffy.NET/docs/SPEC-STATUS.md) lists the shipped behavior that overrides the spec. For testing, read these sections:
 
    | Section | What it tells you |
    |---|---|

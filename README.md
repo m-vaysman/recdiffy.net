@@ -567,7 +567,7 @@ GitHub Actions publishes an [Allure](https://allurereport.org/) report for pushe
 | [src/RecDiffy.Excel](RecDiffy.NET/src/RecDiffy.Excel) | Excel report writer (separate package) |
 | [RecDiffy.ExcelAddIn](RecDiffy.ExcelAddIn) | Excel add-in (preview): reconcile two datasets without leaving Excel |
 | [docs/report-specs](RecDiffy.NET/docs/report-specs) | Layout spec and reference workbooks for the Excel reports |
-| [docs/ARCHITECTURE-SPEC.md](RecDiffy.NET/docs/ARCHITECTURE-SPEC.md) | Detailed architecture and intended behavior; verify version-sensitive details against the code |
+| [docs/SPEC-STATUS.md](RecDiffy.NET/docs/SPEC-STATUS.md) | Which architecture spec is in force, and the shipped behavior that amends it; the committed v1 spec is historical |
 
 See the [Architecture Overview](https://github.com/m-vaysman/recdiffy.net/wiki/Architecture-Overview) for more background.
 
