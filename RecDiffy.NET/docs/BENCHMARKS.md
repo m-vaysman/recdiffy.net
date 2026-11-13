@@ -287,7 +287,7 @@ How the numbers were chosen:
 - **Times are not comparable with the previous note.** The previous run used an i9-12900K under 71% load; this one uses two Xeon E5-2680 v2 sockets. Compare allocations, not times.
 - **Matcher only.** The dataset and group benchmarks leave out intake, parsing, normalization, field comparison and result building. End-to-end numbers exist only for exact pairs, in `ExecutionModeBench`.
 - **Synthetic data.** One counterparty, one trade date, one side, uniform amounts, and every block on its own instrument. Real files have skewed keys, text to parse and more fields. No client data is used.
-- **Small sizes.** CI runs 1,000 and 4,000 rows per side so the job stays short. Larger sizes are measured by the capacity harness, not here.
+- **Small sizes.** CI runs 1,000 and 4,000 rows per side so the job stays short. Larger sizes and the capacity ceilings are measured, and reported in [CAPACITY.md](CAPACITY.md).
 - **Completed work versus bounded work.** A time measures a completed reconciliation only when no row ends `SearchIncomplete`.
   - `OversizedComponents` and the width-64 glued blocks end every row `BlockTooLarge`. The engine refused to search them, so their speed is the cost of refusing, not of reconciling.
   - A target whose search reaches the 250,000-node budget ends `BudgetExhausted`. Its time is the cost of stopping, and says nothing about how long a full search would take. No dataset here reaches the node budget.
