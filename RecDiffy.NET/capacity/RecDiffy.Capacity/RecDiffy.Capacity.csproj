@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>RecDiffy.Capacity</RootNamespace>
+    <Title>RecDiffy capacity harness</Title>
+    <Description>Capacity and performance harness for the RecDiffy NET engine. Run by hand on the capacity host; never built or run by CI.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\RecDiffy\RecDiffy.csproj" />
+    <ProjectReference Include="..\..\src\RecDiffy.Excel\RecDiffy.Excel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>RecDiffySdkVersion</_Parameter1>
+      <_Parameter2>$(NETCoreSdkVersion)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>
