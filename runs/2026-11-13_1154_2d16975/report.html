@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RecDiffy capacity run 2026-11-13_1154_2d16975</title>
+<style>
+:root { color-scheme: light dark; --ink: #1b1b1b; --muted: #5c5c5c; --rule: #d8d8d8; --paper: #fdfdfc; --engine: #35618f; --excel: #8a6240; --bad: #a32020; }
+@media (prefers-color-scheme: dark) { :root { --ink: #e8e8e6; --muted: #a8a8a4; --rule: #3a3a38; --paper: #161615; --engine: #79a7d6; --excel: #c39a6b; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif; }
+main { max-width: 1080px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+h1 { font-size: 1.7rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.2rem; margin: 2.4rem 0 .6rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+h3 { font-size: 1rem; margin: 1.6rem 0 .5rem; }
+p.lede { color: var(--muted); margin: 0 0 1.5rem; }
+p.note, p.flag { color: var(--muted); }
+p.flag strong { color: var(--ink); }
+a { color: var(--engine); }
+table { border-collapse: collapse; width: 100%; margin: .4rem 0 1rem; font-size: .92rem; }
+th, td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th { color: var(--muted); font-weight: 600; }
+tbody tr:hover { background: color-mix(in srgb, var(--rule) 28%, transparent); }
+table.stages { width: auto; min-width: 60%; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: .3rem 1rem; }
+dt { font-weight: 600; }
+dd { margin: 0; color: var(--muted); }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: .25rem 1rem; margin: .5rem 0 1rem; }
+.fact { display: contents; }
+.fact .name { color: var(--muted); }
+code { font-size: .85em; }
+.chart { display: grid; grid-template-columns: 7rem 1fr 6rem; align-items: center; gap: .5rem; margin: .3rem 0; }
+.chart .label { color: var(--muted); font-size: .85rem; text-align: right; }
+.chart .bar { display: flex; height: 1.1rem; background: color-mix(in srgb, var(--rule) 45%, transparent); border-radius: 3px; overflow: hidden; }
+.chart .fill { display: block; height: 100%; background: var(--engine); }
+.chart .fill.heap { background: var(--excel); }
+.chart .fill.excel { background: var(--excel); }
+.chart .fill.shared { background: var(--engine); }
+.chart .fill.separate { background: var(--excel); }
+.chart .value { color: var(--muted); font-size: .85rem; }
+.bad { color: var(--bad); }
+footer { margin-top: 3rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .85rem; }
+</style></head>
+<body>
+<main>
+<h1>RecDiffy capacity run</h1>
+<p class="lede">Phase 1 and phase 3 of <a href="https://github.com/m-vaysman/recdiffy.net/issues/377">issue #377</a>: the sizes sweep and the concurrency sweep, through the public API, on one host. Measured, not promised.</p>
+<section id="run">
+<h2>Run</h2>
+<table>
+<tr><th>Commit</th><td><code>2d1697519076887d97b0859c4c11e6dff7d00cb8</code> on <code>origin/dev</code>, working tree clean</td></tr>
+<tr><th>Sweep</th><td>sizes</td></tr>
+<tr><th>Started (UTC)</th><td>2026-11-13T16:54:52Z</td></tr>
+<tr><th>Duration</th><td>980.617 s (compile 0.152 s)</td></tr>
+<tr><th>Harness</th><td>1.0.0, engine 1.0.0</td></tr>
+<tr><th>Profile</th><td>capacity.mixed 1.0.0, hash <code>ea100672412fede34f7ad0f9e703f1d6d75b10d6109cece2c1457d8360adf7d0</code></td></tr>
+<tr><th>Dataset</th><td>seed 377, 3 measured run(s) per size, rows per side 10000, 100000, 1000000</td></tr>
+<tr><th>Command</th><td><code>G:\RecDiffyCapacity\work\2026-11-13_1154_2d16975\RecDiffy.NET\capacity\RecDiffy.Capacity\bin\Release\net10.0\RecDiffy.Capacity.dll --sweep sizes --out G:\RecDiffyCapacity\runs\2026-11-13_1154_2d16975 --seed 377 --repeats 3 --break-rate 0.1 --unmatched-rate 0.05 --commit 2d1697519076887d97b0859c4c11e6dff7d00cb8 --ref origin/dev --sizes 10000,100000,1000000 --case-timeout-seconds 1800 --excel none</code></td></tr>
+</table>
+</section>
+<section id="host">
+<h2>Host</h2>
+<table>
+<tr><th>Machine</th><td>COBBLER1</td></tr>
+<tr><th>OS</th><td>Microsoft Windows 10.0.19045</td></tr>
+<tr><th>Architecture</th><td>X64</td></tr>
+<tr><th>Logical processors</th><td>40</td></tr>
+<tr><th>Runtime</th><td>.NET 10.0.14</td></tr>
+<tr><th>SDK</th><td>10.0.403</td></tr>
+<tr><th>GC</th><td>workstation GC, Interactive</td></tr>
+<tr><th>GC heap limit</th><td>63.9 GB</td></tr>
+<tr><th>Dynamic code</th><td>yes, JIT</td></tr>
+</table>
+</section>
+<section id="sizes">
+<h2>The largest reconciliation</h2>
+<p class="flag">The largest size that completed with the outcome it was built to produce: <strong>1000000 rows per side</strong>.</p>
+<p class="flag">No case failed.</p>
+<table>
+<thead><tr><th>Rows/side</th><th>Outcome</th><th>Known outcome</th><th>Matched</th><th>Exact</th><th>Break</th><th>Left only</th><th>Right only</th><th>Total s</th><th>Rows/s</th><th>Peak heap</th><th>Peak working set</th><th>Bytes/row</th><th>Retained heap</th><th>Rows searched</th><th>Rows blocked</th><th>Overflow</th><th>Failure</th></tr></thead>
+<tbody>
+<tr><td>10000</td><td>Completed</td><td>matched</td><td>9750</td><td>8775</td><td>975</td><td>250</td><td>250</td><td>2.584</td><td>7738</td><td>195.0 MB</td><td>268.8 MB</td><td>10226 B</td><td>13.9 MB</td><td>19500</td><td>0</td><td>0</td><td>-</td></tr>
+<tr><td>100000</td><td>Completed</td><td>matched</td><td>97500</td><td>87750</td><td>9750</td><td>2500</td><td>2500</td><td>24.695</td><td>8099</td><td>2137.1 MB</td><td>2203.8 MB</td><td>11204 B</td><td>92.5 MB</td><td>195000</td><td>0</td><td>0</td><td>-</td></tr>
+<tr><td>1000000</td><td>Completed</td><td>matched</td><td>975000</td><td>877500</td><td>97500</td><td>25000</td><td>25000</td><td>297.919</td><td>6713</td><td>18269.5 MB</td><td>18855.1 MB</td><td>9578 B</td><td>186.0 MB</td><td>1950000</td><td>0</td><td>0</td><td>-</td></tr>
+</tbody>
+</table>
+<h3>Wall time against size</h3>
+<div class="chart"><span class="label">10000</span><span class="bar"><span class="fill" style="width:0.9%"></span></span><span class="value">2.584 s</span></div>
+<div class="chart"><span class="label">100000</span><span class="bar"><span class="fill" style="width:8.3%"></span></span><span class="value">24.695 s</span></div>
+<div class="chart"><span class="label">1000000</span><span class="bar"><span class="fill" style="width:100.0%"></span></span><span class="value">297.919 s</span></div>
+<h3>Peak managed heap against size</h3>
+<div class="chart"><span class="label">10000</span><span class="bar"><span class="fill heap" style="width:1.1%"></span></span><span class="value">195.0 MB</span></div>
+<div class="chart"><span class="label">100000</span><span class="bar"><span class="fill heap" style="width:11.7%"></span></span><span class="value">2137.1 MB</span></div>
+<div class="chart"><span class="label">1000000</span><span class="bar"><span class="fill heap" style="width:100.0%"></span></span><span class="value">18269.5 MB</span></div>
+</section>
+<section id="speed">
+<h2>Speed, by measured stage</h2>
+<p class="note">Only the stages the public API exposes are measured. The stages inside <code>Reconciler.Run</code> are inside <em>engine</em> until P2 and P4 add them.</p>
+<h3>10000 rows per side</h3>
+<div class="chart"><span class="label">stages</span><span class="bar"><span class="fill engine" style="width:100.0%" title="engine: 2.584 s"></span><span class="fill excel" style="width:0.0%" title="excel: 0.000 s"></span></span><span class="value">2.584 s</span></div>
+<table class="stages">
+<thead><tr><th>Stage</th><th>Seconds</th><th>Share</th></tr></thead>
+<tbody>
+<tr><td>engine</td><td>2.584</td><td>100.0%</td></tr>
+<tr><td>excel</td><td>0.000</td><td>0.0%</td></tr>
+<tr><td>rows per second (engine)</td><td colspan="2">7738</td></tr>
+<tr><td>rows per second (engine and Excel)</td><td colspan="2">7738</td></tr>
+<tr><td>p50 / p95 / p99</td><td colspan="2">2.584 / 2.875 / 2.875 s over 3 run(s)</td></tr>
+<tr><td>allocated</td><td colspan="2">1043.3 MB, GC pause 0.808 s</td></tr>
+</tbody>
+</table>
+<h3>100000 rows per side</h3>
+<div class="chart"><span class="label">stages</span><span class="bar"><span class="fill engine" style="width:100.0%" title="engine: 24.695 s"></span><span class="fill excel" style="width:0.0%" title="excel: 0.000 s"></span></span><span class="value">24.695 s</span></div>
+<table class="stages">
+<thead><tr><th>Stage</th><th>Seconds</th><th>Share</th></tr></thead>
+<tbody>
+<tr><td>engine</td><td>24.695</td><td>100.0%</td></tr>
+<tr><td>excel</td><td>0.000</td><td>0.0%</td></tr>
+<tr><td>rows per second (engine)</td><td colspan="2">8099</td></tr>
+<tr><td>rows per second (engine and Excel)</td><td colspan="2">8099</td></tr>
+<tr><td>p50 / p95 / p99</td><td colspan="2">24.695 / 25.038 / 25.038 s over 3 run(s)</td></tr>
+<tr><td>allocated</td><td colspan="2">10920.2 MB, GC pause 7.251 s</td></tr>
+</tbody>
+</table>
+<h3>1000000 rows per side</h3>
+<div class="chart"><span class="label">stages</span><span class="bar"><span class="fill engine" style="width:100.0%" title="engine: 297.919 s"></span><span class="fill excel" style="width:0.0%" title="excel: 0.000 s"></span></span><span class="value">297.919 s</span></div>
+<table class="stages">
+<thead><tr><th>Stage</th><th>Seconds</th><th>Share</th></tr></thead>
+<tbody>
+<tr><td>engine</td><td>297.919</td><td>100.0%</td></tr>
+<tr><td>excel</td><td>0.000</td><td>0.0%</td></tr>
+<tr><td>rows per second (engine)</td><td colspan="2">6713</td></tr>
+<tr><td>rows per second (engine and Excel)</td><td colspan="2">6713</td></tr>
+<tr><td>p50 / p95 / p99</td><td colspan="2">297.919 / 300.354 / 300.354 s over 3 run(s)</td></tr>
+<tr><td>allocated</td><td colspan="2">113943.9 MB, GC pause 87.630 s</td></tr>
+</tbody>
+</table>
+</section>
+<section id="scaling">
+<h2>Scaling per step</h2>
+<p class="note">Exponent is the log-log slope: 1.0 is linear, 2.0 is quadratic. A step over 1.5 is flagged, informationally.</p>
+<table>
+<thead><tr><th>From</th><th>To</th><th>Time ratio</th><th>Rows ratio</th><th>Exponent</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td>10000</td><td>100000</td><td>9.55</td><td>10.00</td><td>0.98</td><td>linear or better</td></tr>
+<tr><td>100000</td><td>1000000</td><td>12.06</td><td>10.00</td><td>1.08</td><td>linear or better</td></tr>
+</tbody>
+</table>
+</section>
+<section id="notes">
+<h2>Not measured yet</h2>
+<dl>
+<dt>intake</dt><dd>Reconciler.Run materializes both sides; the public API exposes no separate stage.</dd>
+<dt>normalization</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+<dt>consolidation</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+<dt>matching</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+<dt>diff</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+<dt>results</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+</dl>
+<h2>Notes</h2>
+<ul>
+<li>Stages inside Reconciler.Run (intake, normalization, consolidation, matching, diff, result building) are inside the engine stage. The public API exposes no split; the per-stage benchmarks are P2 and the large-size split is P4.</li>
+<li>One warmup run of the smallest size is discarded before the measurements, so JIT, compile and the first Excel write are not charged to the first case.</li>
+<li>The dataset is generated while the engine materializes each side, so the engine stage includes the generator&#39;s cost. The generator is a seeded integer mixer, not System.Random, so a seed reproduces a dataset on every runtime.</li>
+<li>Excel output writes one report (SideBySideCompare) so the output stage stays bounded. The full report set is P4.</li>
+<li>Capacity numbers are comparable only on the same host, runtime and GC mode. This run&#39;s host is in the header.</li>
+<li>A run that does not match its known outcome is a measurement failure, not a fast run. A run too large to complete is recorded as its outcome.</li>
+<li>Rows searched are rows in a matched entry; rows blocked are rows the search limits refused (SearchIncomplete), so a fast blocked run is not read as a fast reconciliation. Aggregate overflow counts diagnostics with that code.</li>
+<li>Retained heap is the heap after every result of the case has been dropped and two full blocking collections have run; the result graph is part of the memory ceiling.</li>
+<li>An OS kill cannot be caught in-process: a run the host killed leaves no report. The run script records it from the job (phase 6). Here, only an out-of-memory exception is recorded as a case outcome.</li>
+</ul>
+</section>
+<footer>
+<p>Source of truth: <code>results.json</code> in the run folder, next to this page and <code>report.md</code>. Generated by the RecDiffy capacity harness for <a href="https://github.com/m-vaysman/recdiffy.net/issues/377">issue #377</a>.</p>
+</footer>
+</main>
+</body>
+</html>
