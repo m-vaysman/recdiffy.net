@@ -4,6 +4,12 @@ namespace RecDiffy.Capacity;
 
 internal sealed class CapacityUsageException(string message) : Exception(message);
 
+internal enum Sweep
+{
+    Sizes,
+    Concurrency,
+}
+
 internal sealed record CapacityOptions(
     string? Out,
     IReadOnlyList<int> Sizes,
@@ -14,9 +20,13 @@ internal sealed record CapacityOptions(
     bool WriteExcel,
     int CaseTimeoutSeconds,
     string? Commit,
-    string? Ref)
+    string? Ref,
+    Sweep Sweep,
+    IReadOnlyList<int> Levels,
+    int ConcurrencyRows)
 {
     public const int DefaultSeed = 377;
+    public const int DefaultConcurrencyRows = 10_000;
 
     private static readonly string[] Known =
     [
@@ -30,6 +40,9 @@ internal sealed record CapacityOptions(
         "--case-timeout-seconds",
         "--commit",
         "--ref",
+        "--sweep",
+        "--levels",
+        "--concurrency-rows",
     ];
 
     public static IReadOnlyList<int> DefaultSizes { get; } = [10_000, 100_000];
@@ -54,22 +67,28 @@ internal sealed record CapacityOptions(
             values.TryGetValue("--excel", out var excel) ? ParseExcel(excel) : true,
             values.TryGetValue("--case-timeout-seconds", out var timeout) ? ParseTimeout(timeout) : 0,
             values.TryGetValue("--commit", out var commit) ? commit : null,
-            values.TryGetValue("--ref", out var reference) ? reference : null);
+            values.TryGetValue("--ref", out var reference) ? reference : null,
+            values.TryGetValue("--sweep", out var sweep) ? ParseSweep(sweep) : Sweep.Sizes,
+            values.TryGetValue("--levels", out var levels) ? ParseLevels(levels) : [],
+            values.TryGetValue("--concurrency-rows", out var concurrencyRows) ? ParseRows(concurrencyRows) : DefaultConcurrencyRows);
     }
 
     public static string Usage => """
-        RecDiffy capacity harness (issue #377, phase 1).
+        RecDiffy capacity harness (issue #377, phases 1 and 3).
 
         Usage: RecDiffy.Capacity [options]
 
           --out <folder>                 Run folder. Default: ./capacity-runs/<run-id>.
-          --sizes <a,b>                  Rows per side, ascending. Default: 10000,100000.
+          --sweep <sizes|concurrency>    What to measure. Default: sizes.
+          --sizes <a,b>                  Sizes sweep: rows per side, ascending. Default: 10000,100000.
+          --levels <a,b|auto>            Concurrency sweep: parallel runs. Default: auto (1,2,4,8,cores,2x cores).
+          --concurrency-rows <n>         Concurrency sweep: rows per side in each run. Default: 10000.
           --seed <n>                     Dataset seed. Default: 377.
-          --repeats <n>                  Measured runs per size. Default: 1.
+          --repeats <n>                  Measured runs per size, or batches per concurrency level. Default: 1.
           --break-rate <0..1>            Share of matched pairs built to break. Default: 0.1.
           --unmatched-rate <0..1>        Share of rows built single-sided. Default: 0.05.
-          --excel <one|none>             Write the bounded Excel report. Default: one.
-          --case-timeout-seconds <n>     Cancel a case after n seconds. Default: 0 (no timeout).
+          --excel <one|none>             Sizes sweep: write the bounded Excel report. Default: one.
+          --case-timeout-seconds <n>     Sizes sweep: cancel a case after n seconds. Default: 0 (no timeout).
           --commit <sha>                 Record this commit instead of asking git.
           --ref <name>                   Record this ref instead of asking git.
           --help                         Print this text.
@@ -141,4 +160,37 @@ internal sealed record CapacityOptions(
         "none" => false,
         _ => throw new CapacityUsageException("--excel must be 'one' or 'none'."),
     };
+
+    private static Sweep ParseSweep(string text) => text switch
+    {
+        "sizes" => Sweep.Sizes,
+        "concurrency" => Sweep.Concurrency,
+        _ => throw new CapacityUsageException("--sweep must be 'sizes' or 'concurrency'."),
+    };
+
+    private static IReadOnlyList<int> ParseLevels(string text)
+    {
+        if (text is "auto")
+            return [];
+        int[] levels =
+        [
+            .. text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(part => int.Parse(part, NumberStyles.Integer, CultureInfo.InvariantCulture))
+                .Distinct()
+                .Order(),
+        ];
+        if (levels.Length is 0)
+            throw new CapacityUsageException("--levels needs at least one parallel run count, or 'auto'.");
+        if (levels.Any(level => level is < 1 or > 256))
+            throw new CapacityUsageException("--levels must be from 1 to 256 parallel runs.");
+        return levels;
+    }
+
+    private static int ParseRows(string text)
+    {
+        var rows = int.Parse(text, NumberStyles.Integer, CultureInfo.InvariantCulture);
+        return rows >= 2
+            ? rows
+            : throw new CapacityUsageException("--concurrency-rows must be 2 or more rows per side.");
+    }
 }
