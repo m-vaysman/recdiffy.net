@@ -1,18 +1,66 @@
 # The capacity harness
 
-Phases 1, 3, 4 and 5 of the capacity and performance work in [#377](https://github.com/m-vaysman/recdiffy.net/issues/377):
-a console harness that runs the reconciliation engine through its public API, records what it cost, and writes a run
-folder with `results.json`, `report.md` and a static `report.html`. It has two sweeps: sizes with the failure boundary
-(phases 1 and 4) and concurrency (phase 3), and it runs on `net10.0` and `net8.0`, JIT, ReadyToRun or Native AOT
-(phase 5).
+Phases 1, 3, 4, 5 and 6 of the capacity and performance work in
+[#377](https://github.com/m-vaysman/recdiffy.net/issues/377): a console harness that runs the reconciliation engine
+through its public API, records what it cost, and writes a run folder with `results.json`, `report.md` and a static
+`report.html`. It has two sweeps — sizes with the failure boundary (phases 1 and 4) and concurrency (phase 3) — runs on
+`net10.0` and `net8.0`, JIT, ReadyToRun or Native AOT (phase 5), and is started on the capacity host by
+`run-capacity.ps1` (phase 6).
 
 It is **outside `RecDiffy.slnx`**. No workflow builds or runs it, `ci.yml` never sees it, and it is `IsPackable=false`,
 so it adds nothing to the packed packages. It lives in this repository so it always measures the engine at the commit
 that contains it.
 
-## Run it
+## Run it on COBBLER1 (phase 6)
 
-From the repository root, with the SDK that `RecDiffy.NET/global.json` pins:
+Capacity runs are started by hand on COBBLER1 with `run-capacity.ps1`, beside this README. Nothing starts it: no
+workflow, no schedule, no pull-request trigger.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File RecDiffy.NET\capacity\run-capacity.ps1 -Ref origin/dev
+```
+
+The script:
+
+1. fetches the ref (default `origin/dev`) and resolves it to a commit;
+2. checks that commit out clean into a worktree under `-WorkRoot` (`G:\RecDiffyCapacity` by default);
+3. builds the harness in Release with warnings as errors;
+4. refuses to run while the `cobbler1` GitHub runner is busy or while background CPU is over 10%;
+5. runs the chosen sweep with the chosen GC mode, heap cap and per-case timeout;
+6. fails the run if `results.json`, `report.md` or `report.html` is missing or empty;
+7. commits the reports and logs to `runs/<run-id>/` on the orphan `capacity-results` branch;
+8. posts one comment on #377 with the commit, host, settings and the Markdown report, linking the run folder;
+9. leaves the run folder on `G:` and removes its worktrees — on failure it keeps them for inspection.
+
+| Parameter | Meaning | Default |
+|---|---|---|
+| `-Ref <ref>` | The commit to measure | `origin/dev` |
+| `-Sweep <sizes\|concurrency>` | Which sweep | `sizes` |
+| `-Sizes <a,b>` / `-Levels <a,b\|auto>` / `-ConcurrencyRows <n>` | What the chosen sweep runs | `10000,100000` / `auto` / `10000` |
+| `-Repeats <n>` | Measured runs per size, or batches per level | `1` |
+| `-GcMode <workstation\|server>` | Sets `DOTNET_gcServer` for the harness process | `workstation` |
+| `-HeapCap <8GB\|16GB\|32GB>` | Sets `DOTNET_GCHeapHardLimit`; empty is uncapped | empty |
+| `-CaseTimeoutSeconds <n>` | Sizes sweep: per-case timeout | `1800` |
+| `-NoExcel` | Sizes sweep: `--excel none` (use it from 1M rows) | off |
+| `-Flavor <jit\|r2r\|aot>` / `-Framework <net10.0\|net8.0>` | The build that runs | `jit` / `net10.0` |
+| `-WorkRoot`, `-ResultsBranch`, `-Issue`, `-RequireHost` | Where it works and publishes | `G:\RecDiffyCapacity`, `capacity-results`, `377`, `COBBLER1` |
+| `-NoFetch -SkipHostCheck -SkipRunnerCheck -SkipPush -SkipComment -KeepCheckout -KeepResults` | Test the script itself, not the capacity | off |
+
+Notes:
+
+- **Bencher is not in this script.** Bencher records the benchmark measures from `benchmarks.yml`; a capacity run posts
+  its report to #377 instead, and the run folder on `capacity-results` is the permanent copy.
+- **An OS kill cannot be caught in the process.** If the host kills the harness, the script sees a missing report and
+  fails the run; the partial run folder stays on `G:`. A managed `OutOfMemoryException` is different: the harness
+  records it as the case outcome and still writes the reports.
+- **A harness exit other than 0** (a known-outcome mismatch) still publishes the report, marked `Status: failed`, and
+  then the script exits non-zero. A fast wrong answer must never look like a measurement.
+- Running the script on another machine is refused unless `-SkipHostCheck`; that switch exists to test the script, not
+  to produce capacity numbers.
+
+## Run the harness directly
+
+From the repository root, with the SDK that `RecDiffy.NET/global.json` pins, for testing on a non-capacity machine:
 
 ```
 dotnet run --project RecDiffy.NET/capacity/RecDiffy.Capacity -- --out G:\RecDiffyCapacity\runs\2026-11-12_2238_abc1234
@@ -182,14 +230,12 @@ machine is Windows like COBBLER1, but its numbers are not capacity evidence.
   in.
 - **The size axis matrix.** Cardinality, record width, duplicate ratios, group shapes and raised limits, each swept on
   its own and then in combination, are the rest of phase 4; the failure boundary above is the size axis only.
-- **Heap caps and GC modes.** The caps are set by the launcher (`DOTNET_GCHeapHardLimit`) and recorded; comparing server
-  and workstation GC is phase 5, and needs one process per mode.
-- **Environment numbers.** ReadyToRun, Native AOT, `net8.0` and both GC modes can be run (see above), but the reports
-  that answer capacity questions must come from COBBLER1 through the run script (phase 6), because one host cannot
-  compare machines.
-- **The run script and the GitHub comment.** Phase 6.
-- **Comparison with the previous run.** The run script will hand over the previous run's `results.json`; the harness
-  has no history yet.
+- **Heap caps and GC modes.** The caps are set by the run script (`DOTNET_GCHeapHardLimit`) and recorded; comparing
+  server and workstation GC needs one process per mode, which the script does.
+- **The first real run.** Everything is in place to run the sweeps on COBBLER1, but only a run there answers a capacity
+  question; nothing measured on a development desktop counts.
+- **Comparison with the previous run.** The run script could hand over the previous run's `results.json`; the harness
+  does not compare against it yet.
 - **The production sizing estimate.** Little's law needs the plateau from the concurrency sweep and the latency and
   memory per size from phase 4. With one host it would be an invented number, which the issue forbids.
 
