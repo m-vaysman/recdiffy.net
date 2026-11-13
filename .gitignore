@@ -2,6 +2,9 @@ bin/
 obj/
 BenchmarkDotNet.Artifacts/
 
+# Capacity harness run folders (results, reports and the Excel files a run writes)
+capacity-runs/
+
 # Test-data Python generator/verify scripts (keep on disk; stop GitHub linguist counting them as primary language)
 RecDiffy.NET/test-data/**/*.py
 
