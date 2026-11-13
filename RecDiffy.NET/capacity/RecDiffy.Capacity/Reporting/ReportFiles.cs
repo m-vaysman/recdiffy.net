@@ -1,8 +1,14 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace RecDiffy.Capacity;
+
+// Source-generated so the report also serializes under Native AOT, where reflection-based System.Text.Json is off.
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, WriteIndented = true)]
+[JsonSerializable(typeof(CapacityReport))]
+internal sealed partial class CapacityJsonContext : JsonSerializerContext;
 
 internal static class ReportFiles
 {
@@ -12,17 +18,11 @@ internal static class ReportFiles
 
     private static readonly UTF8Encoding Utf8 = new(encoderShouldEmitUTF8Identifier: false);
 
-    private static readonly JsonSerializerOptions Json = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true,
-    };
-
     public static (string Results, string Markdown, string Html) Write(string folder, CapacityReport report)
     {
         ArgumentNullException.ThrowIfNull(report);
         var results = Path.Combine(folder, ResultsName);
-        File.WriteAllText(results, JsonSerializer.Serialize(report, Json), Utf8);
+        File.WriteAllText(results, JsonSerializer.Serialize(report, CapacityJsonContext.Default.CapacityReport), Utf8);
 
         var json = File.ReadAllText(results);
         var markdown = Path.Combine(folder, MarkdownName);

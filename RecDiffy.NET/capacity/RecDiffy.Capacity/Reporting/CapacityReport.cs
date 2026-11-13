@@ -40,7 +40,9 @@ internal sealed record ReportHost(
     string Sdk,
     string GcMode,
     string GcLatencyMode,
-    long GcHeapLimitBytes);
+    long GcHeapLimitBytes,
+    bool Aot,
+    bool DynamicCode);
 
 internal sealed record ReportCounts(
     int Matched,
