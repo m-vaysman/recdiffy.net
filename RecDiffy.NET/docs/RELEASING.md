@@ -73,6 +73,56 @@ Add a repository secret named `NUGET_USER` before the first tag. It holds the nu
 
 If a release goes wrong, follow [RELEASE-RECOVERY.md](RELEASE-RECOVERY.md).
 
+## Source Link and symbol packages
+
+A consumer who debug-steps into a RecDiffy call should land on the source of the exact commit the package was built from, not on an empty frame or a mismatched file. That needs three things, and all three are on by default:
+
+| Piece | Where | What it does |
+|---|---|---|
+| `Microsoft.SourceLink.GitHub` | [Directory.Build.targets](../Directory.Build.targets), for every packable project | Writes the Source Link JSON into each PDB, mapping repository paths to `raw.githubusercontent.com/m-vaysman/recdiffy.net/<commit>/`. |
+| `ContinuousIntegrationBuild` | [Directory.Build.props](../Directory.Build.props), when `GITHUB_ACTIONS=true` | Makes documents repository-relative, so the PDB never names the build machine. |
+| `IncludeSymbols` + `SymbolPackageFormat=snupkg` | [Directory.Build.props](../Directory.Build.props) | Produces one `.snupkg` per package. `release.yml` pushes them, and nuget.org serves them from its symbol server. |
+
+`Deterministic` is on in every project, and the packed nuspec carries the commit in `<repository commit="...">`.
+
+### Verified evidence, 1.2.0-preview.5
+
+The four packages on nuget.org at `1.2.0-preview.5` were checked with the [sourcelink](https://www.nuget.org/packages/sourcelink) tool. Every PDB in every `.snupkg` passed, for both `net8.0` and `net10.0`:
+
+```text
+$ curl -sSLo RecDiffy.snupkg https://www.nuget.org/api/v2/symbolpackage/RecDiffy/1.2.0-preview.5
+$ unzip -q RecDiffy.snupkg -d symbols
+$ sourcelink test symbols/lib/net8.0/RecDiffy.pdb
+sourcelink test passed: symbols/lib/net8.0/RecDiffy.pdb
+```
+
+- **The mapping names the built commit.** `sourcelink print-urls` lists each document with a URL such as `https://raw.githubusercontent.com/m-vaysman/recdiffy.net/<commit>/RecDiffy.NET/src/RecDiffy/Results/ResultBuilder.cs`, and the commit matches the `<repository commit>` in the package's nuspec.
+- **`sourcelink test` checksums every document** against the file at that commit, so a source file that changed after the build fails it.
+- **All four symbol packages are served.** `https://www.nuget.org/api/v2/symbolpackage/<id>/1.2.0-preview.5` returns 200 for `RecDiffy`, `RecDiffy.Excel`, `RecDiffy.IO` and `RecDiffy.RulePacks.Trading`, and the GitHub Release attaches the same four `.snupkg` files.
+- **A debugger uses it the same way.** Visual Studio and `dotnet` symbol paths read the Source Link JSON from the PDB, so the consumer needs only the symbol server, or the `.snupkg` beside the `.nupkg`.
+
+### The CI check
+
+The `pack` job in [packages.yml](../../.github/workflows/packages.yml) runs [verify-sourcelink.sh](../tests/PackageSmoke/verify-sourcelink.sh) on every pull request and every push to `dev` and `main`. It unpacks each `.snupkg`, and for both frameworks requires that:
+
+- the PDB carries Source Link JSON, and every URL in it starts with `raw.githubusercontent.com/m-vaysman/recdiffy.net/<HEAD>/`;
+- the PDB lists its source documents, and none of them is an absolute path, so the PDB is deterministic.
+
+The check runs against `HEAD`, so it also proves the commit that the local build names. To run it by hand after a pack:
+
+```shell
+dotnet tool install --global sourcelink
+dotnet pack RecDiffy.NET/RecDiffy.slnx -c Release -o artifacts/packages -p:Version=1.2.0-preview.99
+export PATH="$HOME/.dotnet/tools:$PATH"
+bash RecDiffy.NET/tests/PackageSmoke/verify-sourcelink.sh artifacts/packages 1.2.0-preview.99
+```
+
+### What is not covered
+
+- **No source stepping in the Excel add-in.** It isn't a package, so its PDBs ship in the installer, not in a `.snupkg`.
+- **No `.pdb` in the `.nupkg`.** The PDBs are in the `.snupkg` only, which is what nuget.org's symbol server expects. A consumer that disables the symbol server gets no source navigation.
+- **The checks do not run on the release files.** `release.yml` runs the consumer and AOT checks ([#296](https://github.com/m-vaysman/recdiffy.net/issues/296)); running this check there too is not wired up, because the release packs from the same commit that `packages.yml` already checked on `main`.
+
 ## GitHub Packages
 
 Nothing is published to GitHub Packages. The `1.1.0-preview.<run number>` builds there are from before CI stopped publishing them. See [One public channel](#one-public-channel).

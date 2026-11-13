@@ -29,6 +29,9 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v4
+        with:
+          # Source Link stamps the commit it built from into each PDB, so it needs the commit, not just a working tree.
+          fetch-depth: 0
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
@@ -42,6 +45,10 @@ jobs:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('RecDiffy.NET/**/*.csproj', 'RecDiffy.NET/**/*.props', 'RecDiffy.NET/**/*.targets', 'RecDiffy.NET/global.json') }}
           restore-keys: nuget-${{ runner.os }}-
+
+      - name: Install the Source Link tool
+        run: dotnet tool install --global sourcelink
+        working-directory: .
 
       - name: Pack the whole solution
         run: dotnet pack RecDiffy.slnx -c Release -o ../artifacts/packages -warnaserror -p:Version="$VERSION"
@@ -60,6 +67,13 @@ jobs:
             fi
           done
           exit "$status"
+
+      - name: Check that each symbol package finds the source at this commit (#49)
+        working-directory: .
+        run: |
+          export DOTNET_ROOT="${DOTNET_ROOT:-$HOME/.dotnet}"
+          export PATH="$HOME/.dotnet/tools:$PATH"
+          bash RecDiffy.NET/tests/PackageSmoke/verify-sourcelink.sh artifacts/packages "$VERSION"
 
       - name: Check that the typed-reconciliation sample builds and packs nothing
         run: |
