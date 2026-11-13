@@ -1,0 +1,13 @@
+﻿  Determining projects to restore...
+  Restored G:\RecDiffyCapacity\work\2026-11-13_1148_2d16975\RecDiffy.NET\src\RecDiffy\RecDiffy.csproj (in 544 ms).
+  Restored G:\RecDiffyCapacity\work\2026-11-13_1148_2d16975\RecDiffy.NET\src\RecDiffy.Excel\RecDiffy.Excel.csproj (in 3.59 sec).
+  Restored G:\RecDiffyCapacity\work\2026-11-13_1148_2d16975\RecDiffy.NET\capacity\RecDiffy.Capacity\RecDiffy.Capacity.csproj (in 3.59 sec).
+  RecDiffy -> G:\RecDiffyCapacity\work\2026-11-13_1148_2d16975\RecDiffy.NET\src\RecDiffy\bin\Release\net10.0\RecDiffy.dll
+  RecDiffy.Excel -> G:\RecDiffyCapacity\work\2026-11-13_1148_2d16975\RecDiffy.NET\src\RecDiffy.Excel\bin\Release\net10.0\RecDiffy.Excel.dll
+  RecDiffy.Capacity -> G:\RecDiffyCapacity\work\2026-11-13_1148_2d16975\RecDiffy.NET\capacity\RecDiffy.Capacity\bin\Release\net10.0\RecDiffy.Capacity.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:18.29
