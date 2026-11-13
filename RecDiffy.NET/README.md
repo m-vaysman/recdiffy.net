@@ -422,7 +422,7 @@ To build RecDiffy from source, test it or change it, follow [CONTRIBUTING.md](ht
 | [src/RecDiffy.Excel](https://github.com/m-vaysman/recdiffy.net/tree/main/RecDiffy.NET/src/RecDiffy.Excel) | Excel report writer (separate package) |
 | [src/RecDiffy.IO](https://github.com/m-vaysman/recdiffy.net/tree/main/RecDiffy.NET/src/RecDiffy.IO) | CSV and Excel file readers (separate package) |
 | [docs/report-specs](https://github.com/m-vaysman/recdiffy.net/tree/main/RecDiffy.NET/docs/report-specs) | Layout spec and reference workbooks for the Excel reports |
-| [docs/ARCHITECTURE-SPEC.md](https://github.com/m-vaysman/recdiffy.net/blob/main/RecDiffy.NET/docs/ARCHITECTURE-SPEC.md) | Detailed architecture and intended behavior; verify version-sensitive details against the code |
+| [docs/SPEC-STATUS.md](https://github.com/m-vaysman/recdiffy.net/blob/main/RecDiffy.NET/docs/SPEC-STATUS.md) | Which architecture spec is in force, and the shipped behavior that amends it; the committed v1 spec is historical |
 
 See the [Architecture Overview](https://github.com/m-vaysman/recdiffy.net/wiki/Architecture-Overview) for more background.
 

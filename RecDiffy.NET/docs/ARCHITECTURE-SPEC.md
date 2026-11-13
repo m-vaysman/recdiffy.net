@@ -1,6 +1,8 @@
-# RecDiffy.NET architectural specification
+# RecDiffy.NET architectural specification (v1, historical)
 
-**Status:** Decision document for implementation. This file is the spec. It contains no implementation.
+> **Historical.** This is v1 (2026-11-04). It is superseded by the architecture spec v3.1 (2026-11-13), which is kept out of git. [SPEC-STATUS.md](SPEC-STATUS.md) says how to get it, which shipped behavior overrides it, and why v1 must not be implemented.
+
+**Status:** Historical decision document. Not the spec in force. It contains no implementation.
 **Date:** 2026-11-04
 **Runtime:** C# 12, `net8.0` minimum, nullable enabled. `net9.0` is a compatible target.
 **Authority:** Michael's wiki pages are requirements. `Argon.MD` is the baseline pipeline. The trade workbooks and hidden-test oracles are the acceptance data. The library-research page and the seven `opinions/argon-missing` write-ups are inputs. Where they disagree, this document decides.
