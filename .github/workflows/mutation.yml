@@ -45,10 +45,13 @@ jobs:
 
       - name: Run Stryker.NET
         continue-on-error: true
+        # Run outside RecDiffy.NET so Stryker does not enter solution context
+        # (RecDiffy.slnx lives there) and abort with zero mutants tested.
+        working-directory: RecDiffy.NET/src/RecDiffy
         run: |
           dotnet stryker \
-            --project "src/RecDiffy/RecDiffy.csproj" \
-            --test-project "src/RecDiffy.Tests/RecDiffy.Tests.csproj" \
+            --project "RecDiffy.csproj" \
+            --test-project "../RecDiffy.Tests/RecDiffy.Tests.csproj" \
             --target-framework net10.0 \
             --mutate "Matching/**/*.cs" \
             --mutate "Consolidation/**/*.cs" \
@@ -56,7 +59,8 @@ jobs:
             --mutate "Profile/ProfileCompiler.cs" \
             --reporter html \
             --reporter json \
-            --reporter cleartext
+            --reporter cleartext \
+            --output "../../StrykerOutput"
 
       - name: Upload Stryker report
         if: ${{ !cancelled() }}
