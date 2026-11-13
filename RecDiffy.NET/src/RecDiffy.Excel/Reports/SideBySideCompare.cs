@@ -120,7 +120,7 @@ internal static class SideBySideCompare
                     .PutFormula(row, column + 1, ReportSheet.Link(entries.Cell(DataTabs.Theirs(role), entry.Index)), theirs);
             })
             .Fold(netCash ? [netColumn] : Array.Empty<int>(), (current, column, _) =>
-                current.PutFormula(row, deltaColumn, $"{Address.Column(column + 1)}{row}-{Address.Column(column)}{row}", Styles.Number(Formats.Amount, bold: true)))
+                current.PutFormula(row, deltaColumn, $"{Address.Column(column + 1)}{row.ToInvariant()}-{Address.Column(column)}{row.ToInvariant()}", Styles.Number(Formats.Amount, bold: true)))
             .Put(row, otherColumn, string.Join(", ", entry.Entry.Diffs.Select(diff => diff.Field.Name).Where(field => shown.Contains(field) is false)));
     }
 

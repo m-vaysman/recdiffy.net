@@ -114,7 +114,7 @@ internal static class DataTabs
         var sign = letters["cashSign"];
         var signed = new DataColumn<RowFact>(
             "signedCash",
-            (_, row) => Content.Formula($"IF(AND(ISNUMBER({netCash}{row}),ISNUMBER({sign}{row})),{netCash}{row}*{sign}{row},0)"),
+            (_, row) => Content.Formula($"IF(AND(ISNUMBER({netCash}{row.ToInvariant()}),ISNUMBER({sign}{row.ToInvariant()})),{netCash}{row.ToInvariant()}*{sign}{row.ToInvariant()},0)"),
             Formats.Amount,
             14);
         return DataTab.Build(
@@ -161,8 +161,8 @@ internal static class DataTabs
             DataColumn<OpenItem>.Of("currency", item => item.Text(ReportRole.Currency), width: 9),
             DataColumn<OpenItem>.Of("tradeDate", item => item.Value(ReportRole.TradeDate).Cell, Formats.Date, 11),
             DataColumn<OpenItem>.Of("settleDate", item => item.SettleDate.Cell, Formats.Date, 11),
-            new DataColumn<OpenItem>("status", (_, row) => Content.Formula(StatusFormula($"G{row}")), Width: 16),
-            new DataColumn<OpenItem>("ageBD", (_, row) => Content.Formula(AgeFormula($"F{row}")), Formats.Integer, 8),
+            new DataColumn<OpenItem>("status", (_, row) => Content.Formula(StatusFormula($"G{row.ToInvariant()}")), Width: 16),
+            new DataColumn<OpenItem>("ageBD", (_, row) => Content.Formula(AgeFormula($"F{row.ToInvariant()}")), Formats.Integer, 8),
         ],
         context.Facts.OpenItems);
 

@@ -26,7 +26,7 @@ internal sealed record Cell(CellContent Content, CellStyle Style);
 [StructLayout(LayoutKind.Sequential)]
 internal readonly record struct CellRange(int FirstRow, int FirstColumn, int LastRow, int LastColumn)
 {
-    public string A1 => $"{Address.Column(FirstColumn)}{FirstRow}:{Address.Column(LastColumn)}{LastRow}";
+    public string A1 => $"{Address.Column(FirstColumn)}{FirstRow.ToInvariant()}:{Address.Column(LastColumn)}{LastRow.ToInvariant()}";
 }
 
 internal enum CellOperator
@@ -111,9 +111,9 @@ internal static class Address
         _ => Column((column - 1) / 26) + (char)('A' + (column - 1) % 26),
     };
 
-    public static string Cell(int row, int column) => $"{Column(column)}{row}";
+    public static string Cell(int row, int column) => $"{Column(column)}{row.ToInvariant()}";
 
-    public static string Absolute(int row, int column) => $"${Column(column)}${row}";
+    public static string Absolute(int row, int column) => $"${Column(column)}${row.ToInvariant()}";
 
     public static string Sheet(string sheet) =>
         sheet.All(character => char.IsLetterOrDigit(character) || character is '_') ? sheet : $"'{sheet.Replace("'", "''", StringComparison.Ordinal)}'";

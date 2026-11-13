@@ -14,7 +14,7 @@ internal static class ProfileCompiler
     {
         var formatErrors = document.FormatVersion == 1
             ? []
-            : new[] { new ProfileError("UnsupportedFormat", $"formatVersion {document.FormatVersion} is not accepted.") };
+            : new[] { new ProfileError("UnsupportedFormat", $"formatVersion {document.FormatVersion.ToInvariant()} is not accepted.") };
         var duplicateErrors = document.Fields
             .GroupBy(field => field.Name, StringComparer.Ordinal)
             .Where(group => group.Count() > 1)
@@ -22,7 +22,7 @@ internal static class ProfileCompiler
             .ToArray();
         var scaleErrors = document.Fields
             .Where(field => field.Scale is < 0 or > 28)
-            .Select(field => new ProfileError("InvalidParameter", $"Field '{field.Name}' scale {field.Scale} is outside 0..28."))
+            .Select(field => new ProfileError("InvalidParameter", $"Field '{field.Name}' scale {field.Scale.ToInvariant()} is outside 0..28."))
             .ToArray();
         // ToImmutableDictionary throws on a repeated name, so DuplicateField has to be returned before FieldSchema is built.
         if (duplicateErrors.Length > 0)

@@ -66,12 +66,12 @@ internal static class CascadeFunnel
                         var remaining = stage switch
                         {
                             { Remaining: { } formula } => formula(columns.Item2),
-                            _ => $"{columns.Item2}{row - 1}+{columns.Item1}{row}",
+                            _ => $"{columns.Item2}{(row - 1).ToInvariant()}+{columns.Item1}{row.ToInvariant()}",
                         };
                         var change = stage switch
                         {
                             { Change: { } formula } => formula(columns.Item2),
-                            { Residue: false } when index > 0 => $"{columns.Item2}{row}-{columns.Item2}{row - 1}",
+                            { Residue: false } when index > 0 => $"{columns.Item2}{row.ToInvariant()}-{columns.Item2}{(row - 1).ToInvariant()}",
                             _ => null,
                         };
                         var withChange = change is null
@@ -82,18 +82,18 @@ internal static class CascadeFunnel
                     .Put(row, 6, stage.Note, new CellStyle(Color: Palette.Muted));
             })
             .Put(check, 1, context.Label("Check: remaining after the last stage = residue"), Styles.Bold)
-            .PutFormula(check, 3, $"IF(C{lastStage}=C{residue},\"✓\",\"✗\")", Styles.Check)
-            .PutFormula(check, 5, $"IF(E{lastStage}=E{residue},\"✓\",\"✗\")", Styles.Check)
+            .PutFormula(check, 3, $"IF(C{lastStage.ToInvariant()}=C{residue.ToInvariant()},\"✓\",\"✗\")", Styles.Check)
+            .PutFormula(check, 5, $"IF(E{lastStage.ToInvariant()}=E{residue.ToInvariant()},\"✓\",\"✗\")", Styles.Check)
             .CheckRules(new CellRange(check, 3, check, 5))
             .Chart(new BarChart(
                 context.Label("Items remaining after each stage"),
                 new CellAddress(check + 3, 1),
                 18,
                 9,
-                $"{Address.Sheet(info.Tab)}!$A${first}:$A${residue}",
+                $"{Address.Sheet(info.Tab)}!$A${first.ToInvariant()}:$A${residue.ToInvariant()}",
                 [
-                    new ChartSeries($"{Address.Sheet(info.Tab)}!$C${header}", $"{Address.Sheet(info.Tab)}!$C${first}:$C${residue}", "1F2937"),
-                    new ChartSeries($"{Address.Sheet(info.Tab)}!$E${header}", $"{Address.Sheet(info.Tab)}!$E${first}:$E${residue}", "60A5FA"),
+                    new ChartSeries($"{Address.Sheet(info.Tab)}!$C${header.ToInvariant()}", $"{Address.Sheet(info.Tab)}!$C${first.ToInvariant()}:$C${residue.ToInvariant()}", "1F2937"),
+                    new ChartSeries($"{Address.Sheet(info.Tab)}!$E${header.ToInvariant()}", $"{Address.Sheet(info.Tab)}!$E${first.ToInvariant()}:$E${residue.ToInvariant()}", "60A5FA"),
                 ],
                 context.Label("Items"),
                 ReverseCategories: true))

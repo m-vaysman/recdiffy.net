@@ -10,7 +10,7 @@ internal static class SampleReport
     public static void Result(ReconciliationResult result)
     {
         var summary = result.Summary;
-        Console.WriteLine($"summary matched={summary.Matched} exact={summary.Exact} withinTolerance={summary.WithinTolerance} break={summary.Break} leftOnly={summary.LeftOnly} rightOnly={summary.RightOnly} ambiguous={summary.Ambiguous} searchIncomplete={summary.SearchIncomplete} quarantined={summary.Quarantined} suppressed={summary.Suppressed}");
+        Console.WriteLine($"summary matched={summary.Matched.ToInvariant()} exact={summary.Exact.ToInvariant()} withinTolerance={summary.WithinTolerance.ToInvariant()} break={summary.Break.ToInvariant()} leftOnly={summary.LeftOnly.ToInvariant()} rightOnly={summary.RightOnly.ToInvariant()} ambiguous={summary.Ambiguous.ToInvariant()} searchIncomplete={summary.SearchIncomplete.ToInvariant()} quarantined={summary.Quarantined.ToInvariant()} suppressed={summary.Suppressed.ToInvariant()}");
         foreach (var entry in result.Entries)
             Console.WriteLine($"entry {entry.Id} path={entry.PathId} alignment={entry.Alignment} composition={entry.Composition} outcome={entry.Outcome} left=[{Keys(entry.Left)}] right=[{Keys(entry.Right)}]");
         foreach (var row in result.Rows)

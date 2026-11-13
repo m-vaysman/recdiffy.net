@@ -31,8 +31,8 @@ public class CascadeScaleBench
         _right = new ConsolidatedRow[Rows];
         for (var index = 0; index < Rows; index++)
         {
-            _left[index] = Row($"L{index}", Side.Left, index);
-            _right[index] = Row($"R{index}", Side.Right, index);
+            _left[index] = Row($"L{index.ToInvariant()}", Side.Left, index);
+            _right[index] = Row($"R{index.ToInvariant()}", Side.Right, index);
         }
     }
 

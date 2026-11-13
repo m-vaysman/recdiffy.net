@@ -46,22 +46,22 @@ internal static class Ageing
                 var name = $"\"{code.Replace("\"", "\"\"", StringComparison.Ordinal)}\"";
                 return current
                     .Put(row, 1, code, Styles.Bold)
-                    .Fold(Ages, (inner, bucket, position) => inner.PutFormula(row, 2 + position, $"COUNTIFS({category},$A{row},{age},{bucket.Criteria})", new CellStyle(Format: Formats.Count, Align: HorizontalAlign.Center)))
-                    .Fold(Statuses, (inner, label, position) => inner.PutFormula(row, statusColumn + position, $"COUNTIFS({category},$A{row},{status},\"{label}\")", new CellStyle(Format: Formats.Count, Align: HorizontalAlign.Center)))
+                    .Fold(Ages, (inner, bucket, position) => inner.PutFormula(row, 2 + position, $"COUNTIFS({category},$A{row.ToInvariant()},{age},{bucket.Criteria})", new CellStyle(Format: Formats.Count, Align: HorizontalAlign.Center)))
+                    .Fold(Statuses, (inner, label, position) => inner.PutFormula(row, statusColumn + position, $"COUNTIFS({category},$A{row.ToInvariant()},{status},\"{label}\")", new CellStyle(Format: Formats.Count, Align: HorizontalAlign.Center)))
                     .PutFormula(row, totalColumn, $"COUNTIF({category},{name})", new CellStyle(Bold: true, Format: Formats.Count, Align: HorizontalAlign.Center))
                     .PutFormula(
                         row,
                         totalColumn + 1,
-                        $"IF(AND(SUM(B{row}:{Address.Column(statusColumn - 1)}{row})+COUNTIFS({category},$A{row},{age},\"\")={Address.Column(totalColumn)}{row},SUM({Address.Column(statusColumn)}{row}:{Address.Column(other)}{row})={Address.Column(totalColumn)}{row}),\"✓\",\"✗\")",
+                        $"IF(AND(SUM(B{row.ToInvariant()}:{Address.Column(statusColumn - 1)}{row.ToInvariant()})+COUNTIFS({category},$A{row.ToInvariant()},{age},\"\")={Address.Column(totalColumn)}{row.ToInvariant()},SUM({Address.Column(statusColumn)}{row.ToInvariant()}:{Address.Column(other)}{row.ToInvariant()})={Address.Column(totalColumn)}{row.ToInvariant()}),\"✓\",\"✗\")",
                         Styles.Check);
             })
             .Put(total, 1, context.Label("Total"), Styles.Total)
             .Fold(Enumerable.Range(2, totalColumn - 1), (current, column, _) => current.PutFormula(
                 total,
                 column,
-                $"SUM({Address.Column(column)}{first}:{Address.Column(column)}{Math.Max(first, total - 1)})",
+                $"SUM({Address.Column(column)}{first.ToInvariant()}:{Address.Column(column)}{Math.Max(first, total - 1).ToInvariant()})",
                 Styles.Total with { Format = Formats.Count, Align = HorizontalAlign.Center }))
-            .PutFormula(total, totalColumn + 1, $"IF({Address.Column(totalColumn)}{total}=COUNTIF({items.Range("entryId")},\"?*\"),\"✓\",\"✗\")", Styles.Total with { Align = HorizontalAlign.Center })
+            .PutFormula(total, totalColumn + 1, $"IF({Address.Column(totalColumn)}{total.ToInvariant()}=COUNTIF({items.Range("entryId")},\"?*\"),\"✓\",\"✗\")", Styles.Total with { Align = HorizontalAlign.Center })
             .Put(total + 2, 1, "Age = business days from trade date to the as-of date (Monday to Friday, no holiday calendar), computed in Open_Items. Change Run_Info!AsOf to re-age. The check ties each row's age buckets and its status columns to its item count.", Styles.Note)
             .Rule(new ColorScaleRule(new CellRange(first, 2, total - 1, statusColumn - 1), "FFFFFF", "6D28D9"))
             .Rule(new CellIsRule(new CellRange(first, statusColumn, total - 1, statusColumn), CellOperator.GreaterThan, ["0"], Styles.Red))
