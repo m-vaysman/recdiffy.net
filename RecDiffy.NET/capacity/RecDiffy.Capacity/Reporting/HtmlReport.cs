@@ -157,7 +157,7 @@ internal static class HtmlReport
             if (files.Count > 0)
             {
                 text.Append("<tr><td>Excel</td><td colspan=\"2\">");
-                text.Append(Format.Join(files.Select(file => $"{Escape(JsonView.Text(file, "kind"))}: {Escape(JsonView.Text(file, "path"))} ({Format.Megabytes(JsonView.Integer(file, "bytes"))} MB)"), "; "));
+                text.Append(Format.Join(files.Select(Describe), "; "));
                 text.Append("</td></tr>\n");
             }
 
@@ -210,6 +210,11 @@ internal static class HtmlReport
         false => "<strong class=\"bad\">MISMATCH</strong>",
         null => "not checked",
     };
+
+    private static string Describe(JsonElement file) =>
+        JsonView.OptionalText(file, "skipReason") is { } reason
+            ? $"{Escape(JsonView.Text(file, "kind"))}: skipped ({Escape(reason)})"
+            : $"{Escape(JsonView.Text(file, "kind"))}: {Escape(JsonView.Text(file, "path"))} ({Format.Megabytes(JsonView.Integer(file, "bytes"))} MB)";
 
     private static void Row(StringBuilder text, string name, string value) =>
         text.Append("<tr><th>").Append(Escape(name)).Append("</th><td>").Append(value).Append("</td></tr>\n");

@@ -99,7 +99,7 @@ internal sealed record ReportSample(
 
 internal sealed record ReportStage(string Name, double Seconds, double SharePercent);
 
-internal sealed record ReportFile(string Kind, string Path, long Bytes);
+internal sealed record ReportFile(string Kind, string Path, long Bytes, string? SkipReason);
 
 internal sealed record ReportCase(
     int Size,

@@ -234,13 +234,13 @@ internal static class CapacityRunner
             Reports = [ReportKind.SideBySideCompare],
         });
 
-        return [.. outcomes.Select(outcome => File(outcome, runFolder)).OfType<ReportFile>()];
+        return [.. outcomes.Select(outcome => File(outcome, runFolder))];
     }
 
-    private static ReportFile? File(ReportOutcome outcome, string runFolder) =>
+    private static ReportFile File(ReportOutcome outcome, string runFolder) =>
         outcome.Path is { } path
-            ? new ReportFile(outcome.Kind.ToString(), Path.GetRelativePath(runFolder, path), new FileInfo(path).Length)
-            : null;
+            ? new ReportFile(outcome.Kind.ToString(), Path.GetRelativePath(runFolder, path), new FileInfo(path).Length, null)
+            : new ReportFile(outcome.Kind.ToString(), "", 0, outcome.SkipReason ?? "not written");
 
     private static CapacityReport BuildReport(
         CapacityOptions options,

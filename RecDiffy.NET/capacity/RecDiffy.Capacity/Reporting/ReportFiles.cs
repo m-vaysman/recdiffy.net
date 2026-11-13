@@ -44,6 +44,9 @@ internal static class JsonView
 
     public static string Text(JsonElement element, string name) => element.GetProperty(name).GetString() ?? "";
 
+    public static string? OptionalText(JsonElement element, string name) =>
+        element.GetProperty(name).ValueKind is JsonValueKind.Null ? null : element.GetProperty(name).GetString();
+
     public static double Number(JsonElement element, string name) => element.GetProperty(name).GetDouble();
 
     public static long Integer(JsonElement element, string name) => element.GetProperty(name).GetInt64();
