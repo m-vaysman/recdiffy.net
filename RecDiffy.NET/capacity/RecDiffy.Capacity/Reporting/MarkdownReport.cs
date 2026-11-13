@@ -47,6 +47,7 @@ internal static class MarkdownReport
         Row(text, "SDK", JsonView.Text(host, "sdk"));
         Row(text, "GC", $"{JsonView.Text(host, "gcMode")} GC, {JsonView.Text(host, "gcLatencyMode")}");
         Row(text, "GC heap limit", $"{Format.Gigabytes(JsonView.Integer(host, "gcHeapLimitBytes"))} GB");
+        Row(text, "Dynamic code", JsonView.Field(host, "aot").GetBoolean() ? "no, Native AOT" : "yes, JIT");
         text.Append('\n');
 
         if (concurrency is { } section)

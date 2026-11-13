@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace RecDiffy.Capacity;
@@ -15,7 +16,9 @@ internal static class HostInfo
         SdkVersion(),
         GCSettings.IsServerGC ? "server" : "workstation",
         GCSettings.LatencyMode.ToString(),
-        GC.GetGCMemoryInfo().TotalAvailableMemoryBytes);
+        GC.GetGCMemoryInfo().TotalAvailableMemoryBytes,
+        !RuntimeFeature.IsDynamicCodeSupported,
+        RuntimeFeature.IsDynamicCodeCompiled);
 
     private static string SdkVersion() =>
         typeof(HostInfo).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
