@@ -31,8 +31,9 @@ public sealed class RecBuilder<TLeft, TRight>
     private readonly string _version;
     private readonly ImmutableList<ImmutableList<TypedPair>> _passes;
     private readonly ImmutableList<TypedPair> _compared;
+    private readonly ImmutableList<string> _summed;
 
-    internal RecBuilder(ImmutableArray<TLeft> left, ImmutableArray<TRight> right, string profileId, string version, ImmutableList<ImmutableList<TypedPair>> passes, ImmutableList<TypedPair> compared)
+    internal RecBuilder(ImmutableArray<TLeft> left, ImmutableArray<TRight> right, string profileId, string version, ImmutableList<ImmutableList<TypedPair>> passes, ImmutableList<TypedPair> compared, ImmutableList<string>? summed = null)
     {
         _left = left;
         _right = right;
@@ -40,6 +41,7 @@ public sealed class RecBuilder<TLeft, TRight>
         _version = version;
         _passes = passes;
         _compared = compared;
+        _summed = summed ?? [];
     }
 
     /// <summary>The profile this reconciliation runs, for <see cref="ProfileWriter.ToJson"/>.</summary>
@@ -50,12 +52,12 @@ public sealed class RecBuilder<TLeft, TRight>
     {
         ArgumentNullException.ThrowIfNull(profileId);
         ArgumentNullException.ThrowIfNull(version);
-        return new(_left, _right, profileId, version, _passes, _compared);
+        return new(_left, _right, profileId, version, _passes, _compared, _summed);
     }
 
     /// <summary>Adds a natural-key pass on one pair of members.</summary>
     public RecBuilder<TLeft, TRight> MatchOn<TLeftValue, TRightValue>(Expression<Func<TLeft, TLeftValue>> left, Expression<Func<TRight, TRightValue>> right) =>
-        new(_left, _right, _profileId, _version, _passes.Add([TypedPair.Of(left, right, key: true)]), _compared);
+        new(_left, _right, _profileId, _version, _passes.Add([TypedPair.Of(left, right, key: true)]), _compared, _summed);
 
     /// <summary>Adds the next natural-key pass, tried on what earlier passes left unmatched.</summary>
     public RecBuilder<TLeft, TRight> ThenMatchOn<TLeftValue, TRightValue>(Expression<Func<TLeft, TLeftValue>> left, Expression<Func<TRight, TRightValue>> right) =>
@@ -67,7 +69,7 @@ public sealed class RecBuilder<TLeft, TRight>
     public RecBuilder<TLeft, TRight> And<TLeftValue, TRightValue>(Expression<Func<TLeft, TLeftValue>> left, Expression<Func<TRight, TRightValue>> right) =>
         _passes.IsEmpty
             ? throw new InvalidOperationException("Call MatchOn before And.")
-            : new(_left, _right, _profileId, _version, _passes.SetItem(_passes.Count - 1, _passes[^1].Add(TypedPair.Of(left, right, key: true))), _compared);
+            : new(_left, _right, _profileId, _version, _passes.SetItem(_passes.Count - 1, _passes[^1].Add(TypedPair.Of(left, right, key: true))), _compared, _summed);
 
     /// <summary>Compares a member pair on matched items. A decimal may differ by up to <paramref name="tolerance"/>, inclusive.</summary>
     public RecBuilder<TLeft, TRight> Compare<TLeftValue, TRightValue>(Expression<Func<TLeft, TLeftValue>> left, Expression<Func<TRight, TRightValue>> right, decimal? tolerance = null)
@@ -75,7 +77,24 @@ public sealed class RecBuilder<TLeft, TRight>
         var pair = TypedPair.Of(left, right, key: false) with { Tolerance = tolerance };
         return pair is { Tolerance: not null, Kind: not TypedKind.Decimal }
             ? throw new ArgumentException($"A tolerance applies to decimal members; '{pair.Field}' is not one.", nameof(tolerance))
-            : new(_left, _right, _profileId, _version, _passes, _compared.Add(pair));
+            : new(_left, _right, _profileId, _version, _passes, _compared.Add(pair), _summed);
+    }
+
+    /// <summary>
+    /// Sums a decimal member pair, so several rows on one side can match one row on the other. The pair is compared on matched
+    /// items, and two group-sum passes follow the natural-key passes: first several left rows against one right row, then
+    /// several right rows against one left row. Each blocks on the key of the latest <c>MatchOn</c> or <c>ThenMatchOn</c>,
+    /// with its <c>And</c> pairs, and matches only when every summed pair adds up exactly. Call <c>Sum</c> again to conserve
+    /// another pair in the same passes.
+    /// </summary>
+    public RecBuilder<TLeft, TRight> Sum<TLeftValue, TRightValue>(Expression<Func<TLeft, TLeftValue>> left, Expression<Func<TRight, TRightValue>> right)
+    {
+        if (_passes.IsEmpty)
+            throw new InvalidOperationException("Call MatchOn before Sum.");
+        var pair = TypedPair.Of(left, right, key: false);
+        return pair is not { Kind: TypedKind.Decimal }
+            ? throw new ArgumentException($"Sum adds up decimal members; '{pair.Field}' is not one.", nameof(left))
+            : new(_left, _right, _profileId, _version, _passes, _compared.Add(pair), _summed.Add(pair.Field));
     }
 
     /// <summary>Runs the reconciliation and maps every result back to your objects.</summary>
@@ -106,7 +125,7 @@ public sealed class RecBuilder<TLeft, TRight>
             .Aggregate(PathBuilder.Create("typed"), (path, pass) => path.NaturalKey(pass.Id, pass.Key));
         var path = _compared
             .Where(pair => pair.Tolerance is not null)
-            .Aggregate(passes, (current, pair) => current.Tolerance(pair.Field, absolute: pair.Tolerance));
+            .Aggregate(GroupSums(passes), (current, pair) => current.Tolerance(pair.Field, absolute: pair.Tolerance));
         var declared = fields.Aggregate(ProfileBuilder.Create(_profileId, _version), (profile, field) => profile.Field(field.Pair.Field, field.Type, field.Role, field.Scale));
         var built = declared
             .Left(fields.Aggregate(SideBuilder.Empty, (side, field) => Normalize(side, field, field.Pair.LeftColumn)))
@@ -117,6 +136,13 @@ public sealed class RecBuilder<TLeft, TRight>
             ? (built.Document, Map<TLeft>(fields, field => field.Pair.LeftColumn, field => field.Pair.ReadLeft), Map<TRight>(fields, field => field.Pair.RightColumn, field => field.Pair.ReadRight))
             : throw new ProfileCompileException([.. built.Problems.Select(problem => new ProfileError(problem.Code, $"{problem.Message} ({problem.Location})"))]);
     }
+
+    private PathBuilder GroupSums(PathBuilder path) =>
+        _summed.IsEmpty
+            ? path
+            : new[] { Side.Left, Side.Right }
+                .Select((many, index) => (Many: many, Id: "P" + (_passes.Count + index + 1).ToString(CultureInfo.InvariantCulture)))
+                .Aggregate(path, (current, pass) => current.GroupSum(pass.Id, pass.Many, [.. _passes[^1].Select(pair => pair.Field)], [.. _summed.Distinct(StringComparer.Ordinal)]));
 
     // A member used both as a key and in Compare is declared once, as a key; keys are compared too.
     // A decimal is declared at scale 28, so parsing keeps the full value.

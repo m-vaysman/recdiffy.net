@@ -76,6 +76,17 @@ Matched 4 (2 with breaks) | Ambiguous 0 | Left only 1 | Right only 1
 
 Every bucket holds your own `BrokerConfirm` and `BlotterTrade` objects. RecDiffy doesn't read the files here: [Sylvan](https://github.com/MarkPflug/Sylvan) does, and any reader that gives you objects works. The [full walkthrough](docs/typed-reconciliation/README.md) covers the two readers, the mapping line by line, and examples from logistics, retail and healthcare billing.
 
+When several rows on one side add up to one row on the other, add `Sum`. Three allocations of 300, 200 and 500 match one block of 1,000, whichever side holds the several rows:
+
+```csharp
+var result = RecBuilder.Between(allocations, blocks)
+    .MatchOn(allocation => allocation.Isin, block => block.Isin)
+        .And(allocation => allocation.TradeDate, block => block.TradeDate)
+    .Sum(allocation => allocation.Quantity, block => block.Quantity)
+    .Run();
+// result.Matched: one RecMatch, with three Left rows and one Right row.
+```
+
 ## Install
 
 RecDiffy is on nuget.org. Every release is a prerelease, so `dotnet add package` needs `--prerelease`:

@@ -47,6 +47,7 @@ foreach (var entry in result.LeftOnly)
 | `.And(l => …, r => …)` | Adds another member to the latest pass, so that pass matches only when all its members are equal. |
 | `.ThenMatchOn(l => …, r => …)` | The next pass. It only tries items that the earlier passes left unmatched. |
 | `.Compare(l => …, r => …, tolerance)` | Compares a member pair on every matched pair. A number may differ by up to `tolerance`, inclusive. |
+| `.Sum(l => …, r => …)` | Sums a decimal member pair, so several rows on one side can match one row on the other. See [Several rows against one](#several-rows-against-one). |
 | `.Named(id, version)` | Names the profile the builder generates. Optional. |
 | `.Run()` | Runs the reconciliation and returns a `RecResult<TLeft, TRight>`. |
 
@@ -62,6 +63,22 @@ And what you get back:
 | `Result` | The engine's full result, with explanations and diagnostics |
 
 Each matched pair's `Outcome` is `Exact`, `WithinTolerance` or `Break`.
+
+### Several rows against one
+
+A block trade is booked once and allocated in pieces. Add `Sum` and three allocations of 300, 200 and 500 match one block of 1,000:
+
+```csharp
+var result = RecBuilder.Between(allocations, blocks)
+    .MatchOn(allocation => allocation.Isin, block => block.Isin)
+        .And(allocation => allocation.TradeDate, block => block.TradeDate)
+    .Sum(allocation => allocation.Quantity, block => block.Quantity)
+    .Run();
+
+var match = result.Matched[0];   // match.Left holds the three allocations, match.Right the block
+```
+
+Either side may hold the several rows. `Sum` takes a decimal member pair, and the quantities must add up exactly. It matches only rows that share the key of the last `MatchOn` or `ThenMatchOn`, with its `And` pairs. Call `Sum` again to add up another member in the same match. Put `Sum` last in the chain, so it is clear which key it follows.
 
 ---
 
