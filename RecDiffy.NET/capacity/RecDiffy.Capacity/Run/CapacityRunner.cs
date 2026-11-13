@@ -118,7 +118,7 @@ internal static class CapacityRunner
             source,
             host,
             Array.Empty<ReportCase>(),
-            new ReportDerived(null, Array.Empty<ReportScaling>(), UnmeasuredStages()),
+            new ReportDerived(null, null, Array.Empty<ReportScaling>(), UnmeasuredStages()),
             new ReportConcurrency(
                 options.ConcurrencyRows,
                 options.Repeats,
@@ -143,7 +143,7 @@ internal static class CapacityRunner
         Console.WriteLine($"html     {paths.Html}");
         Console.WriteLine(wrong
             ? $"FAILED: {failure}; the numbers are not a measurement."
-            : "OK: every measured result matched its known outcome.");
+            : "OK: no known outcome mismatched.");
         return wrong || missing ? 1 : 0;
     }
 
@@ -159,6 +159,21 @@ internal static class CapacityRunner
             WriteReports(result, profile, Path.Combine(runFolder, "excel", "warmup"), runFolder);
     }
 
+    private sealed record RunMeasurement(
+        ReportSample? Sample,
+        long PeakHeapBytes,
+        long PeakWorkingSetBytes,
+        ReportCounts Actual,
+        IReadOnlyList<string> Mismatch,
+        IReadOnlyList<ReportFile> Files,
+        int RowsSearched,
+        int RowsBlocked,
+        int AggregateOverflowFields,
+        string Outcome,
+        string? FailureStage,
+        double TimeToFailureSeconds,
+        string Note);
+
     private static ReportCase Measure(int size, CapacityOptions options, CompiledProfile profile, string runFolder)
     {
         var workload = new Workload(size, options.BreakRate, options.UnmatchedRate, options.Seed);
@@ -169,37 +184,103 @@ internal static class CapacityRunner
         var actual = ReportCounts.Zero;
         bool? matched = null;
         var outcome = "Completed";
+        string? failureStage = null;
+        var failureSeconds = 0.0;
+        var failureHeap = 0L;
+        var failureWorkingSet = 0L;
+        var rowsSearched = 0;
+        var rowsBlocked = 0;
+        var overflow = 0;
 
         for (var repeat = 0; repeat < options.Repeats; repeat++)
         {
             using var timeout = new CancellationTokenSource();
             if (options.CaseTimeoutSeconds > 0)
                 timeout.CancelAfter(TimeSpan.FromSeconds(options.CaseTimeoutSeconds));
-            try
+            var measured = RunCase(profile, options, workload, size, repeat, runFolder, timeout.Token);
+            if (measured.Sample is { } sample)
+                samples.Add(sample);
+            failureHeap = Math.Max(failureHeap, measured.PeakHeapBytes);
+            failureWorkingSet = Math.Max(failureWorkingSet, measured.PeakWorkingSetBytes);
+            files.AddRange(measured.Files);
+            if (measured.FailureStage is null)
             {
-                var allocated = GC.GetTotalAllocatedBytes();
-                var pause = GC.GetTotalPauseDuration().TotalSeconds;
-                var gen0 = GC.CollectionCount(0);
-                var gen1 = GC.CollectionCount(1);
-                var gen2 = GC.CollectionCount(2);
+                actual = measured.Actual;
+                rowsSearched = measured.RowsSearched;
+                rowsBlocked = measured.RowsBlocked;
+                overflow = measured.AggregateOverflowFields;
+                notes.AddRange(measured.Mismatch);
+                matched = (matched ?? true) && measured.Mismatch.Count is 0;
+                outcome = measured.Outcome;
+                continue;
+            }
 
-                using var sampler = new MemorySampler();
-                var engine = Stopwatch.StartNew();
-                var result = Reconciler.Run(
-                    profile,
-                    RecordSources.FromObjects("left", workload.Left(), RowMap),
-                    RecordSources.FromObjects("right", workload.Right(), RowMap),
-                    ReferenceDataSet.Empty,
-                    new RunOptions(),
-                    timeout.Token);
-                engine.Stop();
-                var excel = Stopwatch.StartNew();
-                if (options.WriteExcel)
-                    files.AddRange(WriteReports(result, profile, Path.Combine(runFolder, "excel", size.ToInvariant(), repeat.ToInvariant()), runFolder));
-                excel.Stop();
-                sampler.SampleNow();
+            outcome = measured.Outcome;
+            matched = null;
+            failureStage ??= measured.FailureStage;
+            failureSeconds = measured.TimeToFailureSeconds;
+            notes.Add(measured.Note);
+        }
 
-                samples.Add(new ReportSample(
+        var retained = MeasureRetained();
+        return Summarize(
+            size,
+            workload,
+            totalRows,
+            outcome,
+            matched,
+            failureStage,
+            failureSeconds,
+            retained,
+            failureHeap,
+            failureWorkingSet,
+            rowsSearched,
+            rowsBlocked,
+            overflow,
+            actual,
+            samples,
+            notes,
+            files);
+    }
+
+    // The result lives only inside this method, so the case can measure what the heap keeps after it is dropped.
+    private static RunMeasurement RunCase(
+        CompiledProfile profile,
+        CapacityOptions options,
+        Workload workload,
+        int size,
+        int repeat,
+        string runFolder,
+        CancellationToken token)
+    {
+        var allocated = GC.GetTotalAllocatedBytes();
+        var pause = GC.GetTotalPauseDuration().TotalSeconds;
+        var gen0 = GC.CollectionCount(0);
+        var gen1 = GC.CollectionCount(1);
+        var gen2 = GC.CollectionCount(2);
+        var watch = Stopwatch.StartNew();
+        var stage = "engine";
+        using var sampler = new MemorySampler();
+        try
+        {
+            var engine = Stopwatch.StartNew();
+            var result = Reconciler.Run(
+                profile,
+                RecordSources.FromObjects("left", workload.Left(), RowMap),
+                RecordSources.FromObjects("right", workload.Right(), RowMap),
+                ReferenceDataSet.Empty,
+                new RunOptions(),
+                token);
+            engine.Stop();
+            stage = "excel";
+            var excel = Stopwatch.StartNew();
+            IReadOnlyList<ReportFile> files = options.WriteExcel
+                ? WriteReports(result, profile, Path.Combine(runFolder, "excel", size.ToInvariant(), repeat.ToInvariant()), runFolder)
+                : [];
+            excel.Stop();
+            sampler.SampleNow();
+            return new RunMeasurement(
+                new ReportSample(
                     engine.Elapsed.TotalSeconds,
                     excel.Elapsed.TotalSeconds,
                     engine.Elapsed.TotalSeconds + excel.Elapsed.TotalSeconds,
@@ -209,29 +290,66 @@ internal static class CapacityRunner
                     GC.GetTotalPauseDuration().TotalSeconds - pause,
                     GC.CollectionCount(0) - gen0,
                     GC.CollectionCount(1) - gen1,
-                    GC.CollectionCount(2) - gen2));
-
-                actual = ReportCounts.From(result.Summary);
-                var mismatch = Verify(workload, result);
-                notes.AddRange(mismatch);
-                matched = (matched ?? true) && mismatch.Count is 0;
-                outcome = result.Summary.SearchIncomplete > 0 ? "CompletedWithSearchIncomplete" : "Completed";
-            }
-            catch (OperationCanceledException)
-            {
-                outcome = "Cancelled";
-                matched = null;
-                notes.Add($"repeat {repeat.ToInvariant()} was cancelled after {options.CaseTimeoutSeconds.ToInvariant()} s");
-            }
-            catch (OutOfMemoryException)
-            {
-                outcome = "OutOfMemory";
-                matched = null;
-                notes.Add($"repeat {repeat.ToInvariant()} ran out of managed memory");
-            }
+                    GC.CollectionCount(2) - gen2),
+                sampler.PeakHeapBytes,
+                sampler.PeakWorkingSetBytes,
+                ReportCounts.From(result.Summary),
+                Verify(workload, result),
+                files,
+                result.Rows.Count(row => row.Disposition is Disposition.Matched),
+                result.Rows.Count(row => row.Disposition is Disposition.SearchIncomplete),
+                result.Rows.Sum(row => row.Diagnostics.Count(diagnostic => diagnostic.Code is "AggregateOverflow")),
+                result.Summary.SearchIncomplete > 0 ? "CompletedWithSearchIncomplete" : "Completed",
+                null,
+                0,
+                "");
         }
+        catch (OperationCanceledException)
+        {
+            sampler.SampleNow();
+            var seconds = watch.Elapsed.TotalSeconds;
+            return Failed(
+                "Cancelled",
+                stage,
+                seconds,
+                sampler,
+                $"repeat {repeat.ToInvariant()} was cancelled after {seconds.ToInvariant("0.000")} s in the {stage} stage");
+        }
+        catch (OutOfMemoryException)
+        {
+            sampler.SampleNow();
+            var seconds = watch.Elapsed.TotalSeconds;
+            return Failed(
+                "OutOfMemory",
+                stage,
+                seconds,
+                sampler,
+                $"repeat {repeat.ToInvariant()} ran out of managed memory in the {stage} stage after {seconds.ToInvariant("0.000")} s");
+        }
+    }
 
-        return Summarize(size, workload, totalRows, outcome, matched, actual, samples, notes, files);
+    private static RunMeasurement Failed(string outcome, string stage, double seconds, MemorySampler sampler, string note) =>
+        new(
+            null,
+            sampler.PeakHeapBytes,
+            sampler.PeakWorkingSetBytes,
+            ReportCounts.Zero,
+            Array.Empty<string>(),
+            Array.Empty<ReportFile>(),
+            0,
+            0,
+            0,
+            outcome,
+            stage,
+            seconds,
+            note);
+
+    private static long MeasureRetained()
+    {
+        GC.Collect(2, GCCollectionMode.Forced, blocking: true, compacting: true);
+        GC.WaitForPendingFinalizers();
+        GC.Collect(2, GCCollectionMode.Forced, blocking: true, compacting: true);
+        return GC.GetGCMemoryInfo().HeapSizeBytes;
     }
 
     private static ReportCase Summarize(
@@ -240,6 +358,14 @@ internal static class CapacityRunner
         int totalRows,
         string outcome,
         bool? matched,
+        string? failureStage,
+        double failureSeconds,
+        long retained,
+        long failureHeap,
+        long failureWorkingSet,
+        int rowsSearched,
+        int rowsBlocked,
+        int overflow,
         ReportCounts actual,
         List<ReportSample> samples,
         List<string> notes,
@@ -250,6 +376,8 @@ internal static class CapacityRunner
         var stages = median is null ? Array.Empty<ReportStage>() : MeasuredStages(median).ToArray();
         var engineSeconds = median?.EngineSeconds ?? 0;
         var endToEnd = engineSeconds + (median?.ExcelSeconds ?? 0);
+        var peakHeap = Math.Max(ordered.Length is 0 ? 0 : ordered.Max(sample => sample.PeakManagedHeapBytes), failureHeap);
+        var peakWorkingSet = Math.Max(ordered.Length is 0 ? 0 : ordered.Max(sample => sample.PeakWorkingSetBytes), failureWorkingSet);
         return new ReportCase(
             size,
             workload.LeftRows,
@@ -257,6 +385,8 @@ internal static class CapacityRunner
             totalRows,
             outcome,
             matched,
+            failureStage,
+            failureSeconds,
             ReportCounts.Expected(workload.Expected),
             actual,
             ordered,
@@ -265,10 +395,15 @@ internal static class CapacityRunner
             Percentile(ordered, 0.99),
             engineSeconds > 0 ? totalRows / engineSeconds : 0,
             endToEnd > 0 ? totalRows / endToEnd : 0,
-            ordered.Length is 0 ? 0 : ordered.Max(sample => sample.PeakManagedHeapBytes),
-            ordered.Length is 0 ? 0 : ordered.Max(sample => sample.PeakWorkingSetBytes),
+            peakHeap,
+            peakWorkingSet,
             median?.AllocatedBytes ?? 0,
             median?.GcPauseSeconds ?? 0,
+            retained,
+            totalRows > 0 ? (double)peakHeap / totalRows : 0,
+            rowsSearched,
+            rowsBlocked,
+            overflow,
             stages,
             files,
             notes);
@@ -358,6 +493,7 @@ internal static class CapacityRunner
             withBars,
             new ReportDerived(
                 withBars.Where(item => item.Outcome is "Completed" && item.KnownOutcomeMatches is not false).MaxBy(item => item.Size)?.Size,
+                FirstFailure(withBars),
                 Scaling(withBars),
                 UnmeasuredStages()),
             null,
@@ -383,6 +519,13 @@ internal static class CapacityRunner
         var measured = cases.Where(item => item.Samples.Count > 0 && item.TotalRows > 0).ToArray();
         return [.. measured.Zip(measured.Skip(1)).Select(pair => Step(pair.First, pair.Second))];
     }
+
+    private static ReportFailure? FirstFailure(IReadOnlyList<ReportCase> cases) =>
+        cases
+            .Where(item => item.Outcome is "OutOfMemory" or "Cancelled")
+            .OrderBy(item => item.Size)
+            .Select(item => new ReportFailure(item.Size, item.Outcome, item.FailureStage, item.TimeToFailureSeconds))
+            .FirstOrDefault();
 
     private static ReportScaling Step(ReportCase from, ReportCase to)
     {
@@ -418,6 +561,9 @@ internal static class CapacityRunner
             "Excel output writes one report (SideBySideCompare) so the output stage stays bounded. The full report set is P4.",
             "Capacity numbers are comparable only on the same host, runtime and GC mode. This run's host is in the header.",
             "A run that does not match its known outcome is a measurement failure, not a fast run. A run too large to complete is recorded as its outcome.",
+            "Rows searched are rows in a matched entry; rows blocked are rows the search limits refused (SearchIncomplete), so a fast blocked run is not read as a fast reconciliation. Aggregate overflow counts diagnostics with that code.",
+            "Retained heap is the heap after every result of the case has been dropped and two full blocking collections have run; the result graph is part of the memory ceiling.",
+            "An OS kill cannot be caught in-process: a run the host killed leaves no report. The run script records it from the job (phase 6). Here, only an out-of-memory exception is recorded as a case outcome.",
         ];
         if (cases.Any(item => item.Outcome is "CompletedWithSearchIncomplete"))
             notes.Add("At least one case completed with rows refused by the search limits. A refused search is not a fast reconciliation.");
@@ -485,6 +631,9 @@ internal static class CapacityRunner
         Console.WriteLine(
             $"  {measured.Size.ToInvariant()} rows/side: {measured.Outcome}, {stages}, "
             + $"{measured.ThroughputRowsPerSecond.ToInvariant("0")} rows/s, peak heap {heapMegabytes.ToInvariant("0.0")} MB"
+            + (measured.FailureStage is { } failed
+                ? $" [{measured.Outcome} in {failed} after {measured.TimeToFailureSeconds.ToInvariant("0.000")} s]"
+                : "")
             + (measured.KnownOutcomeMatches is false ? " [OUTCOME MISMATCH]" : ""));
     }
 }

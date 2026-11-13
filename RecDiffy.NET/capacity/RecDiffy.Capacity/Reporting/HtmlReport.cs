@@ -83,8 +83,14 @@ internal static class HtmlReport
         text.Append(largest.ValueKind is JsonValueKind.Null
             ? "<p class=\"flag\">No case completed with the outcome it was built to produce. The sweep records what each size did.</p>\n"
             : $"<p class=\"flag\">The largest size that completed with the outcome it was built to produce: <strong>{Format.Count(largest.GetInt32())} rows per side</strong>.</p>\n");
+        var failure = JsonView.Field(derived, "firstFailure");
+        text.Append(failure.ValueKind is JsonValueKind.Null
+            ? "<p class=\"flag\">No case failed.</p>\n"
+            : $"<p class=\"flag\">The first size that failed: <strong>{Format.Count(JsonView.Integer(failure, "size"))} rows per side</strong>, "
+              + $"{Escape(JsonView.Text(failure, "outcome"))} in the {Escape(JsonView.Text(failure, "stage"))} stage after "
+              + $"{Format.Seconds(JsonView.Number(failure, "seconds"))} s.</p>\n");
 
-        text.Append("<table>\n<thead><tr><th>Rows/side</th><th>Outcome</th><th>Known outcome</th><th>Matched</th><th>Exact</th><th>Break</th><th>Left only</th><th>Right only</th><th>Total s</th><th>Rows/s</th><th>Peak heap</th><th>Peak working set</th></tr></thead>\n<tbody>\n");
+        text.Append("<table>\n<thead><tr><th>Rows/side</th><th>Outcome</th><th>Known outcome</th><th>Matched</th><th>Exact</th><th>Break</th><th>Left only</th><th>Right only</th><th>Total s</th><th>Rows/s</th><th>Peak heap</th><th>Peak working set</th><th>Bytes/row</th><th>Retained heap</th><th>Rows searched</th><th>Rows blocked</th><th>Overflow</th><th>Failure</th></tr></thead>\n<tbody>\n");
         foreach (var item in cases)
         {
             var actual = JsonView.Field(item, "actual");
@@ -99,7 +105,15 @@ internal static class HtmlReport
                 .Append("<td>").Append(Format.Seconds(JsonView.Number(item, "latencySeconds"))).Append("</td>")
                 .Append("<td>").Append(Format.Decimal(JsonView.Number(item, "throughputRowsPerSecond"), "0")).Append("</td>")
                 .Append("<td>").Append(Format.Megabytes(JsonView.Integer(item, "peakManagedHeapBytes"))).Append(" MB</td>")
-                .Append("<td>").Append(Format.Megabytes(JsonView.Integer(item, "peakWorkingSetBytes"))).Append(" MB</td></tr>\n");
+                .Append("<td>").Append(Format.Megabytes(JsonView.Integer(item, "peakWorkingSetBytes"))).Append(" MB</td>")
+                .Append("<td>").Append(Format.Decimal(JsonView.Number(item, "bytesPerInputRow"), "0")).Append(" B</td>")
+                .Append("<td>").Append(Format.Megabytes(JsonView.Integer(item, "retainedHeapBytes"))).Append(" MB</td>")
+                .Append("<td>").Append(Format.Count(JsonView.Integer(item, "rowsSearched"))).Append("</td>")
+                .Append("<td>").Append(Format.Count(JsonView.Integer(item, "rowsBlocked"))).Append("</td>")
+                .Append("<td>").Append(Format.Count(JsonView.Integer(item, "aggregateOverflowFields"))).Append("</td>")
+                .Append("<td>").Append(JsonView.OptionalText(item, "failureStage") is { } failed
+                    ? $"{Escape(failed)} {Format.Seconds(JsonView.Number(item, "timeToFailureSeconds"))} s"
+                    : "-").Append("</td></tr>\n");
         }
 
         text.Append("</tbody>\n</table>\n");

@@ -74,10 +74,16 @@ internal static class MarkdownReport
         text.Append(largest.ValueKind is JsonValueKind.Null
             ? "No case completed with the outcome it was built to produce.\n\n"
             : $"The largest size that completed with the outcome it was built to produce: **{Format.Count(largest.GetInt32())} rows per side**.\n\n");
+        var failure = JsonView.Field(derived, "firstFailure");
+        text.Append(failure.ValueKind is JsonValueKind.Null
+            ? "No case failed.\n\n"
+            : $"The first size that failed: **{Format.Count(JsonView.Integer(failure, "size"))} rows per side**, "
+              + $"{JsonView.Text(failure, "outcome")} in the {JsonView.Text(failure, "stage")} stage after "
+              + $"{Format.Seconds(JsonView.Number(failure, "seconds"))} s.\n\n");
 
         text.Append("## Cases\n\n");
-        text.Append("| Rows/side | Outcome | Known outcome | Matched | Exact | Break | Left only | Right only | Total s | Engine s | Excel s | Rows/s | Peak heap MB | Peak working set MB |\n");
-        text.Append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n");
+        text.Append("| Rows/side | Outcome | Known outcome | Matched | Exact | Break | Left only | Right only | Total s | Engine s | Excel s | Rows/s | Peak heap MB | Peak working set MB | Bytes/row | Retained heap MB | Rows searched | Rows blocked | Aggregate overflow | Failure |\n");
+        text.Append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n");
         foreach (var item in cases)
         {
             var stages = JsonView.Items(JsonView.Field(item, "stages"));
@@ -98,7 +104,16 @@ internal static class MarkdownReport
                 .Append(excel).Append(" | ")
                 .Append(Format.Decimal(JsonView.Number(item, "throughputRowsPerSecond"), "0")).Append(" | ")
                 .Append(Format.Megabytes(JsonView.Integer(item, "peakManagedHeapBytes"))).Append(" | ")
-                .Append(Format.Megabytes(JsonView.Integer(item, "peakWorkingSetBytes"))).Append(" |\n");
+                .Append(Format.Megabytes(JsonView.Integer(item, "peakWorkingSetBytes"))).Append(" | ")
+                .Append(Format.Decimal(JsonView.Number(item, "bytesPerInputRow"), "0")).Append(" | ")
+                .Append(Format.Megabytes(JsonView.Integer(item, "retainedHeapBytes"))).Append(" | ")
+                .Append(Format.Count(JsonView.Integer(item, "rowsSearched"))).Append(" | ")
+                .Append(Format.Count(JsonView.Integer(item, "rowsBlocked"))).Append(" | ")
+                .Append(Format.Count(JsonView.Integer(item, "aggregateOverflowFields"))).Append(" | ")
+                .Append(JsonView.OptionalText(item, "failureStage") is { } failed
+                    ? $"{failed} {Format.Seconds(JsonView.Number(item, "timeToFailureSeconds"))} s"
+                    : "-")
+                .Append(" |\n");
         }
 
         text.Append('\n');
