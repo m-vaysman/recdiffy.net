@@ -17,10 +17,10 @@ internal static class Intake
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(right);
         ArgumentNullException.ThrowIfNull(reference);
-        var master = InstrumentMaster.FromRows(left.Select(row => row.Cells).ToArray(), ["ISIN", "CUSIP", "SEDOL", "Ticker"]);
+        // instrument.resolve is not in v1 (#259): no rule reads RowContext.Instruments, so no identifier master is built.
         return (
-            NormalizeSide(left, profile.LeftRules, ActionField(profile, "left"), reference, master),
-            NormalizeSide(right, profile.RightRules, ActionField(profile, "right"), reference, master));
+            NormalizeSide(left, profile.LeftRules, ActionField(profile, "left"), reference),
+            NormalizeSide(right, profile.RightRules, ActionField(profile, "right"), reference));
     }
 
     private static string? ActionField(CompiledProfile profile, string side) =>
@@ -31,25 +31,24 @@ internal static class Intake
         IReadOnlyList<RawRecord> rows,
         IReadOnlyList<CompiledRule> rules,
         string? actionField,
-        ReferenceDataSet reference,
-        InstrumentMaster master) =>
-        [.. rows.Where(row => row.MissingKey).Select(row => QuarantineMissing(row, rules, actionField, reference, master)), .. Collapse(rows.Where(row => row.MissingKey is false).ToArray()).Select(group => Normalize(group, rules, actionField, reference, master))];
+        ReferenceDataSet reference) =>
+        [.. rows.Where(row => row.MissingKey).Select(row => QuarantineMissing(row, rules, actionField, reference)), .. Collapse(rows.Where(row => row.MissingKey is false).ToArray()).Select(group => Normalize(group, rules, actionField, reference))];
 
-    private static IntakeRow Normalize(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, string? actionField, ReferenceDataSet reference, InstrumentMaster master) =>
-        group.Conflict ? Quarantine(group, rules, actionField, reference, master) : Accept(group, rules, actionField, reference, master);
+    private static IntakeRow Normalize(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, string? actionField, ReferenceDataSet reference) =>
+        group.Conflict ? Quarantine(group, rules, actionField, reference) : Accept(group, rules, actionField, reference);
 
     // A warning does not quarantine the row. Any Invalid diagnostic does.
-    private static IntakeRow Accept(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, string? actionField, ReferenceDataSet reference, InstrumentMaster master)
+    private static IntakeRow Accept(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, string? actionField, ReferenceDataSet reference)
     {
-        var context = Warn(Apply(group.Row, rules, actionField, reference, master), group.Members.Count);
+        var context = Warn(Apply(group.Row, rules, actionField, reference), group.Members.Count);
         return new IntakeRow(group.Members, context, context.Diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Invalid));
     }
 
     private static RowContext Warn(RowContext row, int copies) =>
         copies > 1 ? row.Diagnose("DuplicateRowCollapsed", DiagnosticSeverity.Warning, "duplicates", null, row.RowKey) : row;
 
-    private static RowContext Apply(RawRecord row, IReadOnlyList<CompiledRule> rules, string? actionField, ReferenceDataSet reference, InstrumentMaster master) =>
-        rules.Aggregate(Start(row, reference, master), (current, rule) =>
+    private static RowContext Apply(RawRecord row, IReadOnlyList<CompiledRule> rules, string? actionField, ReferenceDataSet reference) =>
+        rules.Aggregate(Start(row, reference), (current, rule) =>
             SkipOnCancel(rule, current, actionField) || !WhenMatcher.Holds(rule.When, current) ? current : Invoke(rule, current));
 
     // Spec v3 §3.3: a cancel event (CANC) carries only a lifecycle event and skips the trade rules.
@@ -57,11 +56,10 @@ internal static class Intake
         rule.Rule.Phase is not RulePhase.Identify && actionField is not null && row.Display(actionField) is "CANC";
 
     // Any source name other than "right" is the left side.
-    private static RowContext Start(RawRecord row, ReferenceDataSet reference, InstrumentMaster master) =>
+    private static RowContext Start(RawRecord row, ReferenceDataSet reference) =>
         RowContext.Create(row.Ref.RowKey, row.Ref.Source is "right" ? Side.Right : Side.Left, row.Cells) with
         {
             Reference = reference,
-            Instruments = master,
         };
 
     private static RowContext Invoke(CompiledRule rule, RowContext row)
@@ -73,19 +71,19 @@ internal static class Intake
 
     // A keyless row is normalized like any row, so lifecycle can read its action and target and quarantine the chain it
     // names (spec v3 §5.1 rule 5; #215). It is quarantined for its missing key alone, so no rule's code is kept (§3.4).
-    private static IntakeRow QuarantineMissing(RawRecord row, IReadOnlyList<CompiledRule> rules, string? actionField, ReferenceDataSet reference, InstrumentMaster master) =>
+    private static IntakeRow QuarantineMissing(RawRecord row, IReadOnlyList<CompiledRule> rules, string? actionField, ReferenceDataSet reference) =>
         new(
             [row.Ref],
-            (Apply(row, rules, actionField, reference, master) with { Diagnostics = [] })
+            (Apply(row, rules, actionField, reference) with { Diagnostics = [] })
                 .Diagnose("MissingKey", DiagnosticSeverity.Invalid, "intake", null, null),
             true);
 
     // A conflicting copy is normalized like any row, so lifecycle can read its action and target and quarantine its
     // whole chain (spec v3 §3.2, §5.1 rule 5; #163). The copy itself is quarantined with one DuplicateConflict.
-    private static IntakeRow Quarantine(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, string? actionField, ReferenceDataSet reference, InstrumentMaster master) =>
+    private static IntakeRow Quarantine(DuplicateGroup group, IReadOnlyList<CompiledRule> rules, string? actionField, ReferenceDataSet reference) =>
         new(
             group.Members,
-            Apply(group.Row, rules, actionField, reference, master).Diagnose("DuplicateConflict", DiagnosticSeverity.Invalid, "duplicates", null, group.Row.Ref.RowKey),
+            Apply(group.Row, rules, actionField, reference).Diagnose("DuplicateConflict", DiagnosticSeverity.Invalid, "duplicates", null, group.Row.Ref.RowKey),
             true);
 
     private static IReadOnlyList<DuplicateGroup> Collapse(IReadOnlyList<RawRecord> rows) =>
