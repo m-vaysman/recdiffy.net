@@ -86,6 +86,58 @@ public class GeneratedProfileOracleSweepTests
             when => Assert.Single(new object?[] { when.EqualsValue, when.NotEquals, when.In }.OfType<object>()));
     }
 
+    // The T2 gate reads SweepCoverage instead of scanning this file for raw strings (#331 Step 2), so a name that appears
+    // here without being exercised cannot pass. This test re-proves the manifest from the profiles the sweep actually builds.
+    [Fact]
+    public void Sweep_coverage_manifest_matches_the_profiles_the_sweep_builds()
+    {
+        var documents = Enumerable.Range(0, 24).Select(seed => BuildProfile(ProfileChoice.FromSeed(seed))).ToArray();
+
+        var ruleNames = documents
+            .SelectMany(document => document.Normalization.Values)
+            .SelectMany(side => side.Identify.Concat(side.Parse).Concat(side.Derive).Concat(side.Validate))
+            .Select(call => call.Rule)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        var passNames = documents
+            .SelectMany(document => document.Paths)
+            .SelectMany(path => path.Passes)
+            .Select(pass => pass.Pass)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        var routeNames = documents
+            .SelectMany(document => document.Paths)
+            .Select(path => path.Route.Rule)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        var attributionNames = documents
+            .SelectMany(document => document.Paths)
+            .SelectMany(path => path.Diff?.Fields.Values ?? [])
+            .Select(diff => diff.Tolerance.Attributed)
+            .Where(name => name is not null)
+            .Select(name => name!)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        var aggregateKinds = documents
+            .SelectMany(document => document.Consolidation.Values)
+            .SelectMany(side => side.Packages)
+            .SelectMany(package => package.Aggregates)
+            .Select(aggregate => aggregate.Kind.ToString())
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(SweepCoverage.NormalizationRules, ruleNames);
+        Assert.Equal(SweepCoverage.Passes, passNames);
+        Assert.Equal(SweepCoverage.Routes, routeNames);
+        Assert.Equal(SweepCoverage.Attributions, attributionNames);
+        Assert.Equal(SweepCoverage.AggregateKinds, aggregateKinds);
+    }
+
     private static void VerifyRows(GeneratedRun plan, ReconciliationResult result)
     {
         var actualRows = result.Rows.ToDictionary(r => (r.Row.Source, r.Row.RowKey));
@@ -243,7 +295,7 @@ public class GeneratedProfileOracleSweepTests
             new("P1", "match.sharedRef", [], [], [], null, null),
             new("P2", "match.naturalKey", ["Counterparty", "Instrument", "TradeDate", "Quantity"], [], [], null, null),
             new("P3", "match.groupSum", [], ["Counterparty", "Instrument", "TradeDate", "Price"], ["Quantity", "NetCash"], "left", 6),
-            new("P4", "match.reducedKey", ["Counterparty", "Instrument", "TradeDate", "Quantity"], [], [], null, null),
+            new("P4", "match.reducedKey", ["Counterparty", "Instrument", "TradeDate"], [], [], null, null),
         ];
 
         var diffFields = new Dictionary<string, FieldDiffDeclaration>(StringComparer.Ordinal)
@@ -983,6 +1035,77 @@ public class GeneratedProfileOracleSweepTests
                 leftOnlyQty += 50m;
             }
 
+            // Scenario 6: ReducedKey commits where naturalKey cannot (Quantity differs, so P2 skips; groupSum
+            // never matches a single-row group, so P3 skips too) (#331 Step 2).
+            {
+                var cpty = "CP_A";
+                var instr = "XS000001";
+                var tDateReduced = new DateOnly(2025, 6, 17);
+                left.Add(MakeRow(
+                    "L_REDUCED",
+                    cpty,
+                    false,
+                    instr,
+                    null,
+                    FormatDate(cpty, tDateReduced),
+                    FormatDate(cpty, tDateReduced),
+                    SideToken(),
+                    "200",
+                    FormatPrice(103m, 0),
+                    "20600.00"));
+                right.Add(MakeRow(
+                    "R_REDUCED",
+                    cpty,
+                    false,
+                    instr,
+                    null,
+                    FormatDate(cpty, tDateReduced),
+                    FormatDate(cpty, tDateReduced),
+                    SideToken(),
+                    "210",
+                    FormatPrice(103m, 0),
+                    "20600.00"));
+
+                expectedRows[("left", "L_REDUCED")] = new(Disposition.Matched, InputValidity.Valid, null);
+                expectedRows[("right", "R_REDUCED")] = new(Disposition.Matched, InputValidity.Valid, null);
+                expectedEntries.Add(new(
+                    [("left", "L_REDUCED")],
+                    [("right", "R_REDUCED")],
+                    Alignment.Matched,
+                    Composition.OneToOne,
+                    FieldOutcome.Exact,
+                    "P4",
+                    new Dictionary<string, ExpectedFieldDiff>(StringComparer.Ordinal)
+                    {
+                        ["SettleDate"] = new(FieldOutcome.Exact, []),
+                        ["Price"] = new(FieldOutcome.Exact, []),
+                        ["NetCash"] = new(FieldOutcome.Exact, []),
+                    }));
+                matchedQtyLeft += 200m;
+                matchedQtyRight += 210m;
+            }
+
+            // Scenario 7: A row missing a required field is quarantined by required.present (#331 Step 2).
+            {
+                var cpty = "CP_A";
+                var instr = "XS000001";
+                var tDateMissing = new DateOnly(2025, 6, 18);
+                left.Add(MakeRow(
+                    "L_MISSING_QTY",
+                    cpty,
+                    false,
+                    instr,
+                    null,
+                    FormatDate(cpty, tDateMissing),
+                    FormatDate(cpty, tDateMissing),
+                    SideToken(),
+                    null,
+                    FormatPrice(101m, 0),
+                    "10100.00"));
+
+                expectedRows[("left", "L_MISSING_QTY")] = new(Disposition.Quarantined, InputValidity.Invalid, null);
+            }
+
             return new GeneratedRun(
                 left,
                 right,
@@ -995,4 +1118,55 @@ public class GeneratedProfileOracleSweepTests
                 leftOnlyPrice);
         }
     }
+}
+
+// #331 Step 2: the T2 gate checks this manifest instead of scanning test source for raw strings, so a name that only
+// appears in a comment cannot satisfy coverage. Sweep_coverage_manifest_matches_the_profiles_the_sweep_builds re-proves
+// every list from the profiles the sweep actually builds, and the sweep's oracle asserts the behavior of each entry.
+public static class SweepCoverage
+{
+    public static readonly string[] NormalizationRules =
+    [
+        "decimal.parse",
+        "date.parse",
+        "identifier.map",
+        "party.resolveAlias",
+        "party.resolveLei",
+        "price.from32nds",
+        "quantity.absolute",
+        "required.present",
+        "side.resolve",
+        "symbol.map",
+        "text.copy",
+    ];
+
+    public static readonly string[] Passes =
+    [
+        "match.sharedRef",
+        "match.naturalKey",
+        "match.groupSum",
+        "match.reducedKey",
+    ];
+
+    public static readonly string[] Routes =
+    [
+        "route.all",
+        "route.byField",
+    ];
+
+    // The sweep attributes NetCash by trading.netCash; trading.proRataToQuantity is exercised by its dedicated
+    // tests (TradingAttributionTests, DiffAllocationTests, ...), which the dedicated-coverage gate checks.
+    public static readonly string[] Attributions =
+    [
+        "trading.netCash",
+    ];
+
+    // The package plan uses Same, FromRole, and DifferenceByRole. AggregateKind.Sum is executed, not named, by
+    // RegistryCoverageGateTests.Every_package_aggregate_kind_executes_and_produces_expected_consolidated_value.
+    public static readonly string[] AggregateKinds =
+    [
+        "DifferenceByRole",
+        "FromRole",
+        "Same",
+    ];
 }

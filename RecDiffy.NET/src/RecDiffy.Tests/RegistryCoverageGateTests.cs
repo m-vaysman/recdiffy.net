@@ -105,25 +105,35 @@ public class RegistryCoverageGateTests
     }
 
     [Fact]
-    public void Every_registered_normalization_rule_pass_and_route_is_exercised_in_GeneratedProfileOracleSweepTests()
+    public void Every_registered_rule_pass_route_and_attribution_is_exercised_by_the_sweep_or_its_dedicated_tests()
     {
-        var sweepPath = Path.Combine(ProfileCorpus.Source, "RecDiffy.Tests", nameof(GeneratedProfileOracleSweepTests) + ".cs");
-        var sweepSource = File.ReadAllText(sweepPath);
-
         var rules = FullRegistry.Normalization.Keys.OrderBy(name => name, StringComparer.Ordinal).ToArray();
         var missingRules = rules
-            .Where(rule => !sweepSource.Contains($"\"{rule}\"", StringComparison.Ordinal))
+            .Where(rule => !SweepCoverage.NormalizationRules.Contains(rule, StringComparer.Ordinal))
             .ToArray();
-        var missingPasses = RegisteredPasses
-            .Where(pass => !sweepSource.Contains($"\"{pass}\"", StringComparison.Ordinal))
-            .ToArray();
-        var missingRoutes = RegisteredRoutes
-            .Where(route => !sweepSource.Contains($"\"{route}\"", StringComparison.Ordinal))
-            .ToArray();
-
         Assert.Empty(missingRules);
-        Assert.Empty(missingPasses);
-        Assert.Empty(missingRoutes);
+
+        // Passes and routes have no reflection seam in the engine, so the lists here and the sweep's manifest
+        // must agree exactly: a pass or route that exists in only one of the two fails this gate.
+        Assert.Equal(RegisteredPasses.Order(StringComparer.Ordinal), SweepCoverage.Passes.Order(StringComparer.Ordinal));
+        Assert.Equal(RegisteredRoutes.Order(StringComparer.Ordinal), SweepCoverage.Routes.Order(StringComparer.Ordinal));
+
+        var property = typeof(AttributionRegistry).GetProperty("Attributions", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(property);
+        var map = Assert.IsAssignableFrom<IReadOnlyDictionary<string, IAttribution>>(property.GetValue(FullRegistry.Attributions));
+        var names = map.Keys.ToArray();
+        var missingAttributions = names
+            .Where(name =>
+                !SweepCoverage.Attributions.Contains(name, StringComparer.Ordinal)
+                && !OtherTestSources.Value.Contains($"\"{name}\"", StringComparison.Ordinal))
+            .ToArray();
+        Assert.Empty(missingAttributions);
+
+        // The manifest must not drift to names the sweep never builds: the sweep's own self-check proves the reverse direction.
+        Assert.All(SweepCoverage.Attributions, name => Assert.Contains(name, names, StringComparer.Ordinal));
+        Assert.All(
+            SweepCoverage.AggregateKinds,
+            kind => Assert.Contains(kind, Enum.GetValues<AggregateKind>().Select(value => value.ToString()), StringComparer.Ordinal));
     }
 
     [Fact]
