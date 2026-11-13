@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 2,
+  "run": {
+    "id": "2026-11-13_1235_2d16975",
+    "harnessVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "profileId": "capacity.mixed",
+    "profileVersion": "1.0.0",
+    "profileHash": "ea100672412fede34f7ad0f9e703f1d6d75b10d6109cece2c1457d8360adf7d0",
+    "seed": 377,
+    "repeats": 1,
+    "sweep": "sizes",
+    "sizes": [
+      100000,
+      1000000
+    ],
+    "commandLine": "G:\\RecDiffyCapacity\\work\\2026-11-13_1234_2d16975\\RecDiffy.NET\\capacity\\RecDiffy.Capacity\\bin\\Release\\net10.0\\RecDiffy.Capacity.dll --sweep sizes --out G:\\RecDiffyCapacity\\runs\\2026-11-13_1234_2d16975 --seed 377 --repeats 1 --break-rate 0.1 --unmatched-rate 0.05 --commit 2d1697519076887d97b0859c4c11e6dff7d00cb8 --ref origin/dev --sizes 100000,1000000 --case-timeout-seconds 1800 --excel none",
+    "startedAtUtc": "2026-11-13T17:35:39Z",
+    "finishedAtUtc": "2026-11-13T17:41:52Z",
+    "durationSeconds": 373.4740612,
+    "compileSeconds": 0.1689756
+  },
+  "source": {
+    "ref": "origin/dev",
+    "commit": "2d1697519076887d97b0859c4c11e6dff7d00cb8",
+    "workingTree": "clean"
+  },
+  "host": {
+    "machine": "COBBLER1",
+    "os": "Microsoft Windows 10.0.19045",
+    "architecture": "X64",
+    "logicalProcessors": 40,
+    "runtime": ".NET 10.0.14",
+    "sdk": "10.0.403",
+    "gcMode": "workstation",
+    "gcLatencyMode": "Interactive",
+    "gcHeapLimitBytes": 34359738368,
+    "aot": false,
+    "dynamicCode": true
+  },
+  "cases": [
+    {
+      "size": 100000,
+      "leftRows": 100000,
+      "rightRows": 100000,
+      "totalRows": 200000,
+      "outcome": "Completed",
+      "knownOutcomeMatches": true,
+      "failureStage": null,
+      "timeToFailureSeconds": 0,
+      "expected": {
+        "matched": 97500,
+        "exact": 87750,
+        "withinTolerance": 0,
+        "break": 9750,
+        "leftOnly": 2500,
+        "rightOnly": 2500,
+        "ambiguous": 0,
+        "searchIncomplete": 0,
+        "quarantined": 0,
+        "suppressed": 0
+      },
+      "actual": {
+        "matched": 97500,
+        "exact": 87750,
+        "withinTolerance": 0,
+        "break": 9750,
+        "leftOnly": 2500,
+        "rightOnly": 2500,
+        "ambiguous": 0,
+        "searchIncomplete": 0,
+        "quarantined": 0,
+        "suppressed": 0
+      },
+      "samples": [
+        {
+          "engineSeconds": 26.2236018,
+          "excelSeconds": 2.89E-05,
+          "totalSeconds": 26.2236307,
+          "peakManagedHeapBytes": 1839631712,
+          "peakWorkingSetBytes": 1895043072,
+          "allocatedBytes": 11435142296,
+          "gcPauseSeconds": 7.414609,
+          "gen0": 865,
+          "gen1": 286,
+          "gen2": 5
+        }
+      ],
+      "latencySeconds": 26.2236307,
+      "latencyP95Seconds": 26.2236307,
+      "latencyP99Seconds": 26.2236307,
+      "throughputRowsPerSecond": 7626.717394709677,
+      "endToEndRowsPerSecond": 7626.708989613707,
+      "peakManagedHeapBytes": 1839631712,
+      "peakWorkingSetBytes": 1895043072,
+      "allocatedBytes": 11435142296,
+      "gcPauseSeconds": 7.414609,
+      "retainedHeapBytes": 139218432,
+      "bytesPerInputRow": 9198.15856,
+      "rowsSearched": 195000,
+      "rowsBlocked": 0,
+      "aggregateOverflowFields": 0,
+      "stages": [
+        {
+          "name": "engine",
+          "seconds": 26.2236018,
+          "sharePercent": 99.99988979405511
+        },
+        {
+          "name": "excel",
+          "seconds": 2.89E-05,
+          "sharePercent": 0.00011020594489991808
+        }
+      ],
+      "files": [],
+      "notes": [],
+      "wallTimeBarPercent": 8.318715173299998,
+      "peakHeapBarPercent": 10.736729716626215
+    },
+    {
+      "size": 1000000,
+      "leftRows": 1000000,
+      "rightRows": 1000000,
+      "totalRows": 2000000,
+      "outcome": "Completed",
+      "knownOutcomeMatches": true,
+      "failureStage": null,
+      "timeToFailureSeconds": 0,
+      "expected": {
+        "matched": 975000,
+        "exact": 877500,
+        "withinTolerance": 0,
+        "break": 97500,
+        "leftOnly": 25000,
+        "rightOnly": 25000,
+        "ambiguous": 0,
+        "searchIncomplete": 0,
+        "quarantined": 0,
+        "suppressed": 0
+      },
+      "actual": {
+        "matched": 975000,
+        "exact": 877500,
+        "withinTolerance": 0,
+        "break": 97500,
+        "leftOnly": 25000,
+        "rightOnly": 25000,
+        "ambiguous": 0,
+        "searchIncomplete": 0,
+        "quarantined": 0,
+        "suppressed": 0
+      },
+      "samples": [
+        {
+          "engineSeconds": 315.2365484,
+          "excelSeconds": 1.4E-06,
+          "totalSeconds": 315.2365498,
+          "peakManagedHeapBytes": 17134004120,
+          "peakWorkingSetBytes": 17335074816,
+          "allocatedBytes": 119449274184,
+          "gcPauseSeconds": 84.812651,
+          "gen0": 9001,
+          "gen1": 2988,
+          "gen2": 7
+        }
+      ],
+      "latencySeconds": 315.2365498,
+      "latencyP95Seconds": 315.2365498,
+      "latencyP99Seconds": 315.2365498,
+      "throughputRowsPerSecond": 6344.4420076006645,
+      "endToEndRowsPerSecond": 6344.441979424304,
+      "peakManagedHeapBytes": 17134004120,
+      "peakWorkingSetBytes": 17335074816,
+      "allocatedBytes": 119449274184,
+      "gcPauseSeconds": 84.812651,
+      "retainedHeapBytes": 219667760,
+      "bytesPerInputRow": 8567.00206,
+      "rowsSearched": 1950000,
+      "rowsBlocked": 0,
+      "aggregateOverflowFields": 0,
+      "stages": [
+        {
+          "name": "engine",
+          "seconds": 315.2365484,
+          "sharePercent": 99.99999955588906
+        },
+        {
+          "name": "excel",
+          "seconds": 1.4E-06,
+          "sharePercent": 4.4411093855970125E-07
+        }
+      ],
+      "files": [],
+      "notes": [],
+      "wallTimeBarPercent": 100,
+      "peakHeapBarPercent": 100
+    }
+  ],
+  "derived": {
+    "largestCompletedSize": 1000000,
+    "firstFailure": null,
+    "scaling": [
+      {
+        "fromSize": 100000,
+        "toSize": 1000000,
+        "secondsRatio": 12.021087141072345,
+        "rowsRatio": 10,
+        "exponent": 1.0799437453721188,
+        "verdict": "linear or better"
+      }
+    ],
+    "unmeasuredStages": [
+      {
+        "name": "intake",
+        "reason": "Reconciler.Run materializes both sides; the public API exposes no separate stage."
+      },
+      {
+        "name": "normalization",
+        "reason": "Inside Reconciler.Run; per-stage benchmarks land in P2."
+      },
+      {
+        "name": "consolidation",
+        "reason": "Inside Reconciler.Run; per-stage benchmarks land in P2."
+      },
+      {
+        "name": "matching",
+        "reason": "Inside Reconciler.Run; per-stage benchmarks land in P2."
+      },
+      {
+        "name": "diff",
+        "reason": "Inside Reconciler.Run; per-stage benchmarks land in P2."
+      },
+      {
+        "name": "results",
+        "reason": "Inside Reconciler.Run; per-stage benchmarks land in P2."
+      }
+    ]
+  },
+  "concurrency": null,
+  "notes": [
+    "Stages inside Reconciler.Run (intake, normalization, consolidation, matching, diff, result building) are inside the engine stage. The public API exposes no split; the per-stage benchmarks are P2 and the large-size split is P4.",
+    "One warmup run of the smallest size is discarded before the measurements, so JIT, compile and the first Excel write are not charged to the first case.",
+    "The dataset is generated while the engine materializes each side, so the engine stage includes the generator\u0027s cost. The generator is a seeded integer mixer, not System.Random, so a seed reproduces a dataset on every runtime.",
+    "Excel output writes one report (SideBySideCompare) so the output stage stays bounded. The full report set is P4.",
+    "Capacity numbers are comparable only on the same host, runtime and GC mode. This run\u0027s host is in the header.",
+    "A run that does not match its known outcome is a measurement failure, not a fast run. A run too large to complete is recorded as its outcome.",
+    "Rows searched are rows in a matched entry; rows blocked are rows the search limits refused (SearchIncomplete), so a fast blocked run is not read as a fast reconciliation. Aggregate overflow counts diagnostics with that code.",
+    "Retained heap is the heap after every result of the case has been dropped and two full blocking collections have run; the result graph is part of the memory ceiling.",
+    "An OS kill cannot be caught in-process: a run the host killed leaves no report. The run script records it from the job (phase 6). Here, only an out-of-memory exception is recorded as a case outcome.",
+    "Fewer than three measured runs per size: p95 and p99 repeat the samples they fall on, so they are not yet stable."
+  ]
+}

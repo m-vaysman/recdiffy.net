@@ -1,0 +1,10 @@
+﻿RecDiffy capacity run 2026-11-13_1235_2d16975
+  sweep   sizes
+  profile capacity.mixed 1.0.0 (ea100672412fede34f7ad0f9e703f1d6d75b10d6109cece2c1457d8360adf7d0), seed 377
+  output  G:\RecDiffyCapacity\runs\2026-11-13_1234_2d16975
+  100000 rows/side: Completed, engine 26.224 s, excel 0.000 s, 7627 rows/s, peak heap 1754.4 MB
+  1000000 rows/side: Completed, engine 315.237 s, excel 0.000 s, 6344 rows/s, peak heap 16340.3 MB
+results  G:\RecDiffyCapacity\runs\2026-11-13_1234_2d16975\results.json
+markdown G:\RecDiffyCapacity\runs\2026-11-13_1234_2d16975\report.md
+html     G:\RecDiffyCapacity\runs\2026-11-13_1234_2d16975\report.html
+OK: no known outcome mismatched.
