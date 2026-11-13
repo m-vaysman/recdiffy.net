@@ -294,7 +294,6 @@ var options = new ExcelReportOptions
 {
     AsOf = new DateOnly(2026, 11, 13),
     Profile = profile, // profile id, tolerances, pass order; also maps report roles to fields of the same name
-    FieldMap = FieldMap.FromProfile(profile).With(ReportRole.Asset, "AssetClass"), // optional; only a field the profile declares can be mapped
 };
 
 foreach (var outcome in result.WriteAll("reports", options))
@@ -312,7 +311,7 @@ A run writes into the as-of date, so a second run on the same day silently repla
 
 ### Report roles
 
-`FieldMap.FromProfile` looks for each role's field names in the order below, and maps the role only when the profile declares one. Any other name needs an explicit `With` call, which must also name a field the profile declares. A role a report needs, but the map does not supply, skips that report and names it.
+`FieldMap.FromProfile` looks for each role's field names in the order below, and maps the role only when the profile declares one. Any other name needs an explicit `With`, which sets the role's field and replaces any field `FromProfile` found: `FieldMap = FieldMap.FromProfile(profile).With(ReportRole.Counterparty, "Broker")`. `With` does not check the name against the profile. A field the profile does not declare still counts as mapped, so the report writes with that role's values empty instead of skipping. A role a report needs, but the map does not supply, skips that report and names it.
 
 | Role | Field names `FromProfile` looks for | Required by |
 |---|---|---|
@@ -336,7 +335,8 @@ A run writes into the as-of date, so a second run on the same day silently repla
 - **BO3 RawVsNormalized and MO6 ToleranceUsage need the profile, not a role.** BO3 reads each side's original columns, and MO6 reads the tolerance amounts; both come from `ExcelReportOptions.Profile`.
 - **BO2 needs at least one compared field mapped:** one of `Quantity`, `Price`, `SettleDate`, `Accrued`, `Fees` or `NetCash`.
 - **MO3 CascadeFunnel and MO7 AuditTrail need no role at all.** They report the engine's own counts and explanation trail.
-- **A report also needs something to show.** BO5 skips when no entry was matched many-to-one or one-to-many, and MO6 skips when no difference landed `WithinTolerance`. Both return that reason, so a mapped role alone does not produce a file.
+- **A report also needs something to show.** BO3 skips when no one-to-one match broke, landed within tolerance, or had a value changed by normalization. BO5 skips when no entry was matched many-to-one or one-to-many. MO6 skips when no difference landed `WithinTolerance`. MO7 skips when every entry is an exact match with no lifecycle chain or package behind it. Each returns that reason, so a mapped role alone does not produce a file. `SelectedEntries` makes BO3 and MO7 show the entries you name instead.
+- **BO6 signs cash by `Side`.** A row whose `Side` is in `ExcelReportOptions.PayingSides` pays, so its net cash counts negative, and every other side receives. The default is `BUY`, `PAY_FIXED` and `PAY`, compared exactly with the canonical value, so a profile whose sides are `B` and `S` needs `PayingSides = ["B"]`, or every row lands as a receipt.
 
 BO4 needs lifecycle consolidation, not just the two roles. It draws the chains that `consolidation.lifecycle` collapsed, so a profile without that block writes no BO4 rows. The block names the fields holding each event's action (`NEW`, `CANC`, `CORR`) and the row key it acts on, and the `scope` field that groups row keys so a target is looked up inside the same counterparty:
 
