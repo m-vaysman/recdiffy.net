@@ -7,7 +7,6 @@ namespace RecDiffy.ExcelAddIn.ViewModels.Tests;
 
 public class AmbiguousResultTextTests
 {
-    private const string MissingKey = "🔴 #257: the engine leaves the key out of an ambiguous result's Contest attempt, so the text says \"share key (none)\".";
 
     private static readonly DateTimeOffset ReadAt = new(2026, 11, 10, 17, 30, 0, TimeSpan.Zero);
 
@@ -19,7 +18,7 @@ public class AmbiguousResultTextTests
         ["Ref", "Day", "Amount"],
         [["T-1", "2026-11-05", "100.00"], ["T-2", "2026-11-05", "250.00"], ["T-2", "2026-11-06", "250.00"]]);
 
-    [Fact(Skip = MissingKey)]
+    [Fact]
     public async Task The_results_tab_names_the_key_an_ambiguous_results_records_share()
     {
         var row = await AmbiguousRow();
@@ -27,7 +26,7 @@ public class AmbiguousResultTextTests
         Assert.Equal("3 records share key T-2, so none was picked.", row.Details);
     }
 
-    [Fact(Skip = MissingKey)]
+    [Fact]
     public async Task The_explanation_names_the_key_an_ambiguous_results_records_share()
     {
         var row = await AmbiguousRow();
