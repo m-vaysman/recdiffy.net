@@ -10,7 +10,7 @@ internal static class CapacityRunner
 {
     private const string HarnessVersion = "1.0.0";
 
-    private static readonly SourceMap<RawTrade> RowMap =
+    internal static readonly SourceMap<RawTrade> RowMap =
         new SourceMap<RawTrade>()
             .Text("TradeId", trade => trade.TradeId)
             .Text("Counterparty", trade => trade.Counterparty)
@@ -35,12 +35,37 @@ internal static class CapacityRunner
         Directory.CreateDirectory(folder);
 
         var compiled = Stopwatch.StartNew();
-        var profile = Reconciler.Compile(ProfileDocument.Parse(CapacityProfile.Json), RuleRegistry.CreateCore());
+        var profile = Compile();
         compiled.Stop();
         Console.WriteLine($"RecDiffy capacity run {runId}");
+        Console.WriteLine($"  sweep   {SweepName(options.Sweep)}");
         Console.WriteLine($"  profile {CapacityProfile.Id} {CapacityProfile.Version} ({profile.Hash}), seed {options.Seed.ToInvariant()}");
         Console.WriteLine($"  output  {folder}");
 
+        return options.Sweep is Sweep.Concurrency
+            ? ExecuteConcurrency(options, profile, source, host, runId, started, compiled.Elapsed.TotalSeconds, folder)
+            : ExecuteSizes(options, profile, source, host, runId, started, compiled.Elapsed.TotalSeconds, folder);
+    }
+
+    private static CompiledProfile Compile() =>
+        Reconciler.Compile(ProfileDocument.Parse(CapacityProfile.Json), RuleRegistry.CreateCore());
+
+    private static string SweepName(Sweep sweep) => sweep switch
+    {
+        Sweep.Concurrency => "concurrency",
+        _ => "sizes",
+    };
+
+    private static int ExecuteSizes(
+        CapacityOptions options,
+        CompiledProfile profile,
+        ReportSource source,
+        ReportHost host,
+        string runId,
+        DateTimeOffset started,
+        double compileSeconds,
+        string folder)
+    {
         var cases = new List<ReportCase>();
         Warmup(options, profile, folder);
         foreach (var size in options.Sizes)
@@ -51,18 +76,74 @@ internal static class CapacityRunner
         }
 
         var finished = DateTimeOffset.UtcNow;
-        var report = BuildReport(options, source, host, runId, started, finished, compiled.Elapsed.TotalSeconds, profile, cases);
+        var report = BuildReport(options, source, host, runId, started, finished, compileSeconds, profile, cases);
         var paths = ReportFiles.Write(folder, report);
 
         var wrong = cases.Any(item => item.KnownOutcomeMatches is false);
+        return Finish(paths, wrong, "a known outcome does not match the engine's");
+    }
+
+    private static int ExecuteConcurrency(
+        CapacityOptions options,
+        CompiledProfile profile,
+        ReportSource source,
+        ReportHost host,
+        string runId,
+        DateTimeOffset started,
+        double compileSeconds,
+        string folder)
+    {
+        using var process = Process.GetCurrentProcess();
+        var outcome = ConcurrencySweep.Run(profile, Compile, options, process);
+        var finished = DateTimeOffset.UtcNow;
+        var notes = ConcurrencyNotes(options);
+        var report = new CapacityReport(
+            2,
+            new ReportRun(
+                runId,
+                HarnessVersion,
+                EngineVersion(),
+                CapacityProfile.Id,
+                CapacityProfile.Version,
+                profile.Hash,
+                options.Seed,
+                options.Repeats,
+                SweepName(options.Sweep),
+                options.Sizes,
+                Environment.CommandLine,
+                Timestamp(started),
+                Timestamp(finished),
+                (finished - started).TotalSeconds,
+                compileSeconds),
+            source,
+            host,
+            Array.Empty<ReportCase>(),
+            new ReportDerived(null, Array.Empty<ReportScaling>(), UnmeasuredStages()),
+            new ReportConcurrency(
+                options.ConcurrencyRows,
+                options.Repeats,
+                host.GcMode,
+                host.LogicalProcessors,
+                outcome.BaselineFingerprint,
+                outcome.AllMatchBaseline,
+                outcome.Cases,
+                notes),
+            Array.Empty<string>());
+        var paths = ReportFiles.Write(folder, report);
+        PrintConcurrency(outcome);
+        return Finish(paths, outcome.AllMatchBaseline is false, "a concurrent run did not match the single-threaded result");
+    }
+
+    private static int Finish((string Results, string Markdown, string Html) paths, bool wrong, string failure)
+    {
         var missing = new[] { paths.Results, paths.Markdown, paths.Html }
             .Any(path => new FileInfo(path) is not { Exists: true, Length: > 0 });
         Console.WriteLine($"results  {paths.Results}");
         Console.WriteLine($"markdown {paths.Markdown}");
         Console.WriteLine($"html     {paths.Html}");
         Console.WriteLine(wrong
-            ? "FAILED: a known outcome does not match the engine's; the numbers are not a measurement."
-            : "OK: every known outcome matched.");
+            ? $"FAILED: {failure}; the numbers are not a measurement."
+            : "OK: every measured result matched its known outcome.");
         return wrong || missing ? 1 : 0;
     }
 
@@ -255,7 +336,7 @@ internal static class CapacityRunner
     {
         var withBars = AddBars(cases);
         return new CapacityReport(
-            1,
+            2,
             new ReportRun(
                 runId,
                 HarnessVersion,
@@ -265,6 +346,7 @@ internal static class CapacityRunner
                 profile.Hash,
                 options.Seed,
                 options.Repeats,
+                SweepName(options.Sweep),
                 options.Sizes,
                 Environment.CommandLine,
                 Timestamp(started),
@@ -278,6 +360,7 @@ internal static class CapacityRunner
                 withBars.Where(item => item.Outcome is "Completed" && item.KnownOutcomeMatches is not false).MaxBy(item => item.Size)?.Size,
                 Scaling(withBars),
                 UnmeasuredStages()),
+            null,
             Notes(options, withBars));
     }
 
@@ -358,6 +441,37 @@ internal static class CapacityRunner
         var assembly = typeof(Reconciler).Assembly;
         var informational = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
         return informational is { Length: > 0 } text ? text.Split('+', 2)[0] : assembly.GetName().Version?.ToString() ?? "unknown";
+    }
+
+    private static IReadOnlyList<string> ConcurrencyNotes(CapacityOptions options)
+    {
+        List<string> notes =
+        [
+            "A batch starts all N runs together over the same seeded dataset. Rows per run are fixed, so total work grows with N; the numbers are throughput (rows per second and runs per minute), not total batch time.",
+            "One discarded batch per fan-out style runs before the measurements, so JIT and thread start-up are not charged to the first measured batch.",
+            "Scaling efficiency is rows per second at N divided by N times rows per second at 1, for the same fan-out style and profile sharing.",
+            "Every run's result is compared field by field with a single-threaded baseline: the summary, every entry with its diffs and both projections, and every row with its disposition and diagnostics. One difference fails the run.",
+            "Separate profiles are compiled before the batch starts, so the difference between shared and separate is profile sharing, not compile cost.",
+            "The GC mode is set by the process (DOTNET_gcServer). This report records the mode the sweep ran under; run the sweep once per mode.",
+            "CPU is the process's total processor time over the batch divided by the batch wall time, so it counts every thread the run used.",
+            "Not in this phase: culture isolation across threads, a second host, and a dotnet-trace race-detection pass. Both profile sharings and all three fan-out styles are measured.",
+            "Per-run latency is one reconciliation's wall time inside the batch; p50, p95 and p99 are over the runs of the batch.",
+        ];
+        if (options.Repeats < 3)
+            notes.Add("Fewer than three batches per level: the reported batch is the median by wall time, and the spread is not shown.");
+        return notes;
+    }
+
+    private static void PrintConcurrency(ConcurrencyOutcome outcome)
+    {
+        foreach (var item in outcome.Cases)
+        {
+            Console.WriteLine(
+                $"  {item.Style}/{item.Sharing} N={item.Level.ToInvariant()}: {item.RunsPerMinute.ToInvariant("0.0")} runs/min, "
+                + $"{item.RowsPerSecond.ToInvariant("0")} rows/s, {item.ScalingEfficiencyPercent.ToInvariant("0.0")}% efficiency, "
+                + $"{item.CoresUsed.ToInvariant("0.0")} cores, p50 {item.LatencyP50Seconds.ToInvariant("0.000")} s"
+                + (item.ResultsMatchBaseline ? "" : " [RESULT MISMATCH]"));
+        }
     }
 
     private static void Print(ReportCase measured)
