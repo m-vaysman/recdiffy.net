@@ -308,7 +308,8 @@ A path takes the rows its route accepts, matches them with its passes, and compa
 - **Each row goes to the first path that accepts it.**
 - **Routes must not overlap** (`OverlappingRoute`). `route.all` overlaps every other route, so a profile with `route.all` has one path. Two `route.byField` routes overlap when they name the same field and value.
 - **Routes on different fields compile.** A row both accept goes to the earlier path.
-- **The value compared** is the field's match-key text, so a decimal at scale 2 is `1.50`, not `1.5`.
+- **The value compared** is the field's value, so a decimal at scale 2 is `1.50`, not `1.5`.
+- **`"equals": ""`** takes the rows whose `field` is blank, as a condition and a side-by-side filter read the same cell. Blank means null, an empty string, or whitespace only, from any source, so the route takes the blank rows of a CSV or Excel file too.
 - **A row no route accepts** gets its own `LeftOnly` or `RightOnly` entry, marked `Unrouted`.
 
 ### `passes`
