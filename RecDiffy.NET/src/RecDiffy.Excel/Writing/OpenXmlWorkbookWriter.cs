@@ -213,7 +213,7 @@ internal sealed class OpenXmlWorkbookWriter : IWorkbookWriter
         new Xdr.Extent { Cx = (long)(chart.WidthCm * EmuPerCm), Cy = (long)(chart.HeightCm * EmuPerCm) },
         new Xdr.GraphicFrame(
             new Xdr.NonVisualGraphicFrameProperties(
-                new Xdr.NonVisualDrawingProperties { Id = (uint)(index + 2), Name = $"Chart {index + 1}" },
+                new Xdr.NonVisualDrawingProperties { Id = (uint)(index + 2), Name = $"Chart {(index + 1).ToInvariant()}" },
                 new Xdr.NonVisualGraphicFrameDrawingProperties()),
             new Xdr.Transform(new A.Offset { X = 0, Y = 0 }, new A.Extents { Cx = 0, Cy = 0 }),
             new A.Graphic(new A.GraphicData(new C.ChartReference { Id = relationship }) { Uri = "http://schemas.openxmlformats.org/drawingml/2006/chart" }))

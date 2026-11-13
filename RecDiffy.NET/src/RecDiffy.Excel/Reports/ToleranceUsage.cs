@@ -64,10 +64,10 @@ internal static class ToleranceUsage
                     .PutFormula(row, 6, ReportSheet.Link(diffs.Cell("theirs", diff.Index)), Styles.Link(format))
                     .PutFormula(row, 7, ReportSheet.Link(diffs.Cell("delta", diff.Index)), Styles.Link(format))
                     .PutFormula(row, 8, ReportSheet.Link(diffs.Cell("toleranceAmount", diff.Index)), Styles.Link(Formats.Price))
-                    .PutFormula(row, 9, $"IF(H{row}=0,0,ABS(G{row})/H{row})", Styles.Number(Formats.Percent, bold: true))
-                    .PutFormula(row, 10, $"IF(I{row}>=1,\"On the boundary\",\"\")", new CellStyle(Color: Palette.ToleranceText));
+                    .PutFormula(row, 9, $"IF(H{row.ToInvariant()}=0,0,ABS(G{row.ToInvariant()})/H{row.ToInvariant()})", Styles.Number(Formats.Percent, bold: true))
+                    .PutFormula(row, 10, $"IF(I{row.ToInvariant()}>=1,\"On the boundary\",\"\")", new CellStyle(Color: Palette.ToleranceText));
             })
-            .PutFormula(last + 1, 9, $"IF(MAX(I{first}:I{last})<=1,\"✓\",\"✗\")", Styles.Check)
+            .PutFormula(last + 1, 9, $"IF(MAX(I{first.ToInvariant()}:I{last.ToInvariant()})<=1,\"✓\",\"✗\")", Styles.Check)
             .Put(last + 1, 1, context.Label("Check: no tolerated difference exceeds its tolerance"), Styles.Bold)
             .Rule(new DataBarRule(new CellRange(first, 9, last, 9), "F59E0B", 0m, 1m))
             .Rule(new CellIsRule(new CellRange(first, 10, last, 10), CellOperator.Equal, ["\"On the boundary\""], new DiffStyle(Fill: Palette.Tolerance)))

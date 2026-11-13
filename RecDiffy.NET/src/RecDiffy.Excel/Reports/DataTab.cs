@@ -25,7 +25,7 @@ internal sealed record DataTab(string Name, Sheet Sheet, ImmutableDictionary<str
     public string Cell(string key, int index) => $"{Address.Sheet(Name)}!{Address.Absolute(RowOf(index), Columns[key])}";
 
     /// <summary>An absolute reference to a whole column of values, for COUNTIFS and SUMIFS.</summary>
-    public string Range(string key) => $"{Address.Sheet(Name)}!${Column(key)}${FirstRow}:${Column(key)}${LastRow}";
+    public string Range(string key) => $"{Address.Sheet(Name)}!${Column(key)}${FirstRow.ToInvariant()}:${Column(key)}${LastRow.ToInvariant()}";
 
     public static DataTab Build<T>(string name, IReadOnlyList<string> notes, IReadOnlyList<DataColumn<T>> columns, IReadOnlyList<T> items)
     {

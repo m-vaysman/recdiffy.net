@@ -48,15 +48,15 @@ internal static class ExceptionBlotter
             .Put(r0, 6, context.Label("Open items by type"), Styles.Section)
             .Fold(statuses, (current, status, index) => current
                 .Put(r0 + 1 + index, 3, status)
-                .PutFormula(r0 + 1 + index, 4, $"COUNTIF($C${first}:$C${last},C{r0 + 1 + index})", Styles.Number(Formats.Count)))
+                .PutFormula(r0 + 1 + index, 4, $"COUNTIF($C${first.ToInvariant()}:$C${last.ToInvariant()},C{(r0 + 1 + index).ToInvariant()})", Styles.Number(Formats.Count)))
             .Fold(types, (current, type, index) => current
                 .Put(r0 + 1 + index, 6, type)
-                .PutFormula(r0 + 1 + index, 7, $"COUNTIF($D${first}:$D${last},F{r0 + 1 + index})", Styles.Number(Formats.Count)))
+                .PutFormula(r0 + 1 + index, 7, $"COUNTIF($D${first.ToInvariant()}:$D${last.ToInvariant()},F{(r0 + 1 + index).ToInvariant()})", Styles.Number(Formats.Count)))
             .Put(total, 3, context.Label("Total"), Styles.Total)
-            .PutFormula(total, 4, $"SUM(D{r0 + 1}:D{r0 + statuses.Length})", Styles.Total with { Format = Formats.Count })
+            .PutFormula(total, 4, $"SUM(D{(r0 + 1).ToInvariant()}:D{(r0 + statuses.Length).ToInvariant()})", Styles.Total with { Format = Formats.Count })
             .Put(total, 6, context.Label("Total"), Styles.Total)
-            .PutFormula(total, 7, $"SUM(G{r0 + 1}:G{r0 + types.Length})", Styles.Total with { Format = Formats.Count })
-            .PutFormula(total, 8, $"IF(AND(D{total}=G{total},D{total}=ROWS($A${first}:$A${last})-COUNTBLANK($A${first}:$A${last})),\"✓\",\"✗\")", Styles.Check)
+            .PutFormula(total, 7, $"SUM(G{(r0 + 1).ToInvariant()}:G{(r0 + types.Length).ToInvariant()})", Styles.Total with { Format = Formats.Count })
+            .PutFormula(total, 8, $"IF(AND(D{total.ToInvariant()}=G{total.ToInvariant()},D{total.ToInvariant()}=ROWS($A${first.ToInvariant()}:$A${last.ToInvariant()})-COUNTBLANK($A${first.ToInvariant()}:$A${last.ToInvariant()})),\"✓\",\"✗\")", Styles.Check)
             .Header(header, context.Labels(
                 "Rank", "Entry", "Status", "Item type", "Counterparty", "Instrument", "Asset", "Side", "Trade date", "Settle date", "Age (bus. days)",
                 "Field", "Ours", "Theirs", "Delta", "Ccy", "Impact", "Suggested action", "Category"))
@@ -102,7 +102,7 @@ internal static class ExceptionBlotter
         return sheet
             .Put(row, 1, rank)
             .Put(row, 2, item.Label)
-            .PutFormula(row, 3, DataTabs.StatusFormula($"J{row}"))
+            .PutFormula(row, 3, DataTabs.StatusFormula($"J{row.ToInvariant()}"))
             .Put(row, 4, item.ItemType)
             .Put(row, 5, item.Text(ReportRole.Counterparty))
             .Put(row, 6, item.Text(ReportRole.Instrument))
@@ -110,7 +110,7 @@ internal static class ExceptionBlotter
             .Put(row, 8, item.Text(ReportRole.Side))
             .PutFormula(row, 9, ReportSheet.Link(source.TradeDate), Styles.Link(Formats.Date))
             .PutFormula(row, 10, ReportSheet.Link(source.SettleDate), Styles.Link(Formats.Date))
-            .PutFormula(row, 11, DataTabs.AgeFormula($"I{row}"), Styles.Number(Formats.Integer))
+            .PutFormula(row, 11, DataTabs.AgeFormula($"I{row.ToInvariant()}"), Styles.Number(Formats.Integer))
             .Put(row, 12, item.Field)
             .Put(row, 13, values.Ours, Styles.Link(values.Format))
             .Put(row, 14, values.Theirs, Styles.Link(values.Format))
@@ -118,7 +118,7 @@ internal static class ExceptionBlotter
             .Put(row, 16, item.Text(ReportRole.Currency))
             .Put(row, 17, impact, impact is FormulaContent ? Styles.Link(Formats.Amount) : Styles.Number(Formats.Amount))
             .Put(row, 18, item.Action)
-            .PutFormula(row, 19, $"IF(D{row}=\"Field break\",L{row},D{row})");
+            .PutFormula(row, 19, $"IF(D{row.ToInvariant()}=\"Field break\",L{row.ToInvariant()},D{row.ToInvariant()})");
     }
 
     // Where an open item's values live: an engine entry on Result_Entries, or a row without an entry on Result_Rows.

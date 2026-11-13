@@ -75,24 +75,24 @@ internal static class Scorecard
             .Fold(counterparties, (current, name, index) =>
             {
                 var row = first + index;
-                string Entries(string range, string value) => $"COUNTIFS({counterparty},$A{row},{range},\"{value}\")";
+                string Entries(string range, string value) => $"COUNTIFS({counterparty},$A{row.ToInvariant()},{range},\"{value}\")";
                 return current
                     .Put(row, 1, name, Styles.Bold)
-                    .PutFormula(row, 2, $"COUNTIFS({source},\"left\",{rowCounterparty},$A{row})", Styles.Number(Formats.Count))
-                    .PutFormula(row, 3, $"COUNTIFS({source},\"right\",{rowCounterparty},$A{row})", Styles.Number(Formats.Count))
+                    .PutFormula(row, 2, $"COUNTIFS({source},\"left\",{rowCounterparty},$A{row.ToInvariant()})", Styles.Number(Formats.Count))
+                    .PutFormula(row, 3, $"COUNTIFS({source},\"right\",{rowCounterparty},$A{row.ToInvariant()})", Styles.Number(Formats.Count))
                     .PutFormula(row, 4, Entries(alignment, "Matched"), Styles.Number(Formats.Count))
                     .PutFormula(row, 5, Entries(outcome, "Exact"), Styles.Number(Formats.Count))
                     .PutFormula(row, 6, Entries(outcome, "WithinTolerance"), Styles.Number(Formats.Count))
                     .PutFormula(row, 7, Entries(outcome, "Break"), Styles.Number(Formats.Count))
-                    .PutFormula(row, 8, $"COUNTIFS({source},\"left\",{rowCounterparty},$A{row},{disposition},\"LeftOnly\",{lead},1)", Styles.Number(Formats.Count))
-                    .PutFormula(row, 9, $"COUNTIFS({source},\"right\",{rowCounterparty},$A{row},{disposition},\"RightOnly\",{lead},1)", Styles.Number(Formats.Count))
+                    .PutFormula(row, 8, $"COUNTIFS({source},\"left\",{rowCounterparty},$A{row.ToInvariant()},{disposition},\"LeftOnly\",{lead},1)", Styles.Number(Formats.Count))
+                    .PutFormula(row, 9, $"COUNTIFS({source},\"right\",{rowCounterparty},$A{row.ToInvariant()},{disposition},\"RightOnly\",{lead},1)", Styles.Number(Formats.Count))
                     .PutFormula(row, 10, Entries(alignment, "Ambiguous"), Styles.Number(Formats.Count))
-                    .PutFormula(row, 11, $"IF(B{row}=0,0,COUNTIFS({source},\"left\",{rowCounterparty},$A{row},{disposition},\"Matched\")/B{row})", Styles.Number(Formats.Percent))
-                    .PutFormula(row, 12, $"IF(D{row}=0,0,(E{row}+F{row})/D{row})", Styles.Number(Formats.Percent));
+                    .PutFormula(row, 11, $"IF(B{row.ToInvariant()}=0,0,COUNTIFS({source},\"left\",{rowCounterparty},$A{row.ToInvariant()},{disposition},\"Matched\")/B{row.ToInvariant()})", Styles.Number(Formats.Percent))
+                    .PutFormula(row, 12, $"IF(D{row.ToInvariant()}=0,0,(E{row.ToInvariant()}+F{row.ToInvariant()})/D{row.ToInvariant()})", Styles.Number(Formats.Percent));
             })
             .Put(last + 1, 1, context.Label("Total"), Styles.Total)
-            .Fold(Enumerable.Range(2, 9), (current, column, _) => current.PutFormula(last + 1, column, $"SUM({Address.Column(column)}{first}:{Address.Column(column)}{last})", Styles.Total with { Format = Formats.Count }))
-            .PutFormula(last + 1, 11, $"IF(AND(B{last + 1}={leftRows},C{last + 1}=COUNTIF({source},\"right\"),D{last + 1}={matched}),\"✓\",\"✗\")", Styles.Total with { Align = HorizontalAlign.Center })
+            .Fold(Enumerable.Range(2, 9), (current, column, _) => current.PutFormula(last + 1, column, $"SUM({Address.Column(column)}{first.ToInvariant()}:{Address.Column(column)}{last.ToInvariant()})", Styles.Total with { Format = Formats.Count }))
+            .PutFormula(last + 1, 11, $"IF(AND(B{(last + 1).ToInvariant()}={leftRows},C{(last + 1).ToInvariant()}=COUNTIF({source},\"right\"),D{(last + 1).ToInvariant()}={matched}),\"✓\",\"✗\")", Styles.Total with { Align = HorizontalAlign.Center })
             .Put(last + 1, 12, null, Styles.Total)
             .Put(last + 3, 1, "Every number on this tab is a formula over Result_Entries and Result_Rows. Auto-match rate = internal rows in matched entries ÷ internal rows. Clean-match rate = (exact + within tolerance) ÷ matched entries. Unmatched counts are items from Result_Rows, so rows the engine left without an entry (not routed, or excluded as invalid) are included; a package counts once. Entry counts use the counterparty of the entry's projection.", Styles.Note)
             .Rule(new DataBarRule(new CellRange(first, 11, last, 11), "60A5FA", 0m, 1m))

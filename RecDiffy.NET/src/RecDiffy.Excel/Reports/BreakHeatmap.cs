@@ -55,17 +55,17 @@ internal static class BreakHeatmap
                     .Fold(categories, (inner, code, position) => inner.PutFormula(
                         row,
                         2 + position,
-                        $"COUNTIFS({counterparty},$A{row},{category},\"{code.Replace("\"", "\"\"", StringComparison.Ordinal)}\")",
+                        $"COUNTIFS({counterparty},$A{row.ToInvariant()},{category},\"{code.Replace("\"", "\"\"", StringComparison.Ordinal)}\")",
                         new CellStyle(Format: Formats.Count, Align: HorizontalAlign.Center)))
-                    .PutFormula(row, totalColumn, $"SUM(B{row}:{Address.Column(totalColumn - 1)}{row})", new CellStyle(Bold: true, Format: Formats.Count, Align: HorizontalAlign.Center));
+                    .PutFormula(row, totalColumn, $"SUM(B{row.ToInvariant()}:{Address.Column(totalColumn - 1)}{row.ToInvariant()})", new CellStyle(Bold: true, Format: Formats.Count, Align: HorizontalAlign.Center));
             })
             .Put(total, 1, context.Label("Total"), Styles.Total)
             .Fold(Enumerable.Range(2, categories.Length + 1), (current, column, _) => current.PutFormula(
                 total,
                 column,
-                $"SUM({Address.Column(column)}{first}:{Address.Column(column)}{Math.Max(first, total - 1)})",
+                $"SUM({Address.Column(column)}{first.ToInvariant()}:{Address.Column(column)}{Math.Max(first, total - 1).ToInvariant()})",
                 Styles.Total with { Format = Formats.Count, Align = HorizontalAlign.Center }))
-            .PutFormula(total, totalColumn + 1, $"IF({Address.Column(totalColumn)}{total}=COUNTIF({items.Range("entryId")},\"?*\"),\"✓\",\"✗\")", Styles.Check)
+            .PutFormula(total, totalColumn + 1, $"IF({Address.Column(totalColumn)}{total.ToInvariant()}=COUNTIF({items.Range("entryId")},\"?*\"),\"✓\",\"✗\")", Styles.Check)
             .Put(header, totalColumn + 1, context.Label("Check"), Styles.Header)
             .Put(total + 2, 1, "Counts are COUNTIFS formulas over Open_Items (counterparty × category); the check ties the grand total to the number of open items.", Styles.Note)
             .Rule(new ColorScaleRule(new CellRange(first, 2, total - 1, totalColumn - 1), "FFFFFF", "C2410C"))
