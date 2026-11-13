@@ -1,4 +1,3 @@
-using System.Globalization;
 using RecDiffy.Results;
 
 namespace RecDiffy.Samples;
@@ -17,7 +16,7 @@ public static class EngineVersionReport
         var version = result.Run.EngineVersion;
 
         // The package version, without build metadata: a prerelease label survives here, unlike in the assembly version.
-        Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $"engine version: {version}"));
+        Console.WriteLine($"engine version: {version}");
         return version.Length > 0 && !version.Contains('+', StringComparison.Ordinal);
     }
 
