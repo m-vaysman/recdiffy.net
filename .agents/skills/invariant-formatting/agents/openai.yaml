@@ -1,0 +1,6 @@
+interface:
+  display_name: "Invariant formatting"
+  short_description: "Per-value ToInvariant() for interpolated strings, formulas and machine-read text (MA0076, MA0185)"
+
+policy:
+  allow_implicit_invocation: true
