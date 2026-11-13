@@ -420,7 +420,7 @@ The limits bound the group search in `match.groupSum`. They don't affect pair pa
 | `maxNodesPerTarget` | 250000 | The search budget for one target. When it runs out: `SearchIncomplete` with `BudgetExhausted`. |
 
 - **Write each limit as a JSON integer.** A number that isn't an integer falls back to the default. A string throws `InvalidOperationException`.
-- **Only `maxGroupSize` has a hard cap.** The others are yours to set, but the search cost grows quickly with block size.
+- **Only `maxGroupSize` has a hard cap.** The others are yours to set, but the search cost grows quickly with block size. The measured cost of raising them is in [CAPACITY.md](CAPACITY.md#the-largest-reconciliation).
 
 Tests: [AdversarialSearchLimitTests.cs](../src/RecDiffy.Tests/AdversarialSearchLimitTests.cs), and `Commits_blocks_under_the_limit_and_leaves_an_oversize_block_unresolved` in [VerificationTests.cs](../src/RecDiffy.Tests/VerificationTests.cs).
 

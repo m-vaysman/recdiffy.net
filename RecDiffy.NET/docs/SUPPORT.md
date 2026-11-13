@@ -57,6 +57,8 @@ What holds today, and how each part is checked:
 - **The server's culture is read once,** at compile, from the compiling thread's `CultureInfo.CurrentCulture`, for every side that declares no culture. In a multi-threaded host, declare cultures in the profile, so the thread that compiles doesn't matter.
 - **`RecDiffy.Excel` hasn't been reviewed** for concurrent use. Write reports from one thread per result until it is.
 
+The measured concurrency and memory results are in [CAPACITY.md](CAPACITY.md).
+
 ## Native AOT and trimming
 
 - **The analyzers.** `RecDiffy` and `RecDiffy.RulePacks.Trading` set `IsAotCompatible` and `IsTrimmable`. On `net8.0` and later, that turns on the AOT, trim and single-file analyzers. CI builds with `-warnaserror`, so any new warning from them fails the build.
@@ -69,7 +71,7 @@ What holds today, and how each part is checked:
 - **In-process .NET library.** Compile a profile once, then call `Reconciler.Run` or `Reconciler.RunAsync` as often as you like.
 - **Sources:** your own objects (`RecordSources.FromObjects`), any `IDataReader` (`RecordSources.FromDataReader`), and CSV and Excel files through `RecDiffy.IO`.
 - **Reports:** Excel workbooks through `RecDiffy.Excel`.
-- **In memory.** Both sides are read fully into memory before matching starts. Size the host for the largest pair of files.
+- **In memory.** Both sides are read fully into memory before matching starts. Size the host for the largest pair of files. The measured ceiling is in [CAPACITY.md](CAPACITY.md#the-largest-reconciliation).
 - **No service or command-line tool** ships with the packages.
 - **The public API can change** between previews. Reviewing it before 1.0 is [#45](https://github.com/m-vaysman/recdiffy.net/issues/45), and the compatibility promise is [#74](https://github.com/m-vaysman/recdiffy.net/issues/74).
 

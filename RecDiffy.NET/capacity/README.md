@@ -9,7 +9,7 @@ through its public API, records what it cost, and writes a run folder with `resu
 
 It is **outside `RecDiffy.slnx`**. No workflow builds or runs it, `ci.yml` never sees it, and it is `IsPackable=false`,
 so it adds nothing to the packed packages. It lives in this repository so it always measures the engine at the commit
-that contains it.
+that contains it. The user-facing guide built from these runs is [CAPACITY.md](../docs/CAPACITY.md).
 
 ## Run it on COBBLER1 (phase 6)
 
