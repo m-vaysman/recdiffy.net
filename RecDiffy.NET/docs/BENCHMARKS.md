@@ -15,6 +15,7 @@ The benchmarks are in `RecDiffy.NET/src/RecDiffy.Benchmarks` and use BenchmarkDo
 | `ExecutionModeBench` | `Reconciler.Run` and `RunAsync` end to end: intake, normalization, matching and results. `Parallel(degree)` sets `MaxDegreeOfParallelism`, which parallelizes field comparison, not matching. | 1,000 and 4,000 rows per side |
 | `DatasetBench` (#64) | `CascadeMatcher.Run` with four passes on one of seven dataset shapes. | 1,000 and 4,000 rows per side |
 | `GroupConstructionBench` (#41) | `Build`: `GroupIndex.Create` alone. `Match`: `CascadeMatcher.Run` with the group-sum pass alone. | 4,000 rows per side, widths 8 and 64 |
+| `PipelineStageBench` (#377 P2) | One pipeline stage per operation: `Intake.Normalize`, `Consolidation.Run` over NEW/CORR chains, `Packages.Pack` over two-leg packages, `CascadeMatcher.Run` with three passes, `FieldDiffer.Compare` over the committed pairs, and `ResultBuilder.Build`. Every stage runs on the same generated trades, so the per-stage costs are comparable. | 1,000 and 4,000 rows per side |
 
 `DatasetBench`, `GroupConstructionBench` and `CascadeScaleBench` time the matcher only. Their rows start as consolidated rows and stop at the match report. Intake, normalization, field comparison and result building are not in those numbers. `ExecutionModeBench` is the only end-to-end benchmark, and it uses exact pairs only.
 
@@ -199,8 +200,8 @@ How the numbers were chosen:
   - A target whose search reaches the 250,000-node budget ends `BudgetExhausted`. Its time is the cost of stopping, and says nothing about how long a full search would take. No dataset here reaches the node budget.
 - **Default limits only.** Raising `MaxBlockItems` or `MaxNodesPerTarget` changes both the outcome and the cost.
 - **No comparisons.** These numbers are not compared with other tools, with earlier RecDiffy versions, or across machines.
-- **Missing throughput on Bencher.** Benchmarks with more than one parameter get no throughput measure (#265). That includes `DatasetBench`, `GroupConstructionBench` and `ExecutionModeBench.Parallel`. Their latency and allocations still upload.
-- **No split by stage.** Time in intake, construction, search, comparison and output is not separated. That is #65.
+- **Throughput on Bencher.** A benchmark with a `Rows` parameter gets a throughput measure, and the converter reads `Rows` out of a multi-parameter name such as `Rows=1000&Stage=Normalize` (#265). Latency, allocated bytes and GC counts are uploaded for every benchmark.
+- **No split by stage in the numbers below.** `PipelineStageBench` measures intake, normalization, consolidation, matching, comparison and result building separately at 1,000 and 4,000 rows per side, but its numbers are not tabulated in this note yet (#377 P7). The tables below stay matcher-focused.
 
 ## Reproducing this run
 
