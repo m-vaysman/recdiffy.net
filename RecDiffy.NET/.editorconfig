@@ -7,6 +7,11 @@ dotnet_diagnostic.CA1851.severity = warning
 # Culture-sensitive calls (ToString, Parse, string.Format) must pass an explicit IFormatProvider, normally CultureInfo.InvariantCulture.
 dotnet_diagnostic.CA1305.severity = warning
 
+# An interpolated hole such as {row} formats with the current culture, so an Excel formula, a cell reference or
+# other machine-readable text can change with the machine. Production code spells the call: {row.ToInvariant()}.
+# See RecDiffy.InvariantFormatting. Test projects reset it to the analyzer's default in their own .editorconfig.
+dotnet_diagnostic.MA0076.severity = error
+
 # String == and != are ordinal; string.Equals would break the switch expressions and patterns this repo uses.
 dotnet_diagnostic.MA0006.severity = none
 
