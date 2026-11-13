@@ -13,6 +13,7 @@ public static class Program
             TradingReference.Run(),
             BuiltProfile.Run(),
             TypedReconciliation.Run(),
+            EngineVersionReport.Run(),
         };
         return outcomes.All(outcome => outcome) ? 0 : 1;
     }

@@ -46,7 +46,11 @@ nuget.org prereleases are the only public channel. Two other workflows pack the 
 
 ### The engine version in a result
 
-`result.Run.EngineVersion` is the `RecDiffy` assembly version. A prerelease version is dropped from it, so every `1.2.0` preview reports `1.2.0.0`, and the `1.1.0` builds report `1.1.0.0`. To tell previews apart, read the assembly's informational version, which carries the full version and the commit, such as `1.2.0-preview.3+<commit>`. Making `EngineVersion` carry the full version is [#295](https://github.com/m-vaysman/recdiffy.net/issues/295).
+`result.Run.EngineVersion` is the package version, without build metadata: the assembly's informational version up to the `+`, such as `1.2.0-preview.3` from `1.2.0-preview.3+<commit>`. It is read from the assembly and works under Native AOT and trimming.
+
+- **A prerelease label survives.** The assembly version drops it, so it is not used unless the informational version is missing. Every `1.2.0` preview before [#295](https://github.com/m-vaysman/recdiffy.net/issues/295) reported `1.2.0.0`, and a result could not say which preview made it.
+- **A local build that sets no version** reports `1.0.0`, the `<Version>` in [RecDiffy.csproj](../src/RecDiffy/RecDiffy.csproj).
+- **The PackageSmoke consumer check pins it.** `consume.sh` packs `0.0.0-ci.<run>`, runs the samples from the packages, and fails unless `EngineVersion` equals the packed version, on both frameworks. `publish-aot.sh` runs the same sample from the Native AOT and trimmed builds.
 
 ## Release to nuget.org
 
@@ -83,7 +87,6 @@ The push uses `--skip-duplicate`, so a version that is already on nuget.org is s
 - **No XML API documentation** in the packages. No project sets `GenerateDocumentationFile`.
 - **Package metadata gaps,** such as links in the packed README, are tracked in [#46](https://github.com/m-vaysman/recdiffy.net/issues/46).
 - **`AttributedTo` can name roots that don't explain the difference** ([#254](https://github.com/m-vaysman/recdiffy.net/issues/254)).
-- **The same engine version** for every preview of one release ([#295](https://github.com/m-vaysman/recdiffy.net/issues/295)). See [The engine version in a result](#the-engine-version-in-a-result).
 - **In memory.** Both sides are read fully into memory before matching.
 - **Profile gaps** that compile but misbehave are listed in [PROFILES.md](PROFILES.md#known-gaps).
 - **Deferred:** installing the Excel add-in ([#198](https://github.com/m-vaysman/recdiffy.net/issues/198)), profile authoring tools ([#143](https://github.com/m-vaysman/recdiffy.net/issues/143), [#144](https://github.com/m-vaysman/recdiffy.net/issues/144), [#145](https://github.com/m-vaysman/recdiffy.net/issues/145)) and typed columns from a sample file ([#122](https://github.com/m-vaysman/recdiffy.net/issues/122)).

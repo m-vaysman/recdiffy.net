@@ -17,7 +17,7 @@ Run_Info!B10	fixture-v1
 Run_Info!A11	Reference hash
 Run_Info!B11	fixture-v1
 Run_Info!A12	Engine version
-Run_Info!B12	1.0.0.0
+Run_Info!B12	1.0.0
 Run_Info!A13	Writer
 Run_Info!B13	RecDiffy.Excel 1.0.0.0
 Run_Info!A14	Rows read: left
