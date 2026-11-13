@@ -9,6 +9,7 @@ internal sealed record CapacityReport(
     ReportHost Host,
     IReadOnlyList<ReportCase> Cases,
     ReportDerived Derived,
+    ReportConcurrency? Concurrency,
     IReadOnlyList<string> Notes);
 
 internal sealed record ReportRun(
@@ -20,6 +21,7 @@ internal sealed record ReportRun(
     string ProfileHash,
     int Seed,
     int Repeats,
+    string Sweep,
     IReadOnlyList<int> Sizes,
     string CommandLine,
     string StartedAtUtc,
@@ -137,3 +139,47 @@ internal sealed record ReportDerived(
 internal sealed record ReportScaling(int FromSize, int ToSize, double SecondsRatio, double RowsRatio, double Exponent, string Verdict);
 
 internal sealed record ReportUnmeasuredStage(string Name, string Reason);
+
+internal sealed record ReportConcurrency(
+    int RowsPerRun,
+    int Repeats,
+    string GcMode,
+    int LogicalProcessors,
+    string BaselineFingerprint,
+    bool AllMatchBaseline,
+    IReadOnlyList<ReportConcurrencyCase> Cases,
+    IReadOnlyList<string> Notes);
+
+internal sealed record ReportConcurrencyCase(
+    string Style,
+    string Sharing,
+    int Level,
+    int Runs,
+    int RowsPerRun,
+    long TotalRows,
+    double WallSeconds,
+    double RunsPerMinute,
+    double RowsPerSecond,
+    double ScalingEfficiencyPercent,
+    double CoresUsed,
+    double CoresUsedPercent,
+    long AllocatedBytes,
+    double AllocatedBytesPerSecond,
+    double GcPauseSeconds,
+    int Gen0,
+    int Gen1,
+    int Gen2,
+    long PeakManagedHeapBytes,
+    long PeakWorkingSetBytes,
+    int PeakThreadPoolThreads,
+    int PeakPendingWorkItems,
+    int PeakThreads,
+    long LockContentionCount,
+    double LatencyP50Seconds,
+    double LatencyP95Seconds,
+    double LatencyP99Seconds,
+    bool ResultsMatchBaseline,
+    string Fingerprint)
+{
+    public double ThroughputBarPercent { get; init; }
+}

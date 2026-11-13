@@ -15,17 +15,26 @@ internal static class MarkdownReport
         var host = JsonView.Field(root, "host");
         var derived = JsonView.Field(root, "derived");
         var cases = JsonView.Items(JsonView.Field(root, "cases"));
+        var concurrency = root.TryGetProperty("concurrency", out var found) && found.ValueKind is not JsonValueKind.Null
+            ? found
+            : (JsonElement?)null;
 
         var text = new StringBuilder();
         text.Append("# RecDiffy capacity run ").Append(JsonView.Text(run, "id")).Append('\n').Append('\n');
         text.Append("| | |\n|---|---|\n");
         Row(text, "Commit", $"`{JsonView.Text(source, "commit")}` on `{JsonView.Text(source, "ref")}`, working tree {JsonView.Text(source, "workingTree")}");
+        Row(text, "Sweep", JsonView.Text(run, "sweep"));
         Row(text, "Started (UTC)", JsonView.Text(run, "startedAtUtc"));
         Row(text, "Duration", $"{Format.Seconds(JsonView.Number(run, "durationSeconds"))} s (compile {Format.Seconds(JsonView.Number(run, "compileSeconds"))} s)");
         Row(text, "Harness", $"{JsonView.Text(run, "harnessVersion")}, engine {JsonView.Text(run, "engineVersion")}");
         Row(text, "Profile", $"{JsonView.Text(run, "profileId")} {JsonView.Text(run, "profileVersion")}, hash `{JsonView.Text(run, "profileHash")}`");
-        Row(text, "Dataset", $"seed {Format.Count(JsonView.Integer(run, "seed"))}, {Format.Count(JsonView.Integer(run, "repeats"))} measured run(s) per size");
-        Row(text, "Rows per side", Format.Join(JsonView.Items(JsonView.Field(run, "sizes")).Select(item => Format.Count(item.GetInt32())), ", "));
+        var seed = Format.Count(JsonView.Integer(run, "seed"));
+        var repeats = Format.Count(JsonView.Integer(run, "repeats"));
+        Row(text, "Dataset", JsonView.Text(run, "sweep") is "concurrency"
+            ? $"seed {seed}, {repeats} batch(es) per level"
+            : $"seed {seed}, {repeats} measured run(s) per size");
+        if (concurrency is null)
+            Row(text, "Rows per side", Format.Join(JsonView.Items(JsonView.Field(run, "sizes")).Select(item => Format.Count(item.GetInt32())), ", "));
         Row(text, "Command", "`" + JsonView.Text(run, "commandLine") + "`");
         text.Append('\n');
 
@@ -40,6 +49,26 @@ internal static class MarkdownReport
         Row(text, "GC heap limit", $"{Format.Gigabytes(JsonView.Integer(host, "gcHeapLimitBytes"))} GB");
         text.Append('\n');
 
+        if (concurrency is { } section)
+            Concurrency(text, section);
+        else
+            Sizes(text, derived, cases);
+
+        text.Append("## Not measured yet\n\n| Stage | Why |\n|---|---|\n");
+        foreach (var stage in JsonView.Items(JsonView.Field(derived, "unmeasuredStages")))
+            text.Append("| ").Append(JsonView.Text(stage, "name")).Append(" | ").Append(JsonView.Text(stage, "reason")).Append(" |\n");
+
+        text.Append("\n## Notes\n\n");
+        var notes = concurrency is { } section2 ? JsonView.Items(JsonView.Field(section2, "notes")) : JsonView.Items(JsonView.Field(root, "notes"));
+        foreach (var note in notes)
+            text.Append("- ").Append(note.GetString()).Append('\n');
+
+        text.Append("\nRun folder: `results.json`, `report.md`, `report.html`. Issue: https://github.com/m-vaysman/recdiffy.net/issues/377\n");
+        return text.ToString();
+    }
+
+    private static void Sizes(StringBuilder text, JsonElement derived, IReadOnlyList<JsonElement> cases)
+    {
         text.Append("## Largest reconciliation measured\n\n");
         var largest = JsonView.Field(derived, "largestCompletedSize");
         text.Append(largest.ValueKind is JsonValueKind.Null
@@ -103,17 +132,42 @@ internal static class MarkdownReport
 
             text.Append('\n');
         }
+    }
 
-        text.Append("## Not measured yet\n\n| Stage | Why |\n|---|---|\n");
-        foreach (var stage in JsonView.Items(JsonView.Field(derived, "unmeasuredStages")))
-            text.Append("| ").Append(JsonView.Text(stage, "name")).Append(" | ").Append(JsonView.Text(stage, "reason")).Append(" |\n");
+    private static void Concurrency(StringBuilder text, JsonElement section)
+    {
+        var cases = JsonView.Items(JsonView.Field(section, "cases"));
+        text.Append("## Concurrency\n\n");
+        text.Append("| | |\n|---|---|\n");
+        Row(text, "Rows per run", Format.Count(JsonView.Integer(section, "rowsPerRun")) + " per side");
+        Row(text, "Batches per level", Format.Count(JsonView.Integer(section, "repeats")));
+        Row(text, "GC", JsonView.Text(section, "gcMode") + " GC");
+        Row(text, "Logical processors", Format.Count(JsonView.Integer(section, "logicalProcessors")));
+        Row(text, "Baseline fingerprint", "`" + JsonView.Text(section, "baselineFingerprint") + "`");
+        Row(text, "Every run matched the baseline", JsonView.Field(section, "allMatchBaseline").GetBoolean() ? "yes" : "**no**");
+        text.Append('\n');
 
-        text.Append("\n## Notes\n\n");
-        foreach (var note in JsonView.Items(JsonView.Field(root, "notes")))
-            text.Append("- ").Append(note.GetString()).Append('\n');
+        text.Append("| Fan-out | Profiles | Runs | Wall s | Runs/min | Rows/s | Efficiency | Cores used | Peak heap MB | p50 s | p95 s | p99 s | Matches |\n");
+        text.Append("|---|---|---|---|---|---|---|---|---|---|---|---|---|\n");
+        foreach (var item in cases)
+        {
+            text.Append("| ")
+                .Append(JsonView.Text(item, "style")).Append(" | ")
+                .Append(JsonView.Text(item, "sharing")).Append(" | ")
+                .Append(Format.Count(JsonView.Integer(item, "runs"))).Append(" | ")
+                .Append(Format.Seconds(JsonView.Number(item, "wallSeconds"))).Append(" | ")
+                .Append(Format.Decimal(JsonView.Number(item, "runsPerMinute"), "0.0")).Append(" | ")
+                .Append(Format.Decimal(JsonView.Number(item, "rowsPerSecond"), "0")).Append(" | ")
+                .Append(Format.Decimal(JsonView.Number(item, "scalingEfficiencyPercent"), "0.0")).Append("% | ")
+                .Append(Format.Decimal(JsonView.Number(item, "coresUsed"), "0.0")).Append(" | ")
+                .Append(Format.Megabytes(JsonView.Integer(item, "peakManagedHeapBytes"))).Append(" | ")
+                .Append(Format.Seconds(JsonView.Number(item, "latencyP50Seconds"))).Append(" | ")
+                .Append(Format.Seconds(JsonView.Number(item, "latencyP95Seconds"))).Append(" | ")
+                .Append(Format.Seconds(JsonView.Number(item, "latencyP99Seconds"))).Append(" | ")
+                .Append(JsonView.Field(item, "resultsMatchBaseline").GetBoolean() ? "yes" : "**no**").Append(" |\n");
+        }
 
-        text.Append("\nRun folder: `results.json`, `report.md`, `report.html`. Issue: https://github.com/m-vaysman/recdiffy.net/issues/377\n");
-        return text.ToString();
+        text.Append('\n');
     }
 
     private static string Known(bool? matches) => matches switch

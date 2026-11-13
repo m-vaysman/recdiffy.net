@@ -15,6 +15,9 @@ internal static class HtmlReport
         var host = JsonView.Field(root, "host");
         var derived = JsonView.Field(root, "derived");
         var cases = JsonView.Items(JsonView.Field(root, "cases"));
+        var concurrency = root.TryGetProperty("concurrency", out var found) && found.ValueKind is not JsonValueKind.Null
+            ? found
+            : (JsonElement?)null;
 
         var text = new StringBuilder();
         text.Append("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n");
@@ -22,14 +25,20 @@ internal static class HtmlReport
         text.Append(Style);
         text.Append("</head>\n<body>\n<main>\n");
         text.Append("<h1>RecDiffy capacity run</h1>\n");
-        text.Append("<p class=\"lede\">Phase 1 of <a href=\"https://github.com/m-vaysman/recdiffy.net/issues/377\">issue #377</a>: one reconciliation per size through the public API, on one host. Measured, not promised.</p>\n");
+        text.Append("<p class=\"lede\">Phase 1 and phase 3 of <a href=\"https://github.com/m-vaysman/recdiffy.net/issues/377\">issue #377</a>: the sizes sweep and the concurrency sweep, through the public API, on one host. Measured, not promised.</p>\n");
 
         Header(text, run, source);
         Host(text, host);
-        Cases(text, cases, derived);
-        Stages(text, cases);
-        Scaling(text, derived);
-        Notes(text, root, derived);
+        if (concurrency is { } section)
+            Concurrency(text, section);
+        else
+        {
+            Cases(text, cases, derived);
+            Stages(text, cases);
+            Scaling(text, derived);
+        }
+
+        Notes(text, root, derived, concurrency);
         Footer(text);
         text.Append("</main>\n</body>\n</html>\n");
         return text.ToString();
@@ -39,11 +48,16 @@ internal static class HtmlReport
     {
         text.Append("<section id=\"run\">\n<h2>Run</h2>\n<table>\n");
         Row(text, "Commit", $"<code>{Escape(JsonView.Text(source, "commit"))}</code> on <code>{Escape(JsonView.Text(source, "ref"))}</code>, working tree {Escape(JsonView.Text(source, "workingTree"))}");
+        Row(text, "Sweep", Escape(JsonView.Text(run, "sweep")));
         Row(text, "Started (UTC)", Escape(JsonView.Text(run, "startedAtUtc")));
         Row(text, "Duration", $"{Format.Seconds(JsonView.Number(run, "durationSeconds"))} s (compile {Format.Seconds(JsonView.Number(run, "compileSeconds"))} s)");
         Row(text, "Harness", $"{Escape(JsonView.Text(run, "harnessVersion"))}, engine {Escape(JsonView.Text(run, "engineVersion"))}");
         Row(text, "Profile", $"{Escape(JsonView.Text(run, "profileId"))} {Escape(JsonView.Text(run, "profileVersion"))}, hash <code>{Escape(JsonView.Text(run, "profileHash"))}</code>");
-        Row(text, "Dataset", $"seed {Format.Count(JsonView.Integer(run, "seed"))}, {Format.Count(JsonView.Integer(run, "repeats"))} measured run(s) per size, rows per side {Format.Join(JsonView.Items(JsonView.Field(run, "sizes")).Select(item => Format.Count(item.GetInt32())), ", ")}");
+        var seed = Format.Count(JsonView.Integer(run, "seed"));
+        var repeats = Format.Count(JsonView.Integer(run, "repeats"));
+        Row(text, "Dataset", JsonView.Text(run, "sweep") is "concurrency"
+            ? $"seed {seed}, {repeats} batch(es) per level"
+            : $"seed {seed}, {repeats} measured run(s) per size, rows per side {Format.Join(JsonView.Items(JsonView.Field(run, "sizes")).Select(item => Format.Count(item.GetInt32())), ", ")}");
         Row(text, "Command", "<code>" + Escape(JsonView.Text(run, "commandLine")) + "</code>");
         text.Append("</table>\n</section>\n");
     }
@@ -188,13 +202,82 @@ internal static class HtmlReport
         text.Append("</tbody>\n</table>\n</section>\n");
     }
 
-    private static void Notes(StringBuilder text, JsonElement root, JsonElement derived)
+    private static void Concurrency(StringBuilder text, JsonElement section)
+    {
+        var cases = JsonView.Items(JsonView.Field(section, "cases"));
+        text.Append("<section id=\"concurrency\">\n<h2>Concurrency</h2>\n");
+        text.Append("<p class=\"note\">Each batch starts all N runs together over the same seeded dataset. Rows per run are fixed, so total work grows with N; the numbers below are throughput, not total batch time.</p>\n");
+        text.Append("<div class=\"facts\">\n");
+        Fact(text, "Rows per run", Format.Count(JsonView.Integer(section, "rowsPerRun")) + " per side");
+        Fact(text, "Batches per level", Format.Count(JsonView.Integer(section, "repeats")));
+        Fact(text, "GC", Escape(JsonView.Text(section, "gcMode")) + " GC");
+        Fact(text, "Logical processors", Format.Count(JsonView.Integer(section, "logicalProcessors")));
+        Fact(text, "Baseline fingerprint", "<code>" + Escape(JsonView.Text(section, "baselineFingerprint")) + "</code>");
+        Fact(text, "Results against the baseline", JsonView.Field(section, "allMatchBaseline").GetBoolean()
+            ? "<strong>every run matched, field by field</strong>"
+            : "<strong class=\"bad\">a run did not match the baseline</strong>");
+        text.Append("</div>\n");
+
+        text.Append("<h3>Rows per second against concurrency</h3>\n");
+        foreach (var style in new[] { "threads", "tasks", "parallel" })
+        {
+            var ofStyle = cases.Where(item => string.Equals(JsonView.Text(item, "style"), style, StringComparison.Ordinal)).ToArray();
+            if (ofStyle.Length is 0)
+                continue;
+            text.Append("<h4>").Append(Escape(style)).Append("</h4>\n");
+            foreach (var level in ofStyle.Select(item => JsonView.Integer(item, "level")).Distinct().Order())
+            {
+                var shared = ofStyle.FirstOrDefault(item => JsonView.Integer(item, "level") == level && JsonView.Text(item, "sharing") is "shared");
+                var separate = ofStyle.FirstOrDefault(item => JsonView.Integer(item, "level") == level && JsonView.Text(item, "sharing") is "separate");
+                text.Append("<div class=\"chart\"><span class=\"label\">N=").Append(Format.Count(level)).Append("</span><span class=\"bar\">");
+                if (shared.ValueKind is not JsonValueKind.Undefined)
+                    text.Append("<span class=\"fill shared\" style=\"width:").Append(Format.Decimal(JsonView.Number(shared, "throughputBarPercent"), "0.0")).Append("%\"></span>");
+                if (separate.ValueKind is not JsonValueKind.Undefined)
+                    text.Append("<span class=\"fill separate\" style=\"width:").Append(Format.Decimal(JsonView.Number(separate, "throughputBarPercent"), "0.0")).Append("%\"></span>");
+                text.Append("</span><span class=\"value\">");
+                if (shared.ValueKind is not JsonValueKind.Undefined)
+                    text.Append(Format.Decimal(JsonView.Number(shared, "rowsPerSecond"), "0")).Append(" shared");
+                if (shared.ValueKind is not JsonValueKind.Undefined && separate.ValueKind is not JsonValueKind.Undefined)
+                    text.Append(" / ");
+                if (separate.ValueKind is not JsonValueKind.Undefined)
+                    text.Append(Format.Decimal(JsonView.Number(separate, "rowsPerSecond"), "0")).Append(" separate");
+                text.Append(" rows/s</span></div>\n");
+            }
+        }
+
+        text.Append("<h3>Every batch</h3>\n");
+        text.Append("<table>\n<thead><tr><th>Fan-out</th><th>Profiles</th><th>Runs</th><th>Wall s</th><th>Runs/min</th><th>Rows/s</th><th>Efficiency</th><th>Cores used</th><th>Peak heap</th><th>p50</th><th>p95</th><th>p99</th><th>Matches</th></tr></thead>\n<tbody>\n");
+        foreach (var item in cases)
+        {
+            text.Append("<tr><td>").Append(Escape(JsonView.Text(item, "style"))).Append("</td><td>")
+                .Append(Escape(JsonView.Text(item, "sharing"))).Append("</td><td>")
+                .Append(Format.Count(JsonView.Integer(item, "runs"))).Append("</td><td>")
+                .Append(Format.Seconds(JsonView.Number(item, "wallSeconds"))).Append("</td><td>")
+                .Append(Format.Decimal(JsonView.Number(item, "runsPerMinute"), "0.0")).Append("</td><td>")
+                .Append(Format.Decimal(JsonView.Number(item, "rowsPerSecond"), "0")).Append("</td><td>")
+                .Append(Format.Decimal(JsonView.Number(item, "scalingEfficiencyPercent"), "0.0")).Append("%</td><td>")
+                .Append(Format.Decimal(JsonView.Number(item, "coresUsed"), "0.0")).Append("</td><td>")
+                .Append(Format.Megabytes(JsonView.Integer(item, "peakManagedHeapBytes"))).Append(" MB</td><td>")
+                .Append(Format.Seconds(JsonView.Number(item, "latencyP50Seconds"))).Append("</td><td>")
+                .Append(Format.Seconds(JsonView.Number(item, "latencyP95Seconds"))).Append("</td><td>")
+                .Append(Format.Seconds(JsonView.Number(item, "latencyP99Seconds"))).Append("</td><td>")
+                .Append(JsonView.Field(item, "resultsMatchBaseline").GetBoolean() ? "yes" : "<strong class=\"bad\">no</strong>").Append("</td></tr>\n");
+        }
+
+        text.Append("</tbody>\n</table>\n</section>\n");
+    }
+
+    private static void Fact(StringBuilder text, string name, string html) =>
+        text.Append("<div class=\"fact\"><span class=\"name\">").Append(Escape(name)).Append("</span><span class=\"value\">").Append(html).Append("</span></div>\n");
+
+    private static void Notes(StringBuilder text, JsonElement root, JsonElement derived, JsonElement? concurrency)
     {
         text.Append("<section id=\"notes\">\n<h2>Not measured yet</h2>\n<dl>\n");
         foreach (var stage in JsonView.Items(JsonView.Field(derived, "unmeasuredStages")))
             text.Append("<dt>").Append(Escape(JsonView.Text(stage, "name"))).Append("</dt><dd>").Append(Escape(JsonView.Text(stage, "reason"))).Append("</dd>\n");
         text.Append("</dl>\n<h2>Notes</h2>\n<ul>\n");
-        foreach (var note in JsonView.Items(JsonView.Field(root, "notes")))
+        var notes = concurrency is { } section ? JsonView.Items(JsonView.Field(section, "notes")) : JsonView.Items(JsonView.Field(root, "notes"));
+        foreach (var note in notes)
             text.Append("<li>").Append(Escape(note.GetString() ?? "")).Append("</li>\n");
         text.Append("</ul>\n</section>\n");
     }
@@ -248,6 +331,9 @@ internal static class HtmlReport
         dl { display: grid; grid-template-columns: max-content 1fr; gap: .3rem 1rem; }
         dt { font-weight: 600; }
         dd { margin: 0; color: var(--muted); }
+        .facts { display: grid; grid-template-columns: max-content 1fr; gap: .25rem 1rem; margin: .5rem 0 1rem; }
+        .fact { display: contents; }
+        .fact .name { color: var(--muted); }
         code { font-size: .85em; }
         .chart { display: grid; grid-template-columns: 7rem 1fr 6rem; align-items: center; gap: .5rem; margin: .3rem 0; }
         .chart .label { color: var(--muted); font-size: .85rem; text-align: right; }
@@ -255,6 +341,8 @@ internal static class HtmlReport
         .chart .fill { display: block; height: 100%; background: var(--engine); }
         .chart .fill.heap { background: var(--excel); }
         .chart .fill.excel { background: var(--excel); }
+        .chart .fill.shared { background: var(--engine); }
+        .chart .fill.separate { background: var(--excel); }
         .chart .value { color: var(--muted); font-size: .85rem; }
         .bad { color: var(--bad); }
         footer { margin-top: 3rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .85rem; }
