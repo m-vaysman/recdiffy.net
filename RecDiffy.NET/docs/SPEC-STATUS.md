@@ -18,6 +18,7 @@ spec's §14.1; this table is the short version, so a reader of the code does not
 | Telemetry | spans per run, stage and pass, and a long list of counters; row keys with `RunOptions.TelemetryIncludesRowKeys` | one `RecDiffy.Run` span and three counters; the row-key option is reserved and has no effect |
 | Target frameworks | `net10.0` | `net8.0` and `net10.0`; .NET 9 apps use the `net8.0` build; the `net8.0` target stays as long as customers need it |
 | Result immutability | `ReconciliationResult` is immutable | a read-only view over the produced entries and rows |
+| Instrument resolution | §2.3 and §3.3: `instrument.resolve` maps every instrument identifier to one canonical `Instrument` in stage 1, and a conflict warns `UnresolvedInstrument` | not implemented and out of scope (#259): a profile that names it does not compile, and intake no longer builds a master from the left side's `ISIN`/`CUSIP`/`SEDOL`/`Ticker` columns. `IntakeInstrumentColumnsTests` pins that the columns are not read |
 
 ## Rules
 
