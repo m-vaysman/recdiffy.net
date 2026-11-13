@@ -12,7 +12,12 @@ namespace RecDiffy.Excel.Writing;
 
 // The type that knows the Open XML SDK. The SDK builds its document by mutation, so this writer is the
 // imperative edge of the library: reports describe a workbook as immutable data and this class serializes it.
+// Replaced by StreamingSpreadsheetWriter (#398): this one builds a worksheet object tree, which keeps a third copy of the
+// data. RecDiffyExcel no longer constructs it; deleting a replaced type is left to a human.
+#pragma warning disable MA0182
+[Obsolete("Replaced by StreamingSpreadsheetWriter: builds the whole worksheet DOM before writing, which keeps a third copy of the data. See #398.")]
 internal sealed class OpenXmlSpreadsheetWriter : IWorkbookWriter
+#pragma warning restore MA0182
 {
     private const long EmuPerCm = 360_000;
     private static readonly DateOnly Epoch = new(1899, 12, 30);
