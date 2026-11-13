@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RecDiffy capacity run 2026-11-13_1359_2d16975</title>
+<style>
+:root { color-scheme: light dark; --ink: #1b1b1b; --muted: #5c5c5c; --rule: #d8d8d8; --paper: #fdfdfc; --engine: #35618f; --excel: #8a6240; --bad: #a32020; }
+@media (prefers-color-scheme: dark) { :root { --ink: #e8e8e6; --muted: #a8a8a4; --rule: #3a3a38; --paper: #161615; --engine: #79a7d6; --excel: #c39a6b; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif; }
+main { max-width: 1080px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+h1 { font-size: 1.7rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.2rem; margin: 2.4rem 0 .6rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+h3 { font-size: 1rem; margin: 1.6rem 0 .5rem; }
+p.lede { color: var(--muted); margin: 0 0 1.5rem; }
+p.note, p.flag { color: var(--muted); }
+p.flag strong { color: var(--ink); }
+a { color: var(--engine); }
+table { border-collapse: collapse; width: 100%; margin: .4rem 0 1rem; font-size: .92rem; }
+th, td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th { color: var(--muted); font-weight: 600; }
+tbody tr:hover { background: color-mix(in srgb, var(--rule) 28%, transparent); }
+table.stages { width: auto; min-width: 60%; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: .3rem 1rem; }
+dt { font-weight: 600; }
+dd { margin: 0; color: var(--muted); }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: .25rem 1rem; margin: .5rem 0 1rem; }
+.fact { display: contents; }
+.fact .name { color: var(--muted); }
+code { font-size: .85em; }
+.chart { display: grid; grid-template-columns: 7rem 1fr 6rem; align-items: center; gap: .5rem; margin: .3rem 0; }
+.chart .label { color: var(--muted); font-size: .85rem; text-align: right; }
+.chart .bar { display: flex; height: 1.1rem; background: color-mix(in srgb, var(--rule) 45%, transparent); border-radius: 3px; overflow: hidden; }
+.chart .fill { display: block; height: 100%; background: var(--engine); }
+.chart .fill.heap { background: var(--excel); }
+.chart .fill.excel { background: var(--excel); }
+.chart .fill.shared { background: var(--engine); }
+.chart .fill.separate { background: var(--excel); }
+.chart .value { color: var(--muted); font-size: .85rem; }
+.bad { color: var(--bad); }
+footer { margin-top: 3rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .85rem; }
+</style></head>
+<body>
+<main>
+<h1>RecDiffy capacity run</h1>
+<p class="lede">Phase 1 and phase 3 of <a href="https://github.com/m-vaysman/recdiffy.net/issues/377">issue #377</a>: the sizes sweep and the concurrency sweep, through the public API, on one host. Measured, not promised.</p>
+<section id="run">
+<h2>Run</h2>
+<table>
+<tr><th>Commit</th><td><code>2d1697519076887d97b0859c4c11e6dff7d00cb8</code> on <code>origin/dev</code>, working tree clean</td></tr>
+<tr><th>Sweep</th><td>sizes</td></tr>
+<tr><th>Started (UTC)</th><td>2026-11-13T18:59:00Z</td></tr>
+<tr><th>Duration</th><td>18.946 s (compile 0.412 s)</td></tr>
+<tr><th>Harness</th><td>1.0.0, engine 1.0.0</td></tr>
+<tr><th>Profile</th><td>capacity.mixed 1.0.0, hash <code>ea100672412fede34f7ad0f9e703f1d6d75b10d6109cece2c1457d8360adf7d0</code></td></tr>
+<tr><th>Dataset</th><td>seed 377, 1 measured run(s) per size, rows per side 10000</td></tr>
+<tr><th>Command</th><td><code>G:\RecDiffyCapacity\publish\2026-11-13_1357_2d16975-r2r\RecDiffy.Capacity.dll --sweep sizes --out G:\RecDiffyCapacity\runs\2026-11-13_1357_2d16975 --seed 377 --repeats 1 --break-rate 0.1 --unmatched-rate 0.05 --commit 2d1697519076887d97b0859c4c11e6dff7d00cb8 --ref origin/dev --sizes 10000 --case-timeout-seconds 1800</code></td></tr>
+</table>
+</section>
+<section id="host">
+<h2>Host</h2>
+<table>
+<tr><th>Machine</th><td>COBBLER1</td></tr>
+<tr><th>OS</th><td>Microsoft Windows 10.0.19045</td></tr>
+<tr><th>Architecture</th><td>X64</td></tr>
+<tr><th>Logical processors</th><td>40</td></tr>
+<tr><th>Runtime</th><td>.NET 10.0.14</td></tr>
+<tr><th>SDK</th><td>10.0.403</td></tr>
+<tr><th>GC</th><td>workstation GC, Interactive</td></tr>
+<tr><th>GC heap limit</th><td>63.9 GB</td></tr>
+<tr><th>Dynamic code</th><td>yes, JIT</td></tr>
+</table>
+</section>
+<section id="sizes">
+<h2>The largest reconciliation</h2>
+<p class="flag">The largest size that completed with the outcome it was built to produce: <strong>10000 rows per side</strong>.</p>
+<p class="flag">No case failed.</p>
+<table>
+<thead><tr><th>Rows/side</th><th>Outcome</th><th>Known outcome</th><th>Matched</th><th>Exact</th><th>Break</th><th>Left only</th><th>Right only</th><th>Total s</th><th>Rows/s</th><th>Peak heap</th><th>Peak working set</th><th>Bytes/row</th><th>Retained heap</th><th>Rows searched</th><th>Rows blocked</th><th>Overflow</th><th>Failure</th></tr></thead>
+<tbody>
+<tr><td>10000</td><td>Completed</td><td>matched</td><td>9750</td><td>8775</td><td>975</td><td>250</td><td>250</td><td>6.455</td><td>7127</td><td>585.1 MB</td><td>661.6 MB</td><td>30675 B</td><td>14.5 MB</td><td>19500</td><td>0</td><td>0</td><td>-</td></tr>
+</tbody>
+</table>
+<h3>Wall time against size</h3>
+<div class="chart"><span class="label">10000</span><span class="bar"><span class="fill" style="width:100.0%"></span></span><span class="value">6.455 s</span></div>
+<h3>Peak managed heap against size</h3>
+<div class="chart"><span class="label">10000</span><span class="bar"><span class="fill heap" style="width:100.0%"></span></span><span class="value">585.1 MB</span></div>
+</section>
+<section id="speed">
+<h2>Speed, by measured stage</h2>
+<p class="note">Only the stages the public API exposes are measured. The stages inside <code>Reconciler.Run</code> are inside <em>engine</em> until P2 and P4 add them.</p>
+<h3>10000 rows per side</h3>
+<div class="chart"><span class="label">stages</span><span class="bar"><span class="fill engine" style="width:43.5%" title="engine: 2.806 s"></span><span class="fill excel" style="width:56.5%" title="excel: 3.649 s"></span></span><span class="value">6.455 s</span></div>
+<table class="stages">
+<thead><tr><th>Stage</th><th>Seconds</th><th>Share</th></tr></thead>
+<tbody>
+<tr><td>engine</td><td>2.806</td><td>43.5%</td></tr>
+<tr><td>excel</td><td>3.649</td><td>56.5%</td></tr>
+<tr><td>rows per second (engine)</td><td colspan="2">7127</td></tr>
+<tr><td>rows per second (engine and Excel)</td><td colspan="2">3098</td></tr>
+<tr><td>p50 / p95 / p99</td><td colspan="2">6.455 / 6.455 / 6.455 s over 1 run(s)</td></tr>
+<tr><td>allocated</td><td colspan="2">1975.3 MB, GC pause 2.063 s</td></tr>
+<tr><td>Excel</td><td colspan="2">SideBySideCompare: excel\10000\0\BO2_SideBySideCompare_capacity.mixed_2025-06-11.xlsx (1.9 MB)</td></tr>
+</tbody>
+</table>
+</section>
+<section id="notes">
+<h2>Not measured yet</h2>
+<dl>
+<dt>intake</dt><dd>Reconciler.Run materializes both sides; the public API exposes no separate stage.</dd>
+<dt>normalization</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+<dt>consolidation</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+<dt>matching</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+<dt>diff</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+<dt>results</dt><dd>Inside Reconciler.Run; per-stage benchmarks land in P2.</dd>
+</dl>
+<h2>Notes</h2>
+<ul>
+<li>Stages inside Reconciler.Run (intake, normalization, consolidation, matching, diff, result building) are inside the engine stage. The public API exposes no split; the per-stage benchmarks are P2 and the large-size split is P4.</li>
+<li>One warmup run of the smallest size is discarded before the measurements, so JIT, compile and the first Excel write are not charged to the first case.</li>
+<li>The dataset is generated while the engine materializes each side, so the engine stage includes the generator&#39;s cost. The generator is a seeded integer mixer, not System.Random, so a seed reproduces a dataset on every runtime.</li>
+<li>Excel output writes one report (SideBySideCompare) so the output stage stays bounded. The full report set is P4.</li>
+<li>Capacity numbers are comparable only on the same host, runtime and GC mode. This run&#39;s host is in the header.</li>
+<li>A run that does not match its known outcome is a measurement failure, not a fast run. A run too large to complete is recorded as its outcome.</li>
+<li>Rows searched are rows in a matched entry; rows blocked are rows the search limits refused (SearchIncomplete), so a fast blocked run is not read as a fast reconciliation. Aggregate overflow counts diagnostics with that code.</li>
+<li>Retained heap is the heap after every result of the case has been dropped and two full blocking collections have run; the result graph is part of the memory ceiling.</li>
+<li>An OS kill cannot be caught in-process: a run the host killed leaves no report. The run script records it from the job (phase 6). Here, only an out-of-memory exception is recorded as a case outcome.</li>
+<li>Fewer than three measured runs per size: p95 and p99 repeat the samples they fall on, so they are not yet stable.</li>
+</ul>
+</section>
+<footer>
+<p>Source of truth: <code>results.json</code> in the run folder, next to this page and <code>report.md</code>. Generated by the RecDiffy capacity harness for <a href="https://github.com/m-vaysman/recdiffy.net/issues/377">issue #377</a>.</p>
+</footer>
+</main>
+</body>
+</html>
