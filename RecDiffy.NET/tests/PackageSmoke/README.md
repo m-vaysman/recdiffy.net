@@ -38,6 +38,7 @@ bash RecDiffy.NET/tests/PackageSmoke/verify-sourcelink.sh artifacts/packages 0.0
 
 - Each of the four packages restores from `feed/`, not from nuget.org or a cache.
 - Each package holds `README.md` and its icon, and declares both in its nuspec.
+- Each package declares `RepositoryUrl`, `PackageProjectUrl`, a `Title` and a `Description`, and both the title and the description lead with "reconciliation". Each carries the shared tags `reconciliation`, `reconcile`, `data-reconciliation`, `matching` and `diff`, plus its own ([#120](https://github.com/m-vaysman/recdiffy.net/issues/120)).
 - Each package has `lib/net8.0` and `lib/net10.0`.
 - Trading, IO and Excel each depend on `RecDiffy` at the same version, for both frameworks.
 - Every sample gets its expected result on `net8.0` and on `net10.0`. A dependency missing from a nuspec fails here, because the sample that needs it can't load the assembly. On `net8.0` that includes `System.Text.Json`.

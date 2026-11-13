@@ -10,6 +10,9 @@ fail() {
   failures=$((failures + 1))
 }
 
+# #120: every package leads with "reconciliation" and carries the searchable tags, so it turns up for the word.
+common_tags=(reconciliation reconcile data-reconciliation matching diff)
+
 [[ -d feed ]] || { echo "::error::Put the packed .nupkg files in $(pwd)/feed first."; exit 1; }
 rm -rf packages Consumer/bin Consumer/obj
 
@@ -18,6 +21,7 @@ dotnet build Consumer -c Release --no-restore -p:RecDiffyVersion="$version"
 
 check_package() {
   local id=$1
+  local extra_tags=$2
   local folder="packages/${id,,}/$version"
   local nuspec="$folder/${id,,}.nuspec"
   [[ -f $nuspec ]] || { fail "$id $version was not restored."; return; }
@@ -26,9 +30,36 @@ check_package() {
   [[ -s $folder/README.md ]] || fail "$id has no README.md."
   grep -qF '<icon>columns-square-icon.jpg</icon>' "$nuspec" || fail "$id does not declare an icon."
   [[ -s $folder/columns-square-icon.jpg ]] || fail "$id has no icon file."
+  grep -qF '<projectUrl>https://github.com/m-vaysman/recdiffy.net</projectUrl>' "$nuspec" || fail "$id has no project URL."
+  grep -qF '<repository type="git" url="https://github.com/m-vaysman/recdiffy.net"' "$nuspec" || fail "$id has no repository URL."
+  local title description tags
+  title=$(field "$nuspec" title)
+  description=$(field "$nuspec" description)
+  tags=$(field "$nuspec" tags)
+  [[ $title == [Rr]econciliation* ]] || fail "$id title '$title' does not lead with reconciliation."
+  [[ $description == [Rr]econciliation* ]] || fail "$id description '$description' does not lead with reconciliation."
+  local tag
+  for tag in "${common_tags[@]}" $extra_tags; do
+    [[ " $tags " == *" $tag "* ]] || fail "$id is missing the package tag '$tag'; it has '$tags'."
+  done
   for framework in net8.0 net10.0; do
     [[ -s $folder/lib/$framework/$id.dll ]] || fail "$id has no lib/$framework/$id.dll."
   done
+}
+
+# Reads one element from a nuspec, on one line, so a multi-line value still matches.
+field() {
+  tr -d '\n' < "$1" | sed -n "s/.*<$2>\(.*\)<\/$2>.*/\1/p"
+}
+
+# The tags that are specific to one package, on top of the shared ones.
+extra_tags() {
+  case $1 in
+    RecDiffy.RulePacks.Trading) echo "trade-reconciliation trading finance ledger" ;;
+    RecDiffy.IO) echo "csv excel" ;;
+    RecDiffy.Excel) echo "excel xlsx reports" ;;
+    *) echo "" ;;
+  esac
 }
 
 check_core_dependency() {
@@ -40,7 +71,7 @@ check_core_dependency() {
 }
 
 for id in RecDiffy RecDiffy.RulePacks.Trading RecDiffy.IO RecDiffy.Excel; do
-  check_package "$id"
+  check_package "$id" "$(extra_tags "$id")"
 done
 for id in RecDiffy.RulePacks.Trading RecDiffy.IO RecDiffy.Excel; do
   check_core_dependency "$id"

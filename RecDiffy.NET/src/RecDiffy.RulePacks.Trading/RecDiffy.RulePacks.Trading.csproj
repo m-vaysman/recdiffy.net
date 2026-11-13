@@ -7,7 +7,9 @@
     <Nullable>enable</Nullable>
     <IsAotCompatible>true</IsAotCompatible>
     <IsTrimmable>true</IsTrimmable>
-    <Description>Trading normalization rules for RecDiffy.NET.</Description>
+    <Title>Reconciliation: RecDiffy trading rule pack</Title>
+    <Description>Reconciliation for .NET: trading normalization rules (party, side, quantity, 32nds price) for trade reconciliation and ledger matching with RecDiffy.NET.</Description>
+    <PackageTags>reconciliation;reconcile;data-reconciliation;matching;diff;dotnet;trade-reconciliation;trading;finance;ledger</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

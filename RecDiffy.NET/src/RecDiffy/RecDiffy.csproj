@@ -9,6 +9,9 @@
     <IsAotCompatible>true</IsAotCompatible>
     <IsTrimmable>true</IsTrimmable>
     <RootNamespace>RecDiffy</RootNamespace>
+    <Title>Reconciliation: the RecDiffy.NET engine</Title>
+    <Description>Reconciliation for .NET: match two datasets, diff their fields and explain every difference. The engine: profiles, normalization, matching, comparison and results.</Description>
+    <PackageTags>reconciliation;reconcile;data-reconciliation;matching;diff;dotnet;data-quality;record-linkage</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">

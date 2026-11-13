@@ -6,17 +6,33 @@
 [![CI](https://github.com/m-vaysman/recdiffy.net/actions/workflows/ci.yml/badge.svg)](https://github.com/m-vaysman/recdiffy.net/actions/workflows/ci.yml)
 [![Benchmarks](https://img.shields.io/badge/benchmarks-Bencher-0b7285)](https://bench.cobblerhill.net/perf/recdiffy)
 
-Reconcile two datasets and explain every match, difference, and unmatched row.
+Reconciliation for two datasets: match every record, show every difference, and explain every unmatched row.
 
 > **Prerelease.** Every RecDiffy release is a prerelease for now, and the API may change from one preview to the next. Pin the version you build against.
 
-RecDiffy.NET is a general-purpose reconciliation and diffing library for .NET. Use it when records from two systems represent the same underlying activity but differ in identifiers, formatting, or grouping—for example, warehouse bins versus book inventory, or internal trades versus broker records.
+RecDiffy.NET is a reconciliation and diffing library for .NET. Use it when records from two systems represent the same underlying activity but differ in identifiers, formatting, or grouping—for example, warehouse bins versus book inventory, or internal trades versus broker records.
 
 A reconciliation runs through:
 
 **Normalize → Consolidate → Match → Compare → Explain**
 
 Matching determines which records belong together. Comparison determines whether their field values agree.
+
+## What is reconciliation?
+
+Reconciliation is the accounting and data-engineering control that proves two records of the same activity agree. A ledger and a broker statement, a warehouse count and a stock book, or two database extracts are meant to describe the same events, so every row should have a counterpart and every amount should match. Reconciling is how you find the ones that do not.
+
+A reconciliation answers five questions, and RecDiffy.NET answers each one:
+
+| Question | What you get |
+|---|---|
+| Which records belong together? | Matching, even when identifiers, formatting or grouping differ: one row to one row, several rows to one, or a subset that adds up. |
+| Do their values agree? | Field-by-field comparison at each declared tolerance, so `Exact`, `WithinTolerance` and `Break` are distinct outcomes. |
+| Which rows are unmatched, on which side? | Every entry is `Matched`, `LeftOnly`, `RightOnly`, `Ambiguous` or `SearchIncomplete`, and every input row has a disposition. |
+| Where is the difference, and how much of it? | Grouping, packages, lifecycle collapse and attributions, with totals and subsets that balance. |
+| Can I prove the result to someone else? | A deterministic result with a profile hash and an engine version, and Excel reports that tie every number back to the files. |
+
+That makes it the .NET tool for data reconciliation, trade reconciliation and ledger matching, record linkage, data quality checks, and revenue or billing controls, whether the input is CSV, Excel, or your own objects in memory.
 
 ## Install
 

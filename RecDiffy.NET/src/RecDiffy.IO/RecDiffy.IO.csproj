@@ -6,8 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>RecDiffy.IO</RootNamespace>
-    <Description>CSV and Excel record sources for RecDiffy.NET, read through Sylvan.Data.Csv and Sylvan.Data.Excel.</Description>
-    <PackageTags>reconciliation;diff;matching;dotnet;csv;excel;xlsx</PackageTags>
+    <Title>Reconciliation: CSV and Excel readers for RecDiffy.NET</Title>
+    <Description>Reconciliation for .NET: read CSV and Excel files as record sources for a RecDiffy.NET reconciliation, through Sylvan.Data.Csv and Sylvan.Data.Excel.</Description>
+    <PackageTags>reconciliation;reconcile;data-reconciliation;matching;diff;dotnet;csv;excel;xlsx</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
