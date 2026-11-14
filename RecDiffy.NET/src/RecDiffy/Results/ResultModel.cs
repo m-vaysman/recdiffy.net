@@ -139,13 +139,13 @@ public sealed record RunSummary(
     int Quarantined,
     int Suppressed);
 
-public interface IFieldComparer<T>
+internal interface IFieldComparer<T>
     where T : unmanaged
 {
     FieldOutcome Compare(in T left, in T right, out Delta delta);
 }
 
-public readonly struct DecimalComparer : IFieldComparer<decimal>
+internal readonly struct DecimalComparer : IFieldComparer<decimal>
 {
     public FieldOutcome Compare(in decimal left, in decimal right, out Delta delta)
     {
@@ -163,7 +163,7 @@ public readonly struct DecimalComparer : IFieldComparer<decimal>
             : right > decimal.MaxValue + left ? decimal.MaxValue : right - left;
 }
 
-public readonly struct DateComparer : IFieldComparer<DateOnly>
+internal readonly struct DateComparer : IFieldComparer<DateOnly>
 {
     public FieldOutcome Compare(in DateOnly left, in DateOnly right, out Delta delta)
     {
