@@ -326,6 +326,18 @@ internal static class ResultBuilder
 
     // The id keeps the first 16 bytes of the SHA-256.
     // Ordinal is not part of the hash, and duplicate refs collapse first.
+    //
+    // The shipped group id, step by step:
+    // 1. Take the entry's members, left and right. A ref listed twice (same source, row key and ordinal) counts once.
+    // 2. Sort them by source, then by row key, both ordinal.
+    // 3. Write each member as source, U+001F, row key. Delimited.Join puts a backslash before a backslash, CR, LF,
+    //    U+001F, '|', ',' or '=' inside either part.
+    // 4. Join those lines with LF, encode the text as UTF-8, and take its SHA-256.
+    // 5. The id is the first 16 bytes of the hash, as 32 lowercase hex characters, with no prefix.
+    // Only the source and the row key are hashed. The ordinal is not, so the order of the input rows does not change an
+    // id. The profile hash, the path, the pass and the rows' values are not hashed either. Copies of one row key at
+    // different ordinals are separate refs, so each adds a line: the number of copies changes the id, and their
+    // positions do not.
     public static GroupId Identify(IReadOnlyList<SourceRef> members)
     {
         var text = string.Join(

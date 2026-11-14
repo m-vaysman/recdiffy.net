@@ -3,6 +3,17 @@ using RecDiffy.Results;
 
 namespace RecDiffy;
 
+/// <summary>Options for one run.</summary>
+/// <param name="MaxDegreeOfParallelism">
+/// How many threads result building may use. Null, or a value below 2, uses no extra thread. A value of 2 or more lets
+/// result building work on the matched entries in parallel, on up to that many threads: for each entry it combines the
+/// rows and compares the fields. A run with fewer than two matched entries uses no extra thread either. Only this stage
+/// is parallel. Normalization, consolidation and matching run on one thread, whatever the value. The value does not
+/// change the result.
+/// </param>
+/// <param name="TelemetryIncludesRowKeys">
+/// Reserved. The engine does not read this value, so it has no effect. Telemetry holds no row keys, whatever is passed.
+/// </param>
 public sealed record RunOptions(int? MaxDegreeOfParallelism = null, bool TelemetryIncludesRowKeys = false);
 
 public static class Reconciler

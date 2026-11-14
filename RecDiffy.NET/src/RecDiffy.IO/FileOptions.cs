@@ -49,6 +49,7 @@ public sealed record CsvDelimiter
 }
 
 /// <summary>How to read one sheet of a workbook. <see cref="HasHeader"/> and <see cref="Sheet"/> must be stated. Data starts at cell A1.</summary>
+/// <remarks>The header, when there is one, is row 1. There is no header-row setting: nothing here reads a header from another row, or starts the data at another cell.</remarks>
 public sealed record ExcelOptions
 {
     /// <summary>True: row 1 holds column names and every later row is data. False: columns are named <c>Column1</c> to <c>ColumnN</c> and every row, row 1 included, is data.</summary>
