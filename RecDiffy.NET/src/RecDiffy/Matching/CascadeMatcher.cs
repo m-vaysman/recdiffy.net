@@ -54,6 +54,10 @@ internal static class CascadeMatcher
         return (indexes, counters);
     }
 
+    // The matches and the free rows are filled through builders (#413). An Add or Except on the immutable value copies
+    // a path through its tree on every commit, and a run of a million rows a side commits about a million times. A
+    // builder changes its own tree in place. Neither builder leaves this method: it returns the same immutable values
+    // as before, in the same order. The free set passed in is not changed, so the workspace keeps its snapshot.
     private static (ImmutableList<CommittedMatch> Matches, ImmutableList<PassIndex> Indexes, MatchCounters Counters, ImmutableHashSet<int> Free) Commit(
         ImmutableList<PassIndex> indexes,
         MatchCounters counters,
@@ -61,19 +65,20 @@ internal static class CascadeMatcher
         IReadOnlyList<ActiveItem> items,
         CancellationToken cancellation)
     {
-        var matches = ImmutableList<CommittedMatch>.Empty;
+        var matches = ImmutableList.CreateBuilder<CommittedMatch>();
+        var stillFree = free.ToBuilder();
         while (Next(indexes) is { } chosen)
         {
             cancellation.ThrowIfCancellationRequested();
             var taken = (IReadOnlyList<int>)[.. chosen.Proposal.Left, .. chosen.Proposal.Right];
             var released = ReleaseAll(indexes, taken, counters);
-            matches = matches.Add(Commit(chosen.Index.PassId, chosen.Proposal, items));
+            matches.Add(Commit(chosen.Index.PassId, chosen.Proposal, items));
             indexes = released.Indexes;
             counters = released.Counters;
-            free = free.Except(taken);
+            stillFree.ExceptWith(taken);
         }
 
-        return (matches, indexes, counters, free);
+        return (matches.ToImmutable(), indexes, counters, stillFree.ToImmutable());
     }
 
     private static (ImmutableList<PassIndex> Indexes, MatchCounters Counters) ReleaseAll(
@@ -81,15 +86,16 @@ internal static class CascadeMatcher
         IReadOnlyList<int> taken,
         MatchCounters counters)
     {
-        var next = ImmutableList<PassIndex>.Empty;
+        // A builder for the same reason as in Commit: this list is rebuilt once per commit.
+        var next = ImmutableList.CreateBuilder<PassIndex>();
         foreach (var index in indexes)
         {
             var released = index.Release(taken, counters);
-            next = next.Add(released.Index);
+            next.Add(released.Index);
             counters = released.Counters;
         }
 
-        return (next, counters);
+        return (next.ToImmutable(), counters);
     }
 
     // The earliest pass that still claims a row keeps it. Later residue clusters lose rows already claimed.
