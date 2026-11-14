@@ -161,13 +161,14 @@ internal sealed record GroupIndex(
             ? (Decision.Blocked([.. component.Targets, .. component.Eligible]), counters)
             : Outcome(component, SearchTargets(component, counters, dirty));
 
-    private (ImmutableArray<(int Target, TargetSearch Search)> Rows, MatchCounters Counters) SearchTargets(Component component, MatchCounters counters, bool dirty)
+    private ((int Target, TargetSearch Search)[] Rows, MatchCounters Counters) SearchTargets(Component component, MatchCounters counters, bool dirty)
     {
-        var rows = ImmutableArray<(int Target, TargetSearch Search)>.Empty;
-        foreach (var target in component.Targets)
+        var rows = new (int Target, TargetSearch Search)[component.Targets.Length];
+        for (var position = 0; position < rows.Length; position++)
         {
+            var target = component.Targets[position];
             var searched = Search(target, component, counters, dirty);
-            rows = rows.Add((target, searched.Result));
+            rows[position] = (target, searched.Result);
             counters = searched.Counters;
         }
 
@@ -175,7 +176,7 @@ internal sealed record GroupIndex(
     }
 
     // Two targets with unique subsets still contest when they draw the same row.
-    private (Decision Decision, MatchCounters Counters) Outcome(Component component, (ImmutableArray<(int Target, TargetSearch Search)> Rows, MatchCounters Counters) searched)
+    private (Decision Decision, MatchCounters Counters) Outcome(Component component, ((int Target, TargetSearch Search)[] Rows, MatchCounters Counters) searched)
     {
         var searches = searched.Rows;
         var overlap = searches.Where(pair => pair.Search.State is SearchState.Unique).Select(pair => pair.Search.DrawnItems).ToArray();
@@ -223,133 +224,86 @@ internal sealed record GroupIndex(
         return numbers.Any(number => number is null) ? null : [.. numbers.Select(number => number.GetValueOrDefault())];
     }
 
+    // Every target's claim is read once, then one pass over the targets gives the components in the order the left
+    // fold used to emit them, without copying a growing list of components or targets.
     private IEnumerable<Component> Couple(IReadOnlyList<ActiveItem> blockItems)
     {
         Workspace.Cancellation.ThrowIfCancellationRequested();
         var targets = blockItems.Where(item => item.Side != Many).Select(item => item.Index).OrderBy(index => index).ToArray();
         var manyItems = blockItems.Where(item => item.Side == Many).Select(item => item.Index).ToArray();
         var census = Census.Collect(manyItems, ClaimOf, Workspace.Cancellation);
-        return targets.Aggregate(ImmutableList<Draft>.Empty, (components, target) => Merge(components, target, census))
-            .Select(draft => Finish(draft, census));
+        var claims = Claims(targets);
+        return ComponentPartition.Split(claims, census, Workspace.Cancellation).Select(positions => Finish(positions, targets, claims, census));
     }
 
     private MatchKeys.SharedClaim ClaimOf(int index) =>
         MatchKeys.Claim(Workspace.Items[index].Row.Context, Workspace.SharedField, Workspace.Schema);
 
-    private ImmutableList<Draft> Merge(ImmutableList<Draft> components, int target, Census census)
+    // A cancelled run stops between two claims rather than in the middle of a component.
+    private MatchKeys.SharedClaim[] Claims(int[] targets)
     {
-        Workspace.Cancellation.ThrowIfCancellationRequested();
-        var claim = ClaimOf(target);
-        var joined = components.Where(component => Intersects(component, claim, census)).ToArray();
-        var kept = components.Where(component => joined.Contains(component) is false);
-        var values = joined.Aggregate(
-            claim.Wildcard || claim.Value is null ? ImmutableHashSet.Create<string>(StringComparer.Ordinal) : ImmutableHashSet.Create(StringComparer.Ordinal, claim.Value),
-            (set, component) => set.Union(component.Values));
-        var merged = new Draft(
-            [.. joined.SelectMany(component => component.Targets), target],
-            claim.Wildcard || joined.Any(component => component.WildcardTarget),
-            values);
-        return [.. kept, merged];
+        var claims = new MatchKeys.SharedClaim[targets.Length];
+        for (var position = 0; position < targets.Length; position++)
+        {
+            claims[position] = ClaimOf(targets[position]);
+            Workspace.Cancellation.ThrowIfCancellationRequested();
+        }
+
+        return claims;
     }
 
-    private static bool Intersects(Draft draft, MatchKeys.SharedClaim claim, Census census) =>
-        NonEmpty(claim, census) && Occupied(draft, census) && (draft.WildcardTarget || claim.Wildcard || census.Wildcards.Length > 0 || (claim.Value is { } value && draft.Values.Contains(value) && census.Has(value)));
-
-    private static bool Occupied(Draft draft, Census census) =>
-        (draft.WildcardTarget && census.Many.Length > 0) || census.Wildcards.Length > 0 || draft.Values.Any(census.Has);
-
-    private static bool NonEmpty(MatchKeys.SharedClaim claim, Census census) =>
-        claim.Wildcard ? census.Many.Length > 0 : census.Wildcards.Length > 0 || (claim.Value is { } value && census.Has(value));
-
-    private Component Finish(Draft draft, Census census)
+    // One component, resolved in one pass: its targets in the order the fold placed them, the eligible rows, and the
+    // rows each target may draw. A value's rows are built once per component and shared by every target that names it.
+    private Component Finish(int[] positions, int[] targets, MatchKeys.SharedClaim[] claims, Census census)
     {
-        var eligible = Union(draft, census);
-        var blocked = draft.Targets.Length > Workspace.Limits.MaxTargetsPerComponent || eligible.Length > Workspace.Limits.MaxBlockItems;
-        return new Component(
-            draft.Targets,
-            eligible,
-            blocked ? ImmutableDictionary<int, int[]>.Empty : draft.Targets.ToImmutableDictionary(target => target, target => ListFor(ClaimOf(target), census)));
-    }
-
-    private int[] Union(Draft draft, Census census)
-    {
-        var seen = new HashSet<int>();
-        var result = new List<int>();
+        var component = new int[positions.Length];
+        var byTarget = new Dictionary<int, int[]>(positions.Length);
+        var rowsFor = new Dictionary<string, int[]>(StringComparer.Ordinal);
         var emitted = new HashSet<string>(StringComparer.Ordinal);
+        var seen = new HashSet<int>();
+        var eligible = new List<int>();
         var covered = false;
-        foreach (var target in draft.Targets)
+        for (var index = 0; index < positions.Length; index++)
         {
             Workspace.Cancellation.ThrowIfCancellationRequested();
-            var claim = ClaimOf(target);
+            var target = targets[positions[index]];
+            var claim = claims[positions[index]];
+            var rows = claim.Wildcard
+                ? census.Many
+                : claim.Value is { } value ? Drawn(value, rowsFor, census) : [];
+            component[index] = target;
+            byTarget[target] = rows;
             if (claim.Wildcard)
             {
                 if (covered)
                     continue;
-                foreach (var item in census.Many)
-                    if (seen.Add(item))
-                        result.Add(item);
+                Draw(rows, seen, eligible);
                 covered = true;
-                continue;
             }
-
-            if (covered || claim.Value is not { } value || emitted.Add(value) is false)
-                continue;
-            foreach (var item in census.For(value))
-                if (seen.Add(item))
-                    result.Add(item);
+            else if (covered is false && claim.Value is { } named && emitted.Add(named))
+            {
+                Draw(rows, seen, eligible);
+            }
         }
 
-        return [.. result];
+        var blocked = component.Length > Workspace.Limits.MaxTargetsPerComponent || eligible.Count > Workspace.Limits.MaxBlockItems;
+        return new Component(component, [.. eligible], blocked ? ImmutableDictionary<int, int[]>.Empty : byTarget.ToImmutableDictionary());
     }
 
-    private static int[] ListFor(MatchKeys.SharedClaim claim, Census census) =>
-        claim.Wildcard ? census.Many : claim.Value is { } value ? census.For(value) : [];
-
-    private sealed record Draft(int[] Targets, bool WildcardTarget, ImmutableHashSet<string> Values);
-
-    private sealed record Census(int[] Many, int[] Wildcards, ImmutableDictionary<string, int[]> Buckets)
+    // Adds rows the component has not drawn yet. Both census arrays are in row order, so the eligible rows stay in
+    // row order, and the first wildcard's array already covers every row a later target could name.
+    private static void Draw(int[] rows, HashSet<int> seen, List<int> eligible)
     {
-        public bool Has(string value) => Buckets.TryGetValue(value, out var rows) && rows.Length > 0;
+        foreach (var row in rows)
+            if (seen.Add(row))
+                eligible.Add(row);
+    }
 
-        public int[] For(string value) => Merge(Wildcards, Buckets.GetValueOrDefault(value) ?? []);
-
-        public static Census Collect(int[] many, Func<int, MatchKeys.SharedClaim> claim, CancellationToken cancellation)
-        {
-            var wildcards = new List<int>();
-            var buckets = new Dictionary<string, List<int>>(StringComparer.Ordinal);
-            foreach (var item in many)
-            {
-                cancellation.ThrowIfCancellationRequested();
-                var row = claim(item);
-                if (row.Wildcard)
-                {
-                    wildcards.Add(item);
-                    continue;
-                }
-
-                if (buckets.TryGetValue(row.Value!, out var list) is false)
-                    buckets[row.Value!] = list = [];
-                list.Add(item);
-            }
-
-            return new(many, [.. wildcards], buckets.ToImmutableDictionary(pair => pair.Key, pair => pair.Value.ToArray(), StringComparer.Ordinal));
-        }
-
-        // Both arrays arrive sorted by index. Collect appends in that order.
-        private static int[] Merge(int[] left, int[] right)
-        {
-            var merged = new int[left.Length + right.Length];
-            var i = 0;
-            var j = 0;
-            var n = 0;
-            while (i < left.Length && j < right.Length)
-                merged[n++] = left[i] <= right[j] ? left[i++] : right[j++];
-            while (i < left.Length)
-                merged[n++] = left[i++];
-            while (j < right.Length)
-                merged[n++] = right[j++];
-            return merged;
-        }
+    private static int[] Drawn(string value, Dictionary<string, int[]> rowsFor, Census census)
+    {
+        if (rowsFor.TryGetValue(value, out var rows) is false)
+            rowsFor[value] = rows = census.For(value);
+        return rows;
     }
 
     private static int[] EligibleFor(int target, Component component) => component.ByTarget[target];
