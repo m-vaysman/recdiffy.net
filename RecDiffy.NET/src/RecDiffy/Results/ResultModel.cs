@@ -127,6 +127,22 @@ public sealed record RunInfo(string ProfileHash, string ReferenceId, string Refe
     public IReadOnlyDictionary<string, SideReading> Reading { get; init; } = ImmutableDictionary<string, SideReading>.Empty;
 }
 
+/// <summary>The counts of one run. Eight of them count entries and two count input rows.</summary>
+/// <remarks>
+/// An entry can hold several input rows, and a row is one <see cref="RowResult"/>. So do not add an entry count to a
+/// row count: <c>LeftOnly + Quarantined</c> is not a number of rows. To count rows, group
+/// <see cref="IReconciliationResult.Rows"/> by <see cref="RowResult.Disposition"/>.
+/// </remarks>
+/// <param name="Matched">Counts entries: those whose alignment is <see cref="Alignment.Matched"/>.</param>
+/// <param name="Exact">Counts entries: the matched entries whose outcome is <see cref="FieldOutcome.Exact"/>. <c>Exact</c>, <c>WithinTolerance</c> and <c>Break</c> add up to <c>Matched</c>.</param>
+/// <param name="WithinTolerance">Counts entries: the matched entries whose outcome is <see cref="FieldOutcome.WithinTolerance"/>.</param>
+/// <param name="Break">Counts entries: the matched entries whose outcome is <see cref="FieldOutcome.Break"/>.</param>
+/// <param name="LeftOnly">Counts entries: those whose alignment is <see cref="Alignment.LeftOnly"/>. One entry can hold several input rows, such as the legs of a package.</param>
+/// <param name="RightOnly">Counts entries: those whose alignment is <see cref="Alignment.RightOnly"/>. One entry can hold several input rows, such as the legs of a package.</param>
+/// <param name="Ambiguous">Counts entries: those whose alignment is <see cref="Alignment.Ambiguous"/>. Each is a cluster that can hold many rows.</param>
+/// <param name="SearchIncomplete">Counts entries: those whose alignment is <see cref="Alignment.SearchIncomplete"/>. Each is a cluster that can hold many rows.</param>
+/// <param name="Quarantined">Counts input rows: those whose disposition is <see cref="Disposition.Quarantined"/>.</param>
+/// <param name="Suppressed">Counts input rows: those whose disposition is <see cref="Disposition.Suppressed"/>.</param>
 public sealed record RunSummary(
     int Matched,
     int Exact,
