@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -73,6 +74,10 @@ public static class ProfileWriter
             writer.WriteBoolean("strictDateFormats", strict);
     }
 
+    [SuppressMessage(
+        "Performance",
+        "CA1859:Use concrete types when possible for improved performance",
+        Justification = "The parameter stays IReadOnlyDictionary: ProfileParser passes a Dictionary and ProfileBuilder passes an ImmutableDictionary, so narrowing it breaks the parser path. The writer makes two lookups per call, and an immutable lookup measured about twice as slow as a dictionary lookup (#410).")]
     private static void WriteSources(Utf8JsonWriter writer, IReadOnlyDictionary<string, string> sources, IReadOnlyDictionary<string, SourceReading> readings)
     {
         var sides = sources.Keys.Union(readings.Keys, StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
