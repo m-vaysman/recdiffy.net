@@ -118,6 +118,10 @@ What this means:
 - **Warm versus cold:** the harness does not report a separate cold-start measurement; cold-start times are **TBD**.
 - **A refused search is not a fast reconciliation.** A run that ends every row `BlockTooLarge` or `BudgetExhausted` stopped early; see [RESULTS.md](RESULTS.md#incomplete-search) for what the result records.
 
+## Group component construction
+
+One block's components are built in one pass over its targets. The budget is an allocation ratio on a single block, not a row sweep: for the disjoint, repeated-identity, and wildcard-heavy shapes, 256 targets must allocate under 16 times as many bytes as 32 targets, and the match counts for those shapes stay the same.
+
 ## What is not measured yet
 
 These are the open items; each is **TBD** until a run fills it in:

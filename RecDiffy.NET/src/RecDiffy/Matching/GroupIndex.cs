@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using RecDiffy.Results;
 using RecDiffy.Rules;
 
@@ -163,15 +164,16 @@ internal sealed record GroupIndex(
 
     private (ImmutableArray<(int Target, TargetSearch Search)> Rows, MatchCounters Counters) SearchTargets(Component component, MatchCounters counters, bool dirty)
     {
-        var rows = ImmutableArray<(int Target, TargetSearch Search)>.Empty;
-        foreach (var target in component.Targets)
+        var rows = new (int Target, TargetSearch Search)[component.Targets.Length];
+        for (var index = 0; index < rows.Length; index++)
         {
+            var target = component.Targets[index];
             var searched = Search(target, component, counters, dirty);
-            rows = rows.Add((target, searched.Result));
+            rows[index] = (target, searched.Result);
             counters = searched.Counters;
         }
 
-        return (rows, counters);
+        return (ImmutableCollectionsMarshal.AsImmutableArray(rows), counters);
     }
 
     // Two targets with unique subsets still contest when they draw the same row.
@@ -229,55 +231,52 @@ internal sealed record GroupIndex(
         var targets = blockItems.Where(item => item.Side != Many).Select(item => item.Index).OrderBy(index => index).ToArray();
         var manyItems = blockItems.Where(item => item.Side == Many).Select(item => item.Index).ToArray();
         var census = Census.Collect(manyItems, ClaimOf, Workspace.Cancellation);
-        return targets.Aggregate(ImmutableList<Draft>.Empty, (components, target) => Merge(components, target, census))
-            .Select(draft => Finish(draft, census));
+        return ComponentPartition.Partition(targets, ClaimOf, census.Wildcards.Length > 0, census.Many.Length > 0, census.Has, Workspace.Cancellation)
+            .Select(group => Finish(group, census));
     }
 
     private MatchKeys.SharedClaim ClaimOf(int index) =>
         MatchKeys.Claim(Workspace.Items[index].Row.Context, Workspace.SharedField, Workspace.Schema);
 
-    private ImmutableList<Draft> Merge(ImmutableList<Draft> components, int target, Census census)
+    private Component Finish(int[] targets, Census census)
     {
-        Workspace.Cancellation.ThrowIfCancellationRequested();
-        var claim = ClaimOf(target);
-        var joined = components.Where(component => Intersects(component, claim, census)).ToArray();
-        var kept = components.Where(component => joined.Contains(component) is false);
-        var values = joined.Aggregate(
-            claim.Wildcard || claim.Value is null ? ImmutableHashSet.Create<string>(StringComparer.Ordinal) : ImmutableHashSet.Create(StringComparer.Ordinal, claim.Value),
-            (set, component) => set.Union(component.Values));
-        var merged = new Draft(
-            [.. joined.SelectMany(component => component.Targets), target],
-            claim.Wildcard || joined.Any(component => component.WildcardTarget),
-            values);
-        return [.. kept, merged];
+        var eligible = Union(targets, census);
+        var blocked = targets.Length > Workspace.Limits.MaxTargetsPerComponent || eligible.Length > Workspace.Limits.MaxBlockItems;
+        return new Component(targets, eligible, blocked ? ImmutableDictionary<int, int[]>.Empty : ListsFor(targets, census));
     }
 
-    private static bool Intersects(Draft draft, MatchKeys.SharedClaim claim, Census census) =>
-        NonEmpty(claim, census) && Occupied(draft, census) && (draft.WildcardTarget || claim.Wildcard || census.Wildcards.Length > 0 || (claim.Value is { } value && draft.Values.Contains(value) && census.Has(value)));
-
-    private static bool Occupied(Draft draft, Census census) =>
-        (draft.WildcardTarget && census.Many.Length > 0) || census.Wildcards.Length > 0 || draft.Values.Any(census.Has);
-
-    private static bool NonEmpty(MatchKeys.SharedClaim claim, Census census) =>
-        claim.Wildcard ? census.Many.Length > 0 : census.Wildcards.Length > 0 || (claim.Value is { } value && census.Has(value));
-
-    private Component Finish(Draft draft, Census census)
+    private ImmutableDictionary<int, int[]> ListsFor(int[] targets, Census census)
     {
-        var eligible = Union(draft, census);
-        var blocked = draft.Targets.Length > Workspace.Limits.MaxTargetsPerComponent || eligible.Length > Workspace.Limits.MaxBlockItems;
-        return new Component(
-            draft.Targets,
-            eligible,
-            blocked ? ImmutableDictionary<int, int[]>.Empty : draft.Targets.ToImmutableDictionary(target => target, target => ListFor(ClaimOf(target), census)));
+        var shared = new Dictionary<string, int[]>(StringComparer.Ordinal);
+        var rows = ImmutableDictionary.CreateBuilder<int, int[]>();
+        foreach (var target in targets)
+            rows[target] = ForClaim(ClaimOf(target));
+        return rows.ToImmutable();
+
+        int[] ForClaim(MatchKeys.SharedClaim claim) => claim switch
+        {
+            { Wildcard: true } => census.Many,
+            { Value: { } value } => Shared(value),
+            _ => [],
+        };
+
+        int[] Shared(string value)
+        {
+            if (shared.TryGetValue(value, out var existing))
+                return existing;
+            var created = census.For(value);
+            shared[value] = created;
+            return created;
+        }
     }
 
-    private int[] Union(Draft draft, Census census)
+    private int[] Union(int[] targets, Census census)
     {
         var seen = new HashSet<int>();
         var result = new List<int>();
         var emitted = new HashSet<string>(StringComparer.Ordinal);
         var covered = false;
-        foreach (var target in draft.Targets)
+        foreach (var target in targets)
         {
             Workspace.Cancellation.ThrowIfCancellationRequested();
             var claim = ClaimOf(target);
@@ -301,11 +300,6 @@ internal sealed record GroupIndex(
 
         return [.. result];
     }
-
-    private static int[] ListFor(MatchKeys.SharedClaim claim, Census census) =>
-        claim.Wildcard ? census.Many : claim.Value is { } value ? census.For(value) : [];
-
-    private sealed record Draft(int[] Targets, bool WildcardTarget, ImmutableHashSet<string> Values);
 
     private sealed record Census(int[] Many, int[] Wildcards, ImmutableDictionary<string, int[]> Buckets)
     {
