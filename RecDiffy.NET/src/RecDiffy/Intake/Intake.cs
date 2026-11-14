@@ -91,13 +91,18 @@ internal static class Intake
 
     // One shared fingerprint collapses to the first row and keeps every source ref.
     // Two fingerprints quarantine each copy.
+    // A row key with one copy has nothing to be compared with, so its fingerprint is never built (#393). The fingerprint
+    // sorts the cells and joins them into one string, and most rows are the only copy of their key.
     private static IEnumerable<DuplicateGroup> Groups(RawRecord[] copies) =>
-        copies.Select(copy => copy.Fingerprint()).Distinct(StringComparer.Ordinal).Count() switch
+        copies switch
         {
-            1 when copies.Length is 1 => [new DuplicateGroup(copies[0], [copies[0].Ref], false)],
-            1 => [new DuplicateGroup(copies[0], [.. copies.Select(copy => copy.Ref)], false)],
+            [var only] => [new DuplicateGroup(only, [only.Ref], false)],
+            _ when SharedFingerprint(copies) => [new DuplicateGroup(copies[0], [.. copies.Select(copy => copy.Ref)], false)],
             _ => copies.Select(copy => new DuplicateGroup(copy, [copy.Ref], true)),
         };
+
+    private static bool SharedFingerprint(RawRecord[] copies) =>
+        copies.Select(copy => copy.Fingerprint()).Distinct(StringComparer.Ordinal).Count() is 1;
 
     private readonly record struct DuplicateGroup(RawRecord Row, IReadOnlyList<SourceRef> Members, bool Conflict);
 }
