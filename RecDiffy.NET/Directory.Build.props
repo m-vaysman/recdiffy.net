@@ -3,6 +3,7 @@
     <Authors>Michael Vaysman</Authors>
     <Title>Reconciliation: RecDiffy.NET</Title>
     <Description>Reconciliation for .NET: a general-purpose library that matches two datasets, diffs their fields and explains every difference.</Description>
+    <PackageReleaseNotes>Breaking: Run, RunAsync and BuildSideBySide now return read-only interfaces, and the concrete result classes are internal. See BREAKING-CHANGES.md: https://github.com/m-vaysman/recdiffy.net/blob/main/RecDiffy.NET/BREAKING-CHANGES.md</PackageReleaseNotes>
     <!-- Searchable terms first: reconciliation, then the synonyms people search for, then the technical ones. -->
     <PackageTags>reconciliation;reconcile;data-reconciliation;matching;diff;dotnet</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

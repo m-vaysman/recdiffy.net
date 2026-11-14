@@ -95,4 +95,4 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$TAG" artifacts/*.nupkg artifacts/*.snupkg --title "$TAG" --generate-notes --prerelease
+        run: gh release create "$TAG" artifacts/*.nupkg artifacts/*.snupkg --title "$TAG" --notes-file RecDiffy.NET/BREAKING-CHANGES.md --generate-notes --prerelease
