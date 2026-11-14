@@ -178,13 +178,13 @@ public class RoundingBoundaryTests
             [Quantities(first) with { Id = "A1" }, Quantities(second) with { Id = "A2" }, Quantities(third) with { Id = "A3" }],
             [Quantities("100.00") with { Id = "BLOCK" }]);
 
-        Assert.Equal(grouped, result.Entries.Any(entry => entry is { Alignment: Alignment.Matched, Composition: Composition.ManyToOne, Left.Count: 3 }));
+        Assert.Equal(grouped, result.Entries.Any(entry => entry is { Alignment: Alignment.Matched, Composition: Composition.ManyToOne, Left.Length: 3 }));
     }
 
     private static ResultEntry Pair(string midpoint, Row left, Row right) =>
         Assert.Single(Run(PairProfile, midpoint, [left with { Id = "L" }], [right with { Id = "R" }]).Entries);
 
-    private static ReconciliationResult Run(string profile, string midpoint, Row[] left, Row[] right) =>
+    private static IReconciliationResult Run(string profile, string midpoint, Row[] left, Row[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(profile.Replace("\"ToEven\"", $"\"{midpoint}\"", StringComparison.Ordinal)), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

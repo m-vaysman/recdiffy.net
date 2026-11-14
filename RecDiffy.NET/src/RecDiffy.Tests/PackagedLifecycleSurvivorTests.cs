@@ -77,7 +77,7 @@ public class PackagedLifecycleSurvivorTests
         Assert.Equal(Composition.ManyToOne | Composition.Package | Composition.LifecycleCollapsed, entry.Composition);
     }
 
-    private static (ReconciliationResult Result, ResultEntry Entry) Run()
+    private static (IReconciliationResult Result, ResultEntry Entry) Run()
     {
         var result = Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
@@ -94,7 +94,7 @@ public class PackagedLifecycleSurvivorTests
         return (result, Assert.Single(result.Entries, entry => entry.Alignment is Alignment.Matched));
     }
 
-    private static (Disposition, SuppressionReason?) Superseded(ReconciliationResult result)
+    private static (Disposition, SuppressionReason?) Superseded(IReconciliationResult result)
     {
         var row = Assert.Single(result.Rows, candidate => candidate.Row.RowKey == "L1");
         return (row.Disposition, row.Suppression);

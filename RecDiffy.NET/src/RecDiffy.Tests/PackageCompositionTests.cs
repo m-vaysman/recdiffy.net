@@ -37,7 +37,7 @@ public class PackageCompositionTests
 
     private sealed record Row(string Id, string? Link, string? Role, string Quantity);
 
-    private static ReconciliationResult Run(IReadOnlyList<Row> left, IReadOnlyList<Row> right, string profile) =>
+    private static IReconciliationResult Run(IReadOnlyList<Row> left, IReadOnlyList<Row> right, string profile) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map()),

@@ -96,12 +96,12 @@ public class LifecycleBlankTargetTests
         Assert.Equal("left:L1=Matched[]; right:E1=Suppressed[]; right:E2=Matched[]", Describe(result));
     }
 
-    private static string Describe(ReconciliationResult result) =>
+    private static string Describe(IReconciliationResult result) =>
         string.Join("; ", result.Rows
             .Select(row => $"{row.Row.Source}:{row.Row.RowKey}={row.Disposition}[{string.Join(",", row.Diagnostics.Select(diagnostic => diagnostic.Code))}]")
             .Order(StringComparer.Ordinal));
 
-    private static ReconciliationResult Run(Row[] left, Row[] right) =>
+    private static IReconciliationResult Run(Row[] left, Row[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

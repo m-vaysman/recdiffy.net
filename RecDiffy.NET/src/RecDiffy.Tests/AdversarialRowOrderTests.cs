@@ -152,19 +152,19 @@ public class AdversarialRowOrderTests
         Assert.True(differing.Length == 0, $"baseline:{Environment.NewLine}{baseline}{Environment.NewLine}{string.Join(Environment.NewLine, differing)}");
     }
 
-    private static ReconciliationResult Run(IReadOnlyList<Trade> left, IReadOnlyList<Trade> right) =>
+    private static IReconciliationResult Run(IReadOnlyList<Trade> left, IReadOnlyList<Trade> right) =>
         Reconciler.Run(Compiled.Value, RecordSources.FromObjects("left", left, Map), RecordSources.FromObjects("right", right, Map), ReferenceDataSet.Empty);
 
     // Row keys, not ordinals: an ordinal is the row's place in its file, which is what the test moves.
-    private static string Snapshot(ReconciliationResult result) =>
+    private static string Snapshot(IReconciliationResult result) =>
         string.Join(Environment.NewLine, [.. Rows(result), .. Entries(result), result.Summary.ToString()]);
 
-    private static string[] Rows(ReconciliationResult result) =>
+    private static string[] Rows(IReconciliationResult result) =>
         [.. result.Rows
             .Select(row => $"{row.Row.Source}:{row.Row.RowKey}={row.Disposition}/{row.Validity}/{string.Join("+", row.Diagnostics.Select(diagnostic => diagnostic.Code).Order(StringComparer.Ordinal))}")
             .Order(StringComparer.Ordinal)];
 
-    private static IEnumerable<string> Entries(ReconciliationResult result) =>
+    private static IEnumerable<string> Entries(IReconciliationResult result) =>
         result.Entries
             .Select(entry => $"{entry.Alignment} {entry.Composition} {entry.Outcome} {entry.PathId} {entry.Explanation.CommittedBy} {Members(entry.Left)} | {Members(entry.Right)} {Diffs(entry)}")
             .Order(StringComparer.Ordinal);

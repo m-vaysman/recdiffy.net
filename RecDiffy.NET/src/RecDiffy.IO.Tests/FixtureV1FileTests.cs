@@ -14,7 +14,7 @@ public class FixtureV1FileTests
     {
         var result = FixtureV1.Run(FileSources.FromExcel("left", TestFiles.FixtureV1, LeftSheet), FileSources.FromExcel("right", TestFiles.FixtureV1, RightSheet));
 
-        Assert.Equal(500, result.Rows.Count);
+        Assert.Equal(500, result.Rows.Length);
         Assert.Equal(310, FixtureV1.Satisfied(result));
     }
 
@@ -28,7 +28,7 @@ public class FixtureV1FileTests
 
         var result = FixtureV1.Run(FileSources.FromCsv("left", left, options), FileSources.FromCsv("right", right, options));
 
-        Assert.Equal(500, result.Rows.Count);
+        Assert.Equal(500, result.Rows.Length);
         Assert.Equal(310, FixtureV1.Satisfied(result));
     }
 

@@ -6,8 +6,8 @@ using RecDiffy.Results;
 namespace RecDiffy.Excel.Reports;
 
 // BO3. Layout from build_xlsx.py (BO3 raw vs normalized): one card per one-to-one matched pair with each side's original columns
-// as received (ReconciliationResult.Raw), the canonical values on both sides, the normalization steps that changed a value
-// (ReconciliationResult.Trace) and the engine's diffs. The only report that shows original columns.
+// as received (IReconciliationResult.Raw), the canonical values on both sides, the normalization steps that changed a value
+// (IReconciliationResult.Trace) and the engine's diffs. The only report that shows original columns.
 internal static class RawVsNormalized
 {
     private static readonly ImmutableArray<ReportRole> Canonical =
@@ -35,7 +35,7 @@ internal static class RawVsNormalized
 
     private static ImmutableArray<EntryFact> Cards(ReportContext context)
     {
-        var oneToOne = context.Facts.Entries.Where(entry => entry is { IsMatched: true, Entry.Left.Count: 1, Entry.Right.Count: 1 });
+        var oneToOne = context.Facts.Entries.Where(entry => entry is { IsMatched: true, Entry.Left.Length: 1, Entry.Right.Length: 1 });
         return context.Options.SelectedEntries is { } selected
             ? [.. oneToOne.Where(entry => selected.Any(id => entry.Id.StartsWith(id, StringComparison.OrdinalIgnoreCase)))]
             : [.. oneToOne

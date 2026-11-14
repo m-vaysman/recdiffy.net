@@ -46,7 +46,7 @@ public class NegativeZeroKeyTests
     }
 
     // An Exact field is left out of Diffs, so an Exact entry has none.
-    private static void AssertMatchedWithExactFee(ReconciliationResult result)
+    private static void AssertMatchedWithExactFee(IReconciliationResult result)
     {
         var entry = Assert.Single(result.Entries);
         Assert.Equal(Alignment.Matched, entry.Alignment);
@@ -56,7 +56,7 @@ public class NegativeZeroKeyTests
         Assert.All(result.Rows, row => Assert.Empty(row.Diagnostics));
     }
 
-    private static ReconciliationResult Run(RecordSource left, RecordSource right) =>
+    private static IReconciliationResult Run(RecordSource left, RecordSource right) =>
         Reconciler.Run(CultureProfile.Compile(Profile, CultureInfo.InvariantCulture), left, right, ReferenceDataSet.Empty);
 
     private static RecordSource Numbers(string side, decimal amount, decimal fee) =>

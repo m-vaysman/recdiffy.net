@@ -16,7 +16,7 @@ internal static class Probe
         return [.. result.Rows.Where(row => row.Row.Source == "left").OrderBy(row => row.Row.Ordinal).Select(row => result.Canonical(row.Row))];
     }
 
-    public static ReconciliationResult Run(RecordSource left, RecordSource right, string fields, string rules) =>
+    public static IReconciliationResult Run(RecordSource left, RecordSource right, string fields, string rules) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(ProbeProfile(fields, rules)), RuleRegistry.CreateCore()),
             left,
@@ -40,7 +40,7 @@ internal static class Probe
 // fixture-v1 run from files: the same profile, reference data and 310 expected cases as WorkbookAcceptanceTests.
 internal static class FixtureV1
 {
-    public static ReconciliationResult Run(RecordSource left, RecordSource right) =>
+    public static IReconciliationResult Run(RecordSource left, RecordSource right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore().Let(TradingRulePack.AddTo)),
             left,
@@ -48,14 +48,14 @@ internal static class FixtureV1
             Reference());
 
     // Returns how many expected cases the result satisfies; every case is checked.
-    public static int Satisfied(ReconciliationResult result)
+    public static int Satisfied(IReconciliationResult result)
     {
         var byKey = result.Rows.ToDictionary(row => row.Row.RowKey, StringComparer.Ordinal);
         var expected = XlsxSheet.Read(TestFiles.FixtureV1, 3);
         return expected.Count(row => Holds(result, byKey, row["ExpectedOutcome"]?.ToString(), Ids(row["InternalRowIDs"]), Ids(row["CounterpartyRowIDs"])));
     }
 
-    public static IReadOnlyList<string> Fingerprint(ReconciliationResult result) =>
+    public static IReadOnlyList<string> Fingerprint(IReconciliationResult result) =>
     [
         .. result.Entries.Select(entry => string.Join(
             "|",
@@ -69,7 +69,7 @@ internal static class FixtureV1
         .. result.Rows.Select(row => $"{row.Row.Source}:{row.Row.RowKey}|{row.Disposition}|{row.Validity}|{string.Join(",", row.Diagnostics.Select(diagnostic => diagnostic.Code))}").Order(StringComparer.Ordinal),
     ];
 
-    private static bool Holds(ReconciliationResult result, Dictionary<string, RowResult> byKey, string? outcome, string[] left, string[] right) => outcome switch
+    private static bool Holds(IReconciliationResult result, Dictionary<string, RowResult> byKey, string? outcome, string[] left, string[] right) => outcome switch
     {
         "EXACT" or "NORMALIZED" => Matched(result, byKey, left, right, FieldOutcome.Exact),
         "FIELD_BREAK" => Matched(result, byKey, left, right, FieldOutcome.Break),
@@ -79,7 +79,7 @@ internal static class FixtureV1
         _ => false,
     };
 
-    private static bool Matched(ReconciliationResult result, Dictionary<string, RowResult> byKey, string[] left, string[] right, FieldOutcome outcome) =>
+    private static bool Matched(IReconciliationResult result, Dictionary<string, RowResult> byKey, string[] left, string[] right, FieldOutcome outcome) =>
         result.Entries.SingleOrDefault(item => item.Left.Any(member => member.RowKey == left[0])) is { Alignment: Alignment.Matched } entry
         && entry.Outcome == outcome
         && entry.Left.Select(member => member.RowKey).Order(StringComparer.Ordinal).SequenceEqual(left.Order(StringComparer.Ordinal), StringComparer.Ordinal)

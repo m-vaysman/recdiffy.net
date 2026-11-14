@@ -71,7 +71,7 @@ public class AdversarialLifecycleConflictTests
         Assert.Equal(["ChainMemberQuarantined"], cancel.Diagnostics.Select(diagnostic => diagnostic.Code), StringComparer.Ordinal);
     }
 
-    private static ReconciliationResult Run(Row[] left, Row[] right) =>
+    private static IReconciliationResult Run(Row[] left, Row[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

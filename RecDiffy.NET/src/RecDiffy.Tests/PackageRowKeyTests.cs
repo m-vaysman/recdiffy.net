@@ -81,7 +81,7 @@ public class PackageRoleRowKeyTests
         Assert.Empty(result.Rows.SelectMany(row => row.Diagnostics));
     }
 
-    private static string Describe(ReconciliationResult result) =>
+    private static string Describe(IReconciliationResult result) =>
         string.Join(" || ", result.Entries.Select(entry =>
             $"{entry.Alignment}/{entry.Outcome} left {NetCash(result.Projection(entry.Id, Side.Left)["NetCash"])} "
             + $"[{string.Join(", ", entry.Diffs.Select(diff => $"{diff.Field.Name}:{diff.Outcome}:{diff.Delta.Number.ToString(CultureInfo.InvariantCulture)}"))}] "
@@ -90,7 +90,7 @@ public class PackageRoleRowKeyTests
     private static string NetCash(CanonicalValue value) =>
         value.IsNull ? "null" : value.Number.ToString(CultureInfo.InvariantCulture);
 
-    private static ReconciliationResult Run(Row[] left, string streetAsset) =>
+    private static IReconciliationResult Run(Row[] left, string streetAsset) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),
@@ -176,11 +176,11 @@ public class PackageRawColumnRowKeyTests
         Assert.All(result.Rows.Where(row => row.Row.Source == "left"), row => Assert.Equal("Swap", result.Raw(row.Row, "Asset")));
     }
 
-    private static string Describe(ReconciliationResult result) =>
+    private static string Describe(IReconciliationResult result) =>
         string.Join(" || ", result.Entries.Select(entry =>
             $"{entry.Alignment}/{entry.Outcome} [{string.Join(", ", entry.Diffs.Select(diff => $"{diff.Field.Name}:{diff.Outcome}:{diff.Delta.Number.ToString(CultureInfo.InvariantCulture)}"))}]"));
 
-    private static ReconciliationResult Run(Row[] left) =>
+    private static IReconciliationResult Run(Row[] left) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),
@@ -254,13 +254,13 @@ public class PackageLegCopyRowKeyTests
     }
 
     // One line per left row, named by its role, so the two runs compare leg for leg.
-    private static string Describe((ReconciliationResult Result, Row[] Left) run) =>
+    private static string Describe((IReconciliationResult Result, Row[] Left) run) =>
         string.Join("; ", run.Result.Rows
             .Where(row => row.Row.Source == "left")
             .Select(row => $"{run.Left.First(leg => leg.Id == row.Row.RowKey).Role} {row.Disposition} {row.Validity} [{string.Join(",", row.Diagnostics.Select(diagnostic => diagnostic.Code).Order(StringComparer.Ordinal))}]")
             .Order(StringComparer.Ordinal));
 
-    private static (ReconciliationResult Result, Row[] Left) Run(string pay, string receive)
+    private static (IReconciliationResult Result, Row[] Left) Run(string pay, string receive)
     {
         Row[] left = [new(pay, "SWAP-1", "PAY", "100"), new(receive, "SWAP-1", "REC", "30"), new(receive, "SWAP-1", "REC", "30")];
         var result = Reconciler.Run(

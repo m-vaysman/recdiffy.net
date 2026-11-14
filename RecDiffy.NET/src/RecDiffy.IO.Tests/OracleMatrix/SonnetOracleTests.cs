@@ -15,7 +15,7 @@ public class SonnetOracleTests
 {
     private static readonly OracleDataset Dataset = OracleDatasets.Sonnet;
 
-    private static readonly Lazy<ReconciliationResult> Result = new(Run);
+    private static readonly Lazy<IReconciliationResult> Result = new(Run);
 
     private const string Everything = "Waits on #307, #308, price.dirtyToClean (8 known exact) and fees.inferFromNet (18 near-matches, 5 fee breaks)";
 
@@ -103,12 +103,12 @@ public class SonnetOracleTests
         OracleAssert.None([.. all.Membership(), .. all.AllAxes(allocationsArePackages: false), .. all.BreakRoots(Field), .. all.Deltas(Field), .. all.Lifecycle()]);
     }
 
-    private static ReconciliationResult Run() =>
+    private static IReconciliationResult Run() =>
         RunOn(
             FileSources.FromExcel("left", Dataset.Workbook, new ExcelOptions { HasHeader = true, Sheet = ExcelSheet.Numbered(1) }),
             FileSources.FromExcel("right", Dataset.Workbook, new ExcelOptions { HasHeader = true, Sheet = ExcelSheet.Numbered(2) }));
 
-    internal static ReconciliationResult RunOn(RecordSource left, RecordSource right) =>
+    internal static IReconciliationResult RunOn(RecordSource left, RecordSource right) =>
         Reconciler.Run(Reconciler.Compile(ProfileDocument.Parse(Profile), TradingRulePack.AddTo(RuleRegistry.CreateCore())), left, right, Reference());
 
     // Reference data from the oracle's metadata: each counterparty's LEI, and its date format (§3.3) as a .NET format.

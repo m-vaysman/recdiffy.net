@@ -187,7 +187,7 @@ public class DeclaredCultureTests
         Assert.Contains(row.Diagnostics, diagnostic => diagnostic is { Code: "FloatValue", RawText: "2.5" });
     }
 
-    private static ReconciliationResult RunLeft(DataTable table) =>
+    private static IReconciliationResult RunLeft(DataTable table) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(CultureProfile.Json(run: "\"culture\": \"en-US\",")), RuleRegistry.CreateCore()),
             RecordSources.FromDataReader("left", table.CreateDataReader, new TabularOptions()),

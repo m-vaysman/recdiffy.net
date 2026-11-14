@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace RecDiffy.Results;
 
 public sealed record MeasureSpec(string Field);
@@ -12,17 +14,22 @@ public sealed record SideBySideSpec(
 
 public readonly record struct SideBySideCell(decimal Left, decimal Right, decimal Delta, decimal LeftOnly, decimal RightOnly, decimal MatchedDelta);
 
-public sealed record SideBySideLine(string Row, string Column, IReadOnlyDictionary<string, SideBySideCell> Cells);
+public sealed record SideBySideLine(string Row, string Column, ImmutableDictionary<string, SideBySideCell> Cells);
 
-public sealed class SideBySideView(IReadOnlyList<SideBySideLine> lines)
+public interface ISideBySideView
 {
-    public IReadOnlyList<SideBySideLine> Lines { get; } = lines;
+    ImmutableArray<SideBySideLine> Lines { get; }
+}
+
+internal sealed class SideBySideView(ImmutableArray<SideBySideLine> lines) : ISideBySideView
+{
+    public ImmutableArray<SideBySideLine> Lines { get; } = lines;
 }
 
 internal static class SideBySideBuilder
 {
     // One consolidated item can arrive once per member. Reference equality counts the item once.
-    public static SideBySideView Build(ReconciliationResult result, SideBySideSpec spec)
+    public static ISideBySideView Build(ReconciliationResult result, SideBySideSpec spec)
     {
         var totals = new Dictionary<(string Row, string Column, string Measure), Bucket>();
         var counted = new HashSet<object>(ReferenceEqualityComparer.Instance);
@@ -61,8 +68,8 @@ internal static class SideBySideBuilder
             .Select(group => new SideBySideLine(
                 group.First().RowLabel,
                 group.First().ColumnLabel,
-                group.ToDictionary(item => item.Key.Measure, item => item.Cell!.Value, StringComparer.Ordinal)))
-            .ToArray();
+                group.ToImmutableDictionary(item => item.Key.Measure, item => item.Cell!.Value, StringComparer.Ordinal)))
+            .ToImmutableArray();
         return new SideBySideView(lines);
     }
 

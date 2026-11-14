@@ -9,11 +9,11 @@ internal static class FixtureV1
 {
     public static readonly DateOnly AsOf = new(2026, 11, 4);
 
-    private static readonly Lazy<(CompiledProfile Profile, ReconciliationResult Result)> Cached = new(Run);
+    private static readonly Lazy<(CompiledProfile Profile, IReconciliationResult Result)> Cached = new(Run);
 
     public static CompiledProfile Profile => Cached.Value.Profile;
 
-    public static ReconciliationResult Result => Cached.Value.Result;
+    public static IReconciliationResult Result => Cached.Value.Result;
 
     public static string Workbook => Path.Combine(Paths.Repo, "RecDiffy.NET", "test-data", "trade-reconciliation-fixtures", "RecDiffy.NET-fixture-v1.xlsx");
 
@@ -25,7 +25,7 @@ internal static class FixtureV1
         Reports = reports.Length == 0 ? null : reports,
     };
 
-    private static (CompiledProfile, ReconciliationResult) Run()
+    private static (CompiledProfile, IReconciliationResult) Run()
     {
         var left = XlsxSheet.Read(Workbook, 1);
         var right = XlsxSheet.Read(Workbook, 2);

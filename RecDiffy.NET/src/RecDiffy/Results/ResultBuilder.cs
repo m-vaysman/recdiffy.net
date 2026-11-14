@@ -11,7 +11,7 @@ namespace RecDiffy;
 internal static class ResultBuilder
 {
     // A degree below 2, or a single job, stays on the caller. Parallel starts at two jobs.
-    public static ReconciliationResult Build(
+    public static IReconciliationResult Build(
         CompiledProfile profile,
         ReferenceDataSet reference,
         IReadOnlyList<(PathDeclaration Path, MatchReport Match)> routed,
@@ -63,15 +63,15 @@ internal static class ResultBuilder
         entries.AddRange(Unrouted(entries, left.Concat(right)));
         var entryByRow = Index(entries, left.Concat(right).ToArray());
         var entryById = entries.ToDictionary(entry => entry.Id);
-        var rows = left.Concat(right).SelectMany(row => row.Members.Select(member => Row(row, member, entryByRow, entryById, projections))).ToArray();
+        var rows = left.Concat(right).SelectMany(row => row.Members.Select(member => Row(row, member, entryByRow, entryById, projections))).ToImmutableArray();
         var summary = Summarize(entries, rows);
         return new ReconciliationResult(
             new RunInfo(profile.Hash, reference.Id, reference.ContentHash, EngineVersion()) { Reading = profile.Reading },
-            entries,
+            entries.ToImmutableArray(),
             rows,
             summary,
-            projections,
-            left.Concat(right).SelectMany(row => row.Members.Select(member => (member, row.Context))).ToDictionary(pair => pair.member, pair => pair.Context));
+            projections.ToImmutableDictionary(),
+            left.Concat(right).SelectMany(row => row.Members.Select(member => (member, row.Context))).ToImmutableDictionary(pair => pair.member, pair => pair.Context));
     }
 
     // An empty diff list is Exact. NotCompared fields are absent from that list and do not lower the outcome.
@@ -92,10 +92,10 @@ internal static class ResultBuilder
                 Alignment.Matched,
                 Compose(group),
                 outcome,
-                [.. group.Left.SelectMany(row => row.Members)],
-                [.. group.Right.SelectMany(row => row.Members)],
-                diffs,
-                new Explanation(group.PassId, [new PassAttempt(group.PassId, PassVerdict.Committed, TrailKey(path, group, use), members, null)], [])),
+                group.Left.SelectMany(row => row.Members).ToImmutableArray(),
+                group.Right.SelectMany(row => row.Members).ToImmutableArray(),
+                diffs.ToImmutableArray(),
+                new Explanation(group.PassId, [new PassAttempt(group.PassId, PassVerdict.Committed, TrailKey(path, group, use), members.ToImmutableArray(), null)], [])),
             left,
             right);
     }
@@ -130,10 +130,10 @@ internal static class ResultBuilder
             cluster.Alignment,
             Composition.None,
             FieldOutcome.NotCompared,
-            left,
-            right,
+            left.ToImmutableArray(),
+            right.ToImmutableArray(),
             [],
-            new Explanation(cluster.PassId, cluster.PassId is null ? [] : [new PassAttempt(cluster.PassId, verdict, OpenTrailKey(cluster, passes, use), members, cluster.Code)], []));
+            new Explanation(cluster.PassId, cluster.PassId is null ? [] : [new PassAttempt(cluster.PassId, verdict, OpenTrailKey(cluster, passes, use), members.ToImmutableArray(), cluster.Code)], []));
     }
 
     private static string? OpenTrailKey(ResidueCluster cluster, IReadOnlyList<PassDeclaration> passes, FieldUse use) =>
@@ -359,40 +359,26 @@ internal static class ResultBuilder
     }
 }
 
-public sealed class ReconciliationResult
+internal sealed class ReconciliationResult(
+    RunInfo run,
+    ImmutableArray<ResultEntry> entries,
+    ImmutableArray<RowResult> rows,
+    RunSummary summary,
+    ImmutableDictionary<GroupId, (RowContext Left, RowContext Right)> projections,
+    ImmutableDictionary<SourceRef, RowContext> contexts) : IReconciliationResult
 {
-    private readonly Dictionary<GroupId, (RowContext Left, RowContext Right)> _projections;
-    private readonly Dictionary<SourceRef, RowContext> _rows;
+    private readonly ImmutableDictionary<GroupId, (RowContext Left, RowContext Right)> _projections = projections ?? throw new ArgumentNullException(nameof(projections));
+    private readonly ImmutableDictionary<SourceRef, RowContext> _rows = contexts ?? throw new ArgumentNullException(nameof(contexts));
 
-    internal ReconciliationResult(
-        RunInfo run,
-        IReadOnlyList<ResultEntry> entries,
-        IReadOnlyList<RowResult> rows,
-        RunSummary summary,
-        Dictionary<GroupId, (RowContext Left, RowContext Right)> projections,
-        Dictionary<SourceRef, RowContext> contexts)
-    {
-        ArgumentNullException.ThrowIfNull(run);
-        ArgumentNullException.ThrowIfNull(entries);
-        ArgumentNullException.ThrowIfNull(rows);
-        ArgumentNullException.ThrowIfNull(summary);
-        Run = run;
-        Entries = entries;
-        Rows = rows;
-        Summary = summary;
-        _projections = projections;
-        _rows = contexts;
-    }
+    public RunInfo Run { get; } = run ?? throw new ArgumentNullException(nameof(run));
 
-    public RunInfo Run { get; }
+    public ImmutableArray<ResultEntry> Entries { get; } = entries;
 
-    public IReadOnlyList<ResultEntry> Entries { get; }
+    public ImmutableArray<RowResult> Rows { get; } = rows;
 
-    public IReadOnlyList<RowResult> Rows { get; }
+    public RunSummary Summary { get; } = summary ?? throw new ArgumentNullException(nameof(summary));
 
-    public RunSummary Summary { get; }
-
-    public SideBySideView BuildSideBySide(SideBySideSpec spec)
+    public ISideBySideView BuildSideBySide(SideBySideSpec spec)
     {
         ArgumentNullException.ThrowIfNull(spec);
         return SideBySideBuilder.Build(this, spec);

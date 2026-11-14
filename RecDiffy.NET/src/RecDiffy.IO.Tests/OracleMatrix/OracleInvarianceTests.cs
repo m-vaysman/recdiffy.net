@@ -11,7 +11,7 @@ public class OracleInvarianceTests
 {
     private static readonly IReadOnlyDictionary<string, string> None = new Dictionary<string, string>(StringComparer.Ordinal);
 
-    private static ReconciliationResult Run(string name, IReadOnlyList<SheetRow> left, IReadOnlyList<SheetRow> right) =>
+    private static IReconciliationResult Run(string name, IReadOnlyList<SheetRow> left, IReadOnlyList<SheetRow> right) =>
         OracleRuns.Of(name)(ObjectSources.From("left", left), ObjectSources.From("right", right));
 
     private static IReadOnlyList<string> Baseline(OracleDataset dataset) =>

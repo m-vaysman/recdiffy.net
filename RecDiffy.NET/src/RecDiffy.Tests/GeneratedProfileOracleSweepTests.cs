@@ -86,7 +86,7 @@ public class GeneratedProfileOracleSweepTests
             when => Assert.Single(new object?[] { when.EqualsValue, when.NotEquals, when.In }.OfType<object>()));
     }
 
-    private static void VerifyRows(GeneratedRun plan, ReconciliationResult result)
+    private static void VerifyRows(GeneratedRun plan, IReconciliationResult result)
     {
         var actualRows = result.Rows.ToDictionary(r => (r.Row.Source, r.Row.RowKey));
         Assert.Equal(plan.ExpectedRows.Count, actualRows.Count);
@@ -100,7 +100,7 @@ public class GeneratedProfileOracleSweepTests
         }
     }
 
-    private static void VerifyEntries(GeneratedRun plan, ReconciliationResult result)
+    private static void VerifyEntries(GeneratedRun plan, IReconciliationResult result)
     {
         string Signature(IEnumerable<(string Source, string RowKey)> left, IEnumerable<(string Source, string RowKey)> right) =>
             string.Join(",", left.Concat(right).Select(m => $"{m.Source}:{m.RowKey}").OrderBy(s => s, StringComparer.Ordinal));
@@ -136,7 +136,7 @@ public class GeneratedProfileOracleSweepTests
         }
     }
 
-    private static void VerifySideBySide(GeneratedRun plan, ReconciliationResult result)
+    private static void VerifySideBySide(GeneratedRun plan, IReconciliationResult result)
     {
         var sbs = result.BuildSideBySide(new SideBySideSpec([], [], [new("Quantity"), new("Price"), new("NetCash")], null));
         var line = Assert.Single(sbs.Lines);

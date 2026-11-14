@@ -8,7 +8,7 @@ using RecDiffy.Excel.Writing;
 
 namespace RecDiffy.Excel;
 
-/// <summary>Writes formatted Excel reports, one .xlsx file per report, from a RecDiffy <see cref="ReconciliationResult"/>.</summary>
+/// <summary>Writes formatted Excel reports, one .xlsx file per report, from a RecDiffy <see cref="IReconciliationResult"/>.</summary>
 public static partial class RecDiffyExcel
 {
     // IWorkbookWriter is the replace-and-repoint seam for the workbook serializer (#256).
@@ -17,7 +17,7 @@ public static partial class RecDiffyExcel
 #pragma warning restore CA1859
 
     /// <summary>Writes one report to a stream. Returns the outcome; when the report is skipped, nothing is written and the reason is returned.</summary>
-    public static ReportOutcome WriteReport(this ReconciliationResult result, ReportKind kind, Stream output, ExcelReportOptions options)
+    public static ReportOutcome WriteReport(this IReconciliationResult result, ReportKind kind, Stream output, ExcelReportOptions options)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(output);
@@ -33,7 +33,7 @@ public static partial class RecDiffyExcel
     /// Writes one file per selected report into a folder. Returns, for each report, the file path or the reason it was skipped.
     /// Cancellation is observed before each report is built and before each file is written.
     /// </summary>
-    public static IReadOnlyList<ReportOutcome> WriteAll(this ReconciliationResult result, string folder, ExcelReportOptions options, CancellationToken cancellationToken = default)
+    public static IReadOnlyList<ReportOutcome> WriteAll(this IReconciliationResult result, string folder, ExcelReportOptions options, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(folder);
@@ -97,7 +97,7 @@ public static partial class RecDiffyExcel
 
     internal sealed record Composed(ReportKind Kind, string FileName, Workbook? Workbook, string? SkipReason);
 
-    internal static ReportContext Context(ReconciliationResult result, ExcelReportOptions options)
+    internal static ReportContext Context(IReconciliationResult result, ExcelReportOptions options)
     {
         var map = options.FieldMap ?? (options.Profile is { } profile ? FieldMap.FromProfile(profile) : FieldMap.Empty);
         var profileId = options.ProfileId ?? options.Profile?.ProfileId ?? result.Run.ProfileHash[..Math.Min(12, result.Run.ProfileHash.Length)];

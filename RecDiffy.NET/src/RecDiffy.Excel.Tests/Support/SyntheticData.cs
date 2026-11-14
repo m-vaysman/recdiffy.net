@@ -6,11 +6,11 @@ internal static class SyntheticData
 {
     public static readonly DateOnly AsOf = new(2026, 11, 4);
 
-    private static readonly Lazy<(CompiledProfile Profile, ReconciliationResult Result)> Cached = new(Run);
+    private static readonly Lazy<(CompiledProfile Profile, IReconciliationResult Result)> Cached = new(Run);
 
     public static CompiledProfile Profile => Cached.Value.Profile;
 
-    public static ReconciliationResult Result => Cached.Value.Result;
+    public static IReconciliationResult Result => Cached.Value.Result;
 
     public sealed record Trade(
         string Id,
@@ -76,7 +76,7 @@ internal static class SyntheticData
         Reports = reports.Length == 0 ? null : reports,
     };
 
-    private static (CompiledProfile, ReconciliationResult) Run()
+    private static (CompiledProfile, IReconciliationResult) Run()
     {
         var profile = Reconciler.Compile(ProfileDocument.Parse(ProfileJson), RuleRegistry.CreateCore());
         return (profile, Reconciler.Run(profile, Source("ours", Ours), Source("theirs", Theirs), ReferenceDataSet.Empty));

@@ -34,7 +34,7 @@ public class ProfileBuilderTests
         var fromCode = Run(Built(FixtureV1()), left, right);
 
         Assert.Equal(310, Acceptance.XlsxSheet.Read(book, 3).Count);
-        Assert.Equal(left.Count + right.Count, fromCode.Rows.Count);
+        Assert.Equal(left.Count + right.Count, fromCode.Rows.Length);
         Assert.Equal(Fingerprint(fromJson), Fingerprint(fromCode));
     }
 
@@ -441,14 +441,14 @@ public class ProfileBuilderTests
     private static string Corpus(string prefix) =>
         Assert.Single(ProfileCorpus.Profiles, pair => pair.Key.StartsWith(prefix, StringComparison.Ordinal)).Value;
 
-    private static ReconciliationResult Run(ProfileDocument document, IReadOnlyList<IReadOnlyDictionary<string, object?>> left, IReadOnlyList<IReadOnlyDictionary<string, object?>> right) =>
+    private static IReconciliationResult Run(ProfileDocument document, IReadOnlyList<IReadOnlyDictionary<string, object?>> left, IReadOnlyList<IReadOnlyDictionary<string, object?>> right) =>
         Reconciler.Run(
             Reconciler.Compile(document, Registry),
             RecordSources.FromObjects("left", left, FixtureMap()),
             RecordSources.FromObjects("right", right, FixtureMap()),
             FixtureReference());
 
-    private static IReadOnlyList<string> Fingerprint(ReconciliationResult result) =>
+    private static IReadOnlyList<string> Fingerprint(IReconciliationResult result) =>
     [
         .. result.Entries.Select(entry => string.Join(
             "|",

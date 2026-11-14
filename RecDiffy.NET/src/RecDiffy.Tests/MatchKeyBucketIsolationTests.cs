@@ -139,7 +139,7 @@ public class MatchKeyBucketIsolationTests
 
         var summed = Run(GroupProfile, "isin", [("L1", "X", "50.00"), ("L2", "X", "50.00")], [("R1", "X", "100.00")]);
         Assert.All(summed.Rows, row => Assert.Equal(Disposition.Matched, row.Disposition));
-        Assert.Equal(3, summed.Rows.Count);
+        Assert.Equal(3, summed.Rows.Length);
     }
 
     // R1 leaves an empty mapped symbol matching an empty mapped symbol. Phase 2 pins today's behaviour and must not throw;
@@ -149,12 +149,12 @@ public class MatchKeyBucketIsolationTests
     {
         var result = Run(EmptySymbolProfile, "isin", [("L1", "NA", "100.00")], [("R1", "NA", "100.00")]);
 
-        Assert.Equal(2, result.Rows.Count);
+        Assert.Equal(2, result.Rows.Length);
         Assert.All(result.Rows, row => Assert.Equal(Disposition.Matched, row.Disposition));
     }
 
     // The right side of each split profile reads under "cusip". Naming the left scheme instead gives the same-scheme control.
-    private static ReconciliationResult Run(string template, string rightScheme, (string Id, string Ref, string Quantity)[] left, (string Id, string Ref, string Quantity)[] right)
+    private static IReconciliationResult Run(string template, string rightScheme, (string Id, string Ref, string Quantity)[] left, (string Id, string Ref, string Quantity)[] right)
     {
         var json = template.Replace("\"scheme\": \"cusip\"", $"\"scheme\": \"{rightScheme}\"", StringComparison.Ordinal);
         var profile = Reconciler.Compile(ProfileDocument.Parse(json), RuleRegistry.CreateCore());

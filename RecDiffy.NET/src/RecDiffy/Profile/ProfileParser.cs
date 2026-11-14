@@ -51,7 +51,7 @@ internal static class ProfileParser
                 Consolidation = ReadConsolidation(root),
                 Culture = ReadCulture(root, "culture"),
                 StrictDateFormats = ReadStrictDateFormats(root, "strictDateFormats"),
-                SourceReadings = ReadSourceReadings(root),
+                SourceReadings = ReadSourceReadings(root).ToImmutableDictionary(StringComparer.Ordinal),
             };
         }
     }

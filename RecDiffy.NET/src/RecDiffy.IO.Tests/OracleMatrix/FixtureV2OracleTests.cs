@@ -13,7 +13,7 @@ public class FixtureV2OracleTests
 {
     private static readonly OracleDataset Dataset = OracleDatasets.V2;
 
-    private static readonly Lazy<ReconciliationResult> Result = new(Run);
+    private static readonly Lazy<IReconciliationResult> Result = new(Run);
 
     // §12.1 calls this dataset's membership unverified, and §9.2 gives no profile for its conventions. Its outcomes
     // disagree with the oracle for reasons outside the engine, listed in the PR for #39, and for #307 and #308.
@@ -72,10 +72,10 @@ public class FixtureV2OracleTests
     public void The_checks_cover_all_but_the_7_deferred_cases() =>
         Assert.Equal(Dataset.Cases().Count - 7, Compare().Checked);
 
-    private static ReconciliationResult Run() =>
+    private static IReconciliationResult Run() =>
         RunOn(ObjectSources.From("left", Dataset.Left()), ObjectSources.From("right", Dataset.Right()));
 
-    internal static ReconciliationResult RunOn(RecordSource left, RecordSource right) =>
+    internal static IReconciliationResult RunOn(RecordSource left, RecordSource right) =>
         Reconciler.Run(Reconciler.Compile(ProfileDocument.Parse(Profile), TradingRulePack.AddTo(RuleRegistry.CreateCore())), left, right, Reference());
 
     // Reference data from the oracle's counterparty_normalization_rules: each counterparty's LEI.

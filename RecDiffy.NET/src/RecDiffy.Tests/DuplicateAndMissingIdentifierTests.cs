@@ -138,7 +138,7 @@ public class DuplicateAndMissingIdentifierTests
             StringComparer.Ordinal);
     }
 
-    private static ReconciliationResult Run(Trade[] left, Trade[] right) =>
+    private static IReconciliationResult Run(Trade[] left, Trade[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),
@@ -148,7 +148,7 @@ public class DuplicateAndMissingIdentifierTests
     private static string Members(ResultEntry entry) =>
         string.Join("|", entry.Left.Concat(entry.Right).Select(member => $"{member.Source}:{member.RowKey}").Order(StringComparer.Ordinal));
 
-    private static Disposition DispositionOf(ReconciliationResult result, string source, string rowKey) =>
+    private static Disposition DispositionOf(IReconciliationResult result, string source, string rowKey) =>
         result.Rows.Single(row => row.Row.Source == source && row.Row.RowKey == rowKey).Disposition;
 
     private sealed record Trade(string Id, string Counterparty, string Instrument, string? TradeRef, string Quantity);

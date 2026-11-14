@@ -107,7 +107,7 @@ public class RunTests
         Assert.Equal(Alignment.Matched, entry.Alignment);
         Assert.Equal(FieldOutcome.Exact, entry.Outcome);
         Assert.Equal(Composition.OneToOne, entry.Composition);
-        Assert.Equal(2, result.Rows.Count);
+        Assert.Equal(2, result.Rows.Length);
         Assert.All(result.Rows, row => Assert.Equal(Disposition.Matched, row.Disposition));
         Assert.Equal(entry.Id, result.Rows[0].EntryId);
     }

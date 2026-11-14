@@ -144,7 +144,7 @@ public class DeclaredDateRuleTests
         return row;
     }
 
-    private static ReconciliationResult Run(Row left, Row right)
+    private static IReconciliationResult Run(Row left, Row right)
     {
         var reference = ReferenceDataSet.Create(
             "dates",

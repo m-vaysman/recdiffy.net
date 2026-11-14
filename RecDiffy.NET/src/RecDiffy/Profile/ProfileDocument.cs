@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace RecDiffy;
 
 public sealed record WhenClause(string Field, string? EqualsValue, string? NotEquals, IReadOnlyList<string>? In)
@@ -86,8 +88,8 @@ public sealed record ProfileDocument
     public bool? StrictDateFormats { get; init; }
 
     /// <summary>Each side's own reading, keyed by side name. A side's declaration overrides the run's.</summary>
-    public IReadOnlyDictionary<string, SourceReading> SourceReadings { get; init; } =
-        new Dictionary<string, SourceReading>(StringComparer.Ordinal);
+    public ImmutableDictionary<string, SourceReading> SourceReadings { get; init; } =
+        ImmutableDictionary<string, SourceReading>.Empty.WithComparers(StringComparer.Ordinal);
 
     internal IReadOnlyDictionary<string, ConsolidationSide> Consolidation { get; init; } =
         new Dictionary<string, ConsolidationSide>(StringComparer.Ordinal);

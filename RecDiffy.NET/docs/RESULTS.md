@@ -1,8 +1,10 @@
 # Reading a reconciliation result
 
-`Reconciler.Run` returns a `ReconciliationResult`. This guide explains what each part of it means, and how to report it without overstating what was found.
+`Reconciler.Run` and `Reconciler.RunAsync` return an `IReconciliationResult`. This guide explains what each part of it means, and how to report it without overstating what was found.
 
-The types are in [ResultModel.cs](../src/RecDiffy/Results/ResultModel.cs) and [Alignment.cs](../src/RecDiffy/Results/Alignment.cs). The result is assembled in [ResultBuilder.cs](../src/RecDiffy/Results/ResultBuilder.cs). For the profile settings that shape a result, see [PROFILES.md](PROFILES.md).
+`Entries` and `Rows` are `ImmutableArray` values. Enumerate them as before, and use `Length` for the count. `BuildSideBySide` returns an `ISideBySideView`, whose `Lines` are an `ImmutableArray` and whose cells are an ordinal `ImmutableDictionary`. The concrete result types are internal, so a host cannot cast the result to a list or a dictionary and change it. `Trace` stays an `IReadOnlyList<TraceStep>`.
+
+The types are in [IReconciliationResult.cs](../src/RecDiffy/Results/IReconciliationResult.cs), [ResultModel.cs](../src/RecDiffy/Results/ResultModel.cs) and [Alignment.cs](../src/RecDiffy/Results/Alignment.cs). The result is assembled in [ResultBuilder.cs](../src/RecDiffy/Results/ResultBuilder.cs). For the profile settings that shape a result, see [PROFILES.md](PROFILES.md).
 
 Two rules to keep in mind:
 

@@ -67,7 +67,7 @@ public class PackageFieldRuleTests
     {
         var result = Run(Profile, [Far, Near], []);
         var leg = result.Rows.Single(row => row.Row.RowKey == "L-NEAR");
-        var item = result.ConsolidatedItem(leg.Row);
+        var item = ((ReconciliationResult)result).ConsolidatedItem(leg.Row);
 
         Assert.Equal((true, true), (item.IsNull("Uti"), item.IsNull("SettleDate")));
         Assert.Equal(InputValidity.ValidWithWarnings, leg.Validity);
@@ -80,7 +80,7 @@ public class PackageFieldRuleTests
         var result = Run(Profile, [Near, Far], []);
         var leg = result.Rows.Single(row => row.Row.RowKey == "L-FAR");
 
-        Assert.True(result.ConsolidatedItem(leg.Row).IsNull("Note"));
+        Assert.True(((ReconciliationResult)result).ConsolidatedItem(leg.Row).IsNull("Note"));
         Assert.DoesNotContain(leg.Diagnostics, diagnostic => diagnostic is { Code: "MembersDisagree", Field: "Note" });
     }
 
@@ -98,7 +98,7 @@ public class PackageFieldRuleTests
         }
     }
 
-    private static ReconciliationResult Run(string profile, Row[] left, Row[] right) =>
+    private static IReconciliationResult Run(string profile, Row[] left, Row[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

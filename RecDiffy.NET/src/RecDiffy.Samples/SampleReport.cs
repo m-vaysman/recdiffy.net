@@ -7,7 +7,7 @@ internal static class SampleReport
 {
     public static void Heading(string title) => Console.WriteLine($"{Environment.NewLine}{title}");
 
-    public static void Result(ReconciliationResult result)
+    public static void Result(IReconciliationResult result)
     {
         var summary = result.Summary;
         Console.WriteLine($"summary matched={summary.Matched.ToInvariant()} exact={summary.Exact.ToInvariant()} withinTolerance={summary.WithinTolerance.ToInvariant()} break={summary.Break.ToInvariant()} leftOnly={summary.LeftOnly.ToInvariant()} rightOnly={summary.RightOnly.ToInvariant()} ambiguous={summary.Ambiguous.ToInvariant()} searchIncomplete={summary.SearchIncomplete.ToInvariant()} quarantined={summary.Quarantined.ToInvariant()} suppressed={summary.Suppressed.ToInvariant()}");
@@ -17,7 +17,7 @@ internal static class SampleReport
             Console.WriteLine($"row {row.Row.Source}:{row.Row.RowKey} disposition={row.Disposition} validity={row.Validity}{Diagnostics(row)}");
     }
 
-    public static void SideBySide(SideBySideView view)
+    public static void SideBySide(ISideBySideView view)
     {
         foreach (var line in view.Lines)
         {

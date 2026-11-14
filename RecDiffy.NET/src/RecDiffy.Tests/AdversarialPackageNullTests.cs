@@ -83,7 +83,7 @@ public class AdversarialPackageNullTests
         Assert.Equal(FieldOutcome.Exact, entry.Outcome);
     }
 
-    private static ReconciliationResult Run(string aggregator, Row[] left, Row[] right) =>
+    private static IReconciliationResult Run(string aggregator, Row[] left, Row[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile.Replace("\"NetCash\": \"Sum\"", $"\"NetCash\": \"{aggregator}\"", StringComparison.Ordinal)), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

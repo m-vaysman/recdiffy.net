@@ -38,7 +38,7 @@ internal static class CultureProfile
         ProfileCompiler.Compile(ProfileDocument.Parse(json), RuleRegistry.CreateCore(), server).Profile
             ?? throw new InvalidOperationException("The profile did not compile.");
 
-    public static ReconciliationResult Run(CompiledProfile profile, (string Id, string Qty, string Day) left, (string Id, string Qty, string Day) right)
+    public static IReconciliationResult Run(CompiledProfile profile, (string Id, string Qty, string Day) left, (string Id, string Qty, string Day) right)
     {
         var map = new SourceMap<(string Id, string Qty, string Day)>().Text("Id", row => row.Id).Text("Qty", row => row.Qty).Text("Day", row => row.Day);
         return Reconciler.Run(

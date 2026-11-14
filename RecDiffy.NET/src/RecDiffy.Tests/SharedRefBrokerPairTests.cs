@@ -69,7 +69,7 @@ public class SharedRefBrokerPairTests
             StringComparer.Ordinal);
     }
 
-    private static ReconciliationResult Run(Trade[] left, Trade[] right) =>
+    private static IReconciliationResult Run(Trade[] left, Trade[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

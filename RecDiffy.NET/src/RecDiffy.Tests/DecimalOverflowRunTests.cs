@@ -162,7 +162,7 @@ public class DecimalOverflowRunTests
     private static string FirstFrame(Exception? failure) =>
         (failure?.StackTrace ?? "").Split('\n').Select(line => line.Trim()).FirstOrDefault(line => line.Contains("RecDiffy", StringComparison.Ordinal)) ?? "";
 
-    private static ReconciliationResult Run(string profile, string[] left, string[] right)
+    private static IReconciliationResult Run(string profile, string[] left, string[] right)
     {
         var columns = left.Concat(right).Select(Parse).SelectMany(row => row.Keys).Distinct(StringComparer.Ordinal).ToArray();
         var map = columns.Aggregate(

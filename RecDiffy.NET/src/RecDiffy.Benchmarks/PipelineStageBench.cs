@@ -99,7 +99,7 @@ public class PipelineStageBench
         PipelineStage.Packages => Packages.Pack(_packageRows, _packagePlan).Count,
         PipelineStage.Match => CascadeMatcher.Run(_left, _right, _profile.Document.Paths[0].Passes, _profile.Document.Fields, _profile.Document.Limits).Committed.Count,
         PipelineStage.Diff => Differences(),
-        PipelineStage.Build => ResultBuilder.Build(_profile, ReferenceDataSet.Empty, _routed, _left, _right, new RunOptions(), CancellationToken.None).Entries.Count,
+        PipelineStage.Build => ResultBuilder.Build(_profile, ReferenceDataSet.Empty, _routed, _left, _right, new RunOptions(), CancellationToken.None).Entries.Length,
         _ => throw new InvalidOperationException("Unknown pipeline stage."),
     };
 

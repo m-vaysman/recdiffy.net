@@ -31,7 +31,7 @@ public class TestDataWorkbookTests
     {
         var options = new ExcelOptions { HasHeader = true, Sheet = ExcelSheet.Numbered(sheet) };
         var result = Probe.Run(FileSources.FromExcel("left", path, options), Probe.Empty(), """{ "name": "Unused", "type": "Text", "role": "Text" }""", "");
-        Assert.Equal(FileSources.PeekExcel(path, options, 0, 0).RowCount, result.Rows.Count);
-        return result.Rows.Count;
+        Assert.Equal(FileSources.PeekExcel(path, options, 0, 0).RowCount, result.Rows.Length);
+        return result.Rows.Length;
     }
 }

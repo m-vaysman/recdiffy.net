@@ -126,14 +126,14 @@ public class CompositionAndLineageConsolidationTests
 
     private sealed record PackageRow(string Id, string Link, string? Role, string? Action, string? Target, string Amount);
 
-    private static ReconciliationResult RunLifecycle(IReadOnlyList<EventRow> left, IReadOnlyList<EventRow> right) =>
+    private static IReconciliationResult RunLifecycle(IReadOnlyList<EventRow> left, IReadOnlyList<EventRow> right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(LifecycleProfile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, EventMap()),
             RecordSources.FromObjects("right", right, EventMap()),
             ReferenceDataSet.Empty);
 
-    private static ReconciliationResult RunPackage(IReadOnlyList<PackageRow> left, IReadOnlyList<PackageRow> right, string profile) =>
+    private static IReconciliationResult RunPackage(IReadOnlyList<PackageRow> left, IReadOnlyList<PackageRow> right, string profile) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, PackageMap()),

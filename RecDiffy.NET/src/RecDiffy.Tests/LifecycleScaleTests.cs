@@ -83,7 +83,7 @@ public class LifecycleScaleTests
 
         var result = Run([], right);
 
-        Assert.Equal(right.Length, result.Rows.Count);
+        Assert.Equal(right.Length, result.Rows.Length);
         Assert.All(result.Rows, row =>
         {
             Assert.Equal(Disposition.Quarantined, row.Disposition);
@@ -120,7 +120,7 @@ public class LifecycleScaleTests
             string.Create(CultureInfo.InvariantCulture, $"{StandaloneEvents} events took {elapsed.TotalSeconds:F1} s; the limit is {GrowthLimit.TotalSeconds} s."));
     }
 
-    private static ReconciliationResult Run(Row[] left, Row[] right) =>
+    private static IReconciliationResult Run(Row[] left, Row[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),
