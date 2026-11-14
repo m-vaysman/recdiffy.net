@@ -24,6 +24,15 @@ Two rules to keep in mind:
 
 An entry can hold many rows. A row belongs to at most one entry, and `RowResult.EntryId` names it.
 
+## When there is no result
+
+Two failures throw an exception. Neither returns a partial result.
+
+- **The profile doesn't compile.** `Reconciler.Compile` throws `ProfileCompileException`. Its `Errors` property lists the problems, each a `ProfileError` with a `Code` and a `Message`. No compiled profile is returned, so there is nothing to run.
+- **The run is cancelled.** `Reconciler.Run` and `Reconciler.RunAsync` throw `OperationCanceledException` when their `CancellationToken` is cancelled. The token is checked while the sources are read, between the stages, and inside matching and result building. A cancelled run returns nothing.
+
+A value that can't be read is not one of these. Its row is quarantined and the run goes on; see [Quarantine](#quarantine). `RunOptions` has no setting that stops a run at the first quarantined row.
+
 ## Four separate questions
 
 A result answers four questions. Each has its own property, and they don't imply each other.
@@ -157,7 +166,9 @@ Every number in a result can be traced back to its input.
 - **`ResultEntry.PathId`** is the path that handled the rows.
 - **`Explanation.CommittedBy`** names the pass that decided the entry: the pass that matched it, or the pass that found it ambiguous or stopped its search. Check `Alignment` before you read it as a match ([#258](https://github.com/m-vaysman/recdiffy.net/issues/258)).
 - **`Explanation.Trail`** records the pass, its verdict (`Committed`, `Contest`, `SearchIncomplete` or `NoCandidate`), the key, the rows, and a detail code. The key is the value form a person can read, not the matcher's internal key: a pass on the field `Ref` shows `T-1`, and a pass on two fields shows their values in key order joined by ` · `, such as `T-1 · 2026-11-05`. A committed group pass keys on its target row's row key. An ambiguous entry's trail has no key today ([#257](https://github.com/m-vaysman/recdiffy.net/issues/257)). `Explanation.Hints` is always empty in this version.
-- **`result.Raw(row, column)`** returns a source cell as text. `result.Canonical(row)` returns the row's values after normalization. `result.Trace(row)` lists each rule that wrote a field, with the raw and canonical text. For a leg of a package, all three read the package's combined item, not the leg: `Raw` returns only the cells every leg holds the same, and null for the others.
+- **`result.Raw(row, column)`** returns a source cell as text. `result.Canonical(row)` returns the row's values after normalization. `result.Trace(row)` lists each rule that wrote a field, with the raw and canonical text.
+- **All three read the row after consolidation,** which is not always the row as it was read. For a leg of a package, they read the package's combined item, not the leg: every leg returns the same values, and `Raw` returns only the cells every leg holds the same, and null for the others. Identical copies of one row key read the one row they were collapsed into. Every other row reads as itself. That includes each row of a lifecycle chain: the survivor and the rows it replaced each return their own values.
+- **They don't return a group's combined row.** For a `ManyToOne` or `OneToMany` entry, each member still reads as itself. `result.Projection(entry.Id, side)` returns the combined row that was compared.
 - **`result.Run`** records the profile hash, the reference data id and hash, and each side's culture, so you can tell which configuration produced the result.
 
 Rows that no route accepts get their own `LeftOnly` or `RightOnly` entry with an empty `PathId`, a `NoCandidate` trail step from `route`, and the detail `Unrouted` ([RunSummaryAccountingTests.cs](../src/RecDiffy.Tests/RunSummaryAccountingTests.cs)). An unmatched row that a pass saw but couldn't pair has an empty trail.

@@ -368,7 +368,7 @@ var result = Reconciler.Run(profile, left, right, referenceData);
 - **You state what the file is.** `HasHeader`, the CSV `Delimiter` and the Excel `Sheet` are required, so leaving one out does not compile. Delimiter detection is available only as `CsvDelimiter.DetectAutomatically`, chosen explicitly.
 - **With a header,** row 1 names the columns and every later row is data. A header row with an empty or repeated name is refused, with a message naming the columns.
 - **Without a header,** columns are named `Column1` to `ColumnN` and every row, including the first, is data, so profiles map columns by position.
-- **Excel data starts at cell A1** of the chosen sheet. Blank rows and columns are not skipped to find a table.
+- **Excel data starts at cell A1** of the chosen sheet. Blank rows and columns are not skipped to find a table. The header, when there is one, is row 1. `ExcelOptions` has no header-row setting, so a header on any other row is not read as a header.
 - **Values pass through.** CSV cells reach the profile as text, so all parsing stays in the profile as policy. Excel cells keep the type the workbook stores: a number (as a `decimal`), a date, or text, so a text ID such as `00123` keeps its leading zeros. A number no `decimal` holds exactly, because it is too large or has more than 28 significant digits, stays a `double` and is `Invalid` with `FloatValue`.
 - **Each side is independent.** CSV against Excel, Excel against CSV, and a file against objects or another data reader all work.
 
