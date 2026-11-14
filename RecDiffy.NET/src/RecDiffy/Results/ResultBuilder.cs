@@ -70,8 +70,8 @@ internal static class ResultBuilder
             entries.ToImmutableArray(),
             rows,
             summary,
-            projections.ToImmutableDictionary(),
-            left.Concat(right).SelectMany(row => row.Members.Select(member => (member, row.Context))).ToImmutableDictionary(pair => pair.member, pair => pair.Context));
+            projections,
+            left.Concat(right).SelectMany(row => row.Members.Select(member => (member, row.Context))).ToDictionary(pair => pair.member, pair => pair.Context));
     }
 
     // An empty diff list is Exact. NotCompared fields are absent from that list and do not lower the outcome.
@@ -364,11 +364,11 @@ internal sealed class ReconciliationResult(
     ImmutableArray<ResultEntry> entries,
     ImmutableArray<RowResult> rows,
     RunSummary summary,
-    ImmutableDictionary<GroupId, (RowContext Left, RowContext Right)> projections,
-    ImmutableDictionary<SourceRef, RowContext> contexts) : IReconciliationResult
+    Dictionary<GroupId, (RowContext Left, RowContext Right)> projections,
+    Dictionary<SourceRef, RowContext> contexts) : IReconciliationResult
 {
-    private readonly ImmutableDictionary<GroupId, (RowContext Left, RowContext Right)> _projections = projections ?? throw new ArgumentNullException(nameof(projections));
-    private readonly ImmutableDictionary<SourceRef, RowContext> _rows = contexts ?? throw new ArgumentNullException(nameof(contexts));
+    private readonly Dictionary<GroupId, (RowContext Left, RowContext Right)> _projections = projections ?? throw new ArgumentNullException(nameof(projections));
+    private readonly Dictionary<SourceRef, RowContext> _rows = contexts ?? throw new ArgumentNullException(nameof(contexts));
 
     public RunInfo Run { get; } = run ?? throw new ArgumentNullException(nameof(run));
 
