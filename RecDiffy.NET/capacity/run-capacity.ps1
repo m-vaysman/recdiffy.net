@@ -25,6 +25,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File RecDiffy.NET\capacity\run-ca
 
 .EXAMPLE
 powershell -NoProfile -ExecutionPolicy Bypass -File RecDiffy.NET\capacity\run-capacity.ps1 -Ref origin/dev -Sizes 100000,1000000 -HeapCap 16GB -NoExcel -Repeats 3
+
+.EXAMPLE
+powershell -NoProfile -ExecutionPolicy Bypass -File RecDiffy.NET\capacity\run-capacity.ps1 -Ref origin/dev -Sweep concurrency -GcMode server -Gen0Size 256MB
 #>
 [CmdletBinding()]
 param(
@@ -38,6 +41,8 @@ param(
     [ValidateSet('workstation', 'server')]
     [string]$GcMode = 'workstation',
     [string]$HeapCap = '',
+    [string]$Gen0Size = '',
+    [string]$ConserveMemory = '',
     [int]$CaseTimeoutSeconds = 1800,
     [switch]$NoExcel,
     [ValidateSet('jit', 'r2r', 'aot')]
@@ -193,6 +198,20 @@ if ($HeapCap) {
     if ($Matches['unit'] -eq 'GB') { $capBytes = $capBytes * 1GB } else { $capBytes = $capBytes * 1MB }
 }
 
+# The two GC settings of #413 (section 5, item 5). A setting is not a fix; a run with one shows how much of the time
+# is the collector. Empty leaves the runtime's default.
+$gen0Bytes = [uint64]0
+if ($Gen0Size) {
+    if ($Gen0Size -notmatch '^(?<size>\d+)(?<unit>GB|MB)$') {
+        Fail '-Gen0Size must look like 64MB, 256MB or 1GB.'
+    }
+    $gen0Bytes = [uint64]$Matches['size']
+    if ($Matches['unit'] -eq 'GB') { $gen0Bytes = $gen0Bytes * 1GB } else { $gen0Bytes = $gen0Bytes * 1MB }
+}
+if ($ConserveMemory -and $ConserveMemory -notmatch '^[0-9]$') {
+    Fail '-ConserveMemory must be one digit, 0 to 9.'
+}
+
 $startedAt = Get-Date
 if (-not $NoFetch) {
     Invoke-Git -Arguments @('-C', $repoRoot, 'fetch', $Remote, '--prune') -What 'fetch' | Out-Null
@@ -318,12 +337,22 @@ try {
 
     $savedHeapCap = $env:DOTNET_GCHeapHardLimit
     $savedGcServer = $env:DOTNET_gcServer
+    $savedGen0Size = $env:DOTNET_GCgen0size
+    $savedConserveMemory = $env:DOTNET_GCConserveMemory
     try {
         if ($capBytes -gt 0) {
             $env:DOTNET_GCHeapHardLimit = '0x{0:X}' -f $capBytes
             Write-Log "heap cap $HeapCap ($($env:DOTNET_GCHeapHardLimit))"
         }
         if ($GcMode -eq 'server') { $env:DOTNET_gcServer = '1' } else { $env:DOTNET_gcServer = '0' }
+        if ($gen0Bytes -gt 0) {
+            $env:DOTNET_GCgen0size = '0x{0:X}' -f $gen0Bytes
+            Write-Log "gen0 size $Gen0Size ($($env:DOTNET_GCgen0size))"
+        }
+        if ($ConserveMemory) {
+            $env:DOTNET_GCConserveMemory = $ConserveMemory
+            Write-Log "conserve memory $ConserveMemory"
+        }
 
         Write-Log "run $($harness) $($harnessArguments -join ' ')"
         $harnessResult = Invoke-Captured -File $harnessFile -Arguments ($harnessPrefix + $harnessArguments) -What 'harness' -LogFile $runLog -Echo
@@ -332,6 +361,8 @@ try {
     finally {
         $env:DOTNET_GCHeapHardLimit = $savedHeapCap
         $env:DOTNET_gcServer = $savedGcServer
+        $env:DOTNET_GCgen0size = $savedGen0Size
+        $env:DOTNET_GCConserveMemory = $savedConserveMemory
     }
 
     $missing = @()
@@ -402,6 +433,7 @@ try {
         try { $osCaption = (Get-CimInstance Win32_OperatingSystem).Caption } catch { }
         $body.Add(('- Host: `{0}`, {1}' -f $env:COMPUTERNAME, $osCaption))
         $body.Add(('- Settings: sweep `{0}`, GC `{1}`, heap cap `{2}`, flavor `{3}`, framework `{4}`, repeats {5}' -f $Sweep, $GcMode, $(if ($HeapCap) { $HeapCap } else { 'none' }), $Flavor, $Framework, $Repeats))
+        $body.Add(('- GC settings: gen0 size `{0}`, conserve memory `{1}`' -f $(if ($Gen0Size) { $Gen0Size } else { 'default' }), $(if ($ConserveMemory) { $ConserveMemory } else { 'default' })))
         $body.Add(('- Status: {0}' -f $status))
         $body.Add('')
         $body.Add((Get-Content -LiteralPath (Join-Path $runFolder 'report.md') -Raw))
