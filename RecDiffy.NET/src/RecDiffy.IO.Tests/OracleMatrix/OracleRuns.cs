@@ -5,7 +5,7 @@ namespace RecDiffy.IO.Tests.OracleMatrix;
 // Each dataset's profile and reference data, as a run over any two sources.
 internal static class OracleRuns
 {
-    public static Func<RecordSource, RecordSource, ReconciliationResult> Of(string name) => name switch
+    public static Func<RecordSource, RecordSource, IReconciliationResult> Of(string name) => name switch
     {
         "claude-sonnet-5.5" => SonnetOracleTests.RunOn,
         "fixture 2.0" => Fixture20OracleTests.RunOn,

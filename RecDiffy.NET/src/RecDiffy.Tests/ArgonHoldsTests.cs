@@ -194,7 +194,7 @@ public class ArgonHoldsTests
         Assert.Equal(FieldOutcome.Exact, Assert.Single(result.Entries, entry => entry.Alignment == Alignment.Matched).Outcome);
     }
 
-    private static ReconciliationResult RunGroups(Allocation[] left, Allocation[] right, RunOptions options) =>
+    private static IReconciliationResult RunGroups(Allocation[] left, Allocation[] right, RunOptions options) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(GroupProfile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Allocations),

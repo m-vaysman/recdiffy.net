@@ -35,7 +35,7 @@ public static class ResultReading
         return result.Rows.Any(row => row.Disposition == Disposition.Quarantined && row.Diagnostics.Any(diagnostic => diagnostic.Code == "MissingKey"));
     }
 
-    private static ReconciliationResult Run(string profile, StockRow[] left, StockRow[] right)
+    private static IReconciliationResult Run(string profile, StockRow[] left, StockRow[] right)
     {
         var compiled = Reconciler.Compile(ProfileDocument.Parse(profile), RuleRegistry.CreateCore());
         var result = Reconciler.Run(

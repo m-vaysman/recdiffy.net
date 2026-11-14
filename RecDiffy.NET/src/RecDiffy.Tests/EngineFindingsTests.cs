@@ -99,7 +99,7 @@ public class EngineFindingsTests
     private static Row Trade(string id, string counterparty, string instrument, string side, string quantity, string price, string netCash, string? uti = null, string? package = null, string? leg = null, string currency = "USD") =>
         new(id, counterparty, instrument, side, quantity, price, netCash, uti, package, leg, currency);
 
-    private static ReconciliationResult Run(IReadOnlyList<Row> left, IReadOnlyList<Row> right)
+    private static IReconciliationResult Run(IReadOnlyList<Row> left, IReadOnlyList<Row> right)
     {
         var profile = Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore());
         return Reconciler.Run(profile, RecordSources.FromObjects("left", left, Map()), RecordSources.FromObjects("right", right, Map()), ReferenceDataSet.Empty);

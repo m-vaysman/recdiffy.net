@@ -156,7 +156,7 @@ public class CompositeKeyCollisionTests
             [new("D", "z", "x" + Unit + "Desk=y", "5"), new("D", "y" + Unit + "Desk=z", "x", "5")],
             []);
 
-        Assert.Equal(2, result.Rows.Count);
+        Assert.Equal(2, result.Rows.Length);
         Assert.All(result.Rows, row =>
         {
             Assert.Equal(Disposition.Quarantined, row.Disposition);
@@ -164,20 +164,20 @@ public class CompositeKeyCollisionTests
         });
     }
 
-    private static ReconciliationResult Run(string profile, Row[] left, Row[] right) =>
+    private static IReconciliationResult Run(string profile, Row[] left, Row[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),
             RecordSources.FromObjects("right", right, Map),
             ReferenceDataSet.Empty);
 
-    private static string[] MatchedPairs(ReconciliationResult result) =>
+    private static string[] MatchedPairs(IReconciliationResult result) =>
         [.. result.Entries
             .Where(entry => entry.Alignment == Alignment.Matched)
             .Select(entry => string.Join("|", entry.Left.Concat(entry.Right).Select(member => $"{member.Source}:{member.RowKey}").Order(StringComparer.Ordinal)))
             .Order(StringComparer.Ordinal)];
 
-    private static Disposition DispositionOf(ReconciliationResult result, string source, string rowKey) =>
+    private static Disposition DispositionOf(IReconciliationResult result, string source, string rowKey) =>
         result.Rows.Single(row => row.Row.Source == source && row.Row.RowKey == rowKey).Disposition;
 
     private sealed record Row(string Id, string Desk, string Book, string Quantity);

@@ -54,7 +54,7 @@ public class SeededFuzzTests
             .Select(group => group.Key)
             .ToArray();
         Assert.Empty(shared);
-        Assert.Equal(result.Entries.Count, result.Entries.Select(entry => entry.Id).Distinct().Count());
+        Assert.Equal(result.Entries.Length, result.Entries.Select(entry => entry.Id).Distinct().Count());
         Assert.Empty(result.Entries
             .SelectMany(entry => entry.Left.Concat(entry.Right))
             .Select(member => (member.Source, member.RowKey))
@@ -85,7 +85,7 @@ public class SeededFuzzTests
         Assert.Contains(results.SelectMany(result => result.Rows), row => row.Validity == InputValidity.Invalid);
     }
 
-    private static string Answer(ReconciliationResult result)
+    private static string Answer(IReconciliationResult result)
     {
         var rows = result.Rows
             .Select(row => string.Join('\u001f', [row.Row.Source, row.Row.RowKey, row.Disposition.ToString(), row.Validity.ToString(), row.EntryId?.ToString() ?? ""]))
@@ -150,7 +150,7 @@ public class SeededFuzzTests
 
         public Population Shuffled(int seed) => new(Shuffle(Left, seed), Shuffle(Right, seed + 1));
 
-        public ReconciliationResult Run(CompiledProfile profile) =>
+        public IReconciliationResult Run(CompiledProfile profile) =>
             Reconciler.Run(
                 profile,
                 RecordSources.FromObjects("left", Left, StockMap),

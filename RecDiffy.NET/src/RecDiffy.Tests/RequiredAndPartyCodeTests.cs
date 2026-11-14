@@ -157,7 +157,7 @@ public class RequiredAndPartyCodeTests
         return next;
     }
 
-    private static ReconciliationResult Run(string json, (string Id, string Qty, string Name) left, (string Id, string Qty, string Name) right)
+    private static IReconciliationResult Run(string json, (string Id, string Qty, string Name) left, (string Id, string Qty, string Name) right)
     {
         var profile = ProfileCompiler.Compile(ProfileDocument.Parse(json), TradingRulePack.AddTo(RuleRegistry.CreateCore()), CultureInfo.InvariantCulture).Profile
             ?? throw new InvalidOperationException("The profile did not compile.");

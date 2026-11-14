@@ -19,8 +19,8 @@ public class WorkbookAcceptanceTests
         var result = Reconciler.Run(profile, Rows("left", left), Rows("right", right), V1Reference());
         var byKey = result.Rows.ToDictionary(row => row.Row.RowKey, StringComparer.Ordinal);
 
-        Assert.Equal(left.Count + right.Count, result.Rows.Count);
-        Assert.Equal(result.Rows.Count, result.Rows.Select(row => row.Row).Distinct().Count());
+        Assert.Equal(left.Count + right.Count, result.Rows.Length);
+        Assert.Equal(result.Rows.Length, result.Rows.Select(row => row.Row).Distinct().Count());
         foreach (var row in expected)
         {
             var outcome = row["ExpectedOutcome"]?.ToString();
@@ -48,7 +48,7 @@ public class WorkbookAcceptanceTests
     }
 
     private static void AssertMatched(
-        ReconciliationResult result,
+        IReconciliationResult result,
         Dictionary<string, RowResult> byKey,
         string[] left,
         string[] right,

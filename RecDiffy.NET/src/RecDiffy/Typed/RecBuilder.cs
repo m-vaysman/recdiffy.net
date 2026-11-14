@@ -263,7 +263,7 @@ internal static class Typed
 public sealed class RecResult<TLeft, TRight>
 {
     // Ordinal is the index into the list passed to Between. Matched pairs are ordered by the earliest left ordinal.
-    internal RecResult(ReconciliationResult result, ProfileDocument profile, ImmutableArray<TLeft> left, ImmutableArray<TRight> right)
+    internal RecResult(IReconciliationResult result, ProfileDocument profile, ImmutableArray<TLeft> left, ImmutableArray<TRight> right)
     {
         Result = result;
         Profile = profile;
@@ -282,7 +282,7 @@ public sealed class RecResult<TLeft, TRight>
     }
 
     /// <summary>The engine's full result: every entry, row disposition, diagnostic and explanation.</summary>
-    public ReconciliationResult Result { get; }
+    public IReconciliationResult Result { get; }
 
     /// <summary>The profile that ran, for <see cref="ProfileWriter.ToJson"/>.</summary>
     public ProfileDocument Profile { get; }
@@ -300,7 +300,7 @@ public sealed class RecResult<TLeft, TRight>
 
     public IReadOnlyList<TRight> RightOnly { get; }
 
-    private static IEnumerable<int> Only(ReconciliationResult result, string side, Disposition disposition) =>
+    private static IEnumerable<int> Only(IReconciliationResult result, string side, Disposition disposition) =>
         result.Rows.Where(row => row.Row.Source == side && row.Disposition == disposition).Select(row => row.Row.Ordinal).Order();
 }
 

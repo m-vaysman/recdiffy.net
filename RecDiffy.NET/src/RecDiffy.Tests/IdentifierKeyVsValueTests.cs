@@ -160,7 +160,7 @@ public class IdentifierKeyVsValueTests
             RecordSources.FromObjects("right", [("T1", "RATES", "100.00")], RouteMap),
             ReferenceDataSet.Empty);
 
-        Assert.Equal(2, encodedRouteResult.Entries.Count);
+        Assert.Equal(2, encodedRouteResult.Entries.Length);
         Assert.All(encodedRouteResult.Entries, entry =>
         {
             Assert.Equal("", entry.PathId);
@@ -173,7 +173,7 @@ public class IdentifierKeyVsValueTests
             RecordSources.FromObjects("right", [("T1", "   ", "100.00")], RouteMap),
             ReferenceDataSet.Empty);
 
-        Assert.Equal(2, blankResult.Entries.Count);
+        Assert.Equal(2, blankResult.Entries.Length);
         Assert.All(blankResult.Entries, entry =>
         {
             Assert.Equal("", entry.PathId);
@@ -194,7 +194,7 @@ public class IdentifierKeyVsValueTests
             RecordSources.FromObjects("right", [("R1", "ACME", "BOND1", "REF-1", "200.00"), ("R2", "ACME", "BOND1", "REF-2", "100.00")], TradeMap),
             ReferenceDataSet.Empty);
 
-        Assert.Equal(2, result.Entries.Count);
+        Assert.Equal(2, result.Entries.Length);
         Assert.All(result.Entries, entry =>
         {
             Assert.Equal(Alignment.Matched, entry.Alignment);
@@ -219,6 +219,6 @@ public class IdentifierKeyVsValueTests
         var entry = Assert.Single(result.Entries);
         Assert.Equal(Alignment.Ambiguous, entry.Alignment);
         var contest = Assert.Single(entry.Explanation.Trail);
-        Assert.Equal(("P3", PassVerdict.Contest, "RATES", 4), (contest.PassId, contest.Verdict, contest.Key, contest.Candidates.Count));
+        Assert.Equal(("P3", PassVerdict.Contest, "RATES", 4), (contest.PassId, contest.Verdict, contest.Key, contest.Candidates.Length));
     }
 }

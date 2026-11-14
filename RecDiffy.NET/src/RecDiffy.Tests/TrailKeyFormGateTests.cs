@@ -63,7 +63,7 @@ public class TrailKeyFormGateTests
         Assert.All(sites, site => Assert.Contains("TrailKey(", site.Text, StringComparison.Ordinal));
     }
 
-    private static ReconciliationResult Pair() =>
+    private static IReconciliationResult Pair() =>
         Run(
             """
             {
@@ -86,7 +86,7 @@ public class TrailKeyFormGateTests
             [new("L1", "T-1", "100.00")],
             [new("R1", "T-1", "100.00")]);
 
-    private static ReconciliationResult SharedRef() =>
+    private static IReconciliationResult SharedRef() =>
         Run(
             """
             {
@@ -111,7 +111,7 @@ public class TrailKeyFormGateTests
 
     // A groupSum commit pairs many left rows with one right row, so the key is the right row's row key. A contest has no
     // commit, so the key is the block's value form.
-    private static ReconciliationResult Group(bool committed) =>
+    private static IReconciliationResult Group(bool committed) =>
         Run(
             """
             {
@@ -136,7 +136,7 @@ public class TrailKeyFormGateTests
                 : [new("L1", "RATES", "50.00"), new("L2", "RATES", "50.00"), new("L3", "RATES", "50.00")],
             [new("R1", "RATES", "100.00")]);
 
-    private static ReconciliationResult Run(string profile, Row[] left, Row[] right) =>
+    private static IReconciliationResult Run(string profile, Row[] left, Row[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

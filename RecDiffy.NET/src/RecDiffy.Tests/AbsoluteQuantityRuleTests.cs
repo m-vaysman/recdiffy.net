@@ -151,7 +151,7 @@ public class AbsoluteQuantityRuleTests
         return row;
     }
 
-    private static ReconciliationResult Run(RecordSource left) =>
+    private static IReconciliationResult Run(RecordSource left) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), TradingRulePack.AddTo(RuleRegistry.CreateCore())),
             left,

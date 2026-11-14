@@ -111,10 +111,10 @@ public class AdversarialSubsetOracleTests(ITestOutputHelper output)
         }
     }
 
-    private static ReconciliationResult Execute(CompiledProfile compiled, Row[] left, Row[] right) =>
+    private static IReconciliationResult Execute(CompiledProfile compiled, Row[] left, Row[] right) =>
         Reconciler.Run(compiled, RecordSources.FromObjects("left", left, Map), RecordSources.FromObjects("right", right, Map), ReferenceDataSet.Empty);
 
-    private static Dictionary<string, Disposition> Dispositions(ReconciliationResult result) =>
+    private static Dictionary<string, Disposition> Dispositions(IReconciliationResult result) =>
         result.Rows.ToDictionary(row => row.Row.RowKey, row => row.Disposition, StringComparer.Ordinal);
 
     public sealed record Row(string Id, string Block, decimal Qty, decimal Cash);

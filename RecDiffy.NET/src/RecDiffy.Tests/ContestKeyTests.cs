@@ -36,11 +36,11 @@ public class ContestKeyTests
         var matched = Assert.Single(Assert.Single(result.Entries, entry => entry.Alignment is Alignment.Matched).Explanation.Trail);
         var contest = Assert.Single(Assert.Single(result.Entries, entry => entry.Alignment is Alignment.Ambiguous).Explanation.Trail);
         Assert.Equal(("P1", PassVerdict.Committed, "T-1"), (matched.PassId, matched.Verdict, matched.Key));
-        Assert.Equal(("P1", PassVerdict.Contest, 3), (contest.PassId, contest.Verdict, contest.Candidates.Count));
+        Assert.Equal(("P1", PassVerdict.Contest, 3), (contest.PassId, contest.Verdict, contest.Candidates.Length));
         Assert.Equal("T-2", contest.Key);
     }
 
-    private static ReconciliationResult Run((string Id, string Ref, string Amount)[] left, (string Id, string Ref, string Amount)[] right) =>
+    private static IReconciliationResult Run((string Id, string Ref, string Amount)[] left, (string Id, string Ref, string Amount)[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

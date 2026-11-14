@@ -31,7 +31,7 @@ public class GroupSumFieldDefinitionTests
 
     private sealed record Row(string Id, string Quantity, string Rate, string NetCash);
 
-    private static ReconciliationResult Run(string block, string key = "[]")
+    private static IReconciliationResult Run(string block, string key = "[]")
     {
         var profile = Reconciler.Compile(ProfileDocument.Parse(Profile(block, key)), RuleRegistry.CreateCore());
         Row[] allocations = [new("A1", "300", "4.25", "3000.00"), new("A2", "200", "4.25", "2000.00"), new("A3", "500", "4.25", "5000.00")];

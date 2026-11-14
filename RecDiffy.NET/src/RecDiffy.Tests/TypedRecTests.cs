@@ -177,7 +177,7 @@ public class TypedRecTests
         return copy;
     }
 
-    private static IReadOnlyList<string> Fingerprint(ReconciliationResult result) =>
+    private static IReadOnlyList<string> Fingerprint(IReconciliationResult result) =>
     [
         .. result.Entries.Select(entry => string.Join(
             "|",

@@ -19,7 +19,7 @@ public class OrderIndependenceTests
         var baseline = Run(profile, left, right, FixtureMap(), FixtureReference());
 
         Assert.Equal(500, left.Count + right.Count);
-        Assert.Equal(left.Count + right.Count, baseline.Rows.Count);
+        Assert.Equal(left.Count + right.Count, baseline.Rows.Length);
         Assert.Contains(baseline.Rows, row => row.Disposition == Disposition.Matched);
         Assert.Contains(baseline.Rows, row => row.Disposition == Disposition.LeftOnly);
         Assert.Contains(baseline.Rows, row => row.Disposition == Disposition.RightOnly);
@@ -39,10 +39,10 @@ public class OrderIndependenceTests
     }
 
     private static void AssertSameOrder<T>(
-        ReconciliationResult baseline,
+        IReconciliationResult baseline,
         IReadOnlyList<T> left,
         IReadOnlyList<T> right,
-        Func<IReadOnlyList<T>, IReadOnlyList<T>, ReconciliationResult> run)
+        Func<IReadOnlyList<T>, IReadOnlyList<T>, IReconciliationResult> run)
     {
         var shuffled = Seeds.SelectMany(seed => new (string Name, IReadOnlyList<T> Left, IReadOnlyList<T> Right)[]
         {
@@ -57,7 +57,7 @@ public class OrderIndependenceTests
         Assert.True(mismatches.Length == 0, string.Join(Environment.NewLine, mismatches));
     }
 
-    private static IEnumerable<string> Mismatches(ReconciliationResult baseline, ReconciliationResult shuffled, string name)
+    private static IEnumerable<string> Mismatches(IReconciliationResult baseline, IReconciliationResult shuffled, string name)
     {
         if (baseline.Summary != shuffled.Summary)
             yield return $"{name}: summary {shuffled.Summary} vs {baseline.Summary}";
@@ -78,7 +78,7 @@ public class OrderIndependenceTests
             yield return $"{name}: entries differ{Environment.NewLine}baseline:{Environment.NewLine}{baselineEntries}{Environment.NewLine}shuffled:{Environment.NewLine}{shuffledEntries}";
     }
 
-    private static Dictionary<RowIdentity, string> Fingerprint(ReconciliationResult result) =>
+    private static Dictionary<RowIdentity, string> Fingerprint(IReconciliationResult result) =>
         result.Rows
             .GroupBy(row => new RowIdentity(row.Row.Source, row.Row.RowKey))
             .ToDictionary(group => group.Key, group => string.Join(",", group.Select(RowToken).OrderBy(token => token, StringComparer.Ordinal)));
@@ -86,7 +86,7 @@ public class OrderIndependenceTests
     private static string RowToken(RowResult row) =>
         $"{row.Disposition}/{row.Validity}/{string.Join("+", row.Diagnostics.Select(diagnostic => diagnostic.Code).OrderBy(code => code, StringComparer.Ordinal))}";
 
-    private static string Entries(ReconciliationResult result) =>
+    private static string Entries(IReconciliationResult result) =>
         string.Join(Environment.NewLine, result.Entries.Select(EntryLine).OrderBy(line => line, StringComparer.Ordinal));
 
     private static string EntryLine(ResultEntry entry) =>
@@ -102,9 +102,9 @@ public class OrderIndependenceTests
     private static string Members(IReadOnlyList<SourceRef> members) =>
         string.Join(",", members.Select(member => $"{member.Source}:{member.RowKey}").OrderBy(text => text, StringComparer.Ordinal));
 
-    private static void AssertPaths(ReconciliationResult result)
+    private static void AssertPaths(IReconciliationResult result)
     {
-        Assert.Equal(PathsLeft.Length + PathsRight.Length, result.Rows.Count);
+        Assert.Equal(PathsLeft.Length + PathsRight.Length, result.Rows.Length);
         Assert.Equal("Matched", DispositionOf(result, "left", "L-PAY"));
         Assert.Equal("Matched", DispositionOf(result, "left", "L-REC"));
         Assert.Equal("Matched", DispositionOf(result, "right", "R-PKG"));
@@ -130,7 +130,7 @@ public class OrderIndependenceTests
         Assert.Contains(result.Rows.Where(row => row.Row.RowKey == "DUP-1"), row => row.Diagnostics.Any(diagnostic => diagnostic.Code == "DuplicateRowCollapsed"));
     }
 
-    private static string DispositionOf(ReconciliationResult result, string source, string rowKey) =>
+    private static string DispositionOf(IReconciliationResult result, string source, string rowKey) =>
         string.Join(
             ",",
             result.Rows
@@ -138,7 +138,7 @@ public class OrderIndependenceTests
                 .Select(row => row.Disposition.ToString())
                 .OrderBy(name => name, StringComparer.Ordinal));
 
-    private static ReconciliationResult Run<T>(
+    private static IReconciliationResult Run<T>(
         CompiledProfile profile,
         IReadOnlyList<T> left,
         IReadOnlyList<T> right,

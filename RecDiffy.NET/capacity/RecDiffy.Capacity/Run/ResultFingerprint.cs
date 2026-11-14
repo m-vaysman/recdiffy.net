@@ -10,7 +10,7 @@ namespace RecDiffy.Capacity;
 // text exactly, or the sweep fails.
 internal static class ResultFingerprint
 {
-    public static string Of(ReconciliationResult result, IReadOnlyList<FieldDeclaration> fields)
+    public static string Of(IReconciliationResult result, IReadOnlyList<FieldDeclaration> fields)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(fields);
@@ -36,7 +36,7 @@ internal static class ResultFingerprint
             .Append(summary.Quarantined).Append(',')
             .Append(summary.Suppressed).Append('\n');
 
-    private static void Entry(StringBuilder text, ReconciliationResult result, ResultEntry entry, IReadOnlyList<FieldDeclaration> fields)
+    private static void Entry(StringBuilder text, IReconciliationResult result, ResultEntry entry, IReadOnlyList<FieldDeclaration> fields)
     {
         text.Append("E|").Append(entry.Id.Value).Append('|').Append(entry.PathId).Append('|')
             .Append(entry.Alignment).Append('|').Append(entry.Composition).Append('|').Append(entry.Outcome).Append('|');

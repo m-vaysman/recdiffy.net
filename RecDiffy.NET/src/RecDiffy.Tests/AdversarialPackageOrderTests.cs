@@ -78,15 +78,15 @@ public class AdversarialPackageOrderTests
         Assert.Equal(Projected(nearFirst), Projected(farFirst));
     }
 
-    private static string Dispositions(ReconciliationResult result) =>
+    private static string Dispositions(IReconciliationResult result) =>
         string.Join("; ", result.Rows.OrderBy(row => row.Row.RowKey, StringComparer.Ordinal).Select(row => $"{row.Row.RowKey}={row.Disposition}"));
 
     // The package item as the engine sees it, through the consolidated row behind each leg.
-    private static string Projected(ReconciliationResult result) =>
+    private static string Projected(IReconciliationResult result) =>
         string.Join("; ", result.Rows.Where(row => row.Row.Source == "left").OrderBy(row => row.Row.RowKey, StringComparer.Ordinal)
-            .Select(row => $"{row.Row.RowKey}: Uti={result.ConsolidatedItem(row.Row).Display("Uti")} Settle={result.ConsolidatedItem(row.Row).Display("SettleDate")}"));
+            .Select(row => $"{row.Row.RowKey}: Uti={((ReconciliationResult)result).ConsolidatedItem(row.Row).Display("Uti")} Settle={((ReconciliationResult)result).ConsolidatedItem(row.Row).Display("SettleDate")}"));
 
-    private static ReconciliationResult Run(Row[] left, Row[] right) =>
+    private static IReconciliationResult Run(Row[] left, Row[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

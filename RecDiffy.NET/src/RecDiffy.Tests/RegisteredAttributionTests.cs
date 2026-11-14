@@ -69,14 +69,14 @@ public class RegisteredAttributionTests
             Assert.Throws<ProfileCompileException>(() => Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore())).Errors.Select(error => error.Code),
             StringComparer.Ordinal);
 
-    private static ReconciliationResult Run(Row left, Row right) =>
+    private static IReconciliationResult Run(Row left, Row right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), Registry),
             RecordSources.FromObjects("left", [left], Map),
             RecordSources.FromObjects("right", [right], Map),
             ReferenceDataSet.Empty);
 
-    private static string Describe(ReconciliationResult result) =>
+    private static string Describe(IReconciliationResult result) =>
         string.Join(" || ", result.Entries.Select(entry => $"{entry.Alignment}/{entry.Outcome} " + string.Join(", ", entry.Diffs
             .OrderBy(diff => diff.Field.Name, StringComparer.Ordinal)
             .Select(diff => $"{diff.Field.Name}:{diff.Outcome}:{diff.Delta.Number.ToString(CultureInfo.InvariantCulture)}:[{string.Join("+", diff.AttributedTo)}]"))));

@@ -86,11 +86,11 @@ public class ConditionOperandHashTests
         }
     }
 
-    private static string Describe(ReconciliationResult result) =>
+    private static string Describe(IReconciliationResult result) =>
         string.Join(" || ", result.Entries.Select(entry =>
             $"{entry.Alignment}/{entry.Outcome} [{string.Join(", ", entry.Diffs.Select(diff => $"{diff.Field.Name}:{diff.Outcome}:{diff.Delta.Number.ToString(CultureInfo.InvariantCulture)}"))}]"));
 
-    private static ReconciliationResult Run(CompiledProfile profile) =>
+    private static IReconciliationResult Run(CompiledProfile profile) =>
         Reconciler.Run(
             profile,
             RecordSources.FromObjects("left", [new Row("L1", "T1", "Bond", "10")], Map),

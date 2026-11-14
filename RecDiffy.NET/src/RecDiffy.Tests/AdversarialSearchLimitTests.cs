@@ -59,18 +59,18 @@ public class AdversarialSearchLimitTests
 
     private static decimal Bit(int index) => 1L << index;
 
-    private static ReconciliationResult Run((string, decimal, decimal)[] left, (string, decimal, decimal)[] right) =>
+    private static IReconciliationResult Run((string, decimal, decimal)[] left, (string, decimal, decimal)[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),
             RecordSources.FromObjects("right", right, Map),
             ReferenceDataSet.Empty);
 
-    private static string Describe(ReconciliationResult result) =>
+    private static string Describe(IReconciliationResult result) =>
         string.Join("\n", result.Entries.Select(entry => entry.Alignment switch
         {
             Alignment.Matched => $"Matched {string.Join("+", entry.Right.Select(member => member.RowKey).Concat(entry.Left.Select(member => member.RowKey).Order(StringComparer.Ordinal)))}",
-            _ => $"{entry.Alignment} {entry.Explanation.Trail.FirstOrDefault()?.Detail} rows={(entry.Left.Count + entry.Right.Count).ToString(CultureInfo.InvariantCulture)}",
+            _ => $"{entry.Alignment} {entry.Explanation.Trail.FirstOrDefault()?.Detail} rows={(entry.Left.Length + entry.Right.Length).ToString(CultureInfo.InvariantCulture)}",
         }).Order(StringComparer.Ordinal));
 
     private static string Expected((string, decimal, decimal)[] left, (string, decimal, decimal)[] right, string code) =>

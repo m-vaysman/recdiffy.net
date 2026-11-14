@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using RecDiffy.Results;
@@ -109,7 +110,7 @@ public class AdversarialSweepTests(ITestOutputHelper output)
     }
 
     // Everything §10.1 promises, with row keys mapped back to the originals and group ids replaced by membership.
-    internal static string Answer(ReconciliationResult result, IReadOnlyDictionary<string, string>? back = null)
+    internal static string Answer(IReconciliationResult result, IReadOnlyDictionary<string, string>? back = null)
     {
         string Key(SourceRef member) => member.Source + ":" + (back is not null && back.TryGetValue(member.Source + ":" + member.RowKey, out var original) ? original : member.RowKey);
         string Members(ResultEntry entry) => string.Join(",", entry.Left.Concat(entry.Right).Select(Key).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal));
@@ -297,7 +298,7 @@ public class AdversarialSweepTests(ITestOutputHelper output)
             return new([.. Left.Select(row => row with { Ref = Rename(row.Ref) })], [.. Right.Select(row => row with { Ref = Rename(row.Ref) })]);
         }
 
-        public ReconciliationResult Run(string leftCulture, string rightCulture, int textSeed, string server, int threads)
+        public IReconciliationResult Run(string leftCulture, string rightCulture, int textSeed, string server, int threads)
         {
             var original = CultureInfo.CurrentCulture;
             try
@@ -305,11 +306,9 @@ public class AdversarialSweepTests(ITestOutputHelper output)
                 CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(server);
                 var document = Document with
                 {
-                    SourceReadings = new Dictionary<string, SourceReading>(StringComparer.Ordinal)
-                    {
-                        ["left"] = new SourceReading(leftCulture, null),
-                        ["right"] = new SourceReading(rightCulture, null),
-                    },
+                    SourceReadings = ImmutableDictionary.Create<string, SourceReading>(StringComparer.Ordinal)
+                        .Add("left", new SourceReading(leftCulture, null))
+                        .Add("right", new SourceReading(rightCulture, null)),
                 };
                 var profile = Reconciler.Compile(document, RuleRegistry.CreateCore());
                 return Reconciler.Run(

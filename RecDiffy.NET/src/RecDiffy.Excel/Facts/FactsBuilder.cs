@@ -3,13 +3,13 @@ using RecDiffy.Results;
 
 namespace RecDiffy.Excel.Facts;
 
-// Reads a ReconciliationResult once, through its public API only, into the records every report shares.
+// Reads an IReconciliationResult once, through its public API only, into the records every report shares.
 // No matching happens here: alignment, outcome, diffs and dispositions are the engine's.
 internal static class FactsBuilder
 {
     private static readonly ImmutableArray<string> UnresolvedCodes = ["UnknownParty", "UnknownSymbol", "MissingKey"];
 
-    public static ReportFacts Build(ReconciliationResult result, FieldMap map, ExcelReportOptions options)
+    public static ReportFacts Build(IReconciliationResult result, FieldMap map, ExcelReportOptions options)
     {
         var rowsByEntry = result.Rows.Where(row => row.EntryId is not null).ToLookup(row => row.EntryId!.Value.Value, StringComparer.Ordinal);
         var entries = result.Entries.Select((entry, index) => Entry(result, map, entry, index, rowsByEntry[entry.Id.Value])).ToImmutableArray();
@@ -31,7 +31,7 @@ internal static class FactsBuilder
         return new ReportFacts(entries, rows, diffs, openItems, Passes(result, options.Profile));
     }
 
-    private static EntryFact Entry(ReconciliationResult result, FieldMap map, ResultEntry entry, int index, IEnumerable<RowResult> linked)
+    private static EntryFact Entry(IReconciliationResult result, FieldMap map, ResultEntry entry, int index, IEnumerable<RowResult> linked)
     {
         var ours = entry switch
         {
@@ -58,7 +58,7 @@ internal static class FactsBuilder
             [.. members.SelectMany(row => row.Diagnostics).Select(diagnostic => diagnostic.Code).Distinct(StringComparer.Ordinal)]);
     }
 
-    private static ImmutableArray<string> Currencies(ReconciliationResult result, FieldMap map, IReadOnlyList<SourceRef> members) =>
+    private static ImmutableArray<string> Currencies(IReconciliationResult result, FieldMap map, IReadOnlyList<SourceRef> members) =>
         map[ReportRole.Currency] is { } field
             ? [.. members.Select(member => result.Canonical(member).Text(field)).Where(text => text.Length > 0).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)]
             : [];
@@ -73,14 +73,14 @@ internal static class FactsBuilder
 
     // Rows that consolidated into one item (a package's legs) share one canonical context, and so one trace list.
     // The public API has no consolidated-item id, so the first row of each shared trace leads its item.
-    private static ImmutableHashSet<int> ItemLeads(ReconciliationResult result) =>
+    private static ImmutableHashSet<int> ItemLeads(IReconciliationResult result) =>
         result.Rows
             .Select((row, index) => (Trace: (object)result.Trace(row.Row), Index: index))
             .GroupBy(pair => pair.Trace, ReferenceEqualityComparer.Instance)
             .Select(group => group.First().Index)
             .ToImmutableHashSet();
 
-    private static DiffFact Diff(ReconciliationResult result, FieldMap map, CompiledProfile? profile, EntryFact entry, FieldDiff diff, int index)
+    private static DiffFact Diff(IReconciliationResult result, FieldMap map, CompiledProfile? profile, EntryFact entry, FieldDiff diff, int index)
     {
         var field = diff.Field.Name;
         var ours = FieldValue.Read(result.Projection(entry.Entry.Id, Side.Left), field);
@@ -106,7 +106,7 @@ internal static class FactsBuilder
         };
     }
 
-    private static ImmutableArray<string> Passes(ReconciliationResult result, CompiledProfile? profile)
+    private static ImmutableArray<string> Passes(IReconciliationResult result, CompiledProfile? profile)
     {
         var declared = profile?.Document.Paths.SelectMany(path => path.Passes.Select(pass => pass.Id)) ?? [];
         var committed = result.Entries.Select(entry => entry.Explanation.CommittedBy).OfType<string>();

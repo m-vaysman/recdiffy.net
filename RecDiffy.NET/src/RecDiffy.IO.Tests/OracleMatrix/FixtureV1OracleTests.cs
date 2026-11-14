@@ -7,7 +7,7 @@ namespace RecDiffy.IO.Tests.OracleMatrix;
 // no other entries, composition, the field a break is blamed on, and row accounting.
 public class FixtureV1OracleTests
 {
-    private static readonly Lazy<ReconciliationResult> Result = new(() => FixtureV1.Run(
+    private static readonly Lazy<IReconciliationResult> Result = new(() => FixtureV1.Run(
         FileSources.FromExcel("left", OracleDatasets.FixtureV1.Workbook, new ExcelOptions { HasHeader = true, Sheet = ExcelSheet.Numbered(1) }),
         FileSources.FromExcel("right", OracleDatasets.FixtureV1.Workbook, new ExcelOptions { HasHeader = true, Sheet = ExcelSheet.Numbered(2) })));
 

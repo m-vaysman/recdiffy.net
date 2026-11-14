@@ -110,7 +110,7 @@ public class MidWorkCancellationTests
         var result = Reconciler.Run(profile, Source("left", "X"), Source("right", "Y"), ReferenceDataSet.Empty, cancellationToken: source.Token);
 
         Assert.False(source.IsCancellationRequested);
-        Assert.Equal(4, result.Rows.Count);
+        Assert.Equal(4, result.Rows.Length);
         Assert.Contains(result.Entries, entry => entry.Alignment == Alignment.Matched);
     }
 

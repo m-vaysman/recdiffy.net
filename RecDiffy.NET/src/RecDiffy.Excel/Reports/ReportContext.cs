@@ -5,7 +5,7 @@ using RecDiffy.Excel.Model;
 namespace RecDiffy.Excel.Reports;
 
 internal sealed record ReportContext(
-    ReconciliationResult Result,
+    IReconciliationResult Result,
     ExcelReportOptions Options,
     FieldMap Fields,
     string ProfileId,

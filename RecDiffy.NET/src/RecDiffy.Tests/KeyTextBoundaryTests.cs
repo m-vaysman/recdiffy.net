@@ -74,7 +74,7 @@ public class KeyTextBoundaryTests
         Assert.DoesNotContain(result.Entries, entry => entry.Alignment == Alignment.Matched);
     }
 
-    private static ReconciliationResult Run(Row left, Row right) =>
+    private static IReconciliationResult Run(Row left, Row right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", [left], Map),

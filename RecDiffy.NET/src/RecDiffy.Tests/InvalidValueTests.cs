@@ -88,7 +88,7 @@ public class InvalidValueTests
         Assert.All(result.Rows, row => Assert.Equal(InputValidity.Valid, row.Validity));
     }
 
-    private static ReconciliationResult Run(Row[] left, Row[] right) =>
+    private static IReconciliationResult Run(Row[] left, Row[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

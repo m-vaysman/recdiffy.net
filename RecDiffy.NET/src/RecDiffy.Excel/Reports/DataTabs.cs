@@ -65,8 +65,8 @@ internal static class DataTabs
             DataColumn<EntryFact>.Of("currency", entry => entry.Text(ReportRole.Currency), width: 9),
             DataColumn<EntryFact>.Of("theirsCurrency", entry => entry.Theirs[ReportRole.Currency].Text, width: 9),
             DataColumn<EntryFact>.Of("ccySplit", entry => entry.CurrencySplit ? "Y" : "N", width: 8),
-            DataColumn<EntryFact>.Of("leftRows", entry => entry.Entry.Left.Count, Formats.Count, 9),
-            DataColumn<EntryFact>.Of("rightRows", entry => entry.Entry.Right.Count, Formats.Count, 9),
+            DataColumn<EntryFact>.Of("leftRows", entry => entry.Entry.Left.Length, Formats.Count, 9),
+            DataColumn<EntryFact>.Of("rightRows", entry => entry.Entry.Right.Length, Formats.Count, 9),
             DataColumn<EntryFact>.Of("suppressedRows", entry => entry.SuppressedRows, Formats.Count, 9),
             DataColumn<EntryFact>.Of("leftKeys", entry => entry.Keys(Side.Left), width: 24),
             DataColumn<EntryFact>.Of("rightKeys", entry => entry.Keys(Side.Right), width: 24),
@@ -212,7 +212,7 @@ internal static class DataTabs
             ("Writer", $"RecDiffy.Excel {version}"),
             ("Rows read: left", context.Result.Rows.Count(row => row.Row.Source == "left")),
             ("Rows read: right", context.Result.Rows.Count(row => row.Row.Source == "right")),
-            ("Result entries", context.Result.Entries.Count),
+            ("Result entries", context.Result.Entries.Length),
         ];
         ImmutableArray<(string Key, int Value)> counts =
         [

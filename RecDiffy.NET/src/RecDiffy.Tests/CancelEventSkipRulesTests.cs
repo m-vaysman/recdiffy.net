@@ -83,7 +83,7 @@ public class CancelEventSkipRulesTests
         Assert.Contains(left.Diagnostics, diagnostic => diagnostic.Code == "SideSignConflict");
     }
 
-    private static RowResult Of(ReconciliationResult result, string key) =>
+    private static RowResult Of(IReconciliationResult result, string key) =>
         Assert.Single(result.Rows, row => row.Row.RowKey == key);
 
     private sealed record Row(
@@ -96,7 +96,7 @@ public class CancelEventSkipRulesTests
         string Quantity,
         string TradeDate);
 
-    private static ReconciliationResult RunWithLifecycle(IReadOnlyList<Row> right) =>
+    private static IReconciliationResult RunWithLifecycle(IReadOnlyList<Row> right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(ProfileWithLifecycle), TradingRulePack.AddTo(RuleRegistry.CreateCore())),
             RecordSources.FromObjects("left", [new Row("L1", "ACME", "Bond", null, null, "BUY", "100", "2026-06-10")], Map()),
