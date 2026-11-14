@@ -40,6 +40,8 @@ The script:
 | `-Repeats <n>` | Measured runs per size, or batches per level | `1` |
 | `-GcMode <workstation\|server>` | Sets `DOTNET_gcServer` for the harness process | `workstation` |
 | `-HeapCap <8GB\|16GB\|32GB>` | Sets `DOTNET_GCHeapHardLimit`; empty is uncapped | empty |
+| `-Gen0Size <64MB\|256MB\|1GB>` | Sets `DOTNET_GCgen0size`, the gen0 allocation budget; empty is the runtime's default | empty |
+| `-ConserveMemory <0-9>` | Sets `DOTNET_GCConserveMemory`; empty is the runtime's default | empty |
 | `-CaseTimeoutSeconds <n>` | Sizes sweep: per-case timeout | `1800` |
 | `-NoExcel` | Sizes sweep: `--excel none` (use it from 1M rows) | off |
 | `-Flavor <jit\|r2r\|aot>` / `-Framework <net10.0\|net8.0>` | The build that runs | `jit` / `net10.0` |
@@ -48,6 +50,8 @@ The script:
 
 Notes:
 
+- **`-Gen0Size` and `-ConserveMemory` are not in the report.** `report.md` records the GC mode and the heap limit
+  only. These two settings are in `script.log`, which is committed beside the report, and in the comment on the issue.
 - **Bencher is not in this script.** Bencher records the benchmark measures from `benchmarks.yml`; a capacity run posts
   its report to #377 instead, and the run folder on `capacity-results` is the permanent copy.
 - **An OS kill cannot be caught in the process.** If the host kills the harness, the script sees a missing report and
