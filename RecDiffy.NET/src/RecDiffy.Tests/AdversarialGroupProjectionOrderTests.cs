@@ -52,11 +52,11 @@ public class AdversarialGroupProjectionOrderTests
         Assert.Equal(Describe(inOrder), Describe(reversed));
     }
 
-    private static string Describe(ReconciliationResult result) =>
+    private static string Describe(IReconciliationResult result) =>
         string.Join("; ", result.Entries.Select(entry =>
             $"{entry.Alignment}/{entry.Outcome} [{string.Join(",", entry.Diffs.Select(diff => $"{diff.Field}:{diff.Outcome}:{diff.Delta.Days}"))}]"));
 
-    private static ReconciliationResult Run(Row[] left) =>
+    private static IReconciliationResult Run(Row[] left) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

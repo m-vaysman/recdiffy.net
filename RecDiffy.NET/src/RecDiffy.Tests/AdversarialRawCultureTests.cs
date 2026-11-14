@@ -3,7 +3,7 @@ using System.Globalization;
 namespace RecDiffy.Tests;
 
 // Adversarial pass on main. Text RecDiffy makes from a value is invariant (spec §3.5 rule 6, README "Text RecDiffy
-// makes"). ReconciliationResult.Raw turns a typed raw value into text with the server's culture.
+// makes"). IReconciliationResult.Raw turns a typed raw value into text with the server's culture.
 public class AdversarialRawCultureTests
 {
     private const string Profile = """

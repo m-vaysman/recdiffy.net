@@ -19,7 +19,7 @@ public static class Reconciler
         };
     }
 
-    public static ReconciliationResult Run(
+    public static IReconciliationResult Run(
         CompiledProfile profile,
         RecordSource left,
         RecordSource right,
@@ -40,7 +40,7 @@ public static class Reconciler
             cancellationToken);
     }
 
-    public static async Task<ReconciliationResult> RunAsync(
+    public static async Task<IReconciliationResult> RunAsync(
         CompiledProfile profile,
         RecordSource left,
         RecordSource right,
@@ -65,7 +65,7 @@ public static class Reconciler
 
 internal static class RunPipeline
 {
-    public static ReconciliationResult Execute(
+    public static IReconciliationResult Execute(
         CompiledProfile profile,
         IReadOnlyList<RawRecord> left,
         IReadOnlyList<RawRecord> right,

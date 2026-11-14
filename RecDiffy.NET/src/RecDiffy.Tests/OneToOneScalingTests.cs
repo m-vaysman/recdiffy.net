@@ -60,7 +60,7 @@ public class OneToOneScalingTests
             ReferenceDataSet.Empty);
         watch.Stop();
         Assert.Equal(rows, result.Summary.Matched);
-        Assert.Equal(rows * 2, result.Rows.Count);
+        Assert.Equal(rows * 2, result.Rows.Length);
         return watch.Elapsed.TotalMilliseconds;
     }
 

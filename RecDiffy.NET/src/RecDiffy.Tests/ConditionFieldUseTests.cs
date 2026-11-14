@@ -129,12 +129,12 @@ public class PackageConditionFieldTests
         Assert.Equal(FieldOutcome.Exact, Assert.Single(result.Entries).Outcome);
     }
 
-    private static string Describe(ReconciliationResult result) =>
+    private static string Describe(IReconciliationResult result) =>
         string.Join(" || ", result.Entries.Select(entry =>
             $"{entry.Alignment}/{entry.Outcome} [{string.Join(", ", entry.Diffs.Select(diff => $"{diff.Field.Name}:{diff.Outcome}:{diff.Delta.Number.ToString(CultureInfo.InvariantCulture)}"))}] "
             + $"codes [{string.Join(",", result.Rows.SelectMany(row => row.Diagnostics).Select(diagnostic => diagnostic.Code).Distinct(StringComparer.Ordinal))}]"));
 
-    private static ReconciliationResult Run(string profile, Row[] left, string streetAsset) =>
+    private static IReconciliationResult Run(string profile, Row[] left, string streetAsset) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),
@@ -205,7 +205,7 @@ public class PackageRawConditionColumnTests
         Assert.Empty(result.Rows.SelectMany(row => row.Diagnostics));
     }
 
-    private static ReconciliationResult Run(Row[] left) =>
+    private static IReconciliationResult Run(Row[] left) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),
@@ -270,7 +270,7 @@ public class GroupConditionFieldTests
         Assert.Empty(result.Rows.SelectMany(row => row.Diagnostics));
     }
 
-    private static ReconciliationResult Run(Row[] left) =>
+    private static IReconciliationResult Run(Row[] left) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

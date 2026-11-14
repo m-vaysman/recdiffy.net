@@ -86,7 +86,7 @@ public class GroupProjectionRawAgreementTests
         Assert.DoesNotContain(result.Rows.SelectMany(row => row.Diagnostics), diagnostic => diagnostic.Code == "MembersDisagree");
     }
 
-    private static ReconciliationResult Run(Row[] left, string block = "Swap") =>
+    private static IReconciliationResult Run(Row[] left, string block = "Swap") =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

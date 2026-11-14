@@ -213,7 +213,7 @@ public class KeyAndDecimalBoundaryPropertyTests
                 Assert.Equal(new BigInteger(targetRow.Cash), exactCash);
             }
 
-            Assert.Equal(left.Length + right.Length, result.Rows.Count);
+            Assert.Equal(left.Length + right.Length, result.Rows.Length);
         }
     }
 

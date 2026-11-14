@@ -57,7 +57,7 @@ public class RunSummaryAccountingTests
         Assert.Equal((Alignment.LeftOnly, "", "Unrouted", (string?)null), (entry.Alignment, entry.PathId, attempt.Detail, entry.Explanation.CommittedBy));
     }
 
-    private static ReconciliationResult Run((string Id, string Asset, string Amount)[] left, (string Id, string Asset, string Amount)[] right) =>
+    private static IReconciliationResult Run((string Id, string Asset, string Amount)[] left, (string Id, string Asset, string Amount)[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

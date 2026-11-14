@@ -98,7 +98,7 @@ public readonly struct CanonicalRow
 
 public sealed record Explanation(string? CommittedBy, IReadOnlyList<PassAttempt> Trail, IReadOnlyList<Hint> Hints);
 
-public sealed record PassAttempt(string PassId, PassVerdict Verdict, string? Key, IReadOnlyList<SourceRef> Candidates, string? Detail);
+public sealed record PassAttempt(string PassId, PassVerdict Verdict, string? Key, ImmutableArray<SourceRef> Candidates, string? Detail);
 
 public sealed record Hint(string Code, string Detail);
 
@@ -108,9 +108,9 @@ public sealed record ResultEntry(
     Alignment Alignment,
     Composition Composition,
     FieldOutcome Outcome,
-    IReadOnlyList<SourceRef> Left,
-    IReadOnlyList<SourceRef> Right,
-    IReadOnlyList<FieldDiff> Diffs,
+    ImmutableArray<SourceRef> Left,
+    ImmutableArray<SourceRef> Right,
+    ImmutableArray<FieldDiff> Diffs,
     Explanation Explanation);
 
 public sealed record RowResult(

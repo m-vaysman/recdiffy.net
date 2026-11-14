@@ -32,7 +32,7 @@ public class LoneLifecycleEventCompositionTests
 
     private sealed record Row(string Id, string Trade, string? Action, string? Target);
 
-    private static ReconciliationResult Run(IReadOnlyList<Row> left, IReadOnlyList<Row> right) =>
+    private static IReconciliationResult Run(IReadOnlyList<Row> left, IReadOnlyList<Row> right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map()),

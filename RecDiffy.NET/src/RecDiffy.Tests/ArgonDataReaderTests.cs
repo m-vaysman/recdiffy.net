@@ -19,7 +19,7 @@ public class ArgonDataReaderTests
 
         var result = Reconciler.Run(profile, left, right, ReferenceDataSet.Empty);
 
-        Assert.Equal(2, result.Rows.Count);
+        Assert.Equal(2, result.Rows.Length);
         Assert.Equal(["L1", "L2"], result.Rows.Select(r => r.Row.RowKey).OrderBy(k => k, StringComparer.Ordinal), StringComparer.Ordinal);
     }
 

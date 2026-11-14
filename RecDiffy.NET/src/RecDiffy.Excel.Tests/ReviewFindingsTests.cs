@@ -11,7 +11,7 @@ public class ReviewFindingsTests
 {
     private static readonly DateOnly AsOf = new(2026, 11, 4);
 
-    private static readonly Lazy<(CompiledProfile Profile, ReconciliationResult Result)> Run = new(() =>
+    private static readonly Lazy<(CompiledProfile Profile, IReconciliationResult Result)> Run = new(() =>
     {
         var profile = Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore());
         Trade[] ours =

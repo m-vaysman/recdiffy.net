@@ -196,17 +196,17 @@ public class DecimalOverflowOutcomeTests
                     ["Id=R1;Ref=T1;Asset=Equity;Qty=1000000000000000;Px=100000000000000;Acc=1;Cash=2"]),
                 "NetCash"));
 
-    private static void AssertOverflowNamed(ReconciliationResult result, string source, int rows)
+    private static void AssertOverflowNamed(IReconciliationResult result, string source, int rows)
     {
         var named = result.Rows.Where(row => row.Row.Source == source).ToArray();
         Assert.Equal(rows, named.Length);
         Assert.All(named, row => Assert.Contains(row.Diagnostics, diagnostic => diagnostic is { Code: "AggregateOverflow", Field: "NetCash", Severity: DiagnosticSeverity.Warning }));
     }
 
-    private static FieldOutcome Outcome(ReconciliationResult result, string field) =>
+    private static FieldOutcome Outcome(IReconciliationResult result, string field) =>
         Assert.Single(Assert.Single(result.Entries).Diffs, diff => diff.Field.Name == field).Outcome;
 
-    private static ReconciliationResult Run(string profile, string[] left, string[] right)
+    private static IReconciliationResult Run(string profile, string[] left, string[] right)
     {
         var columns = left.Concat(right).Select(Parse).SelectMany(row => row.Keys).Distinct(StringComparer.Ordinal).ToArray();
         var map = columns.Aggregate(

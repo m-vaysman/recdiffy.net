@@ -1,6 +1,6 @@
 # Report specs for RecDiffy.Excel
 
-This folder is the formatting and layout spec for the RecDiffy.Excel report writer. The two workbooks in `reference-workbooks/` show the target output; the Python scripts that built them state every style, column, formula and check exactly. Port the presentation. Do not port any matching: in RecDiffy.Excel, all reconciliation decisions come from the engine's `ReconciliationResult`.
+This folder is the formatting and layout spec for the RecDiffy.Excel report writer. The two workbooks in `reference-workbooks/` show the target output; the Python scripts that built them state every style, column, formula and check exactly. Port the presentation. Do not port any matching: in RecDiffy.Excel, all reconciliation decisions come from the engine's `IReconciliationResult`.
 
 ## What's here
 

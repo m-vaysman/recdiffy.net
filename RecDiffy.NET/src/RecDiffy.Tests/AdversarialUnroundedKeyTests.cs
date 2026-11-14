@@ -67,7 +67,7 @@ public class AdversarialUnroundedKeyTests
         Assert.All(result.Rows, row => Assert.Equal(Disposition.Matched, row.Disposition));
     }
 
-    private static ReconciliationResult Run(string profile, string column, string left, string right)
+    private static IReconciliationResult Run(string profile, string column, string left, string right)
     {
         var map = new SourceMap<(string Id, string Value)>().Text("Id", row => row.Id).Text("Ref", row => row.Id).Text(column, row => row.Value);
         return Reconciler.Run(

@@ -30,12 +30,12 @@ public class CancelEventTradeRuleTests
         Assert.Equal(Disposition.Suppressed, Of(result, "R2"));
     }
 
-    private static Disposition Of(ReconciliationResult result, string key) =>
+    private static Disposition Of(IReconciliationResult result, string key) =>
         Assert.Single(result.Rows, row => row.Row.RowKey == key).Disposition;
 
     private sealed record Row(string Id, string? Action, string? Target, string Code, string Quantity);
 
-    private static ReconciliationResult Run(IReadOnlyList<Row> right) =>
+    private static IReconciliationResult Run(IReadOnlyList<Row> right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), TradingRulePack.AddTo(RuleRegistry.CreateCore())),
             RecordSources.FromObjects("left", [new Row("L1", null, null, "BUY", "100")], Map()),

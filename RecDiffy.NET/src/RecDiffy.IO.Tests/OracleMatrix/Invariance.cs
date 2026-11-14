@@ -39,7 +39,7 @@ internal static class Invariance
             cell => columns.Contains(cell.Key, StringComparer.Ordinal) && SheetRows.Text(cell.Value) is { } text && map.TryGetValue(text, out var renamed) ? renamed : cell.Value,
             StringComparer.Ordinal))];
 
-    public static IReadOnlyList<string> Fingerprint(ReconciliationResult result, IReadOnlyDictionary<string, string> leftBack, IReadOnlyDictionary<string, string> rightBack)
+    public static IReadOnlyList<string> Fingerprint(IReconciliationResult result, IReadOnlyDictionary<string, string> leftBack, IReadOnlyDictionary<string, string> rightBack)
     {
         string Original(SourceRef row) => (row.Source == "left" ? leftBack : rightBack).GetValueOrDefault(row.RowKey) ?? row.RowKey;
         var entries = result.Entries.Select(entry => string.Join(

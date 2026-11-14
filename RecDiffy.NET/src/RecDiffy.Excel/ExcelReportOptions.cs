@@ -22,7 +22,7 @@ public sealed record ExcelReportOptions
     public IReadOnlyDictionary<string, string> Labels { get; init; } = new Dictionary<string, string>(StringComparer.Ordinal);
 
     /// <summary>
-    /// The compiled profile the result came from. ReconciliationResult does not carry the profile, so the profile id, tolerance values (MO6),
+    /// The compiled profile the result came from. IReconciliationResult does not carry the profile, so the profile id, tolerance values (MO6),
     /// pass order (MO2, MO3) and raw column names (BO3) are read from here when it is set.
     /// </summary>
     public CompiledProfile? Profile { get; init; }

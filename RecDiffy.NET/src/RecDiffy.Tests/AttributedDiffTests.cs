@@ -121,7 +121,7 @@ public class AttributedDiffTests
     private static string Swapped() =>
         Profile.ReplaceLineEndings("\n").Replace(QuantityThenAccrued, AccruedThenQuantity, StringComparison.Ordinal);
 
-    private static string Describe(ReconciliationResult result) =>
+    private static string Describe(IReconciliationResult result) =>
         string.Join(" || ", result.Entries.Select(entry => $"{entry.Alignment}/{entry.Outcome} " + string.Join(", ", entry.Diffs
             .OrderBy(diff => diff.Field.Name, StringComparer.Ordinal)
             .Select(diff => $"{diff.Field.Name}:{diff.Outcome}:{diff.Delta.Number.ToString(CultureInfo.InvariantCulture)}:[{string.Join("+", diff.AttributedTo)}]"))));
@@ -129,7 +129,7 @@ public class AttributedDiffTests
     private static CompiledProfile Compile(string profile) =>
         Reconciler.Compile(ProfileDocument.Parse(profile), TradingRulePack.AddTo(RuleRegistry.CreateCore()));
 
-    private static ReconciliationResult Run(string profile, Row left, Row right) =>
+    private static IReconciliationResult Run(string profile, Row left, Row right) =>
         Reconciler.Run(Compile(profile), RecordSources.FromObjects("left", [left], Map), RecordSources.FromObjects("right", [right], Map), ReferenceDataSet.Empty);
 
     public sealed record Row(string Id, string Qty, string Acc, string Cash);

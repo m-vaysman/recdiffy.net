@@ -28,7 +28,7 @@ public class AdversarialReportStressTests(ITestOutputHelper output)
                 ? Workbooks.SchemaErrors(outcome.Path!).Take(3).Select(error => $"{outcome.Kind}: {error}")
                 : string.IsNullOrWhiteSpace(outcome.SkipReason) ? [$"{outcome.Kind}: skipped with no reason"] : [])
             .ToArray();
-        output.WriteLine($"rows={result.Rows.Count} entries={result.Entries.Count} run={ran.TotalSeconds:F1}s write={wrote.TotalSeconds:F1}s validate={(clock.Elapsed - ran - wrote).TotalSeconds:F1}s");
+        output.WriteLine($"rows={result.Rows.Length} entries={result.Entries.Length} run={ran.TotalSeconds:F1}s write={wrote.TotalSeconds:F1}s validate={(clock.Elapsed - ran - wrote).TotalSeconds:F1}s");
         foreach (var outcome in outcomes)
             output.WriteLine($"{outcome.Kind}: {(outcome.Written ? $"{new FileInfo(outcome.Path!).Length / 1024} KB" : "skipped: " + outcome.SkipReason)}");
         foreach (var problem in problems.Take(20))

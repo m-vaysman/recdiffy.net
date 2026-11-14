@@ -20,7 +20,7 @@ public class VerificationTests
         Assert.Equal(Composition.ManyToOne, entry.Composition);
         Assert.Equal(FieldOutcome.Exact, entry.Outcome);
         Assert.Equal(10m, result.Projection(entry.Id, Side.Left)["Quantity"].Number);
-        Assert.Equal(3, result.Rows.Count);
+        Assert.Equal(3, result.Rows.Length);
         Assert.All(result.Rows, row => Assert.Equal(Disposition.Matched, row.Disposition));
     }
 
@@ -62,8 +62,8 @@ public class VerificationTests
             RecordSources.FromObjects("book", right, PairMap()),
             ReferenceDataSet.Empty);
 
-        Assert.Equal(left.Length + right.Length, result.Rows.Count);
-        Assert.Equal(result.Rows.Count, result.Rows.Select(row => row.Row).Distinct().Count());
+        Assert.Equal(left.Length + right.Length, result.Rows.Length);
+        Assert.Equal(result.Rows.Length, result.Rows.Select(row => row.Row).Distinct().Count());
         var matched = result.Entries.Where(entry => entry.Alignment == Alignment.Matched).SelectMany(entry => entry.Left.Concat(entry.Right)).ToArray();
         Assert.Equal(matched.Length, matched.Distinct().Count());
     }

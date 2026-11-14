@@ -41,7 +41,7 @@ public class SubsetSearchDecimalLimitTests
     {
         var result = Run([new Row("L1", "JPM", huge), new Row("L2", "JPM", negative)], [new Row("R1", "JPM", target)]);
 
-        Assert.All(result.Entries, entry => Assert.True(entry.Left.Count + entry.Right.Count < 2));
+        Assert.All(result.Entries, entry => Assert.True(entry.Left.Length + entry.Right.Length < 2));
     }
 
     [Theory]
@@ -54,7 +54,7 @@ public class SubsetSearchDecimalLimitTests
 
         var result = Run(left, [new Row("R1", "JPM", target)]);
 
-        Assert.True(result.Entries.All(entry => entry.Left.Count + entry.Right.Count < 2), Describe(result));
+        Assert.True(result.Entries.All(entry => entry.Left.Length + entry.Right.Length < 2), Describe(result));
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class SubsetSearchDecimalLimitTests
 
         var result = Run(left, [new Row("R1", "JPM", BigEven)]);
 
-        Assert.True(result.Entries.All(entry => entry.Left.Count + entry.Right.Count < 2), Describe(result));
+        Assert.True(result.Entries.All(entry => entry.Left.Length + entry.Right.Length < 2), Describe(result));
     }
 
     [Theory]
@@ -79,16 +79,16 @@ public class SubsetSearchDecimalLimitTests
 
         var result = Run(left, [new Row("R1", "JPM", target)]);
 
-        Assert.True(grouped == result.Entries.Any(entry => entry.Left.Count >= 2), Describe(result));
+        Assert.True(grouped == result.Entries.Any(entry => entry.Left.Length >= 2), Describe(result));
     }
 
-    private static string Describe(ReconciliationResult result) =>
+    private static string Describe(IReconciliationResult result) =>
         string.Join(" || ", result.Entries.Select(entry =>
             $"{entry.Alignment}/{entry.Composition}/{entry.Outcome} left[{Keys(entry.Left)}] right[{Keys(entry.Right)}] diffs[{string.Join(", ", entry.Diffs.Select(diff => $"{diff.Field.Name}:{diff.Outcome}:{diff.Delta.Number.ToString(CultureInfo.InvariantCulture)}"))}]"));
 
     private static string Keys(IReadOnlyList<SourceRef> rows) => string.Join(",", rows.Select(row => row.RowKey));
 
-    private static ReconciliationResult Run(Row[] left, Row[] right) =>
+    private static IReconciliationResult Run(Row[] left, Row[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Group), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

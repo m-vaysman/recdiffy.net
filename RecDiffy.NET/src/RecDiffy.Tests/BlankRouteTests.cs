@@ -99,20 +99,20 @@ public class BlankRouteTests
             .Select(entry => (entry.Alignment, entry.PathId)),
     ];
 
-    private static ReconciliationResult Run(Source source, Blank[] left, Blank[] right) => source switch
+    private static IReconciliationResult Run(Source source, Blank[] left, Blank[] right) => source switch
     {
         Source.Objects => RunOver(ProfileDocument.Parse(Profile), RecordSources.FromObjects("left", left, Map), RecordSources.FromObjects("right", right, Map)),
         Source.DataReader => RunFromTables(left, right),
         _ => throw new ArgumentOutOfRangeException(nameof(source), source, "Unknown source."),
     };
 
-    private static ReconciliationResult Run(Source source, Blank[] rows) => Run(source, rows, rows);
+    private static IReconciliationResult Run(Source source, Blank[] rows) => Run(source, rows, rows);
 
-    private static ReconciliationResult RunOver(ProfileDocument document, RecordSource left, RecordSource right) =>
+    private static IReconciliationResult RunOver(ProfileDocument document, RecordSource left, RecordSource right) =>
         Reconciler.Run(Reconciler.Compile(document, RuleRegistry.CreateCore()), left, right, ReferenceDataSet.Empty);
 
     // A data reader turns a blank cell into null, which is the path a CSV or Excel file takes.
-    private static ReconciliationResult RunFromTables(Blank[] left, Blank[] right)
+    private static IReconciliationResult RunFromTables(Blank[] left, Blank[] right)
     {
         using var leftTable = Table(left);
         using var rightTable = Table(right);

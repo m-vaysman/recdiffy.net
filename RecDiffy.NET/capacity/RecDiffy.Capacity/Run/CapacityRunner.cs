@@ -424,7 +424,7 @@ internal static class CapacityRunner
             ? 0
             : ordered[Math.Min(ordered.Count - 1, (int)Math.Ceiling(percentile * ordered.Count) - 1)].TotalSeconds;
 
-    private static IReadOnlyList<string> Verify(Workload workload, ReconciliationResult result)
+    private static IReadOnlyList<string> Verify(Workload workload, IReconciliationResult result)
     {
         var expected = ReportCounts.Expected(workload.Expected);
         var actual = ReportCounts.From(result.Summary);
@@ -432,15 +432,15 @@ internal static class CapacityRunner
         if (actual != expected)
             notes.Add($"known outcome mismatch: expected {expected.Describe()}, the engine gave {actual.Describe()}");
         var rows = workload.LeftRows + workload.RightRows;
-        if (result.Rows.Count != rows)
-            notes.Add($"row results: expected {rows.ToInvariant()}, the engine gave {result.Rows.Count.ToInvariant()}");
+        if (result.Rows.Length != rows)
+            notes.Add($"row results: expected {rows.ToInvariant()}, the engine gave {result.Rows.Length.ToInvariant()}");
         var entries = expected.Matched + expected.LeftOnly + expected.RightOnly;
-        if (result.Entries.Count != entries)
-            notes.Add($"entries: expected {entries.ToInvariant()}, the engine gave {result.Entries.Count.ToInvariant()}");
+        if (result.Entries.Length != entries)
+            notes.Add($"entries: expected {entries.ToInvariant()}, the engine gave {result.Entries.Length.ToInvariant()}");
         return notes;
     }
 
-    private static IReadOnlyList<ReportFile> WriteReports(ReconciliationResult result, CompiledProfile profile, string folder, string runFolder)
+    private static IReadOnlyList<ReportFile> WriteReports(IReconciliationResult result, CompiledProfile profile, string folder, string runFolder)
     {
         var outcomes = result.WriteAll(folder, new ExcelReportOptions
         {

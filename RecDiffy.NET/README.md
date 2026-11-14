@@ -280,7 +280,7 @@ File.WriteAllText("ledger.profile.json", result.Profile.ToJson());
 
 ## Write Excel reports
 
-The separate `RecDiffy.Excel` package writes formatted back- and middle-office reports from a `ReconciliationResult`, one `.xlsx` file per report. Numbers on a report tab are formulas that link to the engine's output in the same file, every decomposition has a ✓/✗ check, and ageing is a formula on a named `AsOf` cell.
+The separate `RecDiffy.Excel` package writes formatted back- and middle-office reports from an `IReconciliationResult`, one `.xlsx` file per report. Numbers on a report tab are formulas that link to the engine's output in the same file, every decomposition has a ✓/✗ check, and ageing is a formula on a named `AsOf` cell.
 
 It is the third of the four packages, so the quickstart project above does not have it yet. Add it before running this section:
 

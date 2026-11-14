@@ -42,7 +42,7 @@ public class EngineVersionTests
         Assert.Equal(Run().Run.EngineVersion, Run().Run.EngineVersion);
     }
 
-    private static ReconciliationResult Run()
+    private static IReconciliationResult Run()
     {
         var profile = Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore());
         return Reconciler.Run(

@@ -85,7 +85,7 @@ public class IdentityJoinTests
             ReferenceDataSet.Empty);
         var view = result.BuildSideBySide(new SideBySideSpec(["Desk", "Book"], [], [new MeasureSpec("Quantity")], null));
 
-        Assert.Equal(2, view.Lines.Count);
+        Assert.Equal(2, view.Lines.Length);
         Assert.Equal(["1", "10"], view.Lines.Select(line => line.Cells["Quantity"].Left.ToString(System.Globalization.CultureInfo.InvariantCulture)).OrderBy(value => value, StringComparer.Ordinal), StringComparer.Ordinal);
     }
 

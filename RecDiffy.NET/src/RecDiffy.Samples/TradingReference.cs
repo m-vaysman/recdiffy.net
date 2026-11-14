@@ -35,7 +35,7 @@ public static class TradingReference
         CanonicalValue PriceValue,
         string TradeDate);
 
-    private static void Canonical(ReconciliationResult result)
+    private static void Canonical(IReconciliationResult result)
     {
         foreach (var row in result.Rows)
         {
@@ -44,7 +44,7 @@ public static class TradingReference
         }
     }
 
-    private static CanonicalTrade CanonicalOf(ReconciliationResult result, RowResult row)
+    private static CanonicalTrade CanonicalOf(IReconciliationResult result, RowResult row)
     {
         var canonical = result.Canonical(row.Row);
         return new CanonicalTrade(

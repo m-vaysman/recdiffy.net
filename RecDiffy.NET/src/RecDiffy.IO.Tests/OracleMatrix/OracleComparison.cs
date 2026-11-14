@@ -7,7 +7,7 @@ namespace RecDiffy.IO.Tests.OracleMatrix;
 // disagreement as one line, so a failing test says which cases disagree and how, not only that some did.
 internal sealed class OracleComparison
 {
-    private readonly ReconciliationResult _result;
+    private readonly IReconciliationResult _result;
     private readonly IReadOnlyList<OracleCase> _cases;
     private readonly Dictionary<(string Source, string Key), RowResult> _rows;
     private readonly ILookup<GroupId, (string Source, string Key)> _members;
@@ -17,7 +17,7 @@ internal sealed class OracleComparison
 
     // A deferred case is left out of every check, and so is an entry made only of a deferred case's rows. The test class
     // that defers a case says why, and a skipped test of its own checks the case once the cause is fixed.
-    public OracleComparison(ReconciliationResult result, IReadOnlyList<OracleCase> cases, Func<OracleCase, string?>? deferred = null)
+    public OracleComparison(IReconciliationResult result, IReadOnlyList<OracleCase> cases, Func<OracleCase, string?>? deferred = null)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(cases);

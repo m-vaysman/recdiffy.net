@@ -41,7 +41,7 @@ public class TrailKeyValueFormTests
         Assert.Equal([(PassVerdict.Committed, "T-1"), (PassVerdict.Contest, "T-2")], [(matched.Verdict, matched.Key), (contest.Verdict, contest.Key)]);
     }
 
-    private static ReconciliationResult Run((string Id, string Ref, string Amount)[] left, (string Id, string Ref, string Amount)[] right) =>
+    private static IReconciliationResult Run((string Id, string Ref, string Amount)[] left, (string Id, string Ref, string Amount)[] right) =>
         Reconciler.Run(
             Reconciler.Compile(ProfileDocument.Parse(Profile), RuleRegistry.CreateCore()),
             RecordSources.FromObjects("left", left, Map),

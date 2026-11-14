@@ -88,7 +88,7 @@ public class DateParseClockTests
         return rejected ? null : string.Join("; ", result.Entries.Select(entry => $"{entry.Alignment}/{entry.Outcome} SettleDate {Date(result, entry)}"));
     }
 
-    private static string Date(ReconciliationResult result, ResultEntry entry)
+    private static string Date(IReconciliationResult result, ResultEntry entry)
     {
         var value = result.Projection(entry.Id, Side.Left)["SettleDate"];
         return value.IsNull ? "null" : value.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
