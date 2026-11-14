@@ -2,6 +2,14 @@
 
 RecDiffy is in preview; the public API can change between previews. Each entry lists what breaks and how to update.
 
+## Unreleased — the field comparers are internal (#408)
+
+- `IFieldComparer<T>`, `DecimalComparer` and `DateComparer` are now internal.
+
+They compare two values as given. They don't round to the field's scale and they don't know the profile's tolerance, so a delta inside the tolerance came back as `Break`. The engine rounds first, calls them, then applies the tolerance.
+
+**To update:** there is no replacement type. Declare the tolerance on the profile and read `FieldDiff.Outcome` and `FieldDiff.Delta` from the result's entries. [How a field is compared](docs/RESULTS.md#how-a-field-is-compared) lists the rules.
+
 ## 1.2.0-preview.7 — results through read-only interfaces (#408)
 
 - `Reconciler.Run` and `RunAsync` return `IReconciliationResult` (was `ReconciliationResult`).
