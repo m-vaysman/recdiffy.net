@@ -4,6 +4,8 @@
 
 `Entries` and `Rows` are `ImmutableArray` values. Enumerate them as before, and use `Length` for the count. `BuildSideBySide` returns an `ISideBySideView`, whose `Lines` are an `ImmutableArray` and whose cells are an ordinal `ImmutableDictionary`. The concrete result types are internal, so a host cannot cast the result to a list or a dictionary and change it. `Trace` stays an `IReadOnlyList<TraceStep>`.
 
+The engine owns `IReconciliationResult` and `ISideBySideView`. A host reads them, and may implement them as a fake in a test. A later release may add members to either interface, so a host's own implementation may need the new members before it compiles against that release. Members are not removed or changed without a breaking-change note.
+
 The types are in [IReconciliationResult.cs](../src/RecDiffy/Results/IReconciliationResult.cs), [ResultModel.cs](../src/RecDiffy/Results/ResultModel.cs) and [Alignment.cs](../src/RecDiffy/Results/Alignment.cs). The result is assembled in [ResultBuilder.cs](../src/RecDiffy/Results/ResultBuilder.cs). For the profile settings that shape a result, see [PROFILES.md](PROFILES.md).
 
 Two rules to keep in mind:
