@@ -5,6 +5,9 @@ namespace RecDiffy;
 
 internal static class MatchKeys
 {
+    // "F0" to "F28", one for each scale a profile can declare, so a decimal key does not build its format text (#403).
+    private static readonly string[] FixedPoint = [.. Enumerable.Range(0, 29).Select(scale => "F" + scale.ToInvariant())];
+
     public static MatchKey? Compose(ActiveItem item, IReadOnlyList<string> fields, IReadOnlyDictionary<string, FieldDeclaration> schema, bool sharedOnly = false)
     {
         var parts = fields.Select(field => KeyText(item.Row.Context, schema[field], sharedOnly)).ToArray();
@@ -26,13 +29,16 @@ internal static class MatchKeys
             ? null
             : field.Type switch
             {
-                FieldType.Decimal => row.Values[field.Name].Number.ToString("F" + field.Scale, CultureInfo.InvariantCulture),
+                FieldType.Decimal => row.Values[field.Name].Number.ToString(Format(field.Scale), CultureInfo.InvariantCulture),
                 FieldType.Date => row.Values[field.Name].Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 FieldType.Symbol => row.Pool.Symbol(row.Values[field.Name].Interned),
                 FieldType.Identifier => row.Pool.Identifier(row.Values[field.Name].Interned).Value,
                 FieldType.Text => row.Values[field.Name].Text,
                 _ => null,
             };
+
+    // A profile never compiles with a scale outside 0..28. A declaration built by hand still gets the text it got before.
+    private static string Format(int scale) => scale is >= 0 and <= 28 ? FixedPoint[scale] : "F" + scale;
 
     // The form a person reads (#338, R2): each key field by its value, joined with a middle dot, and no scheme. The join is
     // display only, so a value that holds the separator itself is shown as written. A missing field has no value form.
@@ -112,5 +118,100 @@ internal static class MatchKeys
             return new(true, null);
         var (scheme, value) = Identity(row, field);
         return scheme is null || value is null || IsShared(scheme) is false ? new(true, null) : new(false, value);
+    }
+
+    // The fields one pass keys on, and whether an identifier must be in a shared scheme to have a key.
+    public sealed record Spec(IReadOnlyList<string> Fields, bool SharedOnly);
+
+    // Every item's key for the key fields of each pass, composed once for a run (#396). A field's key text is read and
+    // formatted once per item, however many passes name the field. The table is built from the items and the schema
+    // alone, and nothing changes it afterwards.
+    public sealed class Table
+    {
+        private readonly IReadOnlyList<ActiveItem>? _items;
+        private readonly IReadOnlyDictionary<string, FieldDeclaration>? _schema;
+        private readonly (Spec Spec, string?[] Keys)[] _keys;
+
+        private Table(IReadOnlyList<ActiveItem>? items, IReadOnlyDictionary<string, FieldDeclaration>? schema, (Spec Spec, string?[] Keys)[] keys)
+        {
+            _items = items;
+            _schema = schema;
+            _keys = keys;
+        }
+
+        public static Table Empty { get; } = new(null, null, []);
+
+        // The columns are working state of this method and do not leave it. With no item there is no key to compose,
+        // and the schema is not asked for a field, as it is not when Compose is never called.
+        public static Table Build(IReadOnlyList<ActiveItem> items, IReadOnlyDictionary<string, FieldDeclaration> schema, IEnumerable<Spec> specs)
+        {
+            if (items.Count is 0)
+                return Empty;
+            var columns = new Dictionary<(string Field, bool SharedOnly), string?[]>();
+            var keys = new List<(Spec Spec, string?[] Keys)>();
+            foreach (var spec in specs)
+            {
+                if (keys.Exists(known => Same(known.Spec, spec.Fields, spec.SharedOnly)) is false)
+                    keys.Add((spec, Composed(items.Count, [.. spec.Fields.Select(field => Column(items, schema[field], spec.SharedOnly, columns))])));
+            }
+
+            return new(items, schema, [.. keys]);
+        }
+
+        // The key of one item under these fields. A workspace with other items or another schema, or fields the table
+        // was not built for, gets its keys composed afresh: the same text, without the reuse.
+        public Func<int, MatchKey?> Reader(MatchWorkspace workspace, IReadOnlyList<string> fields, bool sharedOnly)
+        {
+            var known = ReferenceEquals(_items, workspace.Items) && ReferenceEquals(_schema, workspace.Schema)
+                ? Array.Find(_keys, entry => Same(entry.Spec, fields, sharedOnly)).Keys
+                : null;
+            return known is null
+                ? index => Compose(workspace.Items[index], fields, workspace.Schema, sharedOnly)
+                : index => known[index] is { } encoded ? MatchKey.FromEncoded(encoded) : null;
+        }
+
+        private static bool Same(Spec spec, IReadOnlyList<string> fields, bool sharedOnly) =>
+            spec.SharedOnly == sharedOnly && spec.Fields.SequenceEqual(fields, StringComparer.Ordinal);
+
+        // One field's key text for every item. Only an identifier reads the shared-only flag, so every other field has
+        // one column whatever the pass.
+        private static string?[] Column(
+            IReadOnlyList<ActiveItem> items,
+            FieldDeclaration field,
+            bool sharedOnly,
+            Dictionary<(string Field, bool SharedOnly), string?[]> columns)
+        {
+            var slot = (field.Name, sharedOnly && field.Type is FieldType.Identifier);
+            if (columns.TryGetValue(slot, out var known))
+                return known;
+            var column = new string?[items.Count];
+            for (var item = 0; item < column.Length; item++)
+                column[item] = KeyText(items[item].Row.Context, field, sharedOnly);
+            columns[slot] = column;
+            return column;
+        }
+
+        // The same join as Compose, over the same parts. A null part leaves the item without a key, as in Compose. The
+        // part buffer is reused for every item: the join has read it by the time the next item fills it.
+        private static string?[] Composed(int count, string?[][] columns)
+        {
+            var keys = new string?[count];
+            var parts = new string[columns.Length];
+            for (var item = 0; item < count; item++)
+                keys[item] = Filled(parts, columns, item) ? Delimited.Join('\u001f', parts) : null;
+            return keys;
+        }
+
+        private static bool Filled(string[] parts, string?[][] columns, int item)
+        {
+            for (var field = 0; field < columns.Length; field++)
+            {
+                if (columns[field][item] is not { } text)
+                    return false;
+                parts[field] = text;
+            }
+
+            return true;
+        }
     }
 }

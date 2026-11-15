@@ -119,12 +119,13 @@ internal sealed record PairIndex(
             .ToImmutableDictionary(group => group.Key, group => group.Select(row => row.Index).ToImmutableArray(), MatchKey.OrdinalEquality);
 
     // A null key part is not placed. The row stays free for a later pass.
-    private static IReadOnlyList<PlacedRow> Placed(MatchWorkspace workspace, IReadOnlyList<string> fields, bool sharedOnly) =>
-        [.. workspace.Free
-            .Select(index => MatchKeys.Compose(workspace.Items[index], fields, workspace.Schema, sharedOnly) is { } key
-                ? new PlacedRow(index, workspace.Items[index].Side, key)
-                : null)
+    private static IReadOnlyList<PlacedRow> Placed(MatchWorkspace workspace, IReadOnlyList<string> fields, bool sharedOnly)
+    {
+        var keyOf = workspace.Keys.Reader(workspace, fields, sharedOnly);
+        return [.. workspace.Free
+            .Select(index => keyOf(index) is { } key ? new PlacedRow(index, workspace.Items[index].Side, key) : null)
             .OfType<PlacedRow>()];
+    }
 
     private sealed record PlacedRow(int Index, Side Side, MatchKey Key);
 }
