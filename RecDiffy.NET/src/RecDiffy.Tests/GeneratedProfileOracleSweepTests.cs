@@ -69,6 +69,8 @@ public class GeneratedProfileOracleSweepTests
         Assert.Contains(choices, c => c.Use32nds);
         Assert.Contains(choices, c => c.UseSideAndAbsQty);
         Assert.Contains(choices, c => c.UseNetCashAttribution);
+        Assert.Contains(choices, c => c.UseNetCashAttribution && c.SignedCash);
+        Assert.Contains(choices, c => c.UseNetCashAttribution && !c.SignedCash);
         Assert.Contains(choices, c => c.LeftSource is SourceKind.DataReader || c.RightSource is SourceKind.DataReader);
     }
 
@@ -272,8 +274,8 @@ public class GeneratedProfileOracleSweepTests
                 null),
             ["NetCash"] = spec.UseNetCashAttribution
                 ? new(
-                    new ToleranceDeclaration("Attributed", null, null, "trading.netCash", null),
-                    "trading.netCash",
+                    new ToleranceDeclaration("Attributed", null, null, NetCashAttribution(spec), null),
+                    NetCashAttribution(spec),
                     null)
                 : new(
                     new ToleranceDeclaration("Absolute", 50.00m, null, null, null),
@@ -440,6 +442,9 @@ public class GeneratedProfileOracleSweepTests
         DataReader,
     }
 
+    // Signed cash is explained by trading.netCashSigned, unsigned cash by trading.netCash (#433).
+    private static string NetCashAttribution(ProfileChoice spec) => spec.SignedCash ? "trading.netCashSigned" : "trading.netCash";
+
     private sealed record ProfileChoice(
         string RefScheme,
         bool RouteByInstrument,
@@ -448,6 +453,7 @@ public class GeneratedProfileOracleSweepTests
         bool Use32nds,
         bool UseSideAndAbsQty,
         bool UseNetCashAttribution,
+        bool SignedCash,
         SourceKind LeftSource,
         SourceKind RightSource)
     {
@@ -462,6 +468,7 @@ public class GeneratedProfileOracleSweepTests
                 Use32nds: (seed / 4) % 2 == 0,
                 UseSideAndAbsQty: (seed / 5) % 2 == 0,
                 UseNetCashAttribution: (seed / 6) % 2 == 0,
+                SignedCash: (seed / 7) % 2 == 0,
                 LeftSource: seed % 3 == 0 ? SourceKind.DataReader : SourceKind.Objects,
                 RightSource: seed % 3 == 1 ? SourceKind.DataReader : SourceKind.Objects);
     }
@@ -669,8 +676,10 @@ public class GeneratedProfileOracleSweepTests
                 var tDate = new DateOnly(2025, 6, 11);
                 var noteBlocksDateTol = random.Next(2) == 0;
                 var cashUnexplainedBreak = random.Next(2) == 0;
-                var leftCash = 10000.00m;
-                var rightCash = cashUnexplainedBreak ? 10500.00m : 10025.00m; // Qty=100 * Price=100.25 -> 10025 explained by trading.netCash
+                // Every row of the sweep is a BUY, which pays: with signed cash (#433) both amounts are negative.
+                var cashSign = spec.SignedCash ? -1m : 1m;
+                var leftCash = cashSign * 10000.00m;
+                var rightCash = cashSign * (cashUnexplainedBreak ? 10500.00m : 10025.00m); // Qty=100 * Price=100.25 -> 10025 explained by the net cash attribution
 
                 left.Add(MakeRow(
                     "L_NAT",

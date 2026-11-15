@@ -398,6 +398,7 @@ Name an attribution in `tolerance.attributed`, or in `attributed` beside a numer
 |---|---|---|---|
 | `trading.proRataToQuantity` | `Quantity` | The right value equals the left value times the right `Quantity` over the left `Quantity`, at the field's scale. A left quantity of 0 never explains. | The outcome of `Quantity`. |
 | `trading.netCash` | `Quantity`, `Price` | The difference, at 2 decimal places, equals the change in principal plus the change in `Accrued` plus the change in `Fees`. Principal is `Quantity` times `Price`, divided by 100 when `AssetClass` is `Bond`. The fee change is negated when `Side` is `SELL`, `REC_FIXED` or `REC`. | The worst outcome among `Quantity`, `Price`, `Accrued` and `Fees`. If none moved, `Break`. |
+| `trading.netCashSigned` | `Quantity`, `Price` | As `trading.netCash`, for cash whose sign says which way the money moves: a side that pays has negative cash. When `Side` is `SELL`, `REC_FIXED` or `REC`, the check is the one `trading.netCash` makes. For any other side, the difference must equal the negative of what `trading.netCash` expects. Unsigned cash on a paying side is not explained. | As `trading.netCash`. |
 
 - **When the formula doesn't explain the difference,** the field keeps its own outcome. A numeric tolerance beside `attributed` still applies.
 - **`FieldDiff.AttributedTo`** lists the roots: `Quantity` for pro rata, and the roots that moved, in the order above, for net cash.

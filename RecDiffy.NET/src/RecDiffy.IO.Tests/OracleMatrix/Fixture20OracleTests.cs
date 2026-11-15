@@ -7,8 +7,9 @@ namespace RecDiffy.IO.Tests.OracleMatrix;
 // Fixture 2.0, the field-level acceptance dataset (spec v3 §12.2), read from the workbook through FromExcel and compared
 // with RecDiffy_Hidden_Test_Oracle.json. The profile follows §9.2 with registered rules only: P1 and P2, lifecycle CANC
 // and CORR to NEW, BLOCK allocations summed as packages, swap legs as packages with one notional and summed cash, and the
-// street side's price.dirtyToClean, fees.inferFromNet (cash: signed, §9.2) and cash.toPerspective, in §3.3's order. Where the oracle's rules need a rule the
-// registry lacks, the profile does without it:
+// street side's price.dirtyToClean, fees.inferFromNet (cash: signed, §9.2) and cash.toPerspective, in §3.3's order. The cash is
+// signed, so net cash is attributed by trading.netCashSigned (#433). Where the oracle's rules need a rule the registry lacks,
+// the profile does without it:
 // - instrument.resolve (#259): each identifier scheme is its own field, and P2 runs once per scheme.
 public class Fixture20OracleTests
 {
@@ -16,28 +17,20 @@ public class Fixture20OracleTests
 
     private static readonly Lazy<IReconciliationResult> Result = new(Run);
 
-    private const string TwentyTwoCases = "22 cases disagree: 13 signed-cash BUYs (OracleDefects.SignedCash, #433), 8 dealer-view bonds (OracleDefects.DealerViewFeeOrder, #438) and the swap coupon (OracleDefects.CouponIsTheRate)";
+    private const string NineCases = "9 cases disagree: 8 dealer-view bonds (OracleDefects.DealerViewFeeOrder, #438) and the swap coupon (OracleDefects.CouponIsTheRate)";
 
     internal static IReconciliationResult Outcome => Result.Value;
 
     // Each check leaves out only the cases it can't judge, and says why.
     private static OracleComparison Compare(Func<OracleCase, string?>? deferred = null) => new(Result.Value, Dataset.Cases(), deferred);
 
-    // The cases a check can't judge yet, by id and only where the check fails. A signed near-match and a dealer-view bond
-    // fail on outcome. A signed break is a Break the engine also calls a Break, so it fails on root only, as does the swap coupon.
-    private static string? OutcomeDeferred(OracleCase item) => item.Id switch
-    {
-        var id when OracleDefects.SignedNearMatches.Contains(id) => OracleDefects.SignedCash,
-        var id when OracleDefects.DealerViewExact.Contains(id) => OracleDefects.DealerViewFeeOrder,
-        _ => null,
-    };
+    // The cases a check can't judge yet, by id and only where the check fails. A dealer-view bond fails on outcome. The swap
+    // coupon is a Break the engine also calls a Break, so it fails on root only.
+    private static string? OutcomeDeferred(OracleCase item) =>
+        OracleDefects.DealerViewExact.Contains(item.Id) ? OracleDefects.DealerViewFeeOrder : null;
 
-    private static string? RootDeferred(OracleCase item) => item.Id switch
-    {
-        var id when OracleDefects.SignedBreaks.Contains(id) => OracleDefects.SignedCash,
-        OracleDefects.SwapCouponCase => OracleDefects.CouponIsTheRate,
-        _ => null,
-    };
+    private static string? RootDeferred(OracleCase item) =>
+        item.Id is OracleDefects.SwapCouponCase ? OracleDefects.CouponIsTheRate : null;
 
     // The oracle's root causes and difference fields as profile fields. The oracle says a fee break is a net cash
     // difference with root cause COMMISSION, because the street schema has no commission column. The profile infers the
@@ -58,13 +51,13 @@ public class Fixture20OracleTests
     public void AC1_each_case_is_one_entry_with_exactly_its_rows_and_there_are_no_other_entries() =>
         OracleAssert.None(Compare().Membership());
 
-    // 17 deferred: 9 signed near-matches and 8 dealer-view bonds.
+    // 8 deferred: the dealer-view bonds.
     [Fact]
     public void AC2_each_entry_has_the_alignment_and_outcome_its_label_maps_to()
     {
         var comparison = Compare(OutcomeDeferred);
 
-        Assert.Equal(275 - 17, comparison.Checked);
+        Assert.Equal(275 - 8, comparison.Checked);
         OracleAssert.None(comparison.Outcomes());
     }
 
@@ -89,7 +82,7 @@ public class Fixture20OracleTests
     public void AC5_every_input_row_has_exactly_one_disposition() =>
         OracleAssert.None(Compare().RowAccounting(Dataset.LeftRows(), Dataset.RightRows()));
 
-    [Fact(Skip = TwentyTwoCases)]
+    [Fact(Skip = NineCases)]
     public void Every_case_agrees_with_the_oracle_on_every_criterion()
     {
         var all = Compare();
@@ -227,7 +220,7 @@ public class Fixture20OracleTests
               "Accrued": { "tolerance": { "absolute": 1.20 }, "attributed": "trading.proRataToQuantity", "applicableWhen": { "field": "AssetClass", "in": ["Bond", "Swap"] } },
               "Price": { "tolerance": { "absolute": 0.0001, "when": { "field": "AssetClass", "equals": "Forward" } } },
               "Fees": { "tolerance": { "absolute": 0.01 }, "attributed": "trading.proRataToQuantity", "applicableWhen": { "field": "AssetClass", "in": ["Bond", "Equity", "Forward"] } },
-              "NetCash": { "tolerance": { "attributed": "trading.netCash" } } } } } ]
+              "NetCash": { "tolerance": { "attributed": "trading.netCashSigned" } } } } } ]
         }
         """;
 }

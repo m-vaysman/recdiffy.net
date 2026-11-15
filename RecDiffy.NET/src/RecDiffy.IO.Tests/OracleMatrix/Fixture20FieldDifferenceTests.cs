@@ -12,16 +12,6 @@ public class Fixture20FieldDifferenceTests
 {
     private static readonly OracleDataset Dataset = OracleDatasets.Fixture20;
 
-    // The signed-cash fee cases: a signed BUY whose Fees difference the stated net cash is not attributed to (#433).
-    private static readonly HashSet<string> SignedFeeCases = new(StringComparer.Ordinal)
-    {
-        "CASE-B30F53E282BBF4EB",
-        "CASE-464C3900AB52BBF9",
-        "CASE-CD0C3AD6F2EDA44E",
-        "CASE-91DE8E3917A9B141",
-        "CASE-E56D4A056DC1D66E",
-    };
-
     private sealed record Stated(string Case, string Field, decimal Internal, decimal Counterparty, decimal Delta);
 
     // The oracle's difference fields as profile fields.
@@ -97,8 +87,7 @@ public class Fixture20FieldDifferenceTests
     // Fees is a field the oracle never states (the street schema has no commission column): the engine infers it, so a fee
     // break shows a Fees difference that the stated net cash difference is attributed to. A difference is explained when
     // the oracle states it, or when a difference the oracle states is attributed to it. Any other is a defect.
-    // Left out: the signed-cash fee cases, whose net cash trading.netCash can't attribute to Fees (#433), and the 8 dealer-view
-    // bonds whose fee is inferred before their cash is negated (#438).
+    // Left out: the 8 dealer-view bonds whose fee is inferred before their cash is negated (#438).
     [Fact]
     public void The_engine_states_no_difference_the_oracle_does_not_unless_a_stated_one_is_attributed_to_it()
     {
@@ -106,7 +95,7 @@ public class Fixture20FieldDifferenceTests
             .ToDictionary(group => group.Key, group => group.Select(item => Field(item.Field)).OfType<string>().ToHashSet(StringComparer.Ordinal), StringComparer.Ordinal);
 
         var disagreements = Dataset.Cases()
-            .Where(item => SignedFeeCases.Contains(item.Id) is false && OracleDefects.DealerViewExact.Contains(item.Id) is false)
+            .Where(item => OracleDefects.DealerViewExact.Contains(item.Id) is false)
             .Select(item => (Case: item, Entry: EntryOf(item.Id)))
             .Where(pair => pair.Entry is not null)
             .SelectMany(pair => Unstated(pair.Entry!, stated.GetValueOrDefault(pair.Case.Id) ?? []).Select(diff => $"{pair.Case.Id}: {diff}"))
@@ -123,12 +112,12 @@ public class Fixture20FieldDifferenceTests
             .Select(diff => $"{diff.Field.Name} {diff.Outcome.ToInvariant()} {diff.Delta.Number.ToInvariant()} is not stated by the oracle");
     }
 
-    // A near-match differs only within tolerance. Left out: the 9 signed near-matches (#433).
+    // A near-match differs only within tolerance.
     [Fact]
     public void Every_difference_of_a_near_match_is_WithinTolerance()
     {
         var disagreements = Dataset.Cases()
-            .Where(item => item.Kind is CaseKind.WithinTolerance && OracleDefects.SignedNearMatches.Contains(item.Id) is false)
+            .Where(item => item.Kind is CaseKind.WithinTolerance)
             .Select(item => (Case: item, Outcomes: EntryOf(item.Id)?.Diffs.Where(diff => diff.Outcome is not FieldOutcome.Exact).Select(diff => diff.Outcome).ToArray() ?? []))
             .Where(pair => pair.Outcomes.Length == 0 || pair.Outcomes.Any(outcome => outcome is not FieldOutcome.WithinTolerance))
             .Select(pair => $"{pair.Case.Id}: field outcomes [{string.Join(", ", pair.Outcomes.Select(outcome => outcome.ToInvariant()))}]")
@@ -138,13 +127,13 @@ public class Fixture20FieldDifferenceTests
     }
 
     // A break has a Break difference in each root field the oracle names, and every other difference the oracle states is a
-    // Break attributed to a root. Left out: the signed breaks (#433) and the swap coupon, whose engine roots differ.
+    // Break attributed to a root. Left out: the swap coupon, whose engine roots differ.
     [Fact]
     public void A_break_is_Break_in_its_root_and_each_other_stated_difference_is_attributed_to_a_root()
     {
         var stated = All.Value.ToLookup(item => item.Case, StringComparer.Ordinal);
         var disagreements = Dataset.Cases()
-            .Where(item => item.Kind is CaseKind.Break && OracleDefects.SignedBreaks.Contains(item.Id) is false && item.Id != OracleDefects.SwapCouponCase)
+            .Where(item => item.Kind is CaseKind.Break && item.Id != OracleDefects.SwapCouponCase)
             .Select(item => (Case: item, Entry: EntryOf(item.Id), Roots: item.BreakFields.Select(Root).OfType<string>().ToArray()))
             .SelectMany(row => RootProblems(row.Case, row.Entry, row.Roots, stated[row.Case.Id].Select(item => Field(item.Field)).OfType<string>().ToArray()))
             .ToArray();

@@ -5,7 +5,7 @@ namespace RecDiffy.IO.Tests.OracleMatrix;
 
 // The deferral ledger of the acceptance matrix (#39, #406): every skipped fact of the matrix, by class and method. A skip
 // added or removed changes this list, so a fact can't leave the matrix, or join it, unseen. Each skip's reason is in its
-// own attribute; the ones that wait on a decision or a defect name its issue (#431, #432, #433, #438).
+// own attribute; the ones that wait on a decision or a defect name its issue (#431, #432, #438).
 // The scan reads a skip wherever xunit does: on an instance or a static method, on a fact or a theory, on a row of theory
 // data, and in a nested public class. A reason that is empty or only spaces is no reason, and an empty skip is not a skip.
 public class OracleMatrixLedgerTests
@@ -16,8 +16,6 @@ public class OracleMatrixLedgerTests
         "DeepSeekOracleTests.AC4_each_chain_survivor_is_the_oracles_active_report_and_the_rest_are_suppressed",
         "Fixture20OracleTests.Every_case_agrees_with_the_oracle_on_every_criterion",
         "Fixture20SignedCashTests.A_dealer_view_bond_with_signed_cash_matches_exactly",
-        "Fixture20SignedCashTests.A_signed_BUYs_break_is_rooted_where_the_oracle_says",
-        "Fixture20SignedCashTests.A_signed_BUYs_near_match_is_WithinTolerance",
         "FixtureV2OracleTests.AC2_each_entry_has_the_alignment_composition_and_outcome_its_label_maps_to",
         "OpusOracleTests.AC2_each_entry_has_the_alignment_composition_and_outcome_its_label_maps_to",
         "OpusOracleTests.AC4_each_chain_survivor_is_the_oracles_active_report_and_the_rest_are_suppressed",

@@ -17,11 +17,11 @@ internal static class OracleDefects
 
     public const string SwapFeeCase = "G0158";
 
-    // Fixture 2.0 signs cash (§9.2: a BUY is negative). trading.netCash's identity adds each root's delta to the net-cash delta
-    // as an unsigned amount, so a signed BUY's net-cash delta, which has the opposite sign, is not explained.
-    public const string SignedCash = "#433: fixture 2.0's cash is signed, and trading.netCash explains only unsigned cash (§7.4): a BUY's net-cash delta is not explained";
-
-    // The 9 near-matches that disagree on outcome: every one a BUY whose internal net cash is negative.
+    // Fixture 2.0 signs cash (§9.2: a BUY is negative). trading.netCash's identity is for unsigned cash, so it never explained
+    // a signed BUY's net-cash delta, which has the opposite sign (#433). The fixture 2.0 profile now names
+    // trading.netCashSigned, and these 13 cases agree with the oracle. Fixture20SignedCashTests keeps them as its own facts.
+    //
+    // The 9 near-matches that disagreed on outcome: every one a BUY whose internal net cash is negative.
     public static IReadOnlySet<string> SignedNearMatches { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
         "CASE-C23BAF9FAE2304F9",
@@ -35,7 +35,7 @@ internal static class OracleDefects
         "CASE-09CAFF9B562A8642",
     };
 
-    // The 4 breaks that agree on outcome and disagree on root: net cash is a root of its own beside the oracle's one.
+    // The 4 breaks that agreed on outcome and disagreed on root: net cash was a root of its own beside the oracle's one.
     public static IReadOnlySet<string> SignedBreaks { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
         "CASE-32BADE5493F96F8D",

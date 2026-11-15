@@ -103,7 +103,7 @@ A value that isn't there stays unknown all the way through.
 
 When one side is null, `FieldDiff.Delta` is zero. Check `FieldDiff.Left.IsNull` and `FieldDiff.Right.IsNull` before you read the delta, and never total deltas across such rows.
 
-One formula is the exception. When `trading.netCash` checks whether the roots explain net cash, it reads a missing quantity, price, accrued or fee as 0. That affects only the explanation. Each of those fields still compares as above.
+One formula is the exception. When `trading.netCash` or `trading.netCashSigned` checks whether the roots explain net cash, it reads a missing quantity, price, accrued or fee as 0. That affects only the explanation. Each of those fields still compares as above.
 
 ## Ambiguity
 

@@ -19,6 +19,7 @@ public static class TradingRulePack
             .Register("cash.toPerspective", RulePhase.Derive, ["to", "perspective", "invertWhen"], (call, _, _) =>
                 new CashToPerspectiveRule(call.Strings["to"], call.Strings["perspective"], call.Strings["invertWhen"]))
             .RegisterAttribution(new NetCashAttribution())
+            .RegisterAttribution(new SignedNetCashAttribution())
             .RegisterAttribution(new ProRataToQuantityAttribution());
     }
 
