@@ -70,7 +70,7 @@ public class FixtureV1DeltaTests
             ({ } found, { } name) => found.Diffs.Where(diff => diff.Field.Name == name).ToArray() switch
             {
                 [var diff] when (diff.Left.Number, diff.Right.Number, diff.Delta.Number) == (stated.Internal, stated.Counterparty, stated.Counterparty - stated.Internal) => null,
-                [var diff] => $"{stated.Case}: {name} is {diff.Left.Number} to {diff.Right.Number} (delta {diff.Delta.Number}), the tab says {stated.Internal} to {stated.Counterparty}",
+                [var diff] => $"{stated.Case}: {name} is {diff.Left.Number.ToInvariant()} to {diff.Right.Number.ToInvariant()} (delta {diff.Delta.Number.ToInvariant()}), the tab says {stated.Internal.ToInvariant()} to {stated.Counterparty.ToInvariant()}",
                 _ => $"{stated.Case}: {name} has no single difference",
             },
         };
