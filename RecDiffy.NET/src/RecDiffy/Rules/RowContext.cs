@@ -67,6 +67,22 @@ public sealed record RowContext
         };
     }
 
+    // Intake's path (#395). The source built these cells for this one row and kept no reference to them, so they are
+    // kept as they are, behind a read-only view, and not copied into a second dictionary as Create copies a caller's.
+    internal static RowContext CreateOwned(string rowKey, Side side, IReadOnlyDictionary<string, object?> cells, ReferenceDataSet reference) =>
+        new()
+        {
+            RowKey = rowKey,
+            Side = side,
+            Raw = new OwnedCells(cells),
+            Pool = InternPool.Empty,
+            Reference = reference,
+            Instruments = InstrumentMaster.Empty,
+            Values = EmptyValues,
+            Diagnostics = [],
+            Traces = [],
+        };
+
     public bool IsNull(string field) => !Values.TryGetValue(field, out var cell) || cell.IsNull;
 
     public RowContext Write(string field, CanonicalCell cell, string ruleId, string? raw, string? canonical) =>
