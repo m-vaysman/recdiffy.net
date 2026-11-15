@@ -50,4 +50,6 @@ public static class RecordSources
     }
 }
 
+// Cells belongs to the record. A source builds one dictionary per row, under ordinal comparison, and keeps no reference
+// to it, because intake hands that same dictionary to the row for the rest of the run and makes no copy (#395).
 internal sealed record RawRecord(SourceRef Ref, IReadOnlyDictionary<string, object?> Cells, bool MissingKey = false);
