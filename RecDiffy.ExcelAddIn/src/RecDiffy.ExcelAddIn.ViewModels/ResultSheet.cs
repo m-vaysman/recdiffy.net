@@ -154,7 +154,7 @@ public static class ResultSheets
         _ => string.Create(CultureInfo.CurrentCulture, $"Not listed below. The counts include all {summary.Exact:N0} of them."),
     };
 
-    private static int SideRowCount(ReconciliationResult result, string side) =>
+    private static int SideRowCount(IReconciliationResult result, string side) =>
         result.Rows.Count(row => string.Equals(row.Row.Source, side, StringComparison.Ordinal));
 
     private static SheetRow ResultRowOf(ResultEntry entry, RunContext context) =>

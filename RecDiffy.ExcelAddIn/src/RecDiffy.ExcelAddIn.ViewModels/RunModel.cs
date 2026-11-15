@@ -53,7 +53,7 @@ public abstract record RunOutcome
     {
     }
 
-    public sealed record Completed(ReconciliationResult Result, SideRows Left, SideRows Right, DateTimeOffset ReadAt) : RunOutcome;
+    public sealed record Completed(IReconciliationResult Result, SideRows Left, SideRows Right, DateTimeOffset ReadAt) : RunOutcome;
 
     public sealed record Canceled : RunOutcome;
 

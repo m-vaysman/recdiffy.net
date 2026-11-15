@@ -83,8 +83,8 @@ public class ResultSheetTests
         var page = sheet.Pages[0];
         Assert.Equal(ResultSheets.Columns, Texts(page.Rows[page.FrozenRows - 1]), StringComparer.Ordinal);
         Assert.Equal(SheetRowKind.Heading, page.Rows[page.FrozenRows - 1].Kind);
-        Assert.Equal(completed.Result.Entries.Count, ResultRows(sheet).Count);
-        Assert.Equal(completed.Result.Entries.Count, sheet.Results);
+        Assert.Equal(completed.Result.Entries.Length, ResultRows(sheet).Count);
+        Assert.Equal(completed.Result.Entries.Length, sheet.Results);
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public class ResultSheetTests
         Assert.Equal(14, sheet.Pages[0].FrozenRows);
         Assert.Equal(ResultSheets.Columns, Texts(sheet.Pages[1].Rows[0]), StringComparer.Ordinal);
         Assert.Equal(1, sheet.Pages[1].FrozenRows);
-        Assert.Equal(run.Result.Entries.Count, ResultRows(sheet).Count);
+        Assert.Equal(run.Result.Entries.Length, ResultRows(sheet).Count);
         Assert.Single(AllRows(sheet), row => row.Kind is SheetRowKind.Problem);
     }
 
