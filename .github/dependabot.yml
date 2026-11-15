@@ -13,3 +13,21 @@ updates:
           - "RecDiffy*"
     commit-message:
       prefix: "Excel add-in"
+  # Every NuGet package under RecDiffy.NET: the library packages (System.Text.Json, Sylvan.Data.Csv,
+  # Sylvan.Data.Excel, DocumentFormat.OpenXml; see RecDiffy.NET/docs/SUPPORT.md), the analyzers and
+  # build tools in Directory.Build.props, SourceLink, and the test packages. No allow filter.
+  - package-ecosystem: nuget
+    directory: /RecDiffy.NET
+    target-branch: dev
+    schedule:
+      interval: weekly
+    ignore:
+      # 2.8.2 is the last adapter that loads Allure.Xunit's v2 reporter. 3.x does not.
+      - dependency-name: "xunit.runner.visualstudio"
+        versions: [">= 3.0.0"]
+  # Actions in .github/workflows, including github/codeql-action and the setup actions.
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
