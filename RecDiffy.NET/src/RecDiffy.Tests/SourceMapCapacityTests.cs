@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace RecDiffy.Tests;
 
 public class SourceMapCapacityTests
@@ -82,6 +80,6 @@ public class SourceMapCapacityTests
         var perCall = (double)allocated / _projected.Length;
         Assert.True(
             perCall < 800,
-            $"Projecting eight text cells allocated {perCall.ToString("F1", CultureInfo.InvariantCulture)} bytes per row, above the 800-byte budget.");
+            $"Projecting eight text cells allocated {perCall.ToInvariant("F1")} bytes per row, above the 800-byte budget.");
     }
 }
