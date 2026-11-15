@@ -3,6 +3,7 @@ using System.Runtime.ExceptionServices;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using RecDiffy.ExcelAddIn.ViewModels;
 using RecDiffy.ExcelAddIn.Views;
@@ -18,6 +19,10 @@ public class ShellWindowRulesScrollTests(ITestOutputHelper output)
         "Choose the left and right data on the Sources tab first, then pair the columns for each field you add, "
         + "so every key matches the records you expect to see on both sides of the reconciliation.";
 
+    private const string LongNotice =
+        "This setup came from a file this version only reads. Its rules are shown here, but they can't be changed in this window, "
+        + "so change them in the file and open it again.";
+
     [Fact]
     public void The_Rules_tab_scrolls_sideways_when_its_field_grid_is_wider_than_the_window() => OnStaThread(() =>
     {
@@ -30,29 +35,30 @@ public class ShellWindowRulesScrollTests(ITestOutputHelper output)
     });
 
     [Fact]
-    public void Wrapping_paragraphs_on_the_Rules_tab_are_no_wider_than_the_viewport() => OnStaThread(() =>
+    public void No_wrapping_text_on_the_Rules_tab_is_clipped_or_wider_than_the_viewport() => OnStaThread(() =>
     {
-        using var laid = RulesTabLaidOut();
+        using var laid = RulesTabLaidOut(withField: true);
         var viewport = laid.Scroller.ViewportWidth;
 
         var wrapping = Visuals(laid.Scroller).OfType<TextBlock>()
-            .Where(text => text.TextWrapping == TextWrapping.Wrap)
-            .Select(text => (Text: Shorten(text.Text), Width: text.ActualWidth))
+            .Where(text => text.TextWrapping == TextWrapping.Wrap && text.IsVisible)
+            .Select(text => (Text: Shorten(text.Text), Right: InScroller(text, laid.Scroller).Right, Clip: LayoutInformation.GetLayoutClip(text)))
             .ToList();
-        output.WriteLine($"Viewport {Format(viewport)} px; wrapping text blocks {wrapping.Count}");
-        foreach (var (text, width) in wrapping)
+        output.WriteLine($"Viewport {Format(viewport)} px; visible wrapping text blocks {wrapping.Count}");
+        foreach (var item in wrapping)
         {
-            output.WriteLine($"  {Format(width)} px  {text}");
+            output.WriteLine($"  right edge {Format(item.Right)} px, layout clip {(item.Clip is null ? "none" : "set")}  {item.Text}");
         }
 
         Assert.NotEmpty(wrapping);
-        Assert.All(wrapping, item => Assert.True(item.Width <= viewport + 0.5, $"'{item.Text}' is {Format(item.Width)} px, viewport {Format(viewport)} px."));
+        Assert.All(wrapping, item => Assert.True(item.Right <= viewport + 0.5, $"'{item.Text}' ends at {Format(item.Right)} px, viewport {Format(viewport)} px."));
+        Assert.All(wrapping, item => Assert.Null(item.Clip));
     });
 
     [Fact]
     public void Add_field_lies_inside_the_viewport_without_scrolling() => OnStaThread(() =>
     {
-        using var laid = RulesTabLaidOut();
+        using var laid = RulesTabLaidOut(withField: true);
         var viewport = laid.Scroller.ViewportWidth;
 
         var button = Visuals(laid.Scroller).OfType<Button>().Single(item => item.Content as string == "Add field");
@@ -65,12 +71,12 @@ public class ShellWindowRulesScrollTests(ITestOutputHelper output)
     [Fact]
     public void A_field_row_remove_button_is_inside_the_viewport_or_reachable_by_scrolling() => OnStaThread(() =>
     {
-        using var laid = RulesTabLaidOut();
+        using var laid = RulesTabLaidOut(withField: true);
         var viewport = laid.Scroller.ViewportWidth;
         var remove = Visuals(laid.Scroller).OfType<Button>().Single(item => AutomationProperties.GetName(item) == "Remove field");
 
         var initial = InScroller(remove, laid.Scroller);
-        output.WriteLine($"Viewport {Format(viewport)} px; remove at offset 0 spans {Format(initial.Left)} to {Format(initial.Right)} px; scrollable {Format(laid.Scroller.ScrollableWidth)} px");
+        output.WriteLine($"Viewport {Format(viewport)} px; field remove at offset 0 spans {Format(initial.Left)} to {Format(initial.Right)} px; scrollable {Format(laid.Scroller.ScrollableWidth)} px");
         if (initial.Left >= -0.5 && initial.Right <= viewport + 0.5)
         {
             return;
@@ -79,23 +85,65 @@ public class ShellWindowRulesScrollTests(ITestOutputHelper output)
         laid.Scroller.ScrollToRightEnd();
         laid.Window.UpdateLayout();
         var scrolled = InScroller(remove, laid.Scroller);
-        output.WriteLine($"After scrolling to the right end: remove spans {Format(scrolled.Left)} to {Format(scrolled.Right)} px");
-        Assert.True(scrolled.Left >= -0.5 && scrolled.Right <= viewport + 0.5, "The remove button can't be reached by scrolling sideways.");
+        output.WriteLine($"After scrolling to the right end: field remove spans {Format(scrolled.Left)} to {Format(scrolled.Right)} px");
+        Assert.True(scrolled.Left >= -0.5 && scrolled.Right <= viewport + 0.5, "The field remove button can't be reached by scrolling sideways.");
     });
 
-    // Lays the window out off screen with the Rules tab selected, one field and one problem message.
-    private static Laid RulesTabLaidOut()
+    [Fact]
+    public void Add_pass_and_the_pass_remove_button_lie_inside_the_viewport_without_scrolling() => OnStaThread(() =>
+    {
+        using var laid = RulesTabLaidOut(withField: true);
+        var viewport = laid.Scroller.ViewportWidth;
+
+        var addPass = Visuals(laid.Scroller).OfType<Button>().Single(item => item.Content as string == "Add pass");
+        var remove = Visuals(laid.Scroller).OfType<Button>().Single(item => (AutomationProperties.GetName(item) ?? string.Empty).StartsWith("Remove Pass", StringComparison.Ordinal));
+        var addBounds = InScroller(addPass, laid.Scroller);
+        var removeBounds = InScroller(remove, laid.Scroller);
+        output.WriteLine($"Viewport {Format(viewport)} px; Add pass {Format(addBounds.Left)} to {Format(addBounds.Right)} px; pass remove {Format(removeBounds.Left)} to {Format(removeBounds.Right)} px");
+
+        Assert.True(addBounds.Left >= -0.5 && addBounds.Right <= viewport + 0.5, $"Add pass spans {Format(addBounds.Left)} to {Format(addBounds.Right)} px, viewport {Format(viewport)} px.");
+        Assert.True(removeBounds.Left >= -0.5 && removeBounds.Right <= viewport + 0.5, $"The pass remove button spans {Format(removeBounds.Left)} to {Format(removeBounds.Right)} px, viewport {Format(viewport)} px.");
+    });
+
+    [Fact]
+    public void With_no_fields_the_Rules_tab_does_not_scroll_sideways() => OnStaThread(() =>
+    {
+        using var laid = RulesTabLaidOut(withField: false);
+        output.WriteLine($"Viewport {Format(laid.Scroller.ViewportWidth)} px; scrollable width {Format(laid.Scroller.ScrollableWidth)} px");
+
+        Assert.True(laid.Scroller.ScrollableWidth <= 0.5, $"The tab scrolls {Format(laid.Scroller.ScrollableWidth)} px sideways with no fields.");
+    });
+
+    // Lays the window out off screen at 960 x 800 with the Rules tab selected. The view model has one pass,
+    // one compared field (or, without fields, one comparison) and long problem messages. Layout runs twice
+    // because the viewport width reaches the bindings only after one pass.
+    private static Laid RulesTabLaidOut(bool withField)
     {
         var shell = new ShellViewModel(new SourcesViewModel(new SourceServices(new NoExcel(), new NoCsv(), new NoDialogs()), CultureInfo.InvariantCulture), new NoRuns());
-        shell.Rules.AddFieldCommand.Execute(null);
-        shell.Rules.Problems = [LongProblem];
+        var rules = shell.Rules;
+        if (withField)
+        {
+            rules.AddFieldCommand.Execute(null);
+            var field = rules.Fields.Single();
+            field.Name = "Amount";
+            field.Role = FieldRole.Economic;
+            field.Problem = LongProblem;
+            rules.Comparisons.Single().Problem = LongProblem;
+        }
+        else
+        {
+            rules.Comparisons.Add(new ComparisonRuleViewModel("Amount") { Problem = LongProblem });
+        }
+        rules.AddPassCommand.Execute(null);
+        rules.Passes.Single().Problem = LongProblem;
+        rules.Problems = [LongProblem];
+        rules.NotEditable = LongNotice;
         shell.SelectedTabIndex = 1;
 
         var window = new ShellWindow { DataContext = shell, Left = -30000, Top = -30000, ShowActivated = false };
         window.Show();
         try
         {
-            // The viewport width reaches the bindings only after one layout pass, so lay out until it settles.
             window.UpdateLayout();
             window.UpdateLayout();
             var rulesTab = Descendants(window).OfType<TabItem>().Single(tab => tab.Header as string == "Rules");

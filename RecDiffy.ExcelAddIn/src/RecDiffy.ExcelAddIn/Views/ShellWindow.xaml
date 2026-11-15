@@ -130,7 +130,7 @@
               <Button Grid.Column="1" Style="{StaticResource SmallButton}" Content="✕" Command="{Binding RemoveCommand}"
                       ToolTip="Remove this pass" AutomationProperties.Name="{Binding Title, StringFormat='Remove {0}'}" />
             </Grid>
-            <TextBlock Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" Style="{StaticResource SecondaryText}" Margin="0,2,0,0" Text="{Binding Caption}" />
+            <TextBlock Style="{StaticResource SecondaryText}" Margin="0,2,0,0" Text="{Binding Caption}" />
             <ItemsControl ItemsSource="{Binding Keys}" Focusable="False">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -143,7 +143,7 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <TextBlock Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" Style="{StaticResource Problem}" Text="{Binding Problem}"
+            <TextBlock Style="{StaticResource Problem}" Text="{Binding Problem}"
                        Visibility="{Binding Problem, Converter={StaticResource VisibleWhenText}}" />
           </StackPanel>
         </Border>
@@ -178,7 +178,7 @@
                          Visibility="{Binding UsesDays, Converter={StaticResource VisibleWhenTrue}}" />
             </StackPanel>
           </Grid>
-          <TextBlock Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" Style="{StaticResource Problem}" Text="{Binding Problem}"
+          <TextBlock Style="{StaticResource Problem}" Text="{Binding Problem}"
                      Visibility="{Binding Problem, Converter={StaticResource VisibleWhenText}}" />
         </StackPanel>
       </DataTemplate>
@@ -232,12 +232,12 @@
         </ScrollViewer>
       </TabItem>
       <TabItem Header="Rules">
-        <!-- The Rules tab scrolls sideways for its field grid. Its text and heading rows are held to the viewport width, so they wrap and keep their buttons on screen (#310). -->
+        <!-- Only the field grid scrolls sideways. This binding and the ones below hold the text, heading rows, Passes, Comparisons and Problems to the viewport width, so they wrap and keep their buttons on screen. The field grid and its rows, which are meant to scroll, are not bound. -->
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Focusable="False">
           <StackPanel DataContext="{Binding Rules}">
             <TextBlock Style="{StaticResource SectionHeading}" Text="Match records, then compare values" />
             <Border Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" Style="{StaticResource Notice}" Margin="0,0,0,12" Visibility="{Binding NotEditable, Converter={StaticResource VisibleWhenText}}">
-              <TextBlock Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" Style="{StaticResource SecondaryText}" Text="{Binding NotEditable}" />
+              <TextBlock Style="{StaticResource SecondaryText}" Text="{Binding NotEditable}" />
             </Border>
 
             <Grid Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left">
@@ -284,25 +284,25 @@
             </Grid>
             <TextBlock Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" Style="{StaticResource SecondaryText}" Margin="0,4,0,10"
                        Text="Passes run in order. Duplicate keys are never settled by picking a row: those records show as ambiguous." />
-            <ItemsControl ItemsSource="{Binding Passes}" ItemTemplate="{StaticResource PassRow}" Focusable="False" />
+            <ItemsControl Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" ItemsSource="{Binding Passes}" ItemTemplate="{StaticResource PassRow}" Focusable="False" />
 
             <TextBlock Style="{StaticResource BlockHeading}" Margin="0,20,0,0" Text="Comparisons" />
             <TextBlock Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" Style="{StaticResource SecondaryText}" Margin="0,4,0,10"
                        Text="Compared fields are checked once records match. Numbers are rounded to their decimal places first, and a tolerance includes its bound. Keys must be equal." />
-            <ItemsControl ItemsSource="{Binding Comparisons}" ItemTemplate="{StaticResource ComparisonRow}" Focusable="False" />
+            <ItemsControl Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" ItemsSource="{Binding Comparisons}" ItemTemplate="{StaticResource ComparisonRow}" Focusable="False" />
             <TextBlock Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" Style="{StaticResource SecondaryText}" Text="No compared fields yet. Set a field's role to Compared."
                        Visibility="{Binding HasComparisons, Converter={StaticResource VisibleWhenFalse}}" />
 
-            <ItemsControl Margin="0,16,0,0" ItemsSource="{Binding Problems}" Focusable="False">
+            <ItemsControl Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" Margin="0,16,0,0" ItemsSource="{Binding Problems}" Focusable="False">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <TextBlock Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" Style="{StaticResource Problem}" Text="{Binding}" />
+                  <TextBlock Style="{StaticResource Problem}" Text="{Binding}" />
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
 
             <Border Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" Style="{StaticResource Notice}" Margin="0,16,0,0">
-              <TextBlock Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" HorizontalAlignment="Left" Style="{StaticResource SecondaryText}"
+              <TextBlock Style="{StaticResource SecondaryText}"
                          Text="Advanced rules aren't editable here yet: normalizing values beyond reading columns, consolidation, routing, grouped matching and search limits." />
             </Border>
           </StackPanel>
