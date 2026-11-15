@@ -21,33 +21,55 @@ internal static class CultureNumbers
         _ => NumberRead.Failed,
     };
 
+    // #424: Grouped and its helpers have no seam outside this class, so this is a CHANGE of CultureNumbers.
+    // The spans stay inside the helpers and the walk over groups is the measured win, which AGENTS.md permits.
     // .NET accepts a group separator anywhere, so "1,5" is 15 in en-US. Groups must sit where the culture puts them.
-    private static bool Grouped(string text, NumberFormatInfo format)
+    private static bool Grouped(ReadOnlySpan<char> text, NumberFormatInfo format)
     {
-        var groups = IntegerPart(text, format).Split(GroupSeparators(format), StringSplitOptions.None);
-        return groups is [_] || SizesFit(groups, format.NumberGroupSizes);
-    }
+        // The sign characters to trim, in a buffer on the stack unless a culture's signs are very long.
+        var signLength = format.NegativeSign.Length + format.PositiveSign.Length + 3;
+        Span<char> signs = signLength <= 32 ? stackalloc char[signLength] : new char[signLength];
+        format.NegativeSign.CopyTo(signs);
+        format.PositiveSign.CopyTo(signs[format.NegativeSign.Length..]);
+        "-+−".CopyTo(signs[^3..]);
 
-    // .NET reads a plain space as the separator when the culture's separator is a no-break space (sv-SE, fr-FR).
-    private static string[] GroupSeparators(NumberFormatInfo format) =>
-        format.NumberGroupSeparator is " " ? [format.NumberGroupSeparator, " "] : [format.NumberGroupSeparator];
-
-    private static string IntegerPart(string text, NumberFormatInfo format)
-    {
+        // The integer part is a slice of the text, not a new string.
         var cut = text.IndexOf(format.NumberDecimalSeparator, StringComparison.Ordinal);
-        var integer = cut < 0 ? text : text[..cut];
-        char[] signs = [.. format.NegativeSign, .. format.PositiveSign, '-', '+', '−'];
-        return integer.Trim().Trim(signs).Trim();
+        var integer = (cut is < 0 ? text : text[..cut]).Trim().Trim((ReadOnlySpan<char>)signs).Trim();
+
+        // First walk counts the groups; one group means there is no separator, and nothing to check.
+        var separator = format.NumberGroupSeparator;
+        var count = 1;
+        for (var rest = integer; NextSeparator(rest, separator) is { At: >= 0 } found; rest = rest[(found.At + found.Length)..])
+            count++;
+        if (count is 1)
+            return true;
+
+        // Second walk checks each group's length against the culture's sizes, counted from the right.
+        // NumberGroupSizes is read only now, after a separator is known to exist, so a plain number allocates nothing.
+        var sizes = format.NumberGroupSizes;
+        var remaining = integer;
+        for (var index = 0; index < count; index++)
+        {
+            var found = NextSeparator(remaining, separator);
+            var length = found.At is < 0 ? remaining.Length : found.At;
+            var size = sizes.Length is 0 ? 0 : sizes[Math.Min(count - 1 - index, sizes.Length - 1)];
+            var fits = index is 0 ? length is >= 1 && (size is 0 || length <= size) : size is > 0 && length == size;
+            if (fits is false)
+                return false;
+            remaining = found.At is < 0 ? default : remaining[(found.At + found.Length)..];
+        }
+
+        return true;
     }
 
-    // Groups are checked from the right: the first size applies to the group nearest the decimal point, and the last size repeats.
-    private static bool SizesFit(string[] groups, int[] sizes)
+    // The next group separator. A plain space also counts when the culture's separator is a no-break space (U+00A0),
+    // because .NET reads a plain space as that separator (sv-SE). The no-break space is written as an escape: typed
+    // as a character it looks like a plain space, and comparing with a plain space would drop this rule.
+    private static (int At, int Length) NextSeparator(ReadOnlySpan<char> text, string separator)
     {
-        var inner = groups[1..].Reverse().Select((group, index) => (Length: group.Length, Size: SizeAt(sizes, index)));
-        var leading = SizeAt(sizes, groups.Length - 1);
-        var leadingFits = groups[0].Length >= 1 && (leading == 0 || groups[0].Length <= leading);
-        return leadingFits && inner.All(group => group.Size > 0 && group.Length == group.Size);
+        var at = separator.Length is 0 ? -1 : text.IndexOf(separator, StringComparison.Ordinal);
+        var space = separator is "\u00a0" ? text.IndexOf(' ') : -1;
+        return space is >= 0 && (at is < 0 || space < at) ? (space, 1) : (at, separator.Length);
     }
-
-    private static int SizeAt(int[] sizes, int index) => sizes.Length == 0 ? 0 : sizes[Math.Min(index, sizes.Length - 1)];
 }
