@@ -232,7 +232,7 @@
         </ScrollViewer>
       </TabItem>
       <TabItem Header="Rules">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Focusable="False">
           <StackPanel DataContext="{Binding Rules}">
             <TextBlock Style="{StaticResource SectionHeading}" Text="Match records, then compare values" />
             <Border Style="{StaticResource Notice}" Margin="0,0,0,12" Visibility="{Binding NotEditable, Converter={StaticResource VisibleWhenText}}">
