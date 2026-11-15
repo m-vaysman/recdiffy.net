@@ -10,6 +10,8 @@ namespace RecDiffy.Excel.Reports;
 // add up to the block exactly, or ✗ and the difference.
 internal static class Allocations
 {
+    private const string Unknown = "– amount unknown";
+
     public static ReportDefinition Definition { get; } = new(
         ReportKind.Allocations,
         [ReportRole.Quantity],
@@ -62,13 +64,15 @@ internal static class Allocations
             withBlock,
             (current, pair) => Line(current, block + 1 + pair.index, $"   {context.Label("allocation")}", pair.member, CellStyle.Plain, Styles.Link(Formats.Quantity))
                 .Outline(block + 1 + pair.index, 1));
+        // A blank amount in the block or any allocation makes the sum and the check unknown: blank, and "unknown", never 0 or "equal".
+        string Whole(string column, int first, int last) => $"COUNT({column}{first.ToInvariant()}:{column}{last.ToInvariant()})={(last - first + 1).ToInvariant()}";
         var finished = withMembers
             .Put(total, 1, context.Label("Allocations total"), Styles.Bold)
-            .PutFormula(total, 4, $"SUM(D{(block + 1).ToInvariant()}:D{(total - 1).ToInvariant()})", Styles.Number(Formats.Quantity, bold: true))
-            .PutFormula(total, 7, $"IF(D{total.ToInvariant()}=N(D{block.ToInvariant()}),\"✓ equal\",\"✗ \"&TEXT(D{total.ToInvariant()}-N(D{block.ToInvariant()}),\"#,##0.00\"))", Styles.Bold)
+            .PutFormula(total, 4, $"IF({Whole("D", block + 1, total - 1)},SUM(D{(block + 1).ToInvariant()}:D{(total - 1).ToInvariant()}),\"\")", Styles.Number(Formats.Quantity, bold: true))
+            .PutFormula(total, 7, $"IF({Whole("D", block, total - 1)},IF(D{total.ToInvariant()}=D{block.ToInvariant()},\"✓ equal\",\"✗ \"&TEXT(D{total.ToInvariant()}-D{block.ToInvariant()},\"#,##0.00\")),\"{Unknown}\")", Styles.Bold)
             .Fold(netCash ? [total] : Array.Empty<int>(), (current, line, _) => current
-                .PutFormula(line, 6, $"SUM(F{(block + 1).ToInvariant()}:F{(line - 1).ToInvariant()})", Styles.Number(Formats.Amount, bold: true))
-                .PutFormula(line, 8, $"IF(ROUND(F{line.ToInvariant()}-N(F{block.ToInvariant()}),2)=0,\"✓ equal\",\"✗ \"&TEXT(F{line.ToInvariant()}-N(F{block.ToInvariant()}),\"#,##0.00\"))", Styles.Bold))
+                .PutFormula(line, 6, $"IF({Whole("F", block + 1, line - 1)},SUM(F{(block + 1).ToInvariant()}:F{(line - 1).ToInvariant()}),\"\")", Styles.Number(Formats.Amount, bold: true))
+                .PutFormula(line, 8, $"IF({Whole("F", block, line - 1)},IF(ROUND(F{line.ToInvariant()}-F{block.ToInvariant()},2)=0,\"✓ equal\",\"✗ \"&TEXT(F{line.ToInvariant()}-F{block.ToInvariant()},\"#,##0.00\")),\"{Unknown}\")", Styles.Bold))
             .CheckPrefixRules(new CellRange(total, 7, total, 7))
             .CheckPrefixRules(new CellRange(total, 8, total, 8));
         return (finished, total + 2);

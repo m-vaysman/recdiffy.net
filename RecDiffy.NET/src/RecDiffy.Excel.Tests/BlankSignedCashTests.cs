@@ -2,10 +2,10 @@ using RecDiffy.Excel.Tests.Support;
 
 namespace RecDiffy.Excel.Tests;
 
-// #429: Result_Rows.signedCash returns 0 for a row whose net cash is unknown, so unknown reads as a measured zero on the data tab.
+// #429: Result_Rows.signedCash is blank, not 0, for a row whose net cash is unknown; BO6 reads it only through SUMIFS, which skips text.
 public class BlankSignedCashTests
 {
-    [Fact(Skip = "#429: Result_Rows.signedCash returns 0, not blank, for a row with unknown net cash")]
+    [Fact]
     public void Signed_cash_is_blank_not_zero_when_net_cash_is_not_a_number()
     {
         var outcome = Assert.Single(SyntheticData.Result.WriteAll(Paths.Scratch("signed-cash"), SyntheticData.Options(ReportKind.CashLadder)));

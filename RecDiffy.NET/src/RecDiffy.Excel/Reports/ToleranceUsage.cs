@@ -64,7 +64,7 @@ internal static class ToleranceUsage
                     .PutFormula(row, 6, ReportSheet.Link(diffs.Cell("theirs", diff.Index)), Styles.Link(format))
                     .PutFormula(row, 7, ReportSheet.Link(diffs.Cell("delta", diff.Index)), Styles.Link(format))
                     .PutFormula(row, 8, ReportSheet.Link(diffs.Cell("toleranceAmount", diff.Index)), Styles.Link(Formats.Price))
-                    .PutFormula(row, 9, $"IF(ISNUMBER(G{row.ToInvariant()}),IF(H{row.ToInvariant()}=0,0,ABS(G{row.ToInvariant()})/H{row.ToInvariant()}),\"\")", Styles.Number(Formats.Percent, bold: true))
+                    .PutFormula(row, 9, $"IF(AND(ISNUMBER(G{row.ToInvariant()}),ISNUMBER(H{row.ToInvariant()})),IF(H{row.ToInvariant()}=0,0,ABS(G{row.ToInvariant()})/H{row.ToInvariant()}),\"\")", Styles.Number(Formats.Percent, bold: true))
                     .PutFormula(row, 10, $"IF(ISNUMBER(I{row.ToInvariant()}),IF(I{row.ToInvariant()}>=1,\"On the boundary\",\"\"),\"\")", new CellStyle(Color: Palette.ToleranceText));
             })
             .PutFormula(last + 1, 9, $"IF(MAX(I{first.ToInvariant()}:I{last.ToInvariant()})<=1,\"✓\",\"✗\")", Styles.Check)
