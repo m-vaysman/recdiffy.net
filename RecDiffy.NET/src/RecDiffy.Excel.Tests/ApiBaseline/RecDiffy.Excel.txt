@@ -1,0 +1,90 @@
+# Public API baseline of RecDiffy.Excel: one line for every public or protected type and member, sorted ordinally.
+# PublicApiBaselineTests compares the built assembly with this file on net8.0 and net10.0, and fails on any difference.
+# To accept an intended change, copy the .actual.txt file the failing test names over this file and commit it.
+RecDiffy.Excel.ExcelReportOptions :: constructor [Obsolete("Constructors of types with required members are not supported in this version of your compiler.", true)] public ()
+RecDiffy.Excel.ExcelReportOptions :: method public RecDiffy.Excel.ExcelReportOptions <Clone>$()
+RecDiffy.Excel.ExcelReportOptions :: method public bool Equals(RecDiffy.Excel.ExcelReportOptions? other)
+RecDiffy.Excel.ExcelReportOptions :: method public override bool Equals(object? obj)
+RecDiffy.Excel.ExcelReportOptions :: method public override int GetHashCode()
+RecDiffy.Excel.ExcelReportOptions :: method public override string ToString()
+RecDiffy.Excel.ExcelReportOptions :: method public static bool op_Equality(RecDiffy.Excel.ExcelReportOptions? left, RecDiffy.Excel.ExcelReportOptions? right)
+RecDiffy.Excel.ExcelReportOptions :: method public static bool op_Inequality(RecDiffy.Excel.ExcelReportOptions? left, RecDiffy.Excel.ExcelReportOptions? right)
+RecDiffy.Excel.ExcelReportOptions :: property public RecDiffy.CompiledProfile? Profile { get; init; }
+RecDiffy.Excel.ExcelReportOptions :: property public RecDiffy.Excel.FieldMap? FieldMap { get; init; }
+RecDiffy.Excel.ExcelReportOptions :: property public System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<string>>? RawColumns { get; init; }
+RecDiffy.Excel.ExcelReportOptions :: property public System.Collections.Generic.IReadOnlyDictionary<string, string> Labels { get; init; }
+RecDiffy.Excel.ExcelReportOptions :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.Excel.ReportKind>? Reports { get; init; }
+RecDiffy.Excel.ExcelReportOptions :: property public System.Collections.Generic.IReadOnlyList<string> CurrencyOrder { get; init; }
+RecDiffy.Excel.ExcelReportOptions :: property public System.Collections.Generic.IReadOnlyList<string> PayingSides { get; init; }
+RecDiffy.Excel.ExcelReportOptions :: property public System.Collections.Generic.IReadOnlyList<string>? SelectedEntries { get; init; }
+RecDiffy.Excel.ExcelReportOptions :: property public int MaxCards { get; init; }
+RecDiffy.Excel.ExcelReportOptions :: property public required System.DateOnly AsOf { get; init; }
+RecDiffy.Excel.ExcelReportOptions :: property public string Title { get; init; }
+RecDiffy.Excel.ExcelReportOptions :: property public string? ProfileId { get; init; }
+RecDiffy.Excel.ExcelReportOptions :: type public sealed class implements System.IEquatable<RecDiffy.Excel.ExcelReportOptions>
+RecDiffy.Excel.FieldMap :: constructor public (System.Collections.Generic.IReadOnlyDictionary<RecDiffy.Excel.ReportRole, string> fields)
+RecDiffy.Excel.FieldMap :: method public RecDiffy.Excel.FieldMap <Clone>$()
+RecDiffy.Excel.FieldMap :: method public RecDiffy.Excel.FieldMap With(RecDiffy.Excel.ReportRole role, string field)
+RecDiffy.Excel.FieldMap :: method public RecDiffy.Excel.FieldMap Without(RecDiffy.Excel.ReportRole role)
+RecDiffy.Excel.FieldMap :: method public bool Equals(RecDiffy.Excel.FieldMap? other)
+RecDiffy.Excel.FieldMap :: method public bool IsMapped(RecDiffy.Excel.ReportRole role)
+RecDiffy.Excel.FieldMap :: method public override bool Equals(object? obj)
+RecDiffy.Excel.FieldMap :: method public override int GetHashCode()
+RecDiffy.Excel.FieldMap :: method public override string ToString()
+RecDiffy.Excel.FieldMap :: method public static RecDiffy.Excel.FieldMap FromProfile(RecDiffy.CompiledProfile profile)
+RecDiffy.Excel.FieldMap :: method public static bool op_Equality(RecDiffy.Excel.FieldMap? left, RecDiffy.Excel.FieldMap? right)
+RecDiffy.Excel.FieldMap :: method public static bool op_Inequality(RecDiffy.Excel.FieldMap? left, RecDiffy.Excel.FieldMap? right)
+RecDiffy.Excel.FieldMap :: property public System.Collections.Generic.IReadOnlyDictionary<RecDiffy.Excel.ReportRole, string> Fields { get; }
+RecDiffy.Excel.FieldMap :: property public static RecDiffy.Excel.FieldMap Empty { get; }
+RecDiffy.Excel.FieldMap :: property public string? Item[RecDiffy.Excel.ReportRole role] { get; }
+RecDiffy.Excel.FieldMap :: type public sealed class implements System.IEquatable<RecDiffy.Excel.FieldMap>
+RecDiffy.Excel.RecDiffyExcel :: method public static RecDiffy.Excel.ReportOutcome WriteReport(this RecDiffy.IReconciliationResult result, RecDiffy.Excel.ReportKind kind, System.IO.Stream output, RecDiffy.Excel.ExcelReportOptions options)
+RecDiffy.Excel.RecDiffyExcel :: method public static System.Collections.Generic.IReadOnlyList<RecDiffy.Excel.ReportOutcome> RunAndWrite(RecDiffy.CompiledProfile profile, RecDiffy.RecordSource left, RecDiffy.RecordSource right, RecDiffy.ReferenceDataSet reference, string folder, RecDiffy.Excel.ExcelReportOptions options, System.Threading.CancellationToken cancellationToken = default)
+RecDiffy.Excel.RecDiffyExcel :: method public static System.Collections.Generic.IReadOnlyList<RecDiffy.Excel.ReportOutcome> WriteAll(this RecDiffy.IReconciliationResult result, string folder, RecDiffy.Excel.ExcelReportOptions options, System.Threading.CancellationToken cancellationToken = default)
+RecDiffy.Excel.RecDiffyExcel :: method public static string FileName(RecDiffy.Excel.ReportKind kind, string profileId, System.DateOnly asOf)
+RecDiffy.Excel.RecDiffyExcel :: type public static class
+RecDiffy.Excel.ReportKind :: enum value Ageing = 10
+RecDiffy.Excel.ReportKind :: enum value Allocations = 4
+RecDiffy.Excel.ReportKind :: enum value AuditTrail = 12
+RecDiffy.Excel.ReportKind :: enum value BreakHeatmap = 9
+RecDiffy.Excel.ReportKind :: enum value CascadeFunnel = 8
+RecDiffy.Excel.ReportKind :: enum value CashLadder = 5
+RecDiffy.Excel.ReportKind :: enum value ControlTotals = 6
+RecDiffy.Excel.ReportKind :: enum value ExceptionBlotter = 0
+RecDiffy.Excel.ReportKind :: enum value LifecycleChains = 3
+RecDiffy.Excel.ReportKind :: enum value RawVsNormalized = 2
+RecDiffy.Excel.ReportKind :: enum value Scorecard = 7
+RecDiffy.Excel.ReportKind :: enum value SideBySideCompare = 1
+RecDiffy.Excel.ReportKind :: enum value ToleranceUsage = 11
+RecDiffy.Excel.ReportKind :: type public enum : int
+RecDiffy.Excel.ReportOutcome :: constructor public (RecDiffy.Excel.ReportKind Kind, string FileName, string? Path, string? SkipReason)
+RecDiffy.Excel.ReportOutcome :: method public RecDiffy.Excel.ReportOutcome <Clone>$()
+RecDiffy.Excel.ReportOutcome :: method public bool Equals(RecDiffy.Excel.ReportOutcome? other)
+RecDiffy.Excel.ReportOutcome :: method public override bool Equals(object? obj)
+RecDiffy.Excel.ReportOutcome :: method public override int GetHashCode()
+RecDiffy.Excel.ReportOutcome :: method public override string ToString()
+RecDiffy.Excel.ReportOutcome :: method public static bool op_Equality(RecDiffy.Excel.ReportOutcome? left, RecDiffy.Excel.ReportOutcome? right)
+RecDiffy.Excel.ReportOutcome :: method public static bool op_Inequality(RecDiffy.Excel.ReportOutcome? left, RecDiffy.Excel.ReportOutcome? right)
+RecDiffy.Excel.ReportOutcome :: method public void Deconstruct(out RecDiffy.Excel.ReportKind Kind, out string FileName, out string? Path, out string? SkipReason)
+RecDiffy.Excel.ReportOutcome :: property public RecDiffy.Excel.ReportKind Kind { get; init; }
+RecDiffy.Excel.ReportOutcome :: property public bool Written { get; }
+RecDiffy.Excel.ReportOutcome :: property public string FileName { get; init; }
+RecDiffy.Excel.ReportOutcome :: property public string? Path { get; init; }
+RecDiffy.Excel.ReportOutcome :: property public string? SkipReason { get; init; }
+RecDiffy.Excel.ReportOutcome :: type public sealed class implements System.IEquatable<RecDiffy.Excel.ReportOutcome>
+RecDiffy.Excel.ReportRole :: enum value Accrued = 10
+RecDiffy.Excel.ReportRole :: enum value Asset = 2
+RecDiffy.Excel.ReportRole :: enum value Book = 12
+RecDiffy.Excel.ReportRole :: enum value Counterparty = 0
+RecDiffy.Excel.ReportRole :: enum value Currency = 8
+RecDiffy.Excel.ReportRole :: enum value Fees = 11
+RecDiffy.Excel.ReportRole :: enum value Instrument = 1
+RecDiffy.Excel.ReportRole :: enum value LifecycleAction = 13
+RecDiffy.Excel.ReportRole :: enum value LifecycleTarget = 14
+RecDiffy.Excel.ReportRole :: enum value NetCash = 9
+RecDiffy.Excel.ReportRole :: enum value Price = 7
+RecDiffy.Excel.ReportRole :: enum value Quantity = 6
+RecDiffy.Excel.ReportRole :: enum value SettleDate = 5
+RecDiffy.Excel.ReportRole :: enum value Side = 3
+RecDiffy.Excel.ReportRole :: enum value TradeDate = 4
+RecDiffy.Excel.ReportRole :: type public enum : int
