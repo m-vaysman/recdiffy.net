@@ -1,0 +1,8 @@
+﻿  Determining projects to restore...
+  Restored G:\RecDiffyCapacity\work\2026-11-14_2133_8b56639\RecDiffy.NET\src\RecDiffy\RecDiffy.csproj (in 420 ms).
+  Restored G:\RecDiffyCapacity\work\2026-11-14_2133_8b56639\RecDiffy.NET\src\RecDiffy.Excel\RecDiffy.Excel.csproj (in 420 ms).
+  Restored G:\RecDiffyCapacity\work\2026-11-14_2133_8b56639\RecDiffy.NET\capacity\RecDiffy.Capacity\RecDiffy.Capacity.csproj (in 420 ms).
+  RecDiffy -> G:\RecDiffyCapacity\work\2026-11-14_2133_8b56639\RecDiffy.NET\src\RecDiffy\bin\Release\net10.0\RecDiffy.dll
+  RecDiffy.Excel -> G:\RecDiffyCapacity\work\2026-11-14_2133_8b56639\RecDiffy.NET\src\RecDiffy.Excel\bin\Release\net10.0\RecDiffy.Excel.dll
+  RecDiffy.Capacity -> G:\RecDiffyCapacity\work\2026-11-14_2133_8b56639\RecDiffy.NET\capacity\RecDiffy.Capacity\bin\Release\net10.0\win-x64\RecDiffy.Capacity.dll
+  RecDiffy.Capacity -> G:\RecDiffyCapacity\publish\2026-11-14_2133_8b56639-r2r\
