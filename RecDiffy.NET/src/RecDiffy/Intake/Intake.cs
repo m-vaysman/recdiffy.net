@@ -56,11 +56,9 @@ internal static class Intake
         rule.Rule.Phase is not RulePhase.Identify && actionField is not null && row.Display(actionField) is "CANC";
 
     // Any source name other than "right" is the left side.
+    // The row takes the record's cells over without copying them: the source that built them kept no reference (#395).
     private static RowContext Start(RawRecord row, ReferenceDataSet reference) =>
-        RowContext.Create(row.Ref.RowKey, row.Ref.Source is "right" ? Side.Right : Side.Left, row.Cells) with
-        {
-            Reference = reference,
-        };
+        RowContext.CreateOwned(row.Ref.RowKey, row.Ref.Source is "right" ? Side.Right : Side.Left, row.Cells, reference);
 
     private static RowContext Invoke(CompiledRule rule, RowContext row)
     {
