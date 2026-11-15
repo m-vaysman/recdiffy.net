@@ -220,7 +220,7 @@ Values arrive from a record source ([Intake/RecordSource](../src/RecDiffy/Intake
 | `price.from32nds` | `parse` | `from`, `to` | | `to`, a decimal rounded to its scale |
 
 - **`party.resolveLei`** looks the LEI up in `ReferenceDataSet.LeiToCode`. A blank value writes nothing. An unknown LEI is `UnknownParty`.
-- **`party.resolveAlias`** looks the name up in `ReferenceDataSet.AliasToCode`, and writes only when `to` is still empty. An unknown name is `UnknownParty`. Compile still counts it as a second writer of `to`, so listing it after `party.resolveLei` on the same field is `AmbiguousWrite` unless their `when` clauses exclude each other. See [Known gaps](#known-gaps).
+- **`party.resolveAlias`** looks the name up in `ReferenceDataSet.AliasToCode`, and writes only when `to` is still empty. An unknown name is `UnknownParty`. It also reads `to`, so it can follow `party.resolveLei` on the same field as a fallback.
 - **`side.resolve`** reads the `code` column. `B`, `BOT` and `BUY` are `BUY`; `S`, `SLD` and `SELL` are `SELL`; `P`, `PAY`, `PAYFIXED` and `PAY_FIXED` are `PAY_FIXED`; `R`, `REC`, `RECEIVEFIXED` and `REC_FIXED` are `REC_FIXED`. With no code, the sign of `quantity` decides, and a `Swap` asset gives `PAY_FIXED` or `REC_FIXED`. `BUY` or `REC_FIXED` with a negative quantity is `SideSignConflict`. Anything else is `UndeterminedSide`. When the `perspective` column equals `invertWhen`, the side is flipped. It reads the `asset` field, so declare that field and write it earlier. It always writes a field named `Side`, so declare that too.
 - **`quantity.absolute`** reads the number as `decimal.parse` does, in the side's culture. When the cell is blank or unreadable and an earlier rule already wrote a decimal to `from`, it uses that.
 - **`price.from32nds`** reads `99-16` as 99 + 16/32. A trailing `+` adds 1/64. Anything else is `PriceParse`.
@@ -404,7 +404,6 @@ Name an attribution in `tolerance.attributed`, or in `attributed` beside a numer
 - **A missing root value counts as 0** in the net cash formula.
 - **A root that isn't a compared field counts as a `Break`.** Net cash reads the outcome of all four roots, but compile requires only `Quantity` and `Price`. So unless `Accrued` and `Fees` are also declared with the role `Key` or `Economic`, an explained net cash difference is still a `Break`.
 - **Order doesn't matter.** Every field is measured first. Pro rata is settled from those measurements, and net cash last, so a root with its own attribution counts with the outcome that attribution gives it.
-- **Known issue:** `AttributedTo` is filled even when the formula doesn't explain the difference ([#254](https://github.com/m-vaysman/recdiffy.net/issues/254)).
 
 Tests: [AttributedDiffTests.cs](../src/RecDiffy.Tests/AttributedDiffTests.cs), [AttributionCompileTests.cs](../src/RecDiffy.Tests/AttributionCompileTests.cs), [TradingAttributionTests.cs](../src/RecDiffy.Tests/TradingAttributionTests.cs), and `Attributes_a_partial_fill_to_quantity` in [DiffTests.cs](../src/RecDiffy.Tests/DiffTests.cs).
 
@@ -526,7 +525,7 @@ A run reports problems with input rows as diagnostics on `RowResult.Diagnostics`
 | `InvalidOperationException` from `ProfileDocument.Parse` | A value has the wrong JSON type, such as `"scale": "2"` or a limit written as text. |
 | A setting seems to have no effect | The key's spelling and case. Unknown keys are ignored. |
 | A tolerance has no effect | The field's role. Only `Key` and `Economic` fields are compared. |
-| Every row on one side is unmatched | That side's `normalization` block. A side with no rules writes no fields. See [Known gaps](#known-gaps). |
+| Every row on one side is unmatched | That side's `normalization` block. A side with no rules writes no fields. |
 | A row is quarantined | Its diagnostics. See [Run diagnostics](#run-diagnostics). |
 | Rows remain unmatched | Their key values in `result.Canonical(row)`, the route, and the pass order. |
 | Many rows are `Ambiguous` | Whether the key tells the rows apart. Add a field, or an earlier pass with a stricter key. |
@@ -537,11 +536,4 @@ A run reports problems with input rows as diagnostics on `RowResult.Diagnostics`
 
 ## Known gaps
 
-These behaviours on `dev` are defects, each tracked in an issue with a skipped failing test. They are listed so you can avoid them until they are fixed.
-
-- **A side with no `normalization` block compiles.** That side writes no fields, so none of its rows can be matched. `FieldNotProduced` checks only the sides that have a block. Declare rules for both sides. ([#287](https://github.com/m-vaysman/recdiffy.net/issues/287))
-- **`match.sharedRef` with no `key`** uses `Counterparty` and `TradeRef`, but compile doesn't check that they are declared. If either is missing, the run throws `KeyNotFoundException`. Give every `match.sharedRef` pass a `key`. ([#288](https://github.com/m-vaysman/recdiffy.net/issues/288))
-- **A `days` tolerance ignores its `when`.** The gap is allowed even when the condition fails on one side or both. ([#289](https://github.com/m-vaysman/recdiffy.net/issues/289))
-- **`party.resolveAlias` can't follow `party.resolveLei` on the same field.** It writes only when the field is still empty, but compile counts it as a second writer (`AmbiguousWrite`). Give the two rules `when` clauses that exclude each other, or resolve into separate fields. ([#291](https://github.com/m-vaysman/recdiffy.net/issues/291))
-- **A lifecycle survivor merged into a package loses its history.** The package's entry has no `LifecycleCollapsed` flag, and the superseded and cancel rows get no `EntryId`. ([#290](https://github.com/m-vaysman/recdiffy.net/issues/290))
-- **`AttributedTo` is filled when the formula doesn't explain the difference.** [#254](https://github.com/m-vaysman/recdiffy.net/issues/254).
+None is listed now. The six defects this section used to list (#254, #287, #288, #289, #290 and #291) are fixed on `dev`.
