@@ -28,7 +28,11 @@ internal static class CascadeMatcher
         var rowIndex = items.ToFrozenDictionary(item => item.Row, item => item.Index, RowIdentity.Instance);
         var initialFree = items.Select(item => item.Index).ToImmutableHashSet();
         // Free on the workspace is the pre-commit snapshot. Later commits drop rows through Release, not through this set.
-        var workspace = new MatchWorkspace(passes.Count is 0 ? "" : passes[0].Id, items, initialFree, schema, limits, shared, limits.MaxGroupSize, cancellation);
+        var workspace = new MatchWorkspace(passes.Count is 0 ? "" : passes[0].Id, items, initialFree, schema, limits, shared, limits.MaxGroupSize, cancellation)
+        {
+            // Every pass builds its index over all the rows before anything commits, so each row needs each pass's key once.
+            Keys = MatchKeys.Table.Build(items, schema, passes.Select(Key)),
+        };
         var built = BuildPasses(engines, workspace);
         // One commit per turn. A recursive walk of one group per row overflows at the 100k-row bench.
         var committed = Commit(built.Indexes, built.Counters, initialFree, items, cancellation);
@@ -145,6 +149,15 @@ internal static class CascadeMatcher
             pass.Many is "right" ? Side.Right : Side.Left,
             pass.MaxGroupSize ?? limits.MaxGroupSize),
         var other => throw new InvalidOperationException($"Pass '{other}' is not a cascade pass."),
+    };
+
+    // The fields each pass of Create keys on. An index asks the table by its own fields, so a pass this gets wrong still
+    // has the right keys, composed afresh.
+    private static MatchKeys.Spec Key(PassDeclaration pass) => pass.Pass switch
+    {
+        "match.sharedRef" => new(pass.Key.Count is 0 ? ["Counterparty", "TradeRef"] : pass.Key, true),
+        "match.groupSum" => new(pass.Block, false),
+        _ => new(pass.Key, false),
     };
 
     private static CommittedMatch Commit(string passId, MatchProposal proposal, IReadOnlyList<ActiveItem> items) =>
