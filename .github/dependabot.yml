@@ -13,3 +13,16 @@ updates:
           - "RecDiffy*"
     commit-message:
       prefix: "Excel add-in"
+  # The engine's own packages: System.Text.Json, Sylvan.Data.Csv, Sylvan.Data.Excel and
+  # DocumentFormat.OpenXml (see RecDiffy.NET/docs/SUPPORT.md). No allow filter, so all of them update.
+  - package-ecosystem: nuget
+    directory: /RecDiffy.NET
+    target-branch: dev
+    schedule:
+      interval: weekly
+  # Actions in .github/workflows, including github/codeql-action and the setup actions.
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
