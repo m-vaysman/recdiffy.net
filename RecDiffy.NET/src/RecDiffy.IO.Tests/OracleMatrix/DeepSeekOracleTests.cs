@@ -18,7 +18,7 @@ public class DeepSeekOracleTests
     // disagree with the oracle for reasons outside the engine, listed in the PR for #39, and for #307 and #308.
     private const string Lifecycle = "DeepSeek's CORR rows name no target, so §5.1 quarantines them (MissingLifecycleTarget)";
 
-    private const string Unverified = "Unverified (spec v3 §12.1): no §9.2 profile, missing rules (price.dirtyToClean, fees.inferFromNet), and oracle notes in the PR for #39";
+    private const string Unverified = "Unverified (spec v3.1 §12.1, secondary dataset §12.2: AC-6 and AC-7 only): no §9.2 profile, so the stand-in profile does not use price.dirtyToClean, fees.inferFromNet or cash.toPerspective, and the oracle does not document the dirty-price token (DIRTY); oracle notes in the PR for #39";
 
     private static OracleComparison Compare() => new(Result.Value, Dataset.Cases(), Deferred);
 
