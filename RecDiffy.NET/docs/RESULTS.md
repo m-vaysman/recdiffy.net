@@ -71,7 +71,7 @@ The [README example](../../README.md#see-it-work-two-files-two-readers-one-recon
 - **Tolerances are inclusive.** A delta exactly equal to the bound is `WithinTolerance`.
 - **Rounding comes first.** At scale 2, 10.004 and 10.006 become 10.00 and 10.01, so the delta is 0.01.
 - **A relative bound** is a fraction of the larger of the two absolute values.
-- **A tolerance `when`** must hold on both sides. If it fails on either side, any difference in a decimal field is a `Break`.
+- **A tolerance `when`** must hold on both sides. If it fails on either side, any difference in a decimal or date field is a `Break`.
 - **`applicableWhen`** skips the field, as `NotCompared`, only when it fails on both sides.
 - **`FieldDiff.Tolerance`** names the tolerance kind declared for the field, such as `Exact`, `Absolute` or `Days`. It names the declared kind even when the tolerance didn't apply, for example because its `when` failed.
 
@@ -90,7 +90,6 @@ The trading pack registers attributions that explain one field's difference by a
 
 - **An explained field takes its roots' outcome.** If the quantity breaks and net cash moves only because of it, net cash is a `Break` too.
 - **`FieldDiff.AttributedTo`** names the root fields, so a report can show the root break once and the consequences beside it.
-- **Known issue:** `AttributedTo` is also filled when the formula doesn't explain the difference ([#254](https://github.com/m-vaysman/recdiffy.net/issues/254)). Check the root fields' own outcomes before you treat a field as a consequence.
 
 ## Missing isn't zero
 

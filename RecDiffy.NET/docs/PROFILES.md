@@ -404,7 +404,6 @@ Name an attribution in `tolerance.attributed`, or in `attributed` beside a numer
 - **A missing root value counts as 0** in the net cash formula.
 - **A root that isn't a compared field counts as a `Break`.** Net cash reads the outcome of all four roots, but compile requires only `Quantity` and `Price`. So unless `Accrued` and `Fees` are also declared with the role `Key` or `Economic`, an explained net cash difference is still a `Break`.
 - **Order doesn't matter.** Every field is measured first. Pro rata is settled from those measurements, and net cash last, so a root with its own attribution counts with the outcome that attribution gives it.
-- **Known issue:** `AttributedTo` is filled even when the formula doesn't explain the difference ([#254](https://github.com/m-vaysman/recdiffy.net/issues/254)).
 
 Tests: [AttributedDiffTests.cs](../src/RecDiffy.Tests/AttributedDiffTests.cs), [AttributionCompileTests.cs](../src/RecDiffy.Tests/AttributionCompileTests.cs), [TradingAttributionTests.cs](../src/RecDiffy.Tests/TradingAttributionTests.cs), and `Attributes_a_partial_fill_to_quantity` in [DiffTests.cs](../src/RecDiffy.Tests/DiffTests.cs).
 
@@ -526,7 +525,7 @@ A run reports problems with input rows as diagnostics on `RowResult.Diagnostics`
 | `InvalidOperationException` from `ProfileDocument.Parse` | A value has the wrong JSON type, such as `"scale": "2"` or a limit written as text. |
 | A setting seems to have no effect | The key's spelling and case. Unknown keys are ignored. |
 | A tolerance has no effect | The field's role. Only `Key` and `Economic` fields are compared. |
-| Every row on one side is unmatched | That side's `normalization` block. A side with no rules writes no fields. See [Known gaps](#known-gaps). |
+| Every row on one side is unmatched | That side's `normalization` block. A side with no rules writes no fields. |
 | A row is quarantined | Its diagnostics. See [Run diagnostics](#run-diagnostics). |
 | Rows remain unmatched | Their key values in `result.Canonical(row)`, the route, and the pass order. |
 | Many rows are `Ambiguous` | Whether the key tells the rows apart. Add a field, or an earlier pass with a stricter key. |
