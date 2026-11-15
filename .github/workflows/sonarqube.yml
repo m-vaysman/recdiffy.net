@@ -41,7 +41,7 @@ jobs:
 
       - name: Check out
         if: steps.secrets.outputs.configured == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
