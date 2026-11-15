@@ -30,8 +30,8 @@ The four ship together, at one version. See [RELEASING.md](RELEASING.md#release-
 | **.NET 9** | An app on .NET 9 gets the `net8.0` build. | The Packages workflow's consumer job runs every sample from the packed packages on `net9.0`, so the app resolves the `net8.0` assets; `release.yml` runs the same check before it pushes. | Verified in CI |
 | **.NET Framework, .NET Standard** | Not supported. | No target. | Not supported |
 | **Linux** | The libraries build and pass their tests on Linux. | `ci.yml`, `packages.yml` and `release.yml` run on `ubuntu-latest`. | Verified in CI |
-| **Windows** | The libraries run on Windows. | No library test suite runs on Windows. The benchmarks run on a self-hosted Windows machine, but they measure speed, not results. The Excel add-in's tests run on `windows-latest` against the published `RecDiffy` and `RecDiffy.IO` packages. | Not verified ([#53](https://github.com/m-vaysman/recdiffy.net/issues/53)) |
-| **macOS** | The libraries run on macOS. | Nothing runs on macOS. | Not verified ([#53](https://github.com/m-vaysman/recdiffy.net/issues/53)) |
+| **Windows** | The libraries run on Windows. | `ci.yml` builds the solution and runs the test projects on `windows-latest`. The Excel recalc tests skip there, because LibreOffice isn't installed. The benchmarks run on a self-hosted Windows machine, but they measure speed, not results. The Excel add-in's tests run on `windows-latest` against the published `RecDiffy` and `RecDiffy.IO` packages. | Verified in CI |
+| **macOS** | The libraries run on macOS. | `ci.yml` builds the solution and runs the test projects on `macos-latest`. The Excel recalc tests skip there, as on Windows. | Verified in CI |
 | **Thread safety** | See [Thread safety](#thread-safety). | Parallel tests in `RecDiffy.Tests`. | Partly verified in CI |
 | **Native AOT, trimming** | `RecDiffy` and `RecDiffy.RulePacks.Trading` work in a trimmed, AOT-published app. | The AOT and trim analyzers run on every build. The Packages workflow also publishes the AOT host with Native AOT (`net10.0`, Linux x64), and an app built from the packed packages with Native AOT and trimmed, on `net8.0` and `net10.0`, failing on any warning, and runs each. Only on Linux x64. | Verified in CI, on Linux |
 | **AOT and trimming for `RecDiffy.IO`, `RecDiffy.Excel`** | No claim. | These projects aren't marked, so the analyzers don't run on them. | Not claimed |
@@ -79,7 +79,7 @@ The measured concurrency and memory results are in [CAPACITY.md](CAPACITY.md).
 
 | Gap | Issue |
 |---|---|
-| Run the library tests, and the AOT publish, on Windows and macOS | [#53](https://github.com/m-vaysman/recdiffy.net/issues/53) |
+| Publish with Native AOT on Windows and macOS | [#53](https://github.com/m-vaysman/recdiffy.net/issues/53) |
 | Check the packages a release pushes, not only the ones each pull request packs | [#296](https://github.com/m-vaysman/recdiffy.net/issues/296) |
 
 When one of these lands, update the matching row above, and link the workflow step.
