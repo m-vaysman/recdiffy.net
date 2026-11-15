@@ -15,13 +15,21 @@ internal sealed partial class DataReaderSource
         while (reader.Read())
         {
             cancellation.ThrowIfCancellationRequested();
-            yield return [.. Enumerable.Range(0, reader.FieldCount).Select(reader.GetValue)];
+            // A sized array avoids the range iterator and Select delegate per cell (#403 item 2, a measured loop).
+            var row = new object?[reader.FieldCount];
+            for (var index = 0; index < row.Length; index++)
+                row[index] = reader.GetValue(index);
+            yield return row;
         }
     }
 
     private static RawRecord ToRow(string sideName, string rowKey, string[] headers, object?[] values, int ordinal)
     {
-        var cells = headers.Zip(values, (header, value) => (header, Cell: CellOf(value))).ToDictionary(pair => pair.header, pair => pair.Cell, StringComparer.Ordinal);
+        // A sized dictionary and loop avoid the Zip iterator and the tuple per cell (#403 item 2, a measured loop).
+        var cells = new Dictionary<string, object?>(headers.Length, StringComparer.Ordinal);
+        var count = Math.Min(headers.Length, values.Length);
+        for (var index = 0; index < count; index++)
+            cells.Add(headers[index], CellOf(values[index]));
         var (key, missing) = RecordSources.RowIdentity(cells, rowKey, ordinal);
         return new RawRecord(new SourceRef(sideName, key, ordinal), cells, missing);
     }
