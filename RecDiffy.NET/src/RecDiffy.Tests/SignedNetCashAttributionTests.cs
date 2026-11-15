@@ -155,6 +155,19 @@ public class SignedNetCashAttributionTests
         Assert.Empty(cash.AttributedTo);
     }
 
+    // The side gives the direction. With no side on either row, or a side that names neither a payer nor a receiver, the
+    // attribution does not guess one, and net cash stays a root of its own.
+    [Theory]
+    [InlineData("")]
+    [InlineData("SHORT")]
+    public void A_signed_net_cash_difference_is_not_explained_when_the_side_does_not_say_who_pays(string side)
+    {
+        var cash = NetCash(Run(Signed, Buy with { Side = side }, BuyAtHigherPrice with { Side = side }));
+
+        Assert.Equal(FieldOutcome.Break, cash.Outcome);
+        Assert.Empty(cash.AttributedTo);
+    }
+
     // A net-cash difference the roots do not add up to stays a root of its own.
     [Fact]
     public void A_signed_BUYs_net_cash_difference_the_roots_do_not_add_up_to_is_not_explained()

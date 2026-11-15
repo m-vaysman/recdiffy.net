@@ -11,6 +11,8 @@ namespace RecDiffy.RulePacks.Trading;
 // The receiving side is the same in both. The paying side is the exact negative, so a paying row's net-cash difference is
 // explained when its negative is explained by the unsigned identity. Rounding a negated amount gives the negated rounding
 // under both midpoint modes, so the comparison at 2 decimal places is the same one.
+// The side is what gives the direction. A pair of rows with no side, or with a side that is neither list below, is not
+// explained: the attribution never guesses which way the money moved.
 // The roots, the outcome and AttributedTo are those of trading.netCash.
 internal sealed class SignedNetCashAttribution : IAttribution
 {
@@ -23,14 +25,14 @@ internal sealed class SignedNetCashAttribution : IAttribution
     public AttributionStage Stage => Unsigned.Stage;
 
     public bool Explains(RowContext left, RowContext right, FieldDeclaration field, decimal delta, MidpointMode midpoint) =>
-        Unsigned.Explains(left, right, field, Receives(left, right) ? delta : decimal.Negate(delta), midpoint);
+        (left.Display("Side") ?? right.Display("Side")) switch
+        {
+            "SELL" or "REC_FIXED" or "REC" => Unsigned.Explains(left, right, field, delta, midpoint),
+            "BUY" or "PAY_FIXED" or "PAY" => Unsigned.Explains(left, right, field, decimal.Negate(delta), midpoint),
+            _ => false,
+        };
 
     public FieldOutcome Outcome(RootOutcomes roots) => Unsigned.Outcome(roots);
 
     public ImmutableArray<string> AttributedTo(RootOutcomes roots) => Unsigned.AttributedTo(roots);
-
-    // SELL, REC_FIXED and REC receive cash. Every other side pays, and so does a pair of rows with no side: the same reading
-    // trading.netCash gives the fee.
-    private static bool Receives(RowContext left, RowContext right) =>
-        (left.Display("Side") ?? right.Display("Side")) is "SELL" or "REC_FIXED" or "REC";
 }
