@@ -61,14 +61,13 @@ public class CashToPerspectiveRuleTests
         Assert.Equal("12.34", row.Values["Accrued"].Number.ToString(CultureInfo.InvariantCulture));
     }
 
+    // A text cell has no number to negate.
     [Fact]
-    public void The_perspective_column_defaults_to_the_one_side_resolve_reads()
+    public void An_amount_that_holds_text_is_left_as_it_is()
     {
-        var bench = new RuleBench("cash.toPerspective").With("to", "NetCash").With("invertWhen", "DEALER_BILATERAL_VIEW");
+        var row = RuleBench.Row(("Persp", "DEALER_BILATERAL_VIEW")).Canonical(("NetCash", "N/A"));
 
-        var row = bench.Apply(RuleBench.Row(("Reporting_Perspective", "DEALER_BILATERAL_VIEW")).Canonical(("NetCash", 7m)));
-
-        Assert.Equal("-7", Text(row));
+        Assert.Same(row, Perspective.Apply(row));
     }
 
     private static RowContext Row(string perspective, decimal net) =>

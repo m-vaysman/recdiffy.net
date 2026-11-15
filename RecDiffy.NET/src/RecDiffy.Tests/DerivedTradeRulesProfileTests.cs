@@ -6,7 +6,8 @@ namespace RecDiffy.Tests;
 
 // price.dirtyToClean, cash.toPerspective and fees.inferFromNet as a profile names them: registered by the trading pack,
 // ordered by what each reads (spec v3.1 §3.3), and applied under a `when`. The right side reports a dealer-view dirty price
-// with signed cash and no fee; the left side is the internal clean price with its commission.
+// with signed cash and no fee; the left side is the internal clean price with its commission. Dealer-view cash is negated
+// before the fee is inferred from it, because signed cash is read in the internal view.
 public class DerivedTradeRulesProfileTests
 {
     private static readonly RuleRegistry Registry = TradingRulePack.AddTo(RuleRegistry.CreateCore());
@@ -44,13 +45,24 @@ public class DerivedTradeRulesProfileTests
 
     // Compile rejects a rule that reads a field no earlier rule wrote (FieldReadBeforeWrite), so these are the contract
     // §3.3 gives each rule: what it needs, and the one field it writes.
+    // The perspective column has no default: a typo in its name would otherwise read the wrong column and negate nothing.
+    [Fact]
+    public void A_profile_that_leaves_out_the_perspective_column_does_not_compile()
+    {
+        var json = Profile.Replace("\"perspective\": \"Reporting_Perspective\", ", "", StringComparison.Ordinal);
+
+        var error = Assert.Throws<ProfileCompileException>(() => Reconciler.Compile(ProfileDocument.Parse(json), Registry));
+
+        Assert.Contains("MissingParameter", error.Message, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("price.dirtyToClean", "Price,Accrued,Quantity", "Price")]
     [InlineData("fees.inferFromNet", "Side,AssetClass,Quantity,Price,Accrued,NetCash", "Fees")]
     [InlineData("cash.toPerspective", "NetCash", "NetCash")]
     public void Each_rule_is_a_derive_rule_that_reads_what_the_spec_says_it_needs(string rule, string reads, string writes)
     {
-        var built = new RuleBench(rule).With("to", writes).With("invertWhen", "DEALER_BILATERAL_VIEW").Build();
+        var built = new RuleBench(rule).With("to", writes).With("perspective", "Persp").With("invertWhen", "DEALER_BILATERAL_VIEW").Build();
 
         Assert.Equal(RulePhase.Derive, built.Phase);
         Assert.Equal(reads.Split(','), built.Reads.Select(field => field.Name), StringComparer.Ordinal);
@@ -128,7 +140,7 @@ public class DerivedTradeRulesProfileTests
               "derive": [
                 { "rule": "price.dirtyToClean", "to": "Price", "when": { "field": "Quote", "equals": "DIRTY" } },
                 { "rule": "cash.toPerspective", "to": "NetCash", "perspective": "Reporting_Perspective", "invertWhen": "DEALER_BILATERAL_VIEW" },
-                { "rule": "fees.inferFromNet", "to": "Fees" }
+                { "rule": "fees.inferFromNet", "to": "Fees", "cash": "signed" }
               ]
             }
           },

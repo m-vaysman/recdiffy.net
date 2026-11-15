@@ -23,19 +23,44 @@ public class InferFeesFromNetRuleTests
         Assert.Empty(row.Diagnostics);
     }
 
-    // Fixture 2.0 signs cash: a BUY pays out. The magnitude gives the same fee, so one rule serves signed and unsigned cash (§9.2).
+    // Fixture 2.0 signs cash: a BUY pays out (§9.2). The profile says so with "cash": "signed", and the same fee comes out.
     [Theory]
     [InlineData("BUY", -988925.00, "50.00")]
     [InlineData("SELL", 988825.00, "50.00")]
-    public void Signed_cash_gives_the_same_fee_as_unsigned_cash(string side, double net, string fees) =>
-        Assert.Equal(fees, Fees(Infer.Apply(Bond(side, (decimal)net))));
+    public void Signed_cash_gives_the_same_fee_when_the_profile_says_cash_is_signed(string side, double net, string fees) =>
+        Assert.Equal(fees, Fees(Infer.With("cash", "signed").Apply(Bond(side, (decimal)net))));
+
+    // Unsigned is the default and the spec's own reading (§3.3): a signed BUY's negative cash is not a fee.
+    [Fact]
+    public void Cash_is_unsigned_unless_the_profile_says_otherwise() =>
+        Assert.Equal("-1977800.00", Fees(Infer.Apply(Bond("BUY", -988925.00m))));
 
     [Fact]
-    public void An_equity_has_no_divisor_and_a_missing_accrued_counts_as_zero()
+    public void A_cash_value_that_is_neither_signed_nor_unsigned_does_not_compile()
     {
-        var row = Infer.Apply(RuleBench.Row().Canonical(("Side", "BUY"), ("AssetClass", "Equity"), ("Quantity", 1000m), ("Price", 45.50m), ("NetCash", 45512.00m)));
+        var error = Assert.Throws<ProfileCompileException>(() => Infer.With("cash", "negative").Build());
+
+        Assert.Equal("InvalidParameter", Assert.Single(error.Errors).Code);
+    }
+
+    // §7.5: accrued does not apply to an equity or a forward, and a blank one means so. For a bond it is missing, and the fee is null.
+    [Theory]
+    [InlineData("Equity")]
+    [InlineData("Forward")]
+    public void A_blank_accrued_counts_as_zero_where_accrued_does_not_apply(string asset)
+    {
+        var row = Infer.Apply(RuleBench.Row().Canonical(("Side", "BUY"), ("AssetClass", asset), ("Quantity", 1000m), ("Price", 45.50m), ("NetCash", 45512.00m)));
 
         Assert.Equal("12.00", Fees(row));
+    }
+
+    [Fact]
+    public void A_blank_accrued_leaves_a_bonds_fee_null()
+    {
+        var row = Infer.Apply(RuleBench.Row().Canonical(("Side", "BUY"), ("AssetClass", "Bond"), ("Quantity", 1000000m), ("Price", 98.75m), ("NetCash", 988925.00m)));
+
+        Assert.True(row.Values["Fees"].IsNull);
+        Assert.Empty(row.Diagnostics);
     }
 
     [Fact]
@@ -44,6 +69,38 @@ public class InferFeesFromNetRuleTests
         var row = Infer.Apply(RuleBench.Row().Canonical(("Side", "SELL"), ("AssetClass", "Forward"), ("Quantity", 5000000m), ("Price", 1.083456m), ("Accrued", 0m), ("NetCash", 5417200.00m)));
 
         Assert.Equal("80.00", Fees(row));
+    }
+
+    // price.dirtyToClean reads the quantity's magnitude, so this does too.
+    [Fact]
+    public void A_negative_quantity_is_read_as_its_magnitude()
+    {
+        var row = Infer.Apply(RuleBench.Row().Canonical(("Side", "BUY"), ("AssetClass", "Equity"), ("Quantity", -1000m), ("Price", 45.50m), ("NetCash", 45512.00m)));
+
+        Assert.Equal("12.00", Fees(row));
+    }
+
+    // A text cell has no number: the fee is null, and nothing is read as zero.
+    [Theory]
+    [InlineData("Quantity")]
+    [InlineData("Price")]
+    [InlineData("Accrued")]
+    [InlineData("NetCash")]
+    public void A_field_that_holds_text_leaves_the_fee_null(string field)
+    {
+        var row = Infer.Apply(Bond("BUY", 988925.00m).Canonical((field, "N/A")));
+
+        Assert.True(row.Values["Fees"].IsNull);
+        Assert.Empty(row.Diagnostics);
+    }
+
+    // The quantity times the price over 100 would overflow if the quantity were multiplied by the price first.
+    [Fact]
+    public void A_large_bond_quantity_is_scaled_before_it_can_overflow()
+    {
+        var row = Infer.Apply(RuleBench.Row().Canonical(("Side", "SELL"), ("AssetClass", "Bond"), ("Quantity", 5000000000000000000000000000m), ("Price", 100m), ("Accrued", 0m), ("NetCash", 4999999999999999999999999999m)));
+
+        Assert.Equal("1", Fees(row));
     }
 
     // §3.3: a swap's principal is not a fixed function of notional and rate, so its street fee stays null.
@@ -63,6 +120,7 @@ public class InferFeesFromNetRuleTests
     [InlineData("AssetClass")]
     [InlineData("Quantity")]
     [InlineData("Price")]
+    [InlineData("Accrued")]
     [InlineData("NetCash")]
     public void A_missing_input_leaves_the_fee_null_and_does_not_quarantine(string missing)
     {

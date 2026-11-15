@@ -4,7 +4,7 @@ using RecDiffy.Rules;
 namespace RecDiffy.RulePacks.Trading;
 
 // Spec v3.1 §9.2 (fixture 2.0): a dealer-view row reports cash in the dealer's perspective, so its net cash is negated to the
-// internal view. Any other perspective, and a null amount, is left as read. Accrued is not touched.
+// internal view. Any other perspective, and a null or non-decimal amount, is left as read. Accrued is not touched.
 internal sealed class CashToPerspectiveRule(string to, string perspective, string invertWhen) : INormalizationRule
 {
     public string RuleId => "cash.toPerspective";
@@ -16,7 +16,7 @@ internal sealed class CashToPerspectiveRule(string to, string perspective, strin
     public IReadOnlyList<FieldId> Writes => [new(to)];
 
     public void Apply(ref RowContext row) =>
-        row = row.IsNull(to) || WhenMatcher.Text(row, perspective) != invertWhen ? row : Negate(row, row.Values[to].Number);
+        row = DecimalCells.Of(row, to) is { } amount && WhenMatcher.Text(row, perspective) == invertWhen ? Negate(row, amount) : row;
 
     // Zero minus the amount, so a zero amount stays a positive zero.
     private RowContext Negate(RowContext row, decimal amount)
