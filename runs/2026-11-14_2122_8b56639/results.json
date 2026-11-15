@@ -1,0 +1,337 @@
+{
+  "schemaVersion": 2,
+  "run": {
+    "id": "2026-11-14_2124_8b56639",
+    "harnessVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "profileId": "capacity.mixed",
+    "profileVersion": "1.0.0",
+    "profileHash": "ea100672412fede34f7ad0f9e703f1d6d75b10d6109cece2c1457d8360adf7d0",
+    "seed": 377,
+    "repeats": 3,
+    "sweep": "sizes",
+    "sizes": [
+      10000,
+      100000
+    ],
+    "commandLine": "G:\\RecDiffyCapacity\\work\\2026-11-14_2122_8b56639\\RecDiffy.NET\\capacity\\RecDiffy.Capacity\\bin\\Release\\net10.0\\RecDiffy.Capacity.dll --sweep sizes --out G:\\RecDiffyCapacity\\runs\\2026-11-14_2122_8b56639 --seed 377 --repeats 3 --break-rate 0.1 --unmatched-rate 0.05 --commit 8b56639e3308859efcfcadb8b071efc523f0c4e1 --ref origin/dev --sizes 10000,100000 --case-timeout-seconds 1800",
+    "startedAtUtc": "2026-11-15T02:24:23Z",
+    "finishedAtUtc": "2026-11-15T02:26:44Z",
+    "durationSeconds": 141.1335263,
+    "compileSeconds": 0.1731884
+  },
+  "source": {
+    "ref": "origin/dev",
+    "commit": "8b56639e3308859efcfcadb8b071efc523f0c4e1",
+    "workingTree": "clean"
+  },
+  "host": {
+    "machine": "COBBLER1",
+    "os": "Microsoft Windows 10.0.19045",
+    "architecture": "X64",
+    "logicalProcessors": 40,
+    "runtime": ".NET 10.0.14",
+    "sdk": "10.0.403",
+    "gcMode": "server",
+    "gcLatencyMode": "Interactive",
+    "gcHeapLimitBytes": 68660953088,
+    "aot": false,
+    "dynamicCode": true
+  },
+  "cases": [
+    {
+      "size": 10000,
+      "leftRows": 10000,
+      "rightRows": 10000,
+      "totalRows": 20000,
+      "outcome": "Completed",
+      "knownOutcomeMatches": true,
+      "failureStage": null,
+      "timeToFailureSeconds": 0,
+      "expected": {
+        "matched": 9750,
+        "exact": 8775,
+        "withinTolerance": 0,
+        "break": 975,
+        "leftOnly": 250,
+        "rightOnly": 250,
+        "ambiguous": 0,
+        "searchIncomplete": 0,
+        "quarantined": 0,
+        "suppressed": 0
+      },
+      "actual": {
+        "matched": 9750,
+        "exact": 8775,
+        "withinTolerance": 0,
+        "break": 975,
+        "leftOnly": 250,
+        "rightOnly": 250,
+        "ambiguous": 0,
+        "searchIncomplete": 0,
+        "quarantined": 0,
+        "suppressed": 0
+      },
+      "samples": [
+        {
+          "engineSeconds": 1.5991885,
+          "excelSeconds": 2.0213727,
+          "totalSeconds": 3.6205612,
+          "peakManagedHeapBytes": 353092760,
+          "peakWorkingSetBytes": 807989248,
+          "allocatedBytes": 1629911656,
+          "gcPauseSeconds": 0.4196120000000001,
+          "gen0": 12,
+          "gen1": 6,
+          "gen2": 4
+        },
+        {
+          "engineSeconds": 1.5784124,
+          "excelSeconds": 2.0803742,
+          "totalSeconds": 3.6587866,
+          "peakManagedHeapBytes": 462623776,
+          "peakWorkingSetBytes": 848293888,
+          "allocatedBytes": 1631377768,
+          "gcPauseSeconds": 0.3936099999999999,
+          "gen0": 10,
+          "gen1": 5,
+          "gen2": 2
+        },
+        {
+          "engineSeconds": 1.786216,
+          "excelSeconds": 2.145733,
+          "totalSeconds": 3.931949,
+          "peakManagedHeapBytes": 291242864,
+          "peakWorkingSetBytes": 643796992,
+          "allocatedBytes": 1632692256,
+          "gcPauseSeconds": 0.368985,
+          "gen0": 16,
+          "gen1": 8,
+          "gen2": 3
+        }
+      ],
+      "latencySeconds": 3.6587866,
+      "latencyP95Seconds": 3.931949,
+      "latencyP99Seconds": 3.931949,
+      "throughputRowsPerSecond": 12670.959756778393,
+      "endToEndRowsPerSecond": 5466.293114771985,
+      "peakManagedHeapBytes": 462623776,
+      "peakWorkingSetBytes": 848293888,
+      "allocatedBytes": 1631377768,
+      "gcPauseSeconds": 0.3936099999999999,
+      "retainedHeapBytes": 3384296,
+      "bytesPerInputRow": 23131.1888,
+      "rowsSearched": 19500,
+      "rowsBlocked": 0,
+      "aggregateOverflowFields": 0,
+      "stages": [
+        {
+          "name": "engine",
+          "seconds": 1.5784124,
+          "sharePercent": 43.14032417195362
+        },
+        {
+          "name": "excel",
+          "seconds": 2.0803742,
+          "sharePercent": 56.85967582804638
+        }
+      ],
+      "files": [
+        {
+          "kind": "SideBySideCompare",
+          "path": "excel\\10000\\0\\BO2_SideBySideCompare_capacity.mixed_2025-06-11.xlsx",
+          "bytes": 1970154,
+          "skipReason": null
+        },
+        {
+          "kind": "SideBySideCompare",
+          "path": "excel\\10000\\1\\BO2_SideBySideCompare_capacity.mixed_2025-06-11.xlsx",
+          "bytes": 1970152,
+          "skipReason": null
+        },
+        {
+          "kind": "SideBySideCompare",
+          "path": "excel\\10000\\2\\BO2_SideBySideCompare_capacity.mixed_2025-06-11.xlsx",
+          "bytes": 1970153,
+          "skipReason": null
+        }
+      ],
+      "notes": [],
+      "wallTimeBarPercent": 9.295246951757942,
+      "peakHeapBarPercent": 12.058169942789077
+    },
+    {
+      "size": 100000,
+      "leftRows": 100000,
+      "rightRows": 100000,
+      "totalRows": 200000,
+      "outcome": "Completed",
+      "knownOutcomeMatches": true,
+      "failureStage": null,
+      "timeToFailureSeconds": 0,
+      "expected": {
+        "matched": 97500,
+        "exact": 87750,
+        "withinTolerance": 0,
+        "break": 9750,
+        "leftOnly": 2500,
+        "rightOnly": 2500,
+        "ambiguous": 0,
+        "searchIncomplete": 0,
+        "quarantined": 0,
+        "suppressed": 0
+      },
+      "actual": {
+        "matched": 97500,
+        "exact": 87750,
+        "withinTolerance": 0,
+        "break": 9750,
+        "leftOnly": 2500,
+        "rightOnly": 2500,
+        "ambiguous": 0,
+        "searchIncomplete": 0,
+        "quarantined": 0,
+        "suppressed": 0
+      },
+      "samples": [
+        {
+          "engineSeconds": 17.9932613,
+          "excelSeconds": 21.3236582,
+          "totalSeconds": 39.3169195,
+          "peakManagedHeapBytes": 3317454128,
+          "peakWorkingSetBytes": 4185980928,
+          "allocatedBytes": 17412475016,
+          "gcPauseSeconds": 3.3586649999999993,
+          "gen0": 41,
+          "gen1": 12,
+          "gen2": 6
+        },
+        {
+          "engineSeconds": 18.0157537,
+          "excelSeconds": 21.3461548,
+          "totalSeconds": 39.3619085,
+          "peakManagedHeapBytes": 3836600232,
+          "peakWorkingSetBytes": 5121196032,
+          "allocatedBytes": 17413483704,
+          "gcPauseSeconds": 3.2226280000000003,
+          "gen0": 36,
+          "gen1": 10,
+          "gen2": 4
+        },
+        {
+          "engineSeconds": 18.7476221,
+          "excelSeconds": 21.7012281,
+          "totalSeconds": 40.4488502,
+          "peakManagedHeapBytes": 2819764832,
+          "peakWorkingSetBytes": 3375038464,
+          "allocatedBytes": 17415402984,
+          "gcPauseSeconds": 3.722434,
+          "gen0": 50,
+          "gen1": 20,
+          "gen2": 9
+        }
+      ],
+      "latencySeconds": 39.3619085,
+      "latencyP95Seconds": 40.4488502,
+      "latencyP99Seconds": 40.4488502,
+      "throughputRowsPerSecond": 11101.395108437788,
+      "endToEndRowsPerSecond": 5081.054441249971,
+      "peakManagedHeapBytes": 3836600232,
+      "peakWorkingSetBytes": 5121196032,
+      "allocatedBytes": 17413483704,
+      "gcPauseSeconds": 3.2226280000000003,
+      "retainedHeapBytes": 34023176,
+      "bytesPerInputRow": 19183.00116,
+      "rowsSearched": 195000,
+      "rowsBlocked": 0,
+      "aggregateOverflowFields": 0,
+      "stages": [
+        {
+          "name": "engine",
+          "seconds": 18.0157537,
+          "sharePercent": 45.7695126749253
+        },
+        {
+          "name": "excel",
+          "seconds": 21.3461548,
+          "sharePercent": 54.2304873250747
+        }
+      ],
+      "files": [
+        {
+          "kind": "SideBySideCompare",
+          "path": "excel\\100000\\0\\BO2_SideBySideCompare_capacity.mixed_2025-06-11.xlsx",
+          "bytes": 19797230,
+          "skipReason": null
+        },
+        {
+          "kind": "SideBySideCompare",
+          "path": "excel\\100000\\1\\BO2_SideBySideCompare_capacity.mixed_2025-06-11.xlsx",
+          "bytes": 19797236,
+          "skipReason": null
+        },
+        {
+          "kind": "SideBySideCompare",
+          "path": "excel\\100000\\2\\BO2_SideBySideCompare_capacity.mixed_2025-06-11.xlsx",
+          "bytes": 19797230,
+          "skipReason": null
+        }
+      ],
+      "notes": [],
+      "wallTimeBarPercent": 100,
+      "peakHeapBarPercent": 100
+    }
+  ],
+  "derived": {
+    "largestCompletedSize": 100000,
+    "firstFailure": null,
+    "scaling": [
+      {
+        "fromSize": 10000,
+        "toSize": 100000,
+        "secondsRatio": 10.758186470891744,
+        "rowsRatio": 10,
+        "exponent": 1.0317390676068672,
+        "verdict": "linear or better"
+      }
+    ],
+    "unmeasuredStages": [
+      {
+        "name": "intake",
+        "reason": "Reconciler.Run materializes both sides; the public API exposes no separate stage."
+      },
+      {
+        "name": "normalization",
+        "reason": "Inside Reconciler.Run; per-stage benchmarks land in P2."
+      },
+      {
+        "name": "consolidation",
+        "reason": "Inside Reconciler.Run; per-stage benchmarks land in P2."
+      },
+      {
+        "name": "matching",
+        "reason": "Inside Reconciler.Run; per-stage benchmarks land in P2."
+      },
+      {
+        "name": "diff",
+        "reason": "Inside Reconciler.Run; per-stage benchmarks land in P2."
+      },
+      {
+        "name": "results",
+        "reason": "Inside Reconciler.Run; per-stage benchmarks land in P2."
+      }
+    ]
+  },
+  "concurrency": null,
+  "notes": [
+    "Stages inside Reconciler.Run (intake, normalization, consolidation, matching, diff, result building) are inside the engine stage. The public API exposes no split; the per-stage benchmarks are P2 and the large-size split is P4.",
+    "One warmup run of the smallest size is discarded before the measurements, so JIT, compile and the first Excel write are not charged to the first case.",
+    "The dataset is generated while the engine materializes each side, so the engine stage includes the generator\u0027s cost. The generator is a seeded integer mixer, not System.Random, so a seed reproduces a dataset on every runtime.",
+    "Excel output writes one report (SideBySideCompare) so the output stage stays bounded. The full report set is P4.",
+    "Capacity numbers are comparable only on the same host, runtime and GC mode. This run\u0027s host is in the header.",
+    "A run that does not match its known outcome is a measurement failure, not a fast run. A run too large to complete is recorded as its outcome.",
+    "Rows searched are rows in a matched entry; rows blocked are rows the search limits refused (SearchIncomplete), so a fast blocked run is not read as a fast reconciliation. Aggregate overflow counts diagnostics with that code.",
+    "Retained heap is the heap after every result of the case has been dropped and two full blocking collections have run; the result graph is part of the memory ceiling.",
+    "An OS kill cannot be caught in-process: a run the host killed leaves no report. The run script records it from the job (phase 6). Here, only an out-of-memory exception is recorded as a case outcome."
+  ]
+}
