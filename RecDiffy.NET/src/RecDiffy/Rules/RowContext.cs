@@ -26,6 +26,10 @@ public interface INormalizationRule
 
 public sealed record RowContext
 {
+    // Every row starts from this one empty table: writes return a new table and leave the shared one empty.
+    private static readonly ImmutableDictionary<string, CanonicalCell> EmptyValues =
+        ImmutableDictionary.Create<string, CanonicalCell>(StringComparer.Ordinal);
+
     public required string RowKey { get; init; }
 
     public required Side Side { get; init; }
@@ -57,7 +61,7 @@ public sealed record RowContext
             Pool = InternPool.Empty,
             Reference = ReferenceDataSet.Empty,
             Instruments = InstrumentMaster.Empty,
-            Values = ImmutableDictionary.Create<string, CanonicalCell>(StringComparer.Ordinal),
+            Values = EmptyValues,
             Diagnostics = [],
             Traces = [],
         };
