@@ -1,0 +1,926 @@
+# Public API baseline of RecDiffy: one line for every public or protected type and member, sorted ordinally.
+# PublicApiBaselineTests compares the built assembly with this file on net8.0 and net10.0, and fails on any difference.
+# To accept an intended change, copy the .actual.txt file the failing test names over this file and commit it.
+RecDiffy.CanonicalCell :: constructor public (RecDiffy.FieldType Type, bool IsNull, decimal Number, System.DateOnly Date, int Interned, string? Text)
+RecDiffy.CanonicalCell :: method public bool Equals(RecDiffy.CanonicalCell other)
+RecDiffy.CanonicalCell :: method public override bool Equals(object obj)
+RecDiffy.CanonicalCell :: method public override int GetHashCode()
+RecDiffy.CanonicalCell :: method public override string ToString()
+RecDiffy.CanonicalCell :: method public static RecDiffy.CanonicalCell FromDate(System.DateOnly value)
+RecDiffy.CanonicalCell :: method public static RecDiffy.CanonicalCell FromDecimal(decimal value)
+RecDiffy.CanonicalCell :: method public static RecDiffy.CanonicalCell FromInterned(RecDiffy.FieldType type, int id)
+RecDiffy.CanonicalCell :: method public static RecDiffy.CanonicalCell FromText(string? text)
+RecDiffy.CanonicalCell :: method public static RecDiffy.CanonicalCell Null(RecDiffy.FieldType type)
+RecDiffy.CanonicalCell :: method public static bool op_Equality(RecDiffy.CanonicalCell left, RecDiffy.CanonicalCell right)
+RecDiffy.CanonicalCell :: method public static bool op_Inequality(RecDiffy.CanonicalCell left, RecDiffy.CanonicalCell right)
+RecDiffy.CanonicalCell :: method public void Deconstruct(out RecDiffy.FieldType Type, out bool IsNull, out decimal Number, out System.DateOnly Date, out int Interned, out string? Text)
+RecDiffy.CanonicalCell :: property public RecDiffy.FieldType Type { get; init; }
+RecDiffy.CanonicalCell :: property public System.DateOnly Date { get; init; }
+RecDiffy.CanonicalCell :: property public bool IsNull { get; init; }
+RecDiffy.CanonicalCell :: property public decimal Number { get; init; }
+RecDiffy.CanonicalCell :: property public int Interned { get; init; }
+RecDiffy.CanonicalCell :: property public string? Text { get; init; }
+RecDiffy.CanonicalCell :: type public readonly struct implements System.IEquatable<RecDiffy.CanonicalCell>
+RecDiffy.CompiledProfile :: property public RecDiffy.ProfileDocument Document { get; }
+RecDiffy.CompiledProfile :: property public System.Collections.Generic.IReadOnlyDictionary<string, RecDiffy.Results.SideReading> Reading { get; }
+RecDiffy.CompiledProfile :: property public int FormatVersion { get; }
+RecDiffy.CompiledProfile :: property public string Hash { get; }
+RecDiffy.CompiledProfile :: property public string ProfileId { get; }
+RecDiffy.CompiledProfile :: property public string Version { get; }
+RecDiffy.CompiledProfile :: type public sealed class
+RecDiffy.Condition :: method public static RecDiffy.WhenClause Equal(string field, string value)
+RecDiffy.Condition :: method public static RecDiffy.WhenClause In(string field, params string[] values)
+RecDiffy.Condition :: method public static RecDiffy.WhenClause NotEqual(string field, string value)
+RecDiffy.Condition :: type public static class
+RecDiffy.Diagnostic :: constructor public (string Code, RecDiffy.DiagnosticSeverity Severity, string RuleId, string? Field, string? RawText)
+RecDiffy.Diagnostic :: method public RecDiffy.Diagnostic <Clone>$()
+RecDiffy.Diagnostic :: method public bool Equals(RecDiffy.Diagnostic? other)
+RecDiffy.Diagnostic :: method public override bool Equals(object? obj)
+RecDiffy.Diagnostic :: method public override int GetHashCode()
+RecDiffy.Diagnostic :: method public override string ToString()
+RecDiffy.Diagnostic :: method public static bool op_Equality(RecDiffy.Diagnostic? left, RecDiffy.Diagnostic? right)
+RecDiffy.Diagnostic :: method public static bool op_Inequality(RecDiffy.Diagnostic? left, RecDiffy.Diagnostic? right)
+RecDiffy.Diagnostic :: method public void Deconstruct(out string Code, out RecDiffy.DiagnosticSeverity Severity, out string RuleId, out string? Field, out string? RawText)
+RecDiffy.Diagnostic :: property public RecDiffy.DiagnosticSeverity Severity { get; init; }
+RecDiffy.Diagnostic :: property public string Code { get; init; }
+RecDiffy.Diagnostic :: property public string RuleId { get; init; }
+RecDiffy.Diagnostic :: property public string? Field { get; init; }
+RecDiffy.Diagnostic :: property public string? RawText { get; init; }
+RecDiffy.Diagnostic :: type public sealed class implements System.IEquatable<RecDiffy.Diagnostic>
+RecDiffy.DiagnosticSeverity :: enum value Fatal = 2
+RecDiffy.DiagnosticSeverity :: enum value Invalid = 1
+RecDiffy.DiagnosticSeverity :: enum value Warning = 0
+RecDiffy.DiagnosticSeverity :: type public enum : int
+RecDiffy.DiffDeclaration :: constructor public (System.Collections.Generic.IReadOnlyDictionary<string, RecDiffy.FieldDiffDeclaration> Fields)
+RecDiffy.DiffDeclaration :: method public RecDiffy.DiffDeclaration <Clone>$()
+RecDiffy.DiffDeclaration :: method public bool Equals(RecDiffy.DiffDeclaration? other)
+RecDiffy.DiffDeclaration :: method public override bool Equals(object? obj)
+RecDiffy.DiffDeclaration :: method public override int GetHashCode()
+RecDiffy.DiffDeclaration :: method public override string ToString()
+RecDiffy.DiffDeclaration :: method public static bool op_Equality(RecDiffy.DiffDeclaration? left, RecDiffy.DiffDeclaration? right)
+RecDiffy.DiffDeclaration :: method public static bool op_Inequality(RecDiffy.DiffDeclaration? left, RecDiffy.DiffDeclaration? right)
+RecDiffy.DiffDeclaration :: method public void Deconstruct(out System.Collections.Generic.IReadOnlyDictionary<string, RecDiffy.FieldDiffDeclaration> Fields)
+RecDiffy.DiffDeclaration :: property public System.Collections.Generic.IReadOnlyDictionary<string, RecDiffy.FieldDiffDeclaration> Fields { get; init; }
+RecDiffy.DiffDeclaration :: type public sealed class implements System.IEquatable<RecDiffy.DiffDeclaration>
+RecDiffy.FieldDeclaration :: constructor public (string Name, RecDiffy.FieldType Type, RecDiffy.FieldRole Role, int Scale)
+RecDiffy.FieldDeclaration :: method public RecDiffy.FieldDeclaration <Clone>$()
+RecDiffy.FieldDeclaration :: method public bool Equals(RecDiffy.FieldDeclaration? other)
+RecDiffy.FieldDeclaration :: method public override bool Equals(object? obj)
+RecDiffy.FieldDeclaration :: method public override int GetHashCode()
+RecDiffy.FieldDeclaration :: method public override string ToString()
+RecDiffy.FieldDeclaration :: method public static bool op_Equality(RecDiffy.FieldDeclaration? left, RecDiffy.FieldDeclaration? right)
+RecDiffy.FieldDeclaration :: method public static bool op_Inequality(RecDiffy.FieldDeclaration? left, RecDiffy.FieldDeclaration? right)
+RecDiffy.FieldDeclaration :: method public void Deconstruct(out string Name, out RecDiffy.FieldType Type, out RecDiffy.FieldRole Role, out int Scale)
+RecDiffy.FieldDeclaration :: property public RecDiffy.FieldRole Role { get; init; }
+RecDiffy.FieldDeclaration :: property public RecDiffy.FieldType Type { get; init; }
+RecDiffy.FieldDeclaration :: property public int Scale { get; init; }
+RecDiffy.FieldDeclaration :: property public string Name { get; init; }
+RecDiffy.FieldDeclaration :: type public sealed class implements System.IEquatable<RecDiffy.FieldDeclaration>
+RecDiffy.FieldDiffDeclaration :: constructor public (RecDiffy.ToleranceDeclaration Tolerance, string? Attributed, RecDiffy.WhenClause? ApplicableWhen)
+RecDiffy.FieldDiffDeclaration :: method public RecDiffy.FieldDiffDeclaration <Clone>$()
+RecDiffy.FieldDiffDeclaration :: method public bool Equals(RecDiffy.FieldDiffDeclaration? other)
+RecDiffy.FieldDiffDeclaration :: method public override bool Equals(object? obj)
+RecDiffy.FieldDiffDeclaration :: method public override int GetHashCode()
+RecDiffy.FieldDiffDeclaration :: method public override string ToString()
+RecDiffy.FieldDiffDeclaration :: method public static bool op_Equality(RecDiffy.FieldDiffDeclaration? left, RecDiffy.FieldDiffDeclaration? right)
+RecDiffy.FieldDiffDeclaration :: method public static bool op_Inequality(RecDiffy.FieldDiffDeclaration? left, RecDiffy.FieldDiffDeclaration? right)
+RecDiffy.FieldDiffDeclaration :: method public void Deconstruct(out RecDiffy.ToleranceDeclaration Tolerance, out string? Attributed, out RecDiffy.WhenClause? ApplicableWhen)
+RecDiffy.FieldDiffDeclaration :: property public RecDiffy.ToleranceDeclaration Tolerance { get; init; }
+RecDiffy.FieldDiffDeclaration :: property public RecDiffy.WhenClause? ApplicableWhen { get; init; }
+RecDiffy.FieldDiffDeclaration :: property public string? Attributed { get; init; }
+RecDiffy.FieldDiffDeclaration :: type public sealed class implements System.IEquatable<RecDiffy.FieldDiffDeclaration>
+RecDiffy.FieldId :: constructor public (string Name)
+RecDiffy.FieldId :: method public bool Equals(RecDiffy.FieldId other)
+RecDiffy.FieldId :: method public override bool Equals(object obj)
+RecDiffy.FieldId :: method public override int GetHashCode()
+RecDiffy.FieldId :: method public override string ToString()
+RecDiffy.FieldId :: method public static bool op_Equality(RecDiffy.FieldId left, RecDiffy.FieldId right)
+RecDiffy.FieldId :: method public static bool op_Inequality(RecDiffy.FieldId left, RecDiffy.FieldId right)
+RecDiffy.FieldId :: method public void Deconstruct(out string Name)
+RecDiffy.FieldId :: property public string Name { get; init; }
+RecDiffy.FieldId :: type public readonly struct implements System.IEquatable<RecDiffy.FieldId>
+RecDiffy.FieldRole :: enum value Economic = 1
+RecDiffy.FieldRole :: enum value Identity = 2
+RecDiffy.FieldRole :: enum value Key = 0
+RecDiffy.FieldRole :: enum value Lifecycle = 3
+RecDiffy.FieldRole :: enum value Package = 4
+RecDiffy.FieldRole :: enum value Text = 5
+RecDiffy.FieldRole :: type public enum : int
+RecDiffy.FieldType :: enum value Date = 1
+RecDiffy.FieldType :: enum value Decimal = 0
+RecDiffy.FieldType :: enum value Identifier = 3
+RecDiffy.FieldType :: enum value Symbol = 2
+RecDiffy.FieldType :: enum value Text = 4
+RecDiffy.FieldType :: type public enum : int
+RecDiffy.IMatchPass :: method public void Propose(in RecDiffy.PassContext context, RecDiffy.ProposalSink sink)
+RecDiffy.IMatchPass :: property public RecDiffy.PassCardinality Cardinality { get; }
+RecDiffy.IMatchPass :: property public string PassId { get; }
+RecDiffy.IMatchPass :: type public interface
+RecDiffy.IReconciliationResult :: method public RecDiffy.Results.CanonicalRow Canonical(RecDiffy.SourceRef row)
+RecDiffy.IReconciliationResult :: method public RecDiffy.Results.CanonicalRow Projection(RecDiffy.Results.GroupId entry, RecDiffy.Side side)
+RecDiffy.IReconciliationResult :: method public RecDiffy.Results.ISideBySideView BuildSideBySide(RecDiffy.Results.SideBySideSpec spec)
+RecDiffy.IReconciliationResult :: method public System.Collections.Generic.IReadOnlyList<RecDiffy.TraceStep> Trace(RecDiffy.SourceRef row)
+RecDiffy.IReconciliationResult :: method public string Format(in RecDiffy.Results.CanonicalValue value)
+RecDiffy.IReconciliationResult :: method public string? Raw(RecDiffy.SourceRef row, string column)
+RecDiffy.IReconciliationResult :: property public RecDiffy.Results.RunInfo Run { get; }
+RecDiffy.IReconciliationResult :: property public RecDiffy.Results.RunSummary Summary { get; }
+RecDiffy.IReconciliationResult :: property public System.Collections.Immutable.ImmutableArray<RecDiffy.Results.ResultEntry> Entries { get; }
+RecDiffy.IReconciliationResult :: property public System.Collections.Immutable.ImmutableArray<RecDiffy.Results.RowResult> Rows { get; }
+RecDiffy.IReconciliationResult :: type public interface
+RecDiffy.InvariantFormatting :: method public static string ToInvariant<T>(this T value) where T : System.IFormattable
+RecDiffy.InvariantFormatting :: method public static string ToInvariant<T>(this T value, string? format) where T : System.IFormattable
+RecDiffy.InvariantFormatting :: type public static class
+RecDiffy.MidpointMode :: enum value AwayFromZero = 1
+RecDiffy.MidpointMode :: enum value ToEven = 0
+RecDiffy.MidpointMode :: type public enum : int
+RecDiffy.MissingColumn :: constructor public (RecDiffy.Side Side, string Column, string Location, string? Suggestion)
+RecDiffy.MissingColumn :: method public RecDiffy.MissingColumn <Clone>$()
+RecDiffy.MissingColumn :: method public bool Equals(RecDiffy.MissingColumn? other)
+RecDiffy.MissingColumn :: method public override bool Equals(object? obj)
+RecDiffy.MissingColumn :: method public override int GetHashCode()
+RecDiffy.MissingColumn :: method public override string ToString()
+RecDiffy.MissingColumn :: method public static bool op_Equality(RecDiffy.MissingColumn? left, RecDiffy.MissingColumn? right)
+RecDiffy.MissingColumn :: method public static bool op_Inequality(RecDiffy.MissingColumn? left, RecDiffy.MissingColumn? right)
+RecDiffy.MissingColumn :: method public void Deconstruct(out RecDiffy.Side Side, out string Column, out string Location, out string? Suggestion)
+RecDiffy.MissingColumn :: property public RecDiffy.Side Side { get; init; }
+RecDiffy.MissingColumn :: property public string Column { get; init; }
+RecDiffy.MissingColumn :: property public string Location { get; init; }
+RecDiffy.MissingColumn :: property public string Message { get; }
+RecDiffy.MissingColumn :: property public string? Suggestion { get; init; }
+RecDiffy.MissingColumn :: type public sealed class implements System.IEquatable<RecDiffy.MissingColumn>
+RecDiffy.NormalizationSide :: constructor public (System.Collections.Generic.IReadOnlyList<RecDiffy.RuleCall> Identify, System.Collections.Generic.IReadOnlyList<RecDiffy.RuleCall> Parse, System.Collections.Generic.IReadOnlyList<RecDiffy.RuleCall> Derive, System.Collections.Generic.IReadOnlyList<RecDiffy.RuleCall> Validate)
+RecDiffy.NormalizationSide :: method public RecDiffy.NormalizationSide <Clone>$()
+RecDiffy.NormalizationSide :: method public bool Equals(RecDiffy.NormalizationSide? other)
+RecDiffy.NormalizationSide :: method public override bool Equals(object? obj)
+RecDiffy.NormalizationSide :: method public override int GetHashCode()
+RecDiffy.NormalizationSide :: method public override string ToString()
+RecDiffy.NormalizationSide :: method public static bool op_Equality(RecDiffy.NormalizationSide? left, RecDiffy.NormalizationSide? right)
+RecDiffy.NormalizationSide :: method public static bool op_Inequality(RecDiffy.NormalizationSide? left, RecDiffy.NormalizationSide? right)
+RecDiffy.NormalizationSide :: method public void Deconstruct(out System.Collections.Generic.IReadOnlyList<RecDiffy.RuleCall> Identify, out System.Collections.Generic.IReadOnlyList<RecDiffy.RuleCall> Parse, out System.Collections.Generic.IReadOnlyList<RecDiffy.RuleCall> Derive, out System.Collections.Generic.IReadOnlyList<RecDiffy.RuleCall> Validate)
+RecDiffy.NormalizationSide :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.RuleCall> Derive { get; init; }
+RecDiffy.NormalizationSide :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.RuleCall> Identify { get; init; }
+RecDiffy.NormalizationSide :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.RuleCall> Parse { get; init; }
+RecDiffy.NormalizationSide :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.RuleCall> Validate { get; init; }
+RecDiffy.NormalizationSide :: type public sealed class implements System.IEquatable<RecDiffy.NormalizationSide>
+RecDiffy.PackageBuilder :: method public RecDiffy.PackageBuilder DifferenceByRole(string field, string role, string? otherRole = null)
+RecDiffy.PackageBuilder :: method public RecDiffy.PackageBuilder FromRole(string field, string role)
+RecDiffy.PackageBuilder :: method public RecDiffy.PackageBuilder RequireRoles(params string[] roles)
+RecDiffy.PackageBuilder :: method public RecDiffy.PackageBuilder Same(string field)
+RecDiffy.PackageBuilder :: method public RecDiffy.PackageBuilder Sum(string field)
+RecDiffy.PackageBuilder :: method public static RecDiffy.PackageBuilder Create(string link = "Parent_Link_ID", string role = "Leg_Structure")
+RecDiffy.PackageBuilder :: type public sealed class
+RecDiffy.PassCardinality :: enum value ManyToOne = 1
+RecDiffy.PassCardinality :: enum value OneToMany = 2
+RecDiffy.PassCardinality :: enum value OneToOne = 0
+RecDiffy.PassCardinality :: type public enum : int
+RecDiffy.PassContext :: method public RecDiffy.Side SideOf(int item)
+RecDiffy.PassContext :: method public bool IsFree(int item)
+RecDiffy.PassContext :: method public bool Vetoed(int left, int right)
+RecDiffy.PassContext :: method public decimal? Number(int item, string field)
+RecDiffy.PassContext :: method public string? KeyOf(int item, System.Collections.Generic.IReadOnlyList<string> fields)
+RecDiffy.PassContext :: property public string PassId { get; }
+RecDiffy.PassContext :: type public readonly struct
+RecDiffy.PassDeclaration :: constructor public (string Id, string Pass, System.Collections.Generic.IReadOnlyList<string> Key, System.Collections.Generic.IReadOnlyList<string> Block, System.Collections.Generic.IReadOnlyList<string> Conserve, string? Many, int? MaxGroupSize)
+RecDiffy.PassDeclaration :: method public RecDiffy.PassDeclaration <Clone>$()
+RecDiffy.PassDeclaration :: method public bool Equals(RecDiffy.PassDeclaration? other)
+RecDiffy.PassDeclaration :: method public override bool Equals(object? obj)
+RecDiffy.PassDeclaration :: method public override int GetHashCode()
+RecDiffy.PassDeclaration :: method public override string ToString()
+RecDiffy.PassDeclaration :: method public static bool op_Equality(RecDiffy.PassDeclaration? left, RecDiffy.PassDeclaration? right)
+RecDiffy.PassDeclaration :: method public static bool op_Inequality(RecDiffy.PassDeclaration? left, RecDiffy.PassDeclaration? right)
+RecDiffy.PassDeclaration :: method public void Deconstruct(out string Id, out string Pass, out System.Collections.Generic.IReadOnlyList<string> Key, out System.Collections.Generic.IReadOnlyList<string> Block, out System.Collections.Generic.IReadOnlyList<string> Conserve, out string? Many, out int? MaxGroupSize)
+RecDiffy.PassDeclaration :: property public System.Collections.Generic.IReadOnlyList<string> Block { get; init; }
+RecDiffy.PassDeclaration :: property public System.Collections.Generic.IReadOnlyList<string> Conserve { get; init; }
+RecDiffy.PassDeclaration :: property public System.Collections.Generic.IReadOnlyList<string> Key { get; init; }
+RecDiffy.PassDeclaration :: property public int? MaxGroupSize { get; init; }
+RecDiffy.PassDeclaration :: property public string Id { get; init; }
+RecDiffy.PassDeclaration :: property public string Pass { get; init; }
+RecDiffy.PassDeclaration :: property public string? Many { get; init; }
+RecDiffy.PassDeclaration :: type public sealed class implements System.IEquatable<RecDiffy.PassDeclaration>
+RecDiffy.PathBuilder :: method public RecDiffy.PathBuilder ApplicableWhen(string field, RecDiffy.WhenClause when)
+RecDiffy.PathBuilder :: method public RecDiffy.PathBuilder AttributedTolerance(string field, string formula, RecDiffy.WhenClause? when = null, RecDiffy.WhenClause? applicableWhen = null)
+RecDiffy.PathBuilder :: method public RecDiffy.PathBuilder Attribution(string field, string formula)
+RecDiffy.PathBuilder :: method public RecDiffy.PathBuilder GroupSum(string id, RecDiffy.Side many, System.Collections.Generic.IReadOnlyList<string> block, System.Collections.Generic.IReadOnlyList<string> conserve, int? maxGroupSize = null, System.Collections.Generic.IReadOnlyList<string>? key = null)
+RecDiffy.PathBuilder :: method public RecDiffy.PathBuilder NaturalKey(string id, params string[] key)
+RecDiffy.PathBuilder :: method public RecDiffy.PathBuilder Pass(RecDiffy.PassDeclaration pass)
+RecDiffy.PathBuilder :: method public RecDiffy.PathBuilder ReducedKey(string id, params string[] key)
+RecDiffy.PathBuilder :: method public RecDiffy.PathBuilder RouteAll()
+RecDiffy.PathBuilder :: method public RecDiffy.PathBuilder RouteWhen(string field, string value)
+RecDiffy.PathBuilder :: method public RecDiffy.PathBuilder SharedRef(string id, params string[] key)
+RecDiffy.PathBuilder :: method public RecDiffy.PathBuilder Tolerance(string field, decimal? absolute = null, decimal? relative = null, RecDiffy.WhenClause? when = null, RecDiffy.WhenClause? applicableWhen = null)
+RecDiffy.PathBuilder :: method public static RecDiffy.PathBuilder Create(string id)
+RecDiffy.PathBuilder :: type public sealed class
+RecDiffy.PathDeclaration :: constructor public (string Id, RecDiffy.RouteDeclaration Route, System.Collections.Generic.IReadOnlyList<RecDiffy.PassDeclaration> Passes, RecDiffy.DiffDeclaration? Diff)
+RecDiffy.PathDeclaration :: method public RecDiffy.PathDeclaration <Clone>$()
+RecDiffy.PathDeclaration :: method public bool Equals(RecDiffy.PathDeclaration? other)
+RecDiffy.PathDeclaration :: method public override bool Equals(object? obj)
+RecDiffy.PathDeclaration :: method public override int GetHashCode()
+RecDiffy.PathDeclaration :: method public override string ToString()
+RecDiffy.PathDeclaration :: method public static bool op_Equality(RecDiffy.PathDeclaration? left, RecDiffy.PathDeclaration? right)
+RecDiffy.PathDeclaration :: method public static bool op_Inequality(RecDiffy.PathDeclaration? left, RecDiffy.PathDeclaration? right)
+RecDiffy.PathDeclaration :: method public void Deconstruct(out string Id, out RecDiffy.RouteDeclaration Route, out System.Collections.Generic.IReadOnlyList<RecDiffy.PassDeclaration> Passes, out RecDiffy.DiffDeclaration? Diff)
+RecDiffy.PathDeclaration :: property public RecDiffy.DiffDeclaration? Diff { get; init; }
+RecDiffy.PathDeclaration :: property public RecDiffy.RouteDeclaration Route { get; init; }
+RecDiffy.PathDeclaration :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.PassDeclaration> Passes { get; init; }
+RecDiffy.PathDeclaration :: property public string Id { get; init; }
+RecDiffy.PathDeclaration :: type public sealed class implements System.IEquatable<RecDiffy.PathDeclaration>
+RecDiffy.ProfileBuildResult :: constructor public (RecDiffy.ProfileDocument? Document, System.Collections.Generic.IReadOnlyList<RecDiffy.ProfileProblem> Problems)
+RecDiffy.ProfileBuildResult :: method public RecDiffy.ProfileBuildResult <Clone>$()
+RecDiffy.ProfileBuildResult :: method public bool Equals(RecDiffy.ProfileBuildResult? other)
+RecDiffy.ProfileBuildResult :: method public override bool Equals(object? obj)
+RecDiffy.ProfileBuildResult :: method public override int GetHashCode()
+RecDiffy.ProfileBuildResult :: method public override string ToString()
+RecDiffy.ProfileBuildResult :: method public static bool op_Equality(RecDiffy.ProfileBuildResult? left, RecDiffy.ProfileBuildResult? right)
+RecDiffy.ProfileBuildResult :: method public static bool op_Inequality(RecDiffy.ProfileBuildResult? left, RecDiffy.ProfileBuildResult? right)
+RecDiffy.ProfileBuildResult :: method public void Deconstruct(out RecDiffy.ProfileDocument? Document, out System.Collections.Generic.IReadOnlyList<RecDiffy.ProfileProblem> Problems)
+RecDiffy.ProfileBuildResult :: property public RecDiffy.ProfileDocument? Document { get; init; }
+RecDiffy.ProfileBuildResult :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.ProfileProblem> Problems { get; init; }
+RecDiffy.ProfileBuildResult :: property public bool Succeeded { get; }
+RecDiffy.ProfileBuildResult :: type public sealed class implements System.IEquatable<RecDiffy.ProfileBuildResult>
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuildResult Build()
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuildResult Build(RecDiffy.RuleRegistry registry)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Culture(RecDiffy.Side side, System.Globalization.CultureInfo culture)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Culture(System.Globalization.CultureInfo culture)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Economic(string name, RecDiffy.FieldType type, int scale = 0)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Field(string name, RecDiffy.FieldType type, RecDiffy.FieldRole role, int scale = 0)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Identity(string name, RecDiffy.FieldType type)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Key(string name, RecDiffy.FieldType type, int scale = 0)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Left(RecDiffy.SideBuilder rules)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Left(System.Func<RecDiffy.SideBuilder, RecDiffy.SideBuilder> configure)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Lifecycle(RecDiffy.Side side, string action = "EventAction", string target = "EventTarget", string scope = "Counterparty", string corrPointsAt = "CANC")
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Lifecycle(string name, RecDiffy.FieldType type)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Limits(RecDiffy.SearchLimits limits)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Midpoint(RecDiffy.MidpointMode midpoint)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Normalize(RecDiffy.Side side, RecDiffy.SideBuilder rules)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Package(string name, RecDiffy.FieldType type)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Packages(RecDiffy.Side side, params RecDiffy.PackageBuilder[] packages)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Path(RecDiffy.PathBuilder path)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Path(string id, System.Func<RecDiffy.PathBuilder, RecDiffy.PathBuilder> configure)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Right(RecDiffy.SideBuilder rules)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder Right(System.Func<RecDiffy.SideBuilder, RecDiffy.SideBuilder> configure)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder RowKey(RecDiffy.Side side, string column)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder RowKeys(string left, string right)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder StrictDateFormats(RecDiffy.Side side, bool strict)
+RecDiffy.ProfileBuilder :: method public RecDiffy.ProfileBuilder StrictDateFormats(bool strict)
+RecDiffy.ProfileBuilder :: method public static RecDiffy.ProfileBuilder Create(string profileId, string version)
+RecDiffy.ProfileBuilder :: method public static RecDiffy.ProfileBuilder From(RecDiffy.ProfileDocument document)
+RecDiffy.ProfileBuilder :: type public sealed class
+RecDiffy.ProfileCheck :: method public static System.Collections.Generic.IReadOnlyList<RecDiffy.MissingColumn> AgainstHeaders(RecDiffy.ProfileDocument document, System.Collections.Generic.IReadOnlyCollection<string> leftHeaders, System.Collections.Generic.IReadOnlyCollection<string> rightHeaders, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<string>>? columnParameters = null)
+RecDiffy.ProfileCheck :: type public static class
+RecDiffy.ProfileCompileException :: constructor public (System.Collections.Generic.IReadOnlyList<RecDiffy.ProfileError> errors)
+RecDiffy.ProfileCompileException :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.ProfileError> Errors { get; }
+RecDiffy.ProfileCompileException :: type public sealed class extends System.Exception
+RecDiffy.ProfileDocument :: constructor [Obsolete("Constructors of types with required members are not supported in this version of your compiler.", true)] public ()
+RecDiffy.ProfileDocument :: method public RecDiffy.ProfileDocument <Clone>$()
+RecDiffy.ProfileDocument :: method public bool Equals(RecDiffy.ProfileDocument? other)
+RecDiffy.ProfileDocument :: method public override bool Equals(object? obj)
+RecDiffy.ProfileDocument :: method public override int GetHashCode()
+RecDiffy.ProfileDocument :: method public override string ToString()
+RecDiffy.ProfileDocument :: method public static RecDiffy.ProfileDocument Parse(string json)
+RecDiffy.ProfileDocument :: method public static bool op_Equality(RecDiffy.ProfileDocument? left, RecDiffy.ProfileDocument? right)
+RecDiffy.ProfileDocument :: method public static bool op_Inequality(RecDiffy.ProfileDocument? left, RecDiffy.ProfileDocument? right)
+RecDiffy.ProfileDocument :: property public System.Collections.Immutable.ImmutableDictionary<string, RecDiffy.SourceReading> SourceReadings { get; init; }
+RecDiffy.ProfileDocument :: property public bool? StrictDateFormats { get; init; }
+RecDiffy.ProfileDocument :: property public required RecDiffy.MidpointMode Midpoint { get; init; }
+RecDiffy.ProfileDocument :: property public required RecDiffy.SearchLimits Limits { get; init; }
+RecDiffy.ProfileDocument :: property public required System.Collections.Generic.IReadOnlyDictionary<string, RecDiffy.NormalizationSide> Normalization { get; init; }
+RecDiffy.ProfileDocument :: property public required System.Collections.Generic.IReadOnlyDictionary<string, string> SourceKeys { get; init; }
+RecDiffy.ProfileDocument :: property public required System.Collections.Generic.IReadOnlyList<RecDiffy.FieldDeclaration> Fields { get; init; }
+RecDiffy.ProfileDocument :: property public required System.Collections.Generic.IReadOnlyList<RecDiffy.PathDeclaration> Paths { get; init; }
+RecDiffy.ProfileDocument :: property public required int FormatVersion { get; init; }
+RecDiffy.ProfileDocument :: property public required string ProfileId { get; init; }
+RecDiffy.ProfileDocument :: property public required string Version { get; init; }
+RecDiffy.ProfileDocument :: property public string? Culture { get; init; }
+RecDiffy.ProfileDocument :: type public sealed class implements System.IEquatable<RecDiffy.ProfileDocument>
+RecDiffy.ProfileError :: constructor public (string Code, string Message)
+RecDiffy.ProfileError :: method public RecDiffy.ProfileError <Clone>$()
+RecDiffy.ProfileError :: method public bool Equals(RecDiffy.ProfileError? other)
+RecDiffy.ProfileError :: method public override bool Equals(object? obj)
+RecDiffy.ProfileError :: method public override int GetHashCode()
+RecDiffy.ProfileError :: method public override string ToString()
+RecDiffy.ProfileError :: method public static bool op_Equality(RecDiffy.ProfileError? left, RecDiffy.ProfileError? right)
+RecDiffy.ProfileError :: method public static bool op_Inequality(RecDiffy.ProfileError? left, RecDiffy.ProfileError? right)
+RecDiffy.ProfileError :: method public void Deconstruct(out string Code, out string Message)
+RecDiffy.ProfileError :: property public string Code { get; init; }
+RecDiffy.ProfileError :: property public string Message { get; init; }
+RecDiffy.ProfileError :: type public sealed class implements System.IEquatable<RecDiffy.ProfileError>
+RecDiffy.ProfileProblem :: constructor public (string Code, string Message, string Location)
+RecDiffy.ProfileProblem :: method public RecDiffy.ProfileProblem <Clone>$()
+RecDiffy.ProfileProblem :: method public bool Equals(RecDiffy.ProfileProblem? other)
+RecDiffy.ProfileProblem :: method public override bool Equals(object? obj)
+RecDiffy.ProfileProblem :: method public override int GetHashCode()
+RecDiffy.ProfileProblem :: method public override string ToString()
+RecDiffy.ProfileProblem :: method public static bool op_Equality(RecDiffy.ProfileProblem? left, RecDiffy.ProfileProblem? right)
+RecDiffy.ProfileProblem :: method public static bool op_Inequality(RecDiffy.ProfileProblem? left, RecDiffy.ProfileProblem? right)
+RecDiffy.ProfileProblem :: method public void Deconstruct(out string Code, out string Message, out string Location)
+RecDiffy.ProfileProblem :: property public string Code { get; init; }
+RecDiffy.ProfileProblem :: property public string Location { get; init; }
+RecDiffy.ProfileProblem :: property public string Message { get; init; }
+RecDiffy.ProfileProblem :: type public sealed class implements System.IEquatable<RecDiffy.ProfileProblem>
+RecDiffy.ProfileProblemCodes :: field public const string DuplicateField = "DuplicateField"
+RecDiffy.ProfileProblemCodes :: field public const string DuplicatePass = "DuplicatePass"
+RecDiffy.ProfileProblemCodes :: field public const string DuplicatePath = "DuplicatePath"
+RecDiffy.ProfileProblemCodes :: field public const string MissingPath = "MissingPath"
+RecDiffy.ProfileProblemCodes :: field public const string MultipleOperands = "MultipleOperands"
+RecDiffy.ProfileProblemCodes :: field public const string ToleranceMismatch = "ToleranceMismatch"
+RecDiffy.ProfileProblemCodes :: field public const string UndeclaredDiffField = "UndeclaredDiffField"
+RecDiffy.ProfileProblemCodes :: field public const string UndeclaredField = "UndeclaredField"
+RecDiffy.ProfileProblemCodes :: field public const string UndeclaredPassField = "UndeclaredPassField"
+RecDiffy.ProfileProblemCodes :: field public const string UndeclaredRuleTarget = "UndeclaredRuleTarget"
+RecDiffy.ProfileProblemCodes :: type public static class
+RecDiffy.ProfileWriter :: method public static string ToJson(this RecDiffy.ProfileDocument document, bool indented = true)
+RecDiffy.ProfileWriter :: type public static class
+RecDiffy.ProposalSink :: constructor public ()
+RecDiffy.ProposalSink :: method public void Propose(System.Collections.Generic.IReadOnlyList<int> left, System.Collections.Generic.IReadOnlyList<int> right, string key)
+RecDiffy.ProposalSink :: type public sealed class
+RecDiffy.RecBuilder :: method public static RecDiffy.RecBuilder<TLeft, TRight> Between<TLeft, TRight>(System.Collections.Generic.IEnumerable<TLeft> left, System.Collections.Generic.IEnumerable<TRight> right)
+RecDiffy.RecBuilder :: type public static class
+RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> And<TLeftValue, TRightValue>(System.Linq.Expressions.Expression<System.Func<TLeft, TLeftValue>> left, System.Linq.Expressions.Expression<System.Func<TRight, TRightValue>> right)
+RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> Compare<TLeftValue, TRightValue>(System.Linq.Expressions.Expression<System.Func<TLeft, TLeftValue>> left, System.Linq.Expressions.Expression<System.Func<TRight, TRightValue>> right, decimal? tolerance = null)
+RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> MatchOn<TLeftValue, TRightValue>(System.Linq.Expressions.Expression<System.Func<TLeft, TLeftValue>> left, System.Linq.Expressions.Expression<System.Func<TRight, TRightValue>> right)
+RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> Named(string profileId, string version)
+RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> Sum<TLeftValue, TRightValue>(System.Linq.Expressions.Expression<System.Func<TLeft, TLeftValue>> left, System.Linq.Expressions.Expression<System.Func<TRight, TRightValue>> right)
+RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> ThenMatchOn<TLeftValue, TRightValue>(System.Linq.Expressions.Expression<System.Func<TLeft, TLeftValue>> left, System.Linq.Expressions.Expression<System.Func<TRight, TRightValue>> right)
+RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecResult<TLeft, TRight> Run(System.Threading.CancellationToken cancellationToken = default)
+RecDiffy.RecBuilder<TLeft, TRight> :: property public RecDiffy.ProfileDocument Profile { get; }
+RecDiffy.RecBuilder<TLeft, TRight> :: type public sealed class
+RecDiffy.RecGroup<TLeft, TRight> :: constructor public (System.Collections.Generic.IReadOnlyList<TLeft> Left, System.Collections.Generic.IReadOnlyList<TRight> Right)
+RecDiffy.RecGroup<TLeft, TRight> :: method public RecDiffy.RecGroup<TLeft, TRight> <Clone>$()
+RecDiffy.RecGroup<TLeft, TRight> :: method public bool Equals(RecDiffy.RecGroup<TLeft, TRight>? other)
+RecDiffy.RecGroup<TLeft, TRight> :: method public override bool Equals(object? obj)
+RecDiffy.RecGroup<TLeft, TRight> :: method public override int GetHashCode()
+RecDiffy.RecGroup<TLeft, TRight> :: method public override string ToString()
+RecDiffy.RecGroup<TLeft, TRight> :: method public static bool op_Equality(RecDiffy.RecGroup<TLeft, TRight>? left, RecDiffy.RecGroup<TLeft, TRight>? right)
+RecDiffy.RecGroup<TLeft, TRight> :: method public static bool op_Inequality(RecDiffy.RecGroup<TLeft, TRight>? left, RecDiffy.RecGroup<TLeft, TRight>? right)
+RecDiffy.RecGroup<TLeft, TRight> :: method public void Deconstruct(out System.Collections.Generic.IReadOnlyList<TLeft> Left, out System.Collections.Generic.IReadOnlyList<TRight> Right)
+RecDiffy.RecGroup<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<TLeft> Left { get; init; }
+RecDiffy.RecGroup<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<TRight> Right { get; init; }
+RecDiffy.RecGroup<TLeft, TRight> :: type public sealed class implements System.IEquatable<RecDiffy.RecGroup<TLeft, TRight>>
+RecDiffy.RecMatch<TLeft, TRight> :: constructor public (System.Collections.Generic.IReadOnlyList<TLeft> Left, System.Collections.Generic.IReadOnlyList<TRight> Right, RecDiffy.Results.FieldOutcome Outcome, System.Collections.Generic.IReadOnlyList<RecDiffy.Results.FieldDiff> Diffs)
+RecDiffy.RecMatch<TLeft, TRight> :: method public RecDiffy.RecMatch<TLeft, TRight> <Clone>$()
+RecDiffy.RecMatch<TLeft, TRight> :: method public bool Equals(RecDiffy.RecMatch<TLeft, TRight>? other)
+RecDiffy.RecMatch<TLeft, TRight> :: method public override bool Equals(object? obj)
+RecDiffy.RecMatch<TLeft, TRight> :: method public override int GetHashCode()
+RecDiffy.RecMatch<TLeft, TRight> :: method public override string ToString()
+RecDiffy.RecMatch<TLeft, TRight> :: method public static bool op_Equality(RecDiffy.RecMatch<TLeft, TRight>? left, RecDiffy.RecMatch<TLeft, TRight>? right)
+RecDiffy.RecMatch<TLeft, TRight> :: method public static bool op_Inequality(RecDiffy.RecMatch<TLeft, TRight>? left, RecDiffy.RecMatch<TLeft, TRight>? right)
+RecDiffy.RecMatch<TLeft, TRight> :: method public void Deconstruct(out System.Collections.Generic.IReadOnlyList<TLeft> Left, out System.Collections.Generic.IReadOnlyList<TRight> Right, out RecDiffy.Results.FieldOutcome Outcome, out System.Collections.Generic.IReadOnlyList<RecDiffy.Results.FieldDiff> Diffs)
+RecDiffy.RecMatch<TLeft, TRight> :: property public RecDiffy.Results.FieldOutcome Outcome { get; init; }
+RecDiffy.RecMatch<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.Results.FieldDiff> Diffs { get; init; }
+RecDiffy.RecMatch<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<TLeft> Left { get; init; }
+RecDiffy.RecMatch<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<TRight> Right { get; init; }
+RecDiffy.RecMatch<TLeft, TRight> :: type public sealed class implements System.IEquatable<RecDiffy.RecMatch<TLeft, TRight>>
+RecDiffy.RecResult<TLeft, TRight> :: property public RecDiffy.IReconciliationResult Result { get; }
+RecDiffy.RecResult<TLeft, TRight> :: property public RecDiffy.ProfileDocument Profile { get; }
+RecDiffy.RecResult<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.RecGroup<TLeft, TRight>> Ambiguous { get; }
+RecDiffy.RecResult<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.RecMatch<TLeft, TRight>> Breaks { get; }
+RecDiffy.RecResult<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.RecMatch<TLeft, TRight>> Matched { get; }
+RecDiffy.RecResult<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<TLeft> LeftOnly { get; }
+RecDiffy.RecResult<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<TRight> RightOnly { get; }
+RecDiffy.RecResult<TLeft, TRight> :: type public sealed class
+RecDiffy.Reconciler :: method public static RecDiffy.CompiledProfile Compile(RecDiffy.ProfileDocument document, RecDiffy.RuleRegistry registry)
+RecDiffy.Reconciler :: method public static RecDiffy.IReconciliationResult Run(RecDiffy.CompiledProfile profile, RecDiffy.RecordSource left, RecDiffy.RecordSource right, RecDiffy.ReferenceDataSet referenceData, RecDiffy.RunOptions? options = null, System.Threading.CancellationToken cancellationToken = default)
+RecDiffy.Reconciler :: method public static System.Threading.Tasks.Task<RecDiffy.IReconciliationResult> RunAsync(RecDiffy.CompiledProfile profile, RecDiffy.RecordSource left, RecDiffy.RecordSource right, RecDiffy.ReferenceDataSet referenceData, RecDiffy.RunOptions? options = null, System.Threading.CancellationToken cancellationToken = default)
+RecDiffy.Reconciler :: type public static class
+RecDiffy.RecordSource :: constructor protected ()
+RecDiffy.RecordSource :: type public abstract class
+RecDiffy.RecordSources :: method public static RecDiffy.RecordSource FromDataReader(string name, System.Func<System.Data.IDataReader> open, RecDiffy.TabularOptions options)
+RecDiffy.RecordSources :: method public static RecDiffy.RecordSource FromObjects<T>(string name, System.Collections.Generic.IAsyncEnumerable<T> rows, RecDiffy.SourceMap<T> map)
+RecDiffy.RecordSources :: method public static RecDiffy.RecordSource FromObjects<T>(string name, System.Collections.Generic.IEnumerable<T> rows, RecDiffy.SourceMap<T> map)
+RecDiffy.RecordSources :: type public static class
+RecDiffy.ReferenceDataSet :: constructor public (string Id, System.DateOnly AsOf, string ContentHash, System.Collections.Generic.IReadOnlyDictionary<string, string> LeiToCode, System.Collections.Generic.IReadOnlyDictionary<string, string> AliasToCode, System.Collections.Generic.IReadOnlyDictionary<string, string> DateFormatByCode)
+RecDiffy.ReferenceDataSet :: method public RecDiffy.ReferenceDataSet <Clone>$()
+RecDiffy.ReferenceDataSet :: method public bool Equals(RecDiffy.ReferenceDataSet? other)
+RecDiffy.ReferenceDataSet :: method public override bool Equals(object? obj)
+RecDiffy.ReferenceDataSet :: method public override int GetHashCode()
+RecDiffy.ReferenceDataSet :: method public override string ToString()
+RecDiffy.ReferenceDataSet :: method public static RecDiffy.ReferenceDataSet Create(string id, System.DateOnly asOf, string contentHash, System.Collections.Generic.IReadOnlyDictionary<string, string> leiToCode, System.Collections.Generic.IReadOnlyDictionary<string, string> aliasToCode, System.Collections.Generic.IReadOnlyDictionary<string, string> dateFormatByCode)
+RecDiffy.ReferenceDataSet :: method public static bool op_Equality(RecDiffy.ReferenceDataSet? left, RecDiffy.ReferenceDataSet? right)
+RecDiffy.ReferenceDataSet :: method public static bool op_Inequality(RecDiffy.ReferenceDataSet? left, RecDiffy.ReferenceDataSet? right)
+RecDiffy.ReferenceDataSet :: method public void Deconstruct(out string Id, out System.DateOnly AsOf, out string ContentHash, out System.Collections.Generic.IReadOnlyDictionary<string, string> LeiToCode, out System.Collections.Generic.IReadOnlyDictionary<string, string> AliasToCode, out System.Collections.Generic.IReadOnlyDictionary<string, string> DateFormatByCode)
+RecDiffy.ReferenceDataSet :: property public System.Collections.Generic.IReadOnlyDictionary<string, string> AliasToCode { get; init; }
+RecDiffy.ReferenceDataSet :: property public System.Collections.Generic.IReadOnlyDictionary<string, string> DateFormatByCode { get; init; }
+RecDiffy.ReferenceDataSet :: property public System.Collections.Generic.IReadOnlyDictionary<string, string> LeiToCode { get; init; }
+RecDiffy.ReferenceDataSet :: property public System.DateOnly AsOf { get; init; }
+RecDiffy.ReferenceDataSet :: property public static RecDiffy.ReferenceDataSet Empty { get; }
+RecDiffy.ReferenceDataSet :: property public string ContentHash { get; init; }
+RecDiffy.ReferenceDataSet :: property public string Id { get; init; }
+RecDiffy.ReferenceDataSet :: type public sealed class implements System.IEquatable<RecDiffy.ReferenceDataSet>
+RecDiffy.Results.Alignment :: enum value Ambiguous = 1
+RecDiffy.Results.Alignment :: enum value LeftOnly = 3
+RecDiffy.Results.Alignment :: enum value Matched = 0
+RecDiffy.Results.Alignment :: enum value RightOnly = 4
+RecDiffy.Results.Alignment :: enum value SearchIncomplete = 2
+RecDiffy.Results.Alignment :: type public enum : int
+RecDiffy.Results.AttributionId :: constructor public (string Value)
+RecDiffy.Results.AttributionId :: method public bool Equals(RecDiffy.Results.AttributionId other)
+RecDiffy.Results.AttributionId :: method public override bool Equals(object obj)
+RecDiffy.Results.AttributionId :: method public override int GetHashCode()
+RecDiffy.Results.AttributionId :: method public override string ToString()
+RecDiffy.Results.AttributionId :: method public static bool op_Equality(RecDiffy.Results.AttributionId left, RecDiffy.Results.AttributionId right)
+RecDiffy.Results.AttributionId :: method public static bool op_Inequality(RecDiffy.Results.AttributionId left, RecDiffy.Results.AttributionId right)
+RecDiffy.Results.AttributionId :: method public void Deconstruct(out string Value)
+RecDiffy.Results.AttributionId :: property public string Value { get; init; }
+RecDiffy.Results.AttributionId :: type public readonly struct implements System.IEquatable<RecDiffy.Results.AttributionId>
+RecDiffy.Results.CanonicalRow :: method public bool IsNull(string field)
+RecDiffy.Results.CanonicalRow :: method public string Text(string field)
+RecDiffy.Results.CanonicalRow :: property public RecDiffy.Results.CanonicalValue Item[string field] { get; }
+RecDiffy.Results.CanonicalRow :: type public readonly struct
+RecDiffy.Results.CanonicalValue :: constructor public (RecDiffy.FieldType Type, bool IsNull, decimal Number, System.DateOnly Date, int Interned, string? Text = null)
+RecDiffy.Results.CanonicalValue :: method public bool Equals(RecDiffy.Results.CanonicalValue other)
+RecDiffy.Results.CanonicalValue :: method public override bool Equals(object obj)
+RecDiffy.Results.CanonicalValue :: method public override int GetHashCode()
+RecDiffy.Results.CanonicalValue :: method public override string ToString()
+RecDiffy.Results.CanonicalValue :: method public static bool op_Equality(RecDiffy.Results.CanonicalValue left, RecDiffy.Results.CanonicalValue right)
+RecDiffy.Results.CanonicalValue :: method public static bool op_Inequality(RecDiffy.Results.CanonicalValue left, RecDiffy.Results.CanonicalValue right)
+RecDiffy.Results.CanonicalValue :: method public void Deconstruct(out RecDiffy.FieldType Type, out bool IsNull, out decimal Number, out System.DateOnly Date, out int Interned, out string? Text)
+RecDiffy.Results.CanonicalValue :: property public RecDiffy.FieldType Type { get; init; }
+RecDiffy.Results.CanonicalValue :: property public System.DateOnly Date { get; init; }
+RecDiffy.Results.CanonicalValue :: property public bool IsNull { get; init; }
+RecDiffy.Results.CanonicalValue :: property public decimal Number { get; init; }
+RecDiffy.Results.CanonicalValue :: property public int Interned { get; init; }
+RecDiffy.Results.CanonicalValue :: property public string? Text { get; init; }
+RecDiffy.Results.CanonicalValue :: type public readonly struct implements System.IEquatable<RecDiffy.Results.CanonicalValue>
+RecDiffy.Results.Composition :: enum value LifecycleCollapsed = 16
+RecDiffy.Results.Composition :: enum value ManyToOne = 2
+RecDiffy.Results.Composition :: enum value None = 0
+RecDiffy.Results.Composition :: enum value OneToMany = 4
+RecDiffy.Results.Composition :: enum value OneToOne = 1
+RecDiffy.Results.Composition :: enum value Package = 8
+RecDiffy.Results.Composition :: type [Flags] public enum : int
+RecDiffy.Results.CultureOrigin :: enum value Run = 1
+RecDiffy.Results.CultureOrigin :: enum value Server = 2
+RecDiffy.Results.CultureOrigin :: enum value Side = 0
+RecDiffy.Results.CultureOrigin :: type public enum : int
+RecDiffy.Results.Delta :: constructor public (RecDiffy.Results.DeltaKind Kind, decimal Number, int Days)
+RecDiffy.Results.Delta :: method public bool Equals(RecDiffy.Results.Delta other)
+RecDiffy.Results.Delta :: method public override bool Equals(object obj)
+RecDiffy.Results.Delta :: method public override int GetHashCode()
+RecDiffy.Results.Delta :: method public override string ToString()
+RecDiffy.Results.Delta :: method public static bool op_Equality(RecDiffy.Results.Delta left, RecDiffy.Results.Delta right)
+RecDiffy.Results.Delta :: method public static bool op_Inequality(RecDiffy.Results.Delta left, RecDiffy.Results.Delta right)
+RecDiffy.Results.Delta :: method public void Deconstruct(out RecDiffy.Results.DeltaKind Kind, out decimal Number, out int Days)
+RecDiffy.Results.Delta :: property public RecDiffy.Results.DeltaKind Kind { get; init; }
+RecDiffy.Results.Delta :: property public decimal Number { get; init; }
+RecDiffy.Results.Delta :: property public int Days { get; init; }
+RecDiffy.Results.Delta :: type public readonly struct implements System.IEquatable<RecDiffy.Results.Delta>
+RecDiffy.Results.DeltaKind :: enum value Days = 2
+RecDiffy.Results.DeltaKind :: enum value None = 0
+RecDiffy.Results.DeltaKind :: enum value Number = 1
+RecDiffy.Results.DeltaKind :: type public enum : int
+RecDiffy.Results.Disposition :: enum value Ambiguous = 1
+RecDiffy.Results.Disposition :: enum value LeftOnly = 3
+RecDiffy.Results.Disposition :: enum value Matched = 0
+RecDiffy.Results.Disposition :: enum value Quarantined = 5
+RecDiffy.Results.Disposition :: enum value RightOnly = 4
+RecDiffy.Results.Disposition :: enum value SearchIncomplete = 2
+RecDiffy.Results.Disposition :: enum value Suppressed = 6
+RecDiffy.Results.Disposition :: type public enum : int
+RecDiffy.Results.Explanation :: constructor public (string? CommittedBy, System.Collections.Generic.IReadOnlyList<RecDiffy.Results.PassAttempt> Trail, System.Collections.Generic.IReadOnlyList<RecDiffy.Results.Hint> Hints)
+RecDiffy.Results.Explanation :: method public RecDiffy.Results.Explanation <Clone>$()
+RecDiffy.Results.Explanation :: method public bool Equals(RecDiffy.Results.Explanation? other)
+RecDiffy.Results.Explanation :: method public override bool Equals(object? obj)
+RecDiffy.Results.Explanation :: method public override int GetHashCode()
+RecDiffy.Results.Explanation :: method public override string ToString()
+RecDiffy.Results.Explanation :: method public static bool op_Equality(RecDiffy.Results.Explanation? left, RecDiffy.Results.Explanation? right)
+RecDiffy.Results.Explanation :: method public static bool op_Inequality(RecDiffy.Results.Explanation? left, RecDiffy.Results.Explanation? right)
+RecDiffy.Results.Explanation :: method public void Deconstruct(out string? CommittedBy, out System.Collections.Generic.IReadOnlyList<RecDiffy.Results.PassAttempt> Trail, out System.Collections.Generic.IReadOnlyList<RecDiffy.Results.Hint> Hints)
+RecDiffy.Results.Explanation :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.Results.Hint> Hints { get; init; }
+RecDiffy.Results.Explanation :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.Results.PassAttempt> Trail { get; init; }
+RecDiffy.Results.Explanation :: property public string? CommittedBy { get; init; }
+RecDiffy.Results.Explanation :: type public sealed class implements System.IEquatable<RecDiffy.Results.Explanation>
+RecDiffy.Results.FieldDiff :: constructor public (RecDiffy.FieldId Field, RecDiffy.Results.FieldOutcome Outcome, RecDiffy.Results.CanonicalValue Left, RecDiffy.Results.CanonicalValue Right, RecDiffy.Results.Delta Delta, RecDiffy.Results.ToleranceId Tolerance, RecDiffy.Results.AttributionId Attribution, System.Collections.Immutable.ImmutableArray<string> AttributedTo)
+RecDiffy.Results.FieldDiff :: method public bool Equals(RecDiffy.Results.FieldDiff other)
+RecDiffy.Results.FieldDiff :: method public override bool Equals(object obj)
+RecDiffy.Results.FieldDiff :: method public override int GetHashCode()
+RecDiffy.Results.FieldDiff :: method public override string ToString()
+RecDiffy.Results.FieldDiff :: method public static bool op_Equality(RecDiffy.Results.FieldDiff left, RecDiffy.Results.FieldDiff right)
+RecDiffy.Results.FieldDiff :: method public static bool op_Inequality(RecDiffy.Results.FieldDiff left, RecDiffy.Results.FieldDiff right)
+RecDiffy.Results.FieldDiff :: method public void Deconstruct(out RecDiffy.FieldId Field, out RecDiffy.Results.FieldOutcome Outcome, out RecDiffy.Results.CanonicalValue Left, out RecDiffy.Results.CanonicalValue Right, out RecDiffy.Results.Delta Delta, out RecDiffy.Results.ToleranceId Tolerance, out RecDiffy.Results.AttributionId Attribution, out System.Collections.Immutable.ImmutableArray<string> AttributedTo)
+RecDiffy.Results.FieldDiff :: property public RecDiffy.FieldId Field { get; init; }
+RecDiffy.Results.FieldDiff :: property public RecDiffy.Results.AttributionId Attribution { get; init; }
+RecDiffy.Results.FieldDiff :: property public RecDiffy.Results.CanonicalValue Left { get; init; }
+RecDiffy.Results.FieldDiff :: property public RecDiffy.Results.CanonicalValue Right { get; init; }
+RecDiffy.Results.FieldDiff :: property public RecDiffy.Results.Delta Delta { get; init; }
+RecDiffy.Results.FieldDiff :: property public RecDiffy.Results.FieldOutcome Outcome { get; init; }
+RecDiffy.Results.FieldDiff :: property public RecDiffy.Results.ToleranceId Tolerance { get; init; }
+RecDiffy.Results.FieldDiff :: property public System.Collections.Immutable.ImmutableArray<string> AttributedTo { get; init; }
+RecDiffy.Results.FieldDiff :: type public readonly struct implements System.IEquatable<RecDiffy.Results.FieldDiff>
+RecDiffy.Results.FieldOutcome :: enum value Break = 3
+RecDiffy.Results.FieldOutcome :: enum value Exact = 1
+RecDiffy.Results.FieldOutcome :: enum value NotCompared = 0
+RecDiffy.Results.FieldOutcome :: enum value WithinTolerance = 2
+RecDiffy.Results.FieldOutcome :: type public enum : int
+RecDiffy.Results.FilterSpec :: constructor public (string Field, string EqualsValue)
+RecDiffy.Results.FilterSpec :: method public RecDiffy.Results.FilterSpec <Clone>$()
+RecDiffy.Results.FilterSpec :: method public bool Equals(RecDiffy.Results.FilterSpec? other)
+RecDiffy.Results.FilterSpec :: method public override bool Equals(object? obj)
+RecDiffy.Results.FilterSpec :: method public override int GetHashCode()
+RecDiffy.Results.FilterSpec :: method public override string ToString()
+RecDiffy.Results.FilterSpec :: method public static bool op_Equality(RecDiffy.Results.FilterSpec? left, RecDiffy.Results.FilterSpec? right)
+RecDiffy.Results.FilterSpec :: method public static bool op_Inequality(RecDiffy.Results.FilterSpec? left, RecDiffy.Results.FilterSpec? right)
+RecDiffy.Results.FilterSpec :: method public void Deconstruct(out string Field, out string EqualsValue)
+RecDiffy.Results.FilterSpec :: property public string EqualsValue { get; init; }
+RecDiffy.Results.FilterSpec :: property public string Field { get; init; }
+RecDiffy.Results.FilterSpec :: type public sealed class implements System.IEquatable<RecDiffy.Results.FilterSpec>
+RecDiffy.Results.GroupId :: constructor public (string Value)
+RecDiffy.Results.GroupId :: method public bool Equals(RecDiffy.Results.GroupId other)
+RecDiffy.Results.GroupId :: method public override bool Equals(object obj)
+RecDiffy.Results.GroupId :: method public override int GetHashCode()
+RecDiffy.Results.GroupId :: method public override string ToString()
+RecDiffy.Results.GroupId :: method public static bool op_Equality(RecDiffy.Results.GroupId left, RecDiffy.Results.GroupId right)
+RecDiffy.Results.GroupId :: method public static bool op_Inequality(RecDiffy.Results.GroupId left, RecDiffy.Results.GroupId right)
+RecDiffy.Results.GroupId :: method public void Deconstruct(out string Value)
+RecDiffy.Results.GroupId :: property public string Value { get; init; }
+RecDiffy.Results.GroupId :: type public readonly struct implements System.IEquatable<RecDiffy.Results.GroupId>
+RecDiffy.Results.Hint :: constructor public (string Code, string Detail)
+RecDiffy.Results.Hint :: method public RecDiffy.Results.Hint <Clone>$()
+RecDiffy.Results.Hint :: method public bool Equals(RecDiffy.Results.Hint? other)
+RecDiffy.Results.Hint :: method public override bool Equals(object? obj)
+RecDiffy.Results.Hint :: method public override int GetHashCode()
+RecDiffy.Results.Hint :: method public override string ToString()
+RecDiffy.Results.Hint :: method public static bool op_Equality(RecDiffy.Results.Hint? left, RecDiffy.Results.Hint? right)
+RecDiffy.Results.Hint :: method public static bool op_Inequality(RecDiffy.Results.Hint? left, RecDiffy.Results.Hint? right)
+RecDiffy.Results.Hint :: method public void Deconstruct(out string Code, out string Detail)
+RecDiffy.Results.Hint :: property public string Code { get; init; }
+RecDiffy.Results.Hint :: property public string Detail { get; init; }
+RecDiffy.Results.Hint :: type public sealed class implements System.IEquatable<RecDiffy.Results.Hint>
+RecDiffy.Results.ISideBySideView :: property public System.Collections.Immutable.ImmutableArray<RecDiffy.Results.SideBySideLine> Lines { get; }
+RecDiffy.Results.ISideBySideView :: type public interface
+RecDiffy.Results.InputValidity :: enum value Invalid = 2
+RecDiffy.Results.InputValidity :: enum value Valid = 0
+RecDiffy.Results.InputValidity :: enum value ValidWithWarnings = 1
+RecDiffy.Results.InputValidity :: type public enum : int
+RecDiffy.Results.MeasureSpec :: constructor public (string Field)
+RecDiffy.Results.MeasureSpec :: method public RecDiffy.Results.MeasureSpec <Clone>$()
+RecDiffy.Results.MeasureSpec :: method public bool Equals(RecDiffy.Results.MeasureSpec? other)
+RecDiffy.Results.MeasureSpec :: method public override bool Equals(object? obj)
+RecDiffy.Results.MeasureSpec :: method public override int GetHashCode()
+RecDiffy.Results.MeasureSpec :: method public override string ToString()
+RecDiffy.Results.MeasureSpec :: method public static bool op_Equality(RecDiffy.Results.MeasureSpec? left, RecDiffy.Results.MeasureSpec? right)
+RecDiffy.Results.MeasureSpec :: method public static bool op_Inequality(RecDiffy.Results.MeasureSpec? left, RecDiffy.Results.MeasureSpec? right)
+RecDiffy.Results.MeasureSpec :: method public void Deconstruct(out string Field)
+RecDiffy.Results.MeasureSpec :: property public string Field { get; init; }
+RecDiffy.Results.MeasureSpec :: type public sealed class implements System.IEquatable<RecDiffy.Results.MeasureSpec>
+RecDiffy.Results.PassAttempt :: constructor public (string PassId, RecDiffy.Results.PassVerdict Verdict, string? Key, System.Collections.Immutable.ImmutableArray<RecDiffy.SourceRef> Candidates, string? Detail)
+RecDiffy.Results.PassAttempt :: method public RecDiffy.Results.PassAttempt <Clone>$()
+RecDiffy.Results.PassAttempt :: method public bool Equals(RecDiffy.Results.PassAttempt? other)
+RecDiffy.Results.PassAttempt :: method public override bool Equals(object? obj)
+RecDiffy.Results.PassAttempt :: method public override int GetHashCode()
+RecDiffy.Results.PassAttempt :: method public override string ToString()
+RecDiffy.Results.PassAttempt :: method public static bool op_Equality(RecDiffy.Results.PassAttempt? left, RecDiffy.Results.PassAttempt? right)
+RecDiffy.Results.PassAttempt :: method public static bool op_Inequality(RecDiffy.Results.PassAttempt? left, RecDiffy.Results.PassAttempt? right)
+RecDiffy.Results.PassAttempt :: method public void Deconstruct(out string PassId, out RecDiffy.Results.PassVerdict Verdict, out string? Key, out System.Collections.Immutable.ImmutableArray<RecDiffy.SourceRef> Candidates, out string? Detail)
+RecDiffy.Results.PassAttempt :: property public RecDiffy.Results.PassVerdict Verdict { get; init; }
+RecDiffy.Results.PassAttempt :: property public System.Collections.Immutable.ImmutableArray<RecDiffy.SourceRef> Candidates { get; init; }
+RecDiffy.Results.PassAttempt :: property public string PassId { get; init; }
+RecDiffy.Results.PassAttempt :: property public string? Detail { get; init; }
+RecDiffy.Results.PassAttempt :: property public string? Key { get; init; }
+RecDiffy.Results.PassAttempt :: type public sealed class implements System.IEquatable<RecDiffy.Results.PassAttempt>
+RecDiffy.Results.PassVerdict :: enum value Committed = 0
+RecDiffy.Results.PassVerdict :: enum value Contest = 4
+RecDiffy.Results.PassVerdict :: enum value NoCandidate = 2
+RecDiffy.Results.PassVerdict :: enum value NoKey = 1
+RecDiffy.Results.PassVerdict :: enum value SearchIncomplete = 5
+RecDiffy.Results.PassVerdict :: enum value Vetoed = 3
+RecDiffy.Results.PassVerdict :: type public enum : int
+RecDiffy.Results.ResultEntry :: constructor public (RecDiffy.Results.GroupId Id, string PathId, RecDiffy.Results.Alignment Alignment, RecDiffy.Results.Composition Composition, RecDiffy.Results.FieldOutcome Outcome, System.Collections.Immutable.ImmutableArray<RecDiffy.SourceRef> Left, System.Collections.Immutable.ImmutableArray<RecDiffy.SourceRef> Right, System.Collections.Immutable.ImmutableArray<RecDiffy.Results.FieldDiff> Diffs, RecDiffy.Results.Explanation Explanation)
+RecDiffy.Results.ResultEntry :: method public RecDiffy.Results.ResultEntry <Clone>$()
+RecDiffy.Results.ResultEntry :: method public bool Equals(RecDiffy.Results.ResultEntry? other)
+RecDiffy.Results.ResultEntry :: method public override bool Equals(object? obj)
+RecDiffy.Results.ResultEntry :: method public override int GetHashCode()
+RecDiffy.Results.ResultEntry :: method public override string ToString()
+RecDiffy.Results.ResultEntry :: method public static bool op_Equality(RecDiffy.Results.ResultEntry? left, RecDiffy.Results.ResultEntry? right)
+RecDiffy.Results.ResultEntry :: method public static bool op_Inequality(RecDiffy.Results.ResultEntry? left, RecDiffy.Results.ResultEntry? right)
+RecDiffy.Results.ResultEntry :: method public void Deconstruct(out RecDiffy.Results.GroupId Id, out string PathId, out RecDiffy.Results.Alignment Alignment, out RecDiffy.Results.Composition Composition, out RecDiffy.Results.FieldOutcome Outcome, out System.Collections.Immutable.ImmutableArray<RecDiffy.SourceRef> Left, out System.Collections.Immutable.ImmutableArray<RecDiffy.SourceRef> Right, out System.Collections.Immutable.ImmutableArray<RecDiffy.Results.FieldDiff> Diffs, out RecDiffy.Results.Explanation Explanation)
+RecDiffy.Results.ResultEntry :: property public RecDiffy.Results.Alignment Alignment { get; init; }
+RecDiffy.Results.ResultEntry :: property public RecDiffy.Results.Composition Composition { get; init; }
+RecDiffy.Results.ResultEntry :: property public RecDiffy.Results.Explanation Explanation { get; init; }
+RecDiffy.Results.ResultEntry :: property public RecDiffy.Results.FieldOutcome Outcome { get; init; }
+RecDiffy.Results.ResultEntry :: property public RecDiffy.Results.GroupId Id { get; init; }
+RecDiffy.Results.ResultEntry :: property public System.Collections.Immutable.ImmutableArray<RecDiffy.Results.FieldDiff> Diffs { get; init; }
+RecDiffy.Results.ResultEntry :: property public System.Collections.Immutable.ImmutableArray<RecDiffy.SourceRef> Left { get; init; }
+RecDiffy.Results.ResultEntry :: property public System.Collections.Immutable.ImmutableArray<RecDiffy.SourceRef> Right { get; init; }
+RecDiffy.Results.ResultEntry :: property public string PathId { get; init; }
+RecDiffy.Results.ResultEntry :: type public sealed class implements System.IEquatable<RecDiffy.Results.ResultEntry>
+RecDiffy.Results.RowResult :: constructor public (RecDiffy.SourceRef Row, RecDiffy.Results.Disposition Disposition, RecDiffy.SuppressionReason? Suppression, RecDiffy.Results.InputValidity Validity, System.Collections.Generic.IReadOnlyList<RecDiffy.Diagnostic> Diagnostics, RecDiffy.Results.GroupId? EntryId)
+RecDiffy.Results.RowResult :: method public RecDiffy.Results.RowResult <Clone>$()
+RecDiffy.Results.RowResult :: method public bool Equals(RecDiffy.Results.RowResult? other)
+RecDiffy.Results.RowResult :: method public override bool Equals(object? obj)
+RecDiffy.Results.RowResult :: method public override int GetHashCode()
+RecDiffy.Results.RowResult :: method public override string ToString()
+RecDiffy.Results.RowResult :: method public static bool op_Equality(RecDiffy.Results.RowResult? left, RecDiffy.Results.RowResult? right)
+RecDiffy.Results.RowResult :: method public static bool op_Inequality(RecDiffy.Results.RowResult? left, RecDiffy.Results.RowResult? right)
+RecDiffy.Results.RowResult :: method public void Deconstruct(out RecDiffy.SourceRef Row, out RecDiffy.Results.Disposition Disposition, out RecDiffy.SuppressionReason? Suppression, out RecDiffy.Results.InputValidity Validity, out System.Collections.Generic.IReadOnlyList<RecDiffy.Diagnostic> Diagnostics, out RecDiffy.Results.GroupId? EntryId)
+RecDiffy.Results.RowResult :: property public RecDiffy.Results.Disposition Disposition { get; init; }
+RecDiffy.Results.RowResult :: property public RecDiffy.Results.GroupId? EntryId { get; init; }
+RecDiffy.Results.RowResult :: property public RecDiffy.Results.InputValidity Validity { get; init; }
+RecDiffy.Results.RowResult :: property public RecDiffy.SourceRef Row { get; init; }
+RecDiffy.Results.RowResult :: property public RecDiffy.SuppressionReason? Suppression { get; init; }
+RecDiffy.Results.RowResult :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.Diagnostic> Diagnostics { get; init; }
+RecDiffy.Results.RowResult :: type public sealed class implements System.IEquatable<RecDiffy.Results.RowResult>
+RecDiffy.Results.RunInfo :: constructor public (string ProfileHash, string ReferenceId, string ReferenceHash, string EngineVersion)
+RecDiffy.Results.RunInfo :: method public RecDiffy.Results.RunInfo <Clone>$()
+RecDiffy.Results.RunInfo :: method public bool Equals(RecDiffy.Results.RunInfo? other)
+RecDiffy.Results.RunInfo :: method public override bool Equals(object? obj)
+RecDiffy.Results.RunInfo :: method public override int GetHashCode()
+RecDiffy.Results.RunInfo :: method public override string ToString()
+RecDiffy.Results.RunInfo :: method public static bool op_Equality(RecDiffy.Results.RunInfo? left, RecDiffy.Results.RunInfo? right)
+RecDiffy.Results.RunInfo :: method public static bool op_Inequality(RecDiffy.Results.RunInfo? left, RecDiffy.Results.RunInfo? right)
+RecDiffy.Results.RunInfo :: method public void Deconstruct(out string ProfileHash, out string ReferenceId, out string ReferenceHash, out string EngineVersion)
+RecDiffy.Results.RunInfo :: property public System.Collections.Generic.IReadOnlyDictionary<string, RecDiffy.Results.SideReading> Reading { get; init; }
+RecDiffy.Results.RunInfo :: property public string EngineVersion { get; init; }
+RecDiffy.Results.RunInfo :: property public string ProfileHash { get; init; }
+RecDiffy.Results.RunInfo :: property public string ReferenceHash { get; init; }
+RecDiffy.Results.RunInfo :: property public string ReferenceId { get; init; }
+RecDiffy.Results.RunInfo :: type public sealed class implements System.IEquatable<RecDiffy.Results.RunInfo>
+RecDiffy.Results.RunSummary :: constructor public (int Matched, int Exact, int WithinTolerance, int Break, int LeftOnly, int RightOnly, int Ambiguous, int SearchIncomplete, int Quarantined, int Suppressed)
+RecDiffy.Results.RunSummary :: method public RecDiffy.Results.RunSummary <Clone>$()
+RecDiffy.Results.RunSummary :: method public bool Equals(RecDiffy.Results.RunSummary? other)
+RecDiffy.Results.RunSummary :: method public override bool Equals(object? obj)
+RecDiffy.Results.RunSummary :: method public override int GetHashCode()
+RecDiffy.Results.RunSummary :: method public override string ToString()
+RecDiffy.Results.RunSummary :: method public static bool op_Equality(RecDiffy.Results.RunSummary? left, RecDiffy.Results.RunSummary? right)
+RecDiffy.Results.RunSummary :: method public static bool op_Inequality(RecDiffy.Results.RunSummary? left, RecDiffy.Results.RunSummary? right)
+RecDiffy.Results.RunSummary :: method public void Deconstruct(out int Matched, out int Exact, out int WithinTolerance, out int Break, out int LeftOnly, out int RightOnly, out int Ambiguous, out int SearchIncomplete, out int Quarantined, out int Suppressed)
+RecDiffy.Results.RunSummary :: property public int Ambiguous { get; init; }
+RecDiffy.Results.RunSummary :: property public int Break { get; init; }
+RecDiffy.Results.RunSummary :: property public int Exact { get; init; }
+RecDiffy.Results.RunSummary :: property public int LeftOnly { get; init; }
+RecDiffy.Results.RunSummary :: property public int Matched { get; init; }
+RecDiffy.Results.RunSummary :: property public int Quarantined { get; init; }
+RecDiffy.Results.RunSummary :: property public int RightOnly { get; init; }
+RecDiffy.Results.RunSummary :: property public int SearchIncomplete { get; init; }
+RecDiffy.Results.RunSummary :: property public int Suppressed { get; init; }
+RecDiffy.Results.RunSummary :: property public int WithinTolerance { get; init; }
+RecDiffy.Results.RunSummary :: type public sealed class implements System.IEquatable<RecDiffy.Results.RunSummary>
+RecDiffy.Results.SideBySideCell :: constructor public (decimal Left, decimal Right, decimal Delta, decimal LeftOnly, decimal RightOnly, decimal MatchedDelta)
+RecDiffy.Results.SideBySideCell :: method public bool Equals(RecDiffy.Results.SideBySideCell other)
+RecDiffy.Results.SideBySideCell :: method public override bool Equals(object obj)
+RecDiffy.Results.SideBySideCell :: method public override int GetHashCode()
+RecDiffy.Results.SideBySideCell :: method public override string ToString()
+RecDiffy.Results.SideBySideCell :: method public static bool op_Equality(RecDiffy.Results.SideBySideCell left, RecDiffy.Results.SideBySideCell right)
+RecDiffy.Results.SideBySideCell :: method public static bool op_Inequality(RecDiffy.Results.SideBySideCell left, RecDiffy.Results.SideBySideCell right)
+RecDiffy.Results.SideBySideCell :: method public void Deconstruct(out decimal Left, out decimal Right, out decimal Delta, out decimal LeftOnly, out decimal RightOnly, out decimal MatchedDelta)
+RecDiffy.Results.SideBySideCell :: property public decimal Delta { get; init; }
+RecDiffy.Results.SideBySideCell :: property public decimal Left { get; init; }
+RecDiffy.Results.SideBySideCell :: property public decimal LeftOnly { get; init; }
+RecDiffy.Results.SideBySideCell :: property public decimal MatchedDelta { get; init; }
+RecDiffy.Results.SideBySideCell :: property public decimal Right { get; init; }
+RecDiffy.Results.SideBySideCell :: property public decimal RightOnly { get; init; }
+RecDiffy.Results.SideBySideCell :: type public readonly struct implements System.IEquatable<RecDiffy.Results.SideBySideCell>
+RecDiffy.Results.SideBySideLine :: constructor public (string Row, string Column, System.Collections.Immutable.ImmutableDictionary<string, RecDiffy.Results.SideBySideCell> Cells)
+RecDiffy.Results.SideBySideLine :: method public RecDiffy.Results.SideBySideLine <Clone>$()
+RecDiffy.Results.SideBySideLine :: method public bool Equals(RecDiffy.Results.SideBySideLine? other)
+RecDiffy.Results.SideBySideLine :: method public override bool Equals(object? obj)
+RecDiffy.Results.SideBySideLine :: method public override int GetHashCode()
+RecDiffy.Results.SideBySideLine :: method public override string ToString()
+RecDiffy.Results.SideBySideLine :: method public static bool op_Equality(RecDiffy.Results.SideBySideLine? left, RecDiffy.Results.SideBySideLine? right)
+RecDiffy.Results.SideBySideLine :: method public static bool op_Inequality(RecDiffy.Results.SideBySideLine? left, RecDiffy.Results.SideBySideLine? right)
+RecDiffy.Results.SideBySideLine :: method public void Deconstruct(out string Row, out string Column, out System.Collections.Immutable.ImmutableDictionary<string, RecDiffy.Results.SideBySideCell> Cells)
+RecDiffy.Results.SideBySideLine :: property public System.Collections.Immutable.ImmutableDictionary<string, RecDiffy.Results.SideBySideCell> Cells { get; init; }
+RecDiffy.Results.SideBySideLine :: property public string Column { get; init; }
+RecDiffy.Results.SideBySideLine :: property public string Row { get; init; }
+RecDiffy.Results.SideBySideLine :: type public sealed class implements System.IEquatable<RecDiffy.Results.SideBySideLine>
+RecDiffy.Results.SideBySideSpec :: constructor public (System.Collections.Generic.IReadOnlyList<string> Rows, System.Collections.Generic.IReadOnlyList<string> Columns, System.Collections.Generic.IReadOnlyList<RecDiffy.Results.MeasureSpec> Measures, RecDiffy.Results.FilterSpec? Filter)
+RecDiffy.Results.SideBySideSpec :: method public RecDiffy.Results.SideBySideSpec <Clone>$()
+RecDiffy.Results.SideBySideSpec :: method public bool Equals(RecDiffy.Results.SideBySideSpec? other)
+RecDiffy.Results.SideBySideSpec :: method public override bool Equals(object? obj)
+RecDiffy.Results.SideBySideSpec :: method public override int GetHashCode()
+RecDiffy.Results.SideBySideSpec :: method public override string ToString()
+RecDiffy.Results.SideBySideSpec :: method public static bool op_Equality(RecDiffy.Results.SideBySideSpec? left, RecDiffy.Results.SideBySideSpec? right)
+RecDiffy.Results.SideBySideSpec :: method public static bool op_Inequality(RecDiffy.Results.SideBySideSpec? left, RecDiffy.Results.SideBySideSpec? right)
+RecDiffy.Results.SideBySideSpec :: method public void Deconstruct(out System.Collections.Generic.IReadOnlyList<string> Rows, out System.Collections.Generic.IReadOnlyList<string> Columns, out System.Collections.Generic.IReadOnlyList<RecDiffy.Results.MeasureSpec> Measures, out RecDiffy.Results.FilterSpec? Filter)
+RecDiffy.Results.SideBySideSpec :: property public RecDiffy.Results.FilterSpec? Filter { get; init; }
+RecDiffy.Results.SideBySideSpec :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.Results.MeasureSpec> Measures { get; init; }
+RecDiffy.Results.SideBySideSpec :: property public System.Collections.Generic.IReadOnlyList<string> Columns { get; init; }
+RecDiffy.Results.SideBySideSpec :: property public System.Collections.Generic.IReadOnlyList<string> Rows { get; init; }
+RecDiffy.Results.SideBySideSpec :: type public sealed class implements System.IEquatable<RecDiffy.Results.SideBySideSpec>
+RecDiffy.Results.SideReading :: constructor public (string Culture, string DecimalSeparator, string GroupSeparator, RecDiffy.Results.CultureOrigin Origin, bool StrictDateFormats)
+RecDiffy.Results.SideReading :: method public RecDiffy.Results.SideReading <Clone>$()
+RecDiffy.Results.SideReading :: method public bool Equals(RecDiffy.Results.SideReading? other)
+RecDiffy.Results.SideReading :: method public override bool Equals(object? obj)
+RecDiffy.Results.SideReading :: method public override int GetHashCode()
+RecDiffy.Results.SideReading :: method public override string ToString()
+RecDiffy.Results.SideReading :: method public static bool op_Equality(RecDiffy.Results.SideReading? left, RecDiffy.Results.SideReading? right)
+RecDiffy.Results.SideReading :: method public static bool op_Inequality(RecDiffy.Results.SideReading? left, RecDiffy.Results.SideReading? right)
+RecDiffy.Results.SideReading :: method public void Deconstruct(out string Culture, out string DecimalSeparator, out string GroupSeparator, out RecDiffy.Results.CultureOrigin Origin, out bool StrictDateFormats)
+RecDiffy.Results.SideReading :: property public RecDiffy.Results.CultureOrigin Origin { get; init; }
+RecDiffy.Results.SideReading :: property public bool StrictDateFormats { get; init; }
+RecDiffy.Results.SideReading :: property public string Culture { get; init; }
+RecDiffy.Results.SideReading :: property public string DecimalSeparator { get; init; }
+RecDiffy.Results.SideReading :: property public string GroupSeparator { get; init; }
+RecDiffy.Results.SideReading :: type public sealed class implements System.IEquatable<RecDiffy.Results.SideReading>
+RecDiffy.Results.ToleranceId :: constructor public (string Value)
+RecDiffy.Results.ToleranceId :: method public bool Equals(RecDiffy.Results.ToleranceId other)
+RecDiffy.Results.ToleranceId :: method public override bool Equals(object obj)
+RecDiffy.Results.ToleranceId :: method public override int GetHashCode()
+RecDiffy.Results.ToleranceId :: method public override string ToString()
+RecDiffy.Results.ToleranceId :: method public static bool op_Equality(RecDiffy.Results.ToleranceId left, RecDiffy.Results.ToleranceId right)
+RecDiffy.Results.ToleranceId :: method public static bool op_Inequality(RecDiffy.Results.ToleranceId left, RecDiffy.Results.ToleranceId right)
+RecDiffy.Results.ToleranceId :: method public void Deconstruct(out string Value)
+RecDiffy.Results.ToleranceId :: property public string Value { get; init; }
+RecDiffy.Results.ToleranceId :: type public readonly struct implements System.IEquatable<RecDiffy.Results.ToleranceId>
+RecDiffy.RouteDeclaration :: constructor public (string Rule, string? Field, string? EqualsValue)
+RecDiffy.RouteDeclaration :: method public RecDiffy.RouteDeclaration <Clone>$()
+RecDiffy.RouteDeclaration :: method public bool Equals(RecDiffy.RouteDeclaration? other)
+RecDiffy.RouteDeclaration :: method public override bool Equals(object? obj)
+RecDiffy.RouteDeclaration :: method public override int GetHashCode()
+RecDiffy.RouteDeclaration :: method public override string ToString()
+RecDiffy.RouteDeclaration :: method public static bool op_Equality(RecDiffy.RouteDeclaration? left, RecDiffy.RouteDeclaration? right)
+RecDiffy.RouteDeclaration :: method public static bool op_Inequality(RecDiffy.RouteDeclaration? left, RecDiffy.RouteDeclaration? right)
+RecDiffy.RouteDeclaration :: method public void Deconstruct(out string Rule, out string? Field, out string? EqualsValue)
+RecDiffy.RouteDeclaration :: property public string Rule { get; init; }
+RecDiffy.RouteDeclaration :: property public string? EqualsValue { get; init; }
+RecDiffy.RouteDeclaration :: property public string? Field { get; init; }
+RecDiffy.RouteDeclaration :: type public sealed class implements System.IEquatable<RecDiffy.RouteDeclaration>
+RecDiffy.RuleCall :: constructor public (string Rule, RecDiffy.WhenClause? When, System.Collections.Generic.IReadOnlyDictionary<string, string> Strings, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<string>> Lists, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>> Maps)
+RecDiffy.RuleCall :: method public RecDiffy.RuleCall <Clone>$()
+RecDiffy.RuleCall :: method public bool Equals(RecDiffy.RuleCall? other)
+RecDiffy.RuleCall :: method public override bool Equals(object? obj)
+RecDiffy.RuleCall :: method public override int GetHashCode()
+RecDiffy.RuleCall :: method public override string ToString()
+RecDiffy.RuleCall :: method public static bool op_Equality(RecDiffy.RuleCall? left, RecDiffy.RuleCall? right)
+RecDiffy.RuleCall :: method public static bool op_Inequality(RecDiffy.RuleCall? left, RecDiffy.RuleCall? right)
+RecDiffy.RuleCall :: method public void Deconstruct(out string Rule, out RecDiffy.WhenClause? When, out System.Collections.Generic.IReadOnlyDictionary<string, string> Strings, out System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<string>> Lists, out System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>> Maps)
+RecDiffy.RuleCall :: property public RecDiffy.WhenClause? When { get; init; }
+RecDiffy.RuleCall :: property public System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>> Maps { get; init; }
+RecDiffy.RuleCall :: property public System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<string>> Lists { get; init; }
+RecDiffy.RuleCall :: property public System.Collections.Generic.IReadOnlyDictionary<string, string> Strings { get; init; }
+RecDiffy.RuleCall :: property public string Rule { get; init; }
+RecDiffy.RuleCall :: type public sealed class implements System.IEquatable<RecDiffy.RuleCall>
+RecDiffy.RuleRegistry :: constructor public ()
+RecDiffy.RuleRegistry :: method public RecDiffy.RuleRegistry <Clone>$()
+RecDiffy.RuleRegistry :: method public bool Equals(RecDiffy.RuleRegistry? other)
+RecDiffy.RuleRegistry :: method public override bool Equals(object? obj)
+RecDiffy.RuleRegistry :: method public override int GetHashCode()
+RecDiffy.RuleRegistry :: method public override string ToString()
+RecDiffy.RuleRegistry :: method public static RecDiffy.RuleRegistry CreateCore()
+RecDiffy.RuleRegistry :: method public static bool op_Equality(RecDiffy.RuleRegistry? left, RecDiffy.RuleRegistry? right)
+RecDiffy.RuleRegistry :: method public static bool op_Inequality(RecDiffy.RuleRegistry? left, RecDiffy.RuleRegistry? right)
+RecDiffy.RuleRegistry :: type public sealed class implements System.IEquatable<RecDiffy.RuleRegistry>
+RecDiffy.Rules.INormalizationRule :: method public void Apply(ref RecDiffy.Rules.RowContext row)
+RecDiffy.Rules.INormalizationRule :: property public RecDiffy.Rules.RulePhase Phase { get; }
+RecDiffy.Rules.INormalizationRule :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.FieldId> Reads { get; }
+RecDiffy.Rules.INormalizationRule :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.FieldId> Writes { get; }
+RecDiffy.Rules.INormalizationRule :: property public string RuleId { get; }
+RecDiffy.Rules.INormalizationRule :: type public interface
+RecDiffy.Rules.RowContext :: constructor [Obsolete("Constructors of types with required members are not supported in this version of your compiler.", true)] public ()
+RecDiffy.Rules.RowContext :: method public RecDiffy.Rules.RowContext <Clone>$()
+RecDiffy.Rules.RowContext :: method public RecDiffy.Rules.RowContext Diagnose(string code, RecDiffy.DiagnosticSeverity severity, string ruleId, string? field, string? raw)
+RecDiffy.Rules.RowContext :: method public RecDiffy.Rules.RowContext Write(string field, RecDiffy.CanonicalCell cell, string ruleId, string? raw, string? canonical)
+RecDiffy.Rules.RowContext :: method public bool Equals(RecDiffy.Rules.RowContext? other)
+RecDiffy.Rules.RowContext :: method public bool IsNull(string field)
+RecDiffy.Rules.RowContext :: method public override bool Equals(object? obj)
+RecDiffy.Rules.RowContext :: method public override int GetHashCode()
+RecDiffy.Rules.RowContext :: method public override string ToString()
+RecDiffy.Rules.RowContext :: method public static RecDiffy.Rules.RowContext Create(string rowKey, RecDiffy.Side side, System.Collections.Generic.IReadOnlyDictionary<string, object?> raw)
+RecDiffy.Rules.RowContext :: method public static bool op_Equality(RecDiffy.Rules.RowContext? left, RecDiffy.Rules.RowContext? right)
+RecDiffy.Rules.RowContext :: method public static bool op_Inequality(RecDiffy.Rules.RowContext? left, RecDiffy.Rules.RowContext? right)
+RecDiffy.Rules.RowContext :: method public string? Display(string field)
+RecDiffy.Rules.RowContext :: property public RecDiffy.ReferenceDataSet Reference { get; init; }
+RecDiffy.Rules.RowContext :: property public required RecDiffy.Side Side { get; init; }
+RecDiffy.Rules.RowContext :: property public required System.Collections.Generic.IReadOnlyDictionary<string, object?> Raw { get; init; }
+RecDiffy.Rules.RowContext :: property public required System.Collections.Immutable.ImmutableDictionary<string, RecDiffy.CanonicalCell> Values { get; init; }
+RecDiffy.Rules.RowContext :: property public required System.Collections.Immutable.ImmutableList<RecDiffy.Diagnostic> Diagnostics { get; init; }
+RecDiffy.Rules.RowContext :: property public required System.Collections.Immutable.ImmutableList<RecDiffy.TraceStep> Traces { get; init; }
+RecDiffy.Rules.RowContext :: property public required string RowKey { get; init; }
+RecDiffy.Rules.RowContext :: type public sealed class implements System.IEquatable<RecDiffy.Rules.RowContext>
+RecDiffy.Rules.RulePhase :: enum value Derive = 3
+RecDiffy.Rules.RulePhase :: enum value Identify = 1
+RecDiffy.Rules.RulePhase :: enum value Parse = 2
+RecDiffy.Rules.RulePhase :: enum value Validate = 4
+RecDiffy.Rules.RulePhase :: type public enum : int
+RecDiffy.RunOptions :: constructor public (int? MaxDegreeOfParallelism = null, bool TelemetryIncludesRowKeys = false)
+RecDiffy.RunOptions :: method public RecDiffy.RunOptions <Clone>$()
+RecDiffy.RunOptions :: method public bool Equals(RecDiffy.RunOptions? other)
+RecDiffy.RunOptions :: method public override bool Equals(object? obj)
+RecDiffy.RunOptions :: method public override int GetHashCode()
+RecDiffy.RunOptions :: method public override string ToString()
+RecDiffy.RunOptions :: method public static bool op_Equality(RecDiffy.RunOptions? left, RecDiffy.RunOptions? right)
+RecDiffy.RunOptions :: method public static bool op_Inequality(RecDiffy.RunOptions? left, RecDiffy.RunOptions? right)
+RecDiffy.RunOptions :: method public void Deconstruct(out int? MaxDegreeOfParallelism, out bool TelemetryIncludesRowKeys)
+RecDiffy.RunOptions :: property public bool TelemetryIncludesRowKeys { get; init; }
+RecDiffy.RunOptions :: property public int? MaxDegreeOfParallelism { get; init; }
+RecDiffy.RunOptions :: type public sealed class implements System.IEquatable<RecDiffy.RunOptions>
+RecDiffy.SearchLimits :: constructor public (int MaxGroupSize, int MaxBlockItems, int MaxTargetsPerComponent, int MaxNodesPerTarget)
+RecDiffy.SearchLimits :: method public RecDiffy.SearchLimits <Clone>$()
+RecDiffy.SearchLimits :: method public bool Equals(RecDiffy.SearchLimits? other)
+RecDiffy.SearchLimits :: method public override bool Equals(object? obj)
+RecDiffy.SearchLimits :: method public override int GetHashCode()
+RecDiffy.SearchLimits :: method public override string ToString()
+RecDiffy.SearchLimits :: method public static bool op_Equality(RecDiffy.SearchLimits? left, RecDiffy.SearchLimits? right)
+RecDiffy.SearchLimits :: method public static bool op_Inequality(RecDiffy.SearchLimits? left, RecDiffy.SearchLimits? right)
+RecDiffy.SearchLimits :: method public void Deconstruct(out int MaxGroupSize, out int MaxBlockItems, out int MaxTargetsPerComponent, out int MaxNodesPerTarget)
+RecDiffy.SearchLimits :: property public int MaxBlockItems { get; init; }
+RecDiffy.SearchLimits :: property public int MaxGroupSize { get; init; }
+RecDiffy.SearchLimits :: property public int MaxNodesPerTarget { get; init; }
+RecDiffy.SearchLimits :: property public int MaxTargetsPerComponent { get; init; }
+RecDiffy.SearchLimits :: property public static RecDiffy.SearchLimits Default { get; }
+RecDiffy.SearchLimits :: type public sealed class implements System.IEquatable<RecDiffy.SearchLimits>
+RecDiffy.Side :: enum value Left = 0
+RecDiffy.Side :: enum value Right = 1
+RecDiffy.Side :: type public enum : int
+RecDiffy.SideBuilder :: method public RecDiffy.SideBuilder CopyText(string from, string to, RecDiffy.WhenClause? when = null)
+RecDiffy.SideBuilder :: method public RecDiffy.SideBuilder MapIdentifier(string from, string to, string scheme, string? scope = null, RecDiffy.WhenClause? when = null)
+RecDiffy.SideBuilder :: method public RecDiffy.SideBuilder MapSymbol(string from, string to, System.Collections.Generic.IReadOnlyDictionary<string, string>? map = null, bool passthrough = true, RecDiffy.WhenClause? when = null)
+RecDiffy.SideBuilder :: method public RecDiffy.SideBuilder ParseDate(string from, string to, System.Collections.Generic.IReadOnlyList<string> formats, RecDiffy.WhenClause? when = null)
+RecDiffy.SideBuilder :: method public RecDiffy.SideBuilder ParseDate(string from, string to, string format, RecDiffy.WhenClause? when = null)
+RecDiffy.SideBuilder :: method public RecDiffy.SideBuilder ParseDateBy(string from, string to, string formatBy, RecDiffy.WhenClause? when = null)
+RecDiffy.SideBuilder :: method public RecDiffy.SideBuilder ParseDecimal(string from, string to, RecDiffy.WhenClause? when = null)
+RecDiffy.SideBuilder :: method public RecDiffy.SideBuilder Required(System.Collections.Generic.IReadOnlyList<string> fields, RecDiffy.WhenClause? when)
+RecDiffy.SideBuilder :: method public RecDiffy.SideBuilder Required(params string[] fields)
+RecDiffy.SideBuilder :: method public RecDiffy.SideBuilder Rule(RecDiffy.Rules.RulePhase phase, RecDiffy.RuleCall call)
+RecDiffy.SideBuilder :: method public RecDiffy.SideBuilder Rule(RecDiffy.Rules.RulePhase phase, string name, System.Collections.Generic.IReadOnlyDictionary<string, string>? strings = null, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<string>>? lists = null, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyDictionary<string, string>>? maps = null, RecDiffy.WhenClause? when = null)
+RecDiffy.SideBuilder :: property public static RecDiffy.SideBuilder Empty { get; }
+RecDiffy.SideBuilder :: type public sealed class
+RecDiffy.SourceMap<T> :: constructor public ()
+RecDiffy.SourceMap<T> :: method public RecDiffy.SourceMap<T> Date(string column, System.Func<T, System.DateOnly?> read)
+RecDiffy.SourceMap<T> :: method public RecDiffy.SourceMap<T> Decimal(string column, System.Func<T, decimal?> read)
+RecDiffy.SourceMap<T> :: method public RecDiffy.SourceMap<T> Text(string column, System.Func<T, string?> read)
+RecDiffy.SourceMap<T> :: type public sealed class
+RecDiffy.SourceReading :: constructor public (string? Culture, bool? StrictDateFormats)
+RecDiffy.SourceReading :: method public RecDiffy.SourceReading <Clone>$()
+RecDiffy.SourceReading :: method public bool Equals(RecDiffy.SourceReading? other)
+RecDiffy.SourceReading :: method public override bool Equals(object? obj)
+RecDiffy.SourceReading :: method public override int GetHashCode()
+RecDiffy.SourceReading :: method public override string ToString()
+RecDiffy.SourceReading :: method public static bool op_Equality(RecDiffy.SourceReading? left, RecDiffy.SourceReading? right)
+RecDiffy.SourceReading :: method public static bool op_Inequality(RecDiffy.SourceReading? left, RecDiffy.SourceReading? right)
+RecDiffy.SourceReading :: method public void Deconstruct(out string? Culture, out bool? StrictDateFormats)
+RecDiffy.SourceReading :: property public bool? StrictDateFormats { get; init; }
+RecDiffy.SourceReading :: property public string? Culture { get; init; }
+RecDiffy.SourceReading :: type public sealed class implements System.IEquatable<RecDiffy.SourceReading>
+RecDiffy.SourceRef :: constructor public (string Source, string RowKey, int Ordinal)
+RecDiffy.SourceRef :: method public bool Equals(RecDiffy.SourceRef other)
+RecDiffy.SourceRef :: method public override bool Equals(object obj)
+RecDiffy.SourceRef :: method public override int GetHashCode()
+RecDiffy.SourceRef :: method public override string ToString()
+RecDiffy.SourceRef :: method public static bool op_Equality(RecDiffy.SourceRef left, RecDiffy.SourceRef right)
+RecDiffy.SourceRef :: method public static bool op_Inequality(RecDiffy.SourceRef left, RecDiffy.SourceRef right)
+RecDiffy.SourceRef :: method public void Deconstruct(out string Source, out string RowKey, out int Ordinal)
+RecDiffy.SourceRef :: property public int Ordinal { get; init; }
+RecDiffy.SourceRef :: property public string RowKey { get; init; }
+RecDiffy.SourceRef :: property public string Source { get; init; }
+RecDiffy.SourceRef :: type public readonly struct implements System.IEquatable<RecDiffy.SourceRef>
+RecDiffy.SuppressionReason :: enum value CancelEvent = 1
+RecDiffy.SuppressionReason :: enum value FullyCancelled = 2
+RecDiffy.SuppressionReason :: enum value Superseded = 0
+RecDiffy.SuppressionReason :: type public enum : int
+RecDiffy.TabularOptions :: constructor public (int HeaderRowIndex = 0, string? RowKeyColumn = null)
+RecDiffy.TabularOptions :: method public RecDiffy.TabularOptions <Clone>$()
+RecDiffy.TabularOptions :: method public bool Equals(RecDiffy.TabularOptions? other)
+RecDiffy.TabularOptions :: method public override bool Equals(object? obj)
+RecDiffy.TabularOptions :: method public override int GetHashCode()
+RecDiffy.TabularOptions :: method public override string ToString()
+RecDiffy.TabularOptions :: method public static bool op_Equality(RecDiffy.TabularOptions? left, RecDiffy.TabularOptions? right)
+RecDiffy.TabularOptions :: method public static bool op_Inequality(RecDiffy.TabularOptions? left, RecDiffy.TabularOptions? right)
+RecDiffy.TabularOptions :: method public void Deconstruct(out int HeaderRowIndex, out string? RowKeyColumn)
+RecDiffy.TabularOptions :: property public int HeaderRowIndex { get; init; }
+RecDiffy.TabularOptions :: property public string? RowKeyColumn { get; init; }
+RecDiffy.TabularOptions :: type public sealed class implements System.IEquatable<RecDiffy.TabularOptions>
+RecDiffy.ToleranceDeclaration :: constructor public (string Kind, decimal? Absolute, decimal? Relative, string? Attributed, RecDiffy.WhenClause? When, int? Days = null)
+RecDiffy.ToleranceDeclaration :: method public RecDiffy.ToleranceDeclaration <Clone>$()
+RecDiffy.ToleranceDeclaration :: method public bool Equals(RecDiffy.ToleranceDeclaration? other)
+RecDiffy.ToleranceDeclaration :: method public override bool Equals(object? obj)
+RecDiffy.ToleranceDeclaration :: method public override int GetHashCode()
+RecDiffy.ToleranceDeclaration :: method public override string ToString()
+RecDiffy.ToleranceDeclaration :: method public static bool op_Equality(RecDiffy.ToleranceDeclaration? left, RecDiffy.ToleranceDeclaration? right)
+RecDiffy.ToleranceDeclaration :: method public static bool op_Inequality(RecDiffy.ToleranceDeclaration? left, RecDiffy.ToleranceDeclaration? right)
+RecDiffy.ToleranceDeclaration :: method public void Deconstruct(out string Kind, out decimal? Absolute, out decimal? Relative, out string? Attributed, out RecDiffy.WhenClause? When, out int? Days)
+RecDiffy.ToleranceDeclaration :: property public RecDiffy.WhenClause? When { get; init; }
+RecDiffy.ToleranceDeclaration :: property public decimal? Absolute { get; init; }
+RecDiffy.ToleranceDeclaration :: property public decimal? Relative { get; init; }
+RecDiffy.ToleranceDeclaration :: property public int? Days { get; init; }
+RecDiffy.ToleranceDeclaration :: property public string Kind { get; init; }
+RecDiffy.ToleranceDeclaration :: property public string? Attributed { get; init; }
+RecDiffy.ToleranceDeclaration :: type public sealed class implements System.IEquatable<RecDiffy.ToleranceDeclaration>
+RecDiffy.TraceStep :: constructor public (string RuleId, string Field, string? Raw, string? Canonical)
+RecDiffy.TraceStep :: method public RecDiffy.TraceStep <Clone>$()
+RecDiffy.TraceStep :: method public bool Equals(RecDiffy.TraceStep? other)
+RecDiffy.TraceStep :: method public override bool Equals(object? obj)
+RecDiffy.TraceStep :: method public override int GetHashCode()
+RecDiffy.TraceStep :: method public override string ToString()
+RecDiffy.TraceStep :: method public static bool op_Equality(RecDiffy.TraceStep? left, RecDiffy.TraceStep? right)
+RecDiffy.TraceStep :: method public static bool op_Inequality(RecDiffy.TraceStep? left, RecDiffy.TraceStep? right)
+RecDiffy.TraceStep :: method public void Deconstruct(out string RuleId, out string Field, out string? Raw, out string? Canonical)
+RecDiffy.TraceStep :: property public string Field { get; init; }
+RecDiffy.TraceStep :: property public string RuleId { get; init; }
+RecDiffy.TraceStep :: property public string? Canonical { get; init; }
+RecDiffy.TraceStep :: property public string? Raw { get; init; }
+RecDiffy.TraceStep :: type public sealed class implements System.IEquatable<RecDiffy.TraceStep>
+RecDiffy.WhenClause :: constructor public (string Field, string? EqualsValue, string? NotEquals, System.Collections.Generic.IReadOnlyList<string>? In)
+RecDiffy.WhenClause :: method public RecDiffy.WhenClause <Clone>$()
+RecDiffy.WhenClause :: method public bool Equals(RecDiffy.WhenClause? other)
+RecDiffy.WhenClause :: method public override bool Equals(object? obj)
+RecDiffy.WhenClause :: method public override int GetHashCode()
+RecDiffy.WhenClause :: method public override string ToString()
+RecDiffy.WhenClause :: method public static bool MutuallyExclusive(RecDiffy.WhenClause? left, RecDiffy.WhenClause? right)
+RecDiffy.WhenClause :: method public static bool op_Equality(RecDiffy.WhenClause? left, RecDiffy.WhenClause? right)
+RecDiffy.WhenClause :: method public static bool op_Inequality(RecDiffy.WhenClause? left, RecDiffy.WhenClause? right)
+RecDiffy.WhenClause :: method public void Deconstruct(out string Field, out string? EqualsValue, out string? NotEquals, out System.Collections.Generic.IReadOnlyList<string>? In)
+RecDiffy.WhenClause :: property public System.Collections.Generic.IReadOnlyList<string>? In { get; init; }
+RecDiffy.WhenClause :: property public string Field { get; init; }
+RecDiffy.WhenClause :: property public string? EqualsValue { get; init; }
+RecDiffy.WhenClause :: property public string? NotEquals { get; init; }
+RecDiffy.WhenClause :: type public sealed class implements System.IEquatable<RecDiffy.WhenClause>

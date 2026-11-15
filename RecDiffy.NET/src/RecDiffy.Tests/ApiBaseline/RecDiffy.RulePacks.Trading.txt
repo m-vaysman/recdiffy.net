@@ -1,0 +1,35 @@
+# Public API baseline of RecDiffy.RulePacks.Trading: one line for every public or protected type and member, sorted ordinally.
+# PublicApiBaselineTests compares the built assembly with this file on net8.0 and net10.0, and fails on any difference.
+# To accept an intended change, copy the .actual.txt file the failing test names over this file and commit it.
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string Accrued = "Accrued"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string AssetClass = "AssetClass"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string Counterparty = "Counterparty"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string Coupon = "Coupon"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string Currency = "Currency"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string EventAction = "EventAction"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string EventId = "EventId"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string EventTarget = "EventTarget"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string Fees = "Fees"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string Instrument = "Instrument"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string LegRole = "LegRole"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string Maturity = "Maturity"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string NetCash = "NetCash"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string PackageRef = "PackageRef"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string Price = "Price"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string Quantity = "Quantity"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string SettleDate = "SettleDate"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string Side = "Side"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string TradeDate = "TradeDate"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string TradeRef = "TradeRef"
+RecDiffy.RulePacks.Trading.TradeFields :: field public const string Uti = "Uti"
+RecDiffy.RulePacks.Trading.TradeFields :: type public static class
+RecDiffy.RulePacks.Trading.TradingColumns :: property public static System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<string>> Parameters { get; }
+RecDiffy.RulePacks.Trading.TradingColumns :: type public static class
+RecDiffy.RulePacks.Trading.TradingRulePack :: method public static RecDiffy.RuleRegistry AddTo(RecDiffy.RuleRegistry registry)
+RecDiffy.RulePacks.Trading.TradingRulePack :: type public static class
+RecDiffy.RulePacks.Trading.TradingSideRules :: method public static RecDiffy.SideBuilder AbsoluteQuantity(this RecDiffy.SideBuilder side, string from, string to, RecDiffy.WhenClause? when = null)
+RecDiffy.RulePacks.Trading.TradingSideRules :: method public static RecDiffy.SideBuilder From32nds(this RecDiffy.SideBuilder side, string from, string to, RecDiffy.WhenClause? when = null)
+RecDiffy.RulePacks.Trading.TradingSideRules :: method public static RecDiffy.SideBuilder ResolveAlias(this RecDiffy.SideBuilder side, string from, string to, RecDiffy.WhenClause? when = null)
+RecDiffy.RulePacks.Trading.TradingSideRules :: method public static RecDiffy.SideBuilder ResolveLei(this RecDiffy.SideBuilder side, string from, string to, RecDiffy.WhenClause? when = null)
+RecDiffy.RulePacks.Trading.TradingSideRules :: method public static RecDiffy.SideBuilder ResolveSide(this RecDiffy.SideBuilder side, string code, string quantity, string? perspective = null, string? invertWhen = null, string? asset = null, RecDiffy.WhenClause? when = null)
+RecDiffy.RulePacks.Trading.TradingSideRules :: type public static class
