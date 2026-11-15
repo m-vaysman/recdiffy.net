@@ -35,7 +35,8 @@ public sealed class SourceMap<T>
     // Binders run in add order. The last binder on a column overwrites the cell.
     internal IReadOnlyDictionary<string, object?> Project(T row) =>
         _binders.Aggregate(
-            new Dictionary<string, object?>(StringComparer.Ordinal),
+            // Room for one cell per binder, so the dictionary does not regrow while the row is projected.
+            new Dictionary<string, object?>(_binders.Count, StringComparer.Ordinal),
             (cells, bind) =>
             {
                 bind(row, cells);
