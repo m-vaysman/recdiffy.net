@@ -63,11 +63,13 @@ internal static class CultureNumbers
         return true;
     }
 
-    // The next group separator. A plain space also counts when the culture's separator is a no-break space (U+00A0).
+    // The next group separator. A plain space also counts when the culture's separator is a no-break space (U+00A0),
+    // because .NET reads a plain space as that separator (sv-SE). The no-break space is written as an escape: typed
+    // as a character it looks like a plain space, and comparing with a plain space would drop this rule.
     private static (int At, int Length) NextSeparator(ReadOnlySpan<char> text, string separator)
     {
         var at = separator.Length is 0 ? -1 : text.IndexOf(separator, StringComparison.Ordinal);
-        var space = separator is " " ? text.IndexOf(' ') : -1;
+        var space = separator is "\u00a0" ? text.IndexOf(' ') : -1;
         return space >= 0 && (at < 0 || space < at) ? (space, 1) : (at, separator.Length);
     }
 }

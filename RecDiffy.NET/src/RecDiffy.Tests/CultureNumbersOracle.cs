@@ -13,8 +13,10 @@ internal static class CultureNumbersOracle
         return groups is [_] || SizesFit(groups, format.NumberGroupSizes);
     }
 
+    // The culture's separator is compared with a no-break space, U+00A0, as the original did. It is written as an escape
+    // here because a literal no-break space looks like a plain space, and a plain space is a different rule.
     private static string[] GroupSeparators(NumberFormatInfo format) =>
-        format.NumberGroupSeparator is " " ? [format.NumberGroupSeparator, " "] : [format.NumberGroupSeparator];
+        format.NumberGroupSeparator is "\u00a0" ? [format.NumberGroupSeparator, " "] : [format.NumberGroupSeparator];
 
     private static string IntegerPart(string text, NumberFormatInfo format)
     {
