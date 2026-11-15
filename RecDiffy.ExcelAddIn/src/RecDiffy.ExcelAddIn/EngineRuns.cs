@@ -89,7 +89,7 @@ public sealed class EngineRuns(IExcelSources excel, TimeProvider clock) : IRecon
         }
     }
 
-    private static ReconciliationResult Reconcile(CompiledProfile compiled, SideData left, SideData right, CancellationToken cancellationToken)
+    private static IReconciliationResult Reconcile(CompiledProfile compiled, SideData left, SideData right, CancellationToken cancellationToken)
     {
         using var leftTable = TableOf(left);
         using var rightTable = TableOf(right);
