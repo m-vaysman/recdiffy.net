@@ -42,14 +42,14 @@ jobs:
         run: dotnet test RecDiffy.ExcelAddIn/RecDiffy.ExcelAddIn.slnx -c Release --no-build
 
       - name: Upload the packed add-ins
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: recdiffy-excel-addin
           path: RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/*-packed.xll
           if-no-files-found: error
 
       - name: Upload the installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: recdiffy-excel-addin-installer
           path: RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn.Installer/bin/Release/RecDiffy.ExcelAddIn.msi
