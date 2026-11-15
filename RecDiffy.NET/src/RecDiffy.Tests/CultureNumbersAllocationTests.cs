@@ -12,7 +12,9 @@ public class CultureNumbersAllocationTests
     public void A_plain_number_reads_with_under_eight_bytes_per_call()
     {
         var format = CultureInfo.GetCultureInfo("en-US").NumberFormat;
-        _field = "1234.56".ReadNumber(format);
+        // Warm up, so the JIT finishes its work on this path before bytes are counted.
+        for (var warm = 0; warm < 200; warm++)
+            _field = "1234.56".ReadNumber(format);
 
         var before = GC.GetAllocatedBytesForCurrentThread();
         for (var index = 0; index < Runs; index++)
@@ -26,7 +28,9 @@ public class CultureNumbersAllocationTests
     public void A_grouped_number_reads_with_under_sixty_four_bytes_per_call()
     {
         var format = CultureInfo.GetCultureInfo("en-US").NumberFormat;
-        _field = "1,234,567.89".ReadNumber(format);
+        // Warm up, so the JIT finishes its work on this path before bytes are counted.
+        for (var warm = 0; warm < 200; warm++)
+            _field = "1,234,567.89".ReadNumber(format);
 
         var before = GC.GetAllocatedBytesForCurrentThread();
         for (var index = 0; index < Runs; index++)

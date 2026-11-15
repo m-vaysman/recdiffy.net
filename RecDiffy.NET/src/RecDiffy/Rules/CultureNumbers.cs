@@ -35,7 +35,7 @@ internal static class CultureNumbers
 
         // The integer part is a slice of the text, not a new string.
         var cut = text.IndexOf(format.NumberDecimalSeparator, StringComparison.Ordinal);
-        var integer = (cut < 0 ? text : text[..cut]).Trim().Trim((ReadOnlySpan<char>)signs).Trim();
+        var integer = (cut is < 0 ? text : text[..cut]).Trim().Trim((ReadOnlySpan<char>)signs).Trim();
 
         // First walk counts the groups; one group means there is no separator, and nothing to check.
         var separator = format.NumberGroupSeparator;
@@ -52,12 +52,12 @@ internal static class CultureNumbers
         for (var index = 0; index < count; index++)
         {
             var found = NextSeparator(remaining, separator);
-            var length = found.At < 0 ? remaining.Length : found.At;
-            var size = sizes.Length == 0 ? 0 : sizes[Math.Min(count - 1 - index, sizes.Length - 1)];
-            var fits = index is 0 ? length >= 1 && (size == 0 || length <= size) : size > 0 && length == size;
+            var length = found.At is < 0 ? remaining.Length : found.At;
+            var size = sizes.Length is 0 ? 0 : sizes[Math.Min(count - 1 - index, sizes.Length - 1)];
+            var fits = index is 0 ? length is >= 1 && (size is 0 || length <= size) : size is > 0 && length == size;
             if (fits is false)
                 return false;
-            remaining = found.At < 0 ? default : remaining[(found.At + found.Length)..];
+            remaining = found.At is < 0 ? default : remaining[(found.At + found.Length)..];
         }
 
         return true;
@@ -70,6 +70,6 @@ internal static class CultureNumbers
     {
         var at = separator.Length is 0 ? -1 : text.IndexOf(separator, StringComparison.Ordinal);
         var space = separator is "\u00a0" ? text.IndexOf(' ') : -1;
-        return space >= 0 && (at < 0 || space < at) ? (space, 1) : (at, separator.Length);
+        return space is >= 0 && (at is < 0 || space < at) ? (space, 1) : (at, separator.Length);
     }
 }
