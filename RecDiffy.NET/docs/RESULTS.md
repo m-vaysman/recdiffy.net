@@ -71,7 +71,7 @@ The [README example](../../README.md#see-it-work-two-files-two-readers-one-recon
 - **Tolerances are inclusive.** A delta exactly equal to the bound is `WithinTolerance`.
 - **Rounding comes first.** At scale 2, 10.004 and 10.006 become 10.00 and 10.01, so the delta is 0.01.
 - **A relative bound** is a fraction of the larger of the two absolute values.
-- **A tolerance `when`** must hold on both sides. If it fails on either side, any difference in a decimal field is a `Break`. A `days` tolerance on a date field ignores its `when` today; see [PROFILES.md](PROFILES.md#known-gaps).
+- **A tolerance `when`** must hold on both sides. If it fails on either side, any difference in a decimal field is a `Break`.
 - **`applicableWhen`** skips the field, as `NotCompared`, only when it fails on both sides.
 - **`FieldDiff.Tolerance`** names the tolerance kind declared for the field, such as `Exact`, `Absolute` or `Days`. It names the declared kind even when the tolerance didn't apply, for example because its `when` failed.
 
@@ -152,7 +152,6 @@ When a profile declares lifecycle consolidation for a side, cancels and correcti
 - **A superseded row or cancel event** links to the survivor's entry through `EntryId`, so you can trace a match back to every event behind it.
 - **A fully cancelled row** has no entry.
 - **The survivor's entry** has the `LifecycleCollapsed` composition flag.
-- **If the survivor is then merged into a package,** the links and the flag are lost. See [PROFILES.md](PROFILES.md#known-gaps).
 - **A broken chain** is quarantined, not suppressed. See `LifecycleConflict`, `LifecycleCycle`, `MissingLifecycleTarget` and `ChainMemberQuarantined` in [PROFILES.md](PROFILES.md#run-diagnostics).
 
 The behaviour is in [Lifecycle.cs](../src/RecDiffy/Consolidation/Lifecycle.cs) and tested in [LifecycleTests.cs](../src/RecDiffy.Tests/LifecycleTests.cs).

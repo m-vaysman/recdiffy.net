@@ -143,7 +143,6 @@ The push uses `--skip-duplicate`, so a version that is already on nuget.org is s
 - **Release packages are smoke-tested before the push.** The release workflow copies the packed files into the PackageSmoke feed and runs the consumer and AOT checks on them ([#296](https://github.com/m-vaysman/recdiffy.net/issues/296)). They are not re-run on the files nuget.org serves after indexing, and the Excel add-in tests are not part of a release.
 - **No XML API documentation** in the packages. No project sets `GenerateDocumentationFile`.
 - **Package metadata gaps,** such as links in the packed README, are tracked in [#46](https://github.com/m-vaysman/recdiffy.net/issues/46).
-- **`AttributedTo` can name roots that don't explain the difference** ([#254](https://github.com/m-vaysman/recdiffy.net/issues/254)).
 - **In memory.** Both sides are read fully into memory before matching.
 - **Profile gaps** that compile but misbehave are listed in [PROFILES.md](PROFILES.md#known-gaps).
 - **Deferred:** installing the Excel add-in ([#198](https://github.com/m-vaysman/recdiffy.net/issues/198)), profile authoring tools ([#143](https://github.com/m-vaysman/recdiffy.net/issues/143), [#144](https://github.com/m-vaysman/recdiffy.net/issues/144), [#145](https://github.com/m-vaysman/recdiffy.net/issues/145)) and typed columns from a sample file ([#122](https://github.com/m-vaysman/recdiffy.net/issues/122)).

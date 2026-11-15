@@ -159,7 +159,7 @@ dotnet run -c Release --no-build -- --bmf BenchmarkDotNet.Artifacts/results benc
 
 The scaled classes use the short job in `BenchScale`: one launch, one warmup and three iterations. `ExactDiffBench` uses the BenchmarkDotNet default job.
 
-`benchmarks.yml` runs the same command on the COBBLER1 runner on every push to `dev` and `main`, and uploads to the [Bencher dashboard](https://bench.cobblerhill.net/perf/recdiffy). New classes need no change to the workflow, because `--filter '*'` picks them up. Bencher alerts are recorded and do not fail the job.
+`benchmarks.yml` runs the same command on the COBBLER1 runner on every push to `dev` and `main` that changes `RecDiffy.NET` or the workflow, and when it is run by hand, and uploads to the [Bencher dashboard](https://bench.cobblerhill.net/perf/recdiffy). New classes need no change to the workflow, because `--filter '*'` picks them up. Bencher alerts are recorded and do not fail the job.
 
 ### The run
 
