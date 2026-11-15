@@ -18,5 +18,6 @@ internal static class ReportSheet
             .Merge(4, 2, 4, 3)
             .Put(4, 4, $"{context.Options.Title}  ·  Profile {context.ProfileId}  ·  Engine {context.Result.Run.EngineVersion}", Styles.Muted);
 
-    public static string Link(string reference) => $"={reference}";
+    // A data tab leaves a null value's cell empty, and a bare link to an empty cell reads 0 (1900-01-00 as a date); this reads blank, so blank checks fire.
+    public static string Link(string reference) => $"=IF(ISBLANK({reference}),\"\",{reference})";
 }

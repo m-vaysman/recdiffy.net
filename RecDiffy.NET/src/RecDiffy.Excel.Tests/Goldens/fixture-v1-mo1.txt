@@ -408,8 +408,8 @@ MO1_ControlTotals!D43	HARBOR
 MO1_ControlTotals!E43	IRS
 MO1_ControlTotals!F43	USD
 MO1_ControlTotals!G43	GBP
-MO1_ControlTotals!H43	=Result_Rows!$P$291
-MO1_ControlTotals!I43	=Result_Rows!$P$371
+MO1_ControlTotals!H43	=IF(ISBLANK(Result_Rows!$P$291),"",Result_Rows!$P$291)
+MO1_ControlTotals!I43	=IF(ISBLANK(Result_Rows!$P$371),"",Result_Rows!$P$371)
 MO1_ControlTotals!J43	shared
 MO1_ControlTotals!K43	Break
 MO1_ControlTotals!L43	Currency
@@ -420,8 +420,8 @@ MO1_ControlTotals!D44	HARBOR
 MO1_ControlTotals!E44	IRS
 MO1_ControlTotals!F44	USD
 MO1_ControlTotals!G44	GBP
-MO1_ControlTotals!H44	=Result_Rows!$P$50
-MO1_ControlTotals!I44	=Result_Rows!$P$319
+MO1_ControlTotals!H44	=IF(ISBLANK(Result_Rows!$P$50),"",Result_Rows!$P$50)
+MO1_ControlTotals!I44	=IF(ISBLANK(Result_Rows!$P$319),"",Result_Rows!$P$319)
 MO1_ControlTotals!J44	shared
 MO1_ControlTotals!K44	Break
 MO1_ControlTotals!L44	Currency
@@ -432,8 +432,8 @@ MO1_ControlTotals!D45	DRIFTWOOD
 MO1_ControlTotals!E45	IRS
 MO1_ControlTotals!F45	USD
 MO1_ControlTotals!G45	GBP
-MO1_ControlTotals!H45	=Result_Rows!$P$214
-MO1_ControlTotals!I45	=Result_Rows!$P$374
+MO1_ControlTotals!H45	=IF(ISBLANK(Result_Rows!$P$214),"",Result_Rows!$P$214)
+MO1_ControlTotals!I45	=IF(ISBLANK(Result_Rows!$P$374),"",Result_Rows!$P$374)
 MO1_ControlTotals!J45	shared
 MO1_ControlTotals!K45	Break
 MO1_ControlTotals!L45	Currency
@@ -444,8 +444,8 @@ MO1_ControlTotals!D46	FALCON
 MO1_ControlTotals!E46	Equity
 MO1_ControlTotals!F46	USD
 MO1_ControlTotals!G46	GBP
-MO1_ControlTotals!H46	=Result_Rows!$P$193
-MO1_ControlTotals!I46	=Result_Rows!$P$332
+MO1_ControlTotals!H46	=IF(ISBLANK(Result_Rows!$P$193),"",Result_Rows!$P$193)
+MO1_ControlTotals!I46	=IF(ISBLANK(Result_Rows!$P$332),"",Result_Rows!$P$332)
 MO1_ControlTotals!J46	shared
 MO1_ControlTotals!K46	Break
 MO1_ControlTotals!L46	Currency
@@ -456,8 +456,8 @@ MO1_ControlTotals!D47	BEACON
 MO1_ControlTotals!E47	Equity
 MO1_ControlTotals!F47	USD
 MO1_ControlTotals!G47	GBP
-MO1_ControlTotals!H47	=Result_Rows!$P$4
-MO1_ControlTotals!I47	=Result_Rows!$P$399
+MO1_ControlTotals!H47	=IF(ISBLANK(Result_Rows!$P$4),"",Result_Rows!$P$4)
+MO1_ControlTotals!I47	=IF(ISBLANK(Result_Rows!$P$399),"",Result_Rows!$P$399)
 MO1_ControlTotals!J47	shared
 MO1_ControlTotals!K47	Break
 MO1_ControlTotals!L47	Currency
