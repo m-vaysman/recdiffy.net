@@ -114,7 +114,7 @@ internal static class DataTabs
         var sign = letters["cashSign"];
         var signed = new DataColumn<RowFact>(
             "signedCash",
-            (_, row) => Content.Formula($"IF(AND(ISNUMBER({netCash}{row.ToInvariant()}),ISNUMBER({sign}{row.ToInvariant()})),{netCash}{row.ToInvariant()}*{sign}{row.ToInvariant()},0)"),
+            (_, row) => Content.Formula($"IF(AND(ISNUMBER({netCash}{row.ToInvariant()}),ISNUMBER({sign}{row.ToInvariant()})),{netCash}{row.ToInvariant()}*{sign}{row.ToInvariant()},\"\")"),
             Formats.Amount,
             14);
         return DataTab.Build(
