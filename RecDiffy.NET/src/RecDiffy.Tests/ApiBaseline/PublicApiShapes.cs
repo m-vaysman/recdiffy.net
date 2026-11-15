@@ -5,7 +5,7 @@ namespace RecDiffy.Tests.ApiShapes;
 // Types with signatures the shipped libraries do not have today. PublicApiShapeTests reads them to check that a change
 // of this kind in a shipped library would change its baseline line.
 #pragma warning disable MA0016, MA0095 // The shapes are the point: concrete collections in a signature, and IEquatable without Equals(object).
-public struct Tally
+public struct Tally(int[] slots)
 {
     public const decimal Rate = 1.25m;
 
@@ -13,11 +13,9 @@ public struct Tally
 
     public static readonly decimal Loaded = 2.5m;
 
-    private readonly int[] _slots;
+    private readonly int[] _slots = slots;
 
     private int _count;
-
-    public Tally(int[] slots) => (_slots, _count) = (slots, 0);
 
     public readonly int Count => _count;
 

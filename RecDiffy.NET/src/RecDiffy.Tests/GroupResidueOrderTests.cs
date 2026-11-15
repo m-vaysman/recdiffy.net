@@ -32,11 +32,11 @@ public class GroupResidueOrderTests
         }
         """;
 
-    private static readonly string[] Blocks = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"];
+    private static readonly string[] Blocks = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B09", "B10", "B11", "B12"];
 
-    // Eight blocks, each with three equal rows on the left and a target of two on the right: any two of the three would
+    // Twelve blocks, each with three equal rows on the left and a target of two on the right: any two of the three would
     // do, so each block is one contested, ambiguous entry. Listed in key order, as a pair pass lists its contests, the
-    // entries read B1 to B8. They come in hash order, which is B1 to B8 in one process in 40,320.
+    // entries read B01 to B12. They come in hash order, which is B01 to B12 in one process in 479,001,600 (12 factorial).
     [Fact(Skip = "🔴 #426. Fails: the order changes from one process to the next. GroupIndex.Residue is on main, so the fix is a CHANGE ticket of its own.")]
     public void The_contested_blocks_of_a_group_pass_are_listed_in_the_same_order_in_every_process()
     {

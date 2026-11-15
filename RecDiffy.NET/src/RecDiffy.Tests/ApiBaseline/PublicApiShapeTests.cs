@@ -84,11 +84,40 @@ public class PublicApiShapeTests
         Assert.Contains($"{Shapes}.Turn<TInput, TResult> :: type public delegate (in TInput) (out TResult) TResult Invoke(TInput input)", Lines, StringComparer.Ordinal);
     }
 
-    // The whole text of the sample types, so nothing about them is left unasserted.
+    // Every line of the sample types, and no other: the tests above group them, and this one leaves none unasserted.
     [Fact]
-    public void The_sample_types_read_as_26_lines()
+    public void The_sample_types_read_as_exactly_these_lines()
     {
-        Assert.Equal(26, Lines.Count);
-        Assert.Equal(Lines.Count, Lines.Distinct(StringComparer.Ordinal).Count());
+        string[] expected =
+        [
+            $"{Shapes}.Generic :: method public static System.Collections.Generic.Dictionary<T, string?> Index<T>(T key, string? note, System.Collections.Generic.List<string?> rest) where T : struct",
+            $"{Shapes}.Generic :: method public static T? Maybe<T>(System.Collections.Generic.Dictionary<string, T?>? source, System.Collections.Generic.KeyValuePair<string?, T> pair, System.Collections.Generic.KeyValuePair<T?, string?> after) where T : struct",
+            $"{Shapes}.Generic :: method public static void Formatted<T>(T value) where T : System.IFormattable?",
+            $"{Shapes}.Generic :: method public static void Sorted<T>(T first, System.Collections.Generic.IReadOnlyList<T?> rest) where T : class, System.IComparable<T?>",
+            $"{Shapes}.Generic :: type public static class",
+            $"{Shapes}.Named<T> :: constructor protected ()",
+            $"{Shapes}.Named<T> :: method public abstract bool Equals({Shapes}.Named<T>? other)",
+            $"{Shapes}.Named<T> :: method public abstract int CompareTo(string[]? other)",
+            $"{Shapes}.Named<T> :: type public abstract class extends System.Collections.Generic.List<string?> implements System.IComparable<string[]?>, System.IEquatable<{Shapes}.Named<T>?> where T : notnull",
+            $"{Shapes}.Tally :: constructor public (int[] slots)",
+            $"{Shapes}.Tally :: field public const decimal Rate = 1.25",
+            $"{Shapes}.Tally :: field public const string Unit = \"rows\"",
+            $"{Shapes}.Tally :: field public static readonly decimal Loaded",
+            $"{Shapes}.Tally :: method [UnscopedRef] public ref int Own()",
+            $"{Shapes}.Tally :: method public readonly int Peek()",
+            $"{Shapes}.Tally :: method public ref int Slot(int index)",
+            $"{Shapes}.Tally :: method public ref readonly int At(int index)",
+            $"{Shapes}.Tally :: method public static int Sum(scoped System.ReadOnlySpan<int> values)",
+            $"{Shapes}.Tally :: method public static void Fill(scoped ref System.Span<int> target, ref readonly int value, in int other)",
+            $"{Shapes}.Tally :: method public void Add(int amount)",
+            $"{Shapes}.Tally :: property public int Count {{ readonly get; }}",
+            $"{Shapes}.Tally :: property public int Total {{ readonly get; set; }}",
+            $"{Shapes}.Tally :: property public ref int Last {{ get; }}",
+            $"{Shapes}.Tally :: property public ref readonly int First {{ get; }}",
+            $"{Shapes}.Tally :: type public struct",
+            $"{Shapes}.Turn<TInput, TResult> :: type public delegate (in TInput) (out TResult) TResult Invoke(TInput input)",
+        ];
+
+        Assert.Equal(expected.Order(StringComparer.Ordinal), Lines, StringComparer.Ordinal);
     }
 }

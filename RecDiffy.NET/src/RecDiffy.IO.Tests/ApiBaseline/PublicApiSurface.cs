@@ -106,16 +106,18 @@ internal static class PublicApiSurface
             "copy that file over",
             $"  {baselinePath}",
             "and commit the baseline with the change. Nothing rewrites the baseline for you.");
-        return baseline is null
-            ? $"The public API of {assemblyName} has no baseline: {baselinePath} is missing.\n{accept}"
-            : string.Join('\n',
-                $"The public API of {assemblyName} differs from its baseline: {Count(difference.Removed.Count)} of the baseline {(difference.Removed.Count == 1 ? "is" : "are")} gone or changed, and {Count(difference.Added.Count)} {(difference.Added.Count == 1 ? "is" : "are")} new.",
-                "A line marked - is in the baseline and not in the assembly. A line marked + is in the assembly and not in the baseline. A changed signature shows as one of each."
-                    + Listed("- ", difference.Removed)
-                    + Listed("+ ", difference.Added),
-                "If the change is not intended, restore the member. If it is intended:",
-                accept);
+        if (baseline is null)
+            return $"The public API of {assemblyName} has no baseline: {baselinePath} is missing.\n{accept}";
+        return string.Join('\n',
+            $"The public API of {assemblyName} differs from its baseline: {Count(difference.Removed.Count)} of the baseline {Verb(difference.Removed.Count)} gone or changed, and {Count(difference.Added.Count)} {Verb(difference.Added.Count)} new.",
+            "A line marked - is in the baseline and not in the assembly. A line marked + is in the assembly and not in the baseline. A changed signature shows as one of each."
+                + Listed("- ", difference.Removed)
+                + Listed("+ ", difference.Added),
+            "If the change is not intended, restore the member. If it is intended:",
+            accept);
     }
+
+    private static string Verb(int lines) => lines is 1 ? "is" : "are";
 
     public static ApiDifference Compare(IReadOnlyList<string> baseline, IReadOnlyList<string> actual)
     {
@@ -162,7 +164,7 @@ internal static class PublicApiSurface
         return [.. types.SelectMany(type => TypeLines(type, rows)).Order(StringComparer.Ordinal)];
     }
 
-    private static string Count(int lines) => $"{lines.ToInvariant()} line{(lines == 1 ? "" : "s")}";
+    private static string Count(int lines) => $"{lines.ToInvariant()} line{(lines is 1 ? "" : "s")}";
 
     private static string Listed(string mark, IReadOnlyList<string> lines) =>
         string.Concat(lines.Take(ListedLines).Select(line => $"\n{mark}{line}"))
@@ -216,7 +218,7 @@ internal static class PublicApiSurface
             : "";
         // Only the interfaces this type adds to its base type's, so a change in a framework base type does not move the line.
         var added = type.GetInterfaces().Except(type.BaseType?.GetInterfaces() ?? []).Select(contract => TypeName(contract, rows.Interface(type, contract))).Order(StringComparer.Ordinal).ToArray();
-        var implemented = added.Length == 0 ? "" : $" implements {string.Join(", ", added)}";
+        var implemented = added.Length is 0 ? "" : $" implements {string.Join(", ", added)}";
         return $"type {attributes}{access} {kind}{variance}{inherited}{implemented}{constraints}{TupleNames(type.GetCustomAttributesData())}";
     }
 
@@ -277,9 +279,9 @@ internal static class PublicApiSurface
     }
 
     private static string? DecimalConstant(FieldInfo field) =>
-        field.GetCustomAttributesData().FirstOrDefault(attribute => attribute.AttributeType.Name == "DecimalConstantAttribute")
+        field.GetCustomAttributesData().FirstOrDefault(attribute => attribute.AttributeType.Name is "DecimalConstantAttribute")
             is { ConstructorArguments: [{ Value: byte scale }, { Value: byte sign }, var high, var middle, var low] }
-            ? new decimal(Bits(low), Bits(middle), Bits(high), sign != 0, scale).ToInvariant()
+            ? new decimal(Bits(low), Bits(middle), Bits(high), sign is not 0, scale).ToInvariant()
             : null;
 
     private static int Bits(CustomAttributeTypedArgument part) =>
@@ -303,13 +305,13 @@ internal static class PublicApiSurface
                 .Where(accessor => accessor.Method is not null && Access(accessor.Method) is not null)
                 .Select(accessor => (accessor.Method!, Access(accessor.Method!)!, accessor.Word)),
         ];
-        if (accessors.Length == 0)
+        if (accessors.Length is 0)
             return null;
         var widest = accessors.MinBy(accessor => Rank(accessor.Access));
         var body = string.Join(" ", accessors.Select(accessor =>
             $"{Attributes(accessor.Method.GetCustomAttributesData())}{(accessor.Access == widest.Access ? "" : accessor.Access + " ")}{ReadOnly(accessor.Method)}{accessor.Word};"));
         var index = property.GetIndexParameters();
-        var name = index.Length == 0 ? property.Name : $"{property.Name}[{string.Join(", ", index.Select(parameter => Parameter(parameter, false)))}]";
+        var name = index.Length is 0 ? property.Name : $"{property.Name}[{string.Join(", ", index.Select(parameter => Parameter(parameter, false)))}]";
         var byReference = property switch
         {
             { PropertyType.IsByRef: true, GetMethod: { } getter } when ReturnsReadOnly(getter) => "ref readonly ",
@@ -346,7 +348,7 @@ internal static class PublicApiSurface
 
     private static bool ReturnsReadOnly(MethodInfo method) =>
         Has(method.ReturnParameter.GetCustomAttributesData(), "IsReadOnlyAttribute")
-        || method.ReturnParameter.GetRequiredCustomModifiers().Any(modifier => modifier.Name == "InAttribute");
+        || method.ReturnParameter.GetRequiredCustomModifiers().Any(modifier => modifier.Name is "InAttribute");
 
     // A member of a struct that promises not to change it. A readonly struct says so once, on its own line.
     private static string ReadOnly(MethodInfo method) =>
@@ -361,7 +363,7 @@ internal static class PublicApiSurface
     private static string Parameter(ParameterInfo parameter, bool extension)
     {
         var attributes = parameter.GetCustomAttributesData();
-        var receiver = extension && parameter.Position == 0 ? "this " : "";
+        var receiver = extension && parameter.Position is 0 ? "this " : "";
         var scoped = Has(attributes, "ScopedRefAttribute") ? "scoped " : "";
         var passing = parameter switch
         {
@@ -417,7 +419,7 @@ internal static class PublicApiSurface
     private static bool Overrides(MethodInfo method) => method.GetBaseDefinition().DeclaringType != method.DeclaringType;
 
     private static bool IsInit(PropertyInfo property) =>
-        property.SetMethod is { } setter && setter.ReturnParameter.GetRequiredCustomModifiers().Any(modifier => modifier.Name == "IsExternalInit");
+        property.SetMethod is { } setter && setter.ReturnParameter.GetRequiredCustomModifiers().Any(modifier => modifier.Name is "IsExternalInit");
 
     private static string Required(MemberInfo member) =>
         Has(member.GetCustomAttributesData(), "RequiredMemberAttribute") ? "required " : "";
@@ -431,17 +433,19 @@ internal static class PublicApiSurface
         var valueType = flags.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint);
         var referenceType = flags.HasFlag(GenericParameterAttributes.ReferenceTypeConstraint);
         var types = parameter.GetGenericParameterConstraints().Where(type => type != typeof(ValueType)).Select(type => TypeName(type, rows.Constraint(parameter, type))).Order(StringComparer.Ordinal).ToArray();
+        var reference = NullableFlag(parameter) is 2 ? "class?" : "class";
+        var value = Has(parameter.GetCustomAttributesData(), "IsUnmanagedAttribute") ? "unmanaged" : "struct";
         string[] parts =
         [
-            .. referenceType ? [NullableFlag(parameter) is 2 ? "class?" : "class"] : Array.Empty<string>(),
-            .. valueType ? [Has(parameter.GetCustomAttributesData(), "IsUnmanagedAttribute") ? "unmanaged" : "struct"] : Array.Empty<string>(),
-            .. referenceType is false && valueType is false && types.Length == 0 && NullableFlag(parameter) is 1 ? ["notnull"] : Array.Empty<string>(),
+            .. referenceType ? [reference] : Array.Empty<string>(),
+            .. valueType ? [value] : Array.Empty<string>(),
+            .. referenceType is false && valueType is false && types.Length is 0 && NullableFlag(parameter) is 1 ? ["notnull"] : Array.Empty<string>(),
             .. types,
             .. flags.HasFlag(GenericParameterAttributes.DefaultConstructorConstraint) && valueType is false ? ["new()"] : Array.Empty<string>(),
             // GenericParameterAttributes.AllowByRefLike, which net8.0 does not name.
-            .. ((int)flags & 0x20) != 0 ? ["allows ref struct"] : Array.Empty<string>(),
+            .. ((int)flags & 0x20) is not 0 ? ["allows ref struct"] : Array.Empty<string>(),
         ];
-        return parts.Length == 0 ? "" : $" where {parameter.Name} : {string.Join(", ", parts)}";
+        return parts.Length is 0 ? "" : $" where {parameter.Name} : {string.Join(", ", parts)}";
     }
 
     // The compiler writes a type parameter's nullability on the parameter, or once on the method or type that declares it.
@@ -472,11 +476,11 @@ internal static class PublicApiSurface
             .. attribute.ConstructorArguments.Select(argument => Literal(argument.Value)),
             .. attribute.NamedArguments.OrderBy(argument => argument.MemberName, StringComparer.Ordinal).Select(argument => $"{argument.MemberName} = {Literal(argument.TypedValue.Value)}"),
         ];
-        return arguments.Length == 0 ? name : $"{name}({string.Join(", ", arguments)})";
+        return arguments.Length is 0 ? name : $"{name}({string.Join(", ", arguments)})";
     }
 
     private static string TupleNames(IEnumerable<CustomAttributeData> attributes) =>
-        attributes.FirstOrDefault(attribute => attribute.AttributeType.Name == "TupleElementNamesAttribute") is { ConstructorArguments: [{ Value: IEnumerable<CustomAttributeTypedArgument> names }] }
+        attributes.FirstOrDefault(attribute => attribute.AttributeType.Name is "TupleElementNamesAttribute") is { ConstructorArguments: [{ Value: IEnumerable<CustomAttributeTypedArgument> names }] }
             ? $" [tuple names: {string.Join(", ", names.Select(name => name.Value as string ?? "_"))}]"
             : "";
 
@@ -518,13 +522,13 @@ internal static class PublicApiSurface
     // Namespace, then the type and the types it is nested in, each with its own generic arguments.
     private static string Named(Type type, Func<int, string> argument)
     {
-        if (type.IsNested is false && type.Namespace == "System" && Aliases.TryGetValue(type.Name, out var alias))
+        if (type.IsNested is false && type.Namespace is "System" && Aliases.TryGetValue(type.Name, out var alias))
             return alias;
         Type[] chain = [.. Outward(type.IsGenericType ? type.GetGenericTypeDefinition() : type).Reverse()];
         int[] arity = [.. chain.Select(link => link.GetGenericArguments().Length)];
         var names = chain.Select((link, position) =>
         {
-            var first = position == 0 ? 0 : arity[position - 1];
+            var first = position is 0 ? 0 : arity[position - 1];
             var bare = link.Name.IndexOf('`', StringComparison.Ordinal) is var tick and >= 0 ? link.Name[..tick] : link.Name;
             return arity[position] == first ? bare : $"{bare}<{string.Join(", ", Enumerable.Range(first, arity[position] - first).Select(argument))}>";
         });
@@ -540,7 +544,7 @@ internal static class PublicApiSurface
 
 internal sealed record ApiDifference(IReadOnlyList<string> Removed, IReadOnlyList<string> Added)
 {
-    public bool IsEmpty => Removed.Count == 0 && Added.Count == 0;
+    public bool IsEmpty => Removed.Count is 0 && Added.Count is 0;
 }
 
 // The nullable annotations of one signature position, as the compiler stores them: one flag for the whole type, or one
@@ -555,7 +559,7 @@ internal sealed class Annotations
     private Annotations(byte[]? each, byte all) => (_each, _all) = (each, all);
 
     public static Annotations Of(IEnumerable<CustomAttributeData> site, MethodBase? method, Type? declaring) =>
-        site.FirstOrDefault(attribute => attribute.AttributeType.Name == "NullableAttribute") switch
+        site.FirstOrDefault(attribute => attribute.AttributeType.Name is "NullableAttribute") switch
         {
             { ConstructorArguments: [{ Value: byte all }] } => new(null, all),
             { ConstructorArguments: [{ Value: IEnumerable<CustomAttributeTypedArgument> each }] } => new([.. each.Select(flag => flag.Value).OfType<byte>()], 0),
@@ -587,7 +591,13 @@ internal sealed class Annotations
             }
             : null;
 
-    public byte Next() => _each is null ? _all : _read < _each.Length ? _each[_read++] : (byte)0;
+    public byte Next() =>
+        _each switch
+        {
+            null => _all,
+            _ when _read < _each.Length => _each[_read++],
+            _ => 0,
+        };
 
     private static IEnumerable<Type> Enclosing(Type? type)
     {
@@ -624,9 +634,9 @@ internal sealed class NullableRows(MetadataReader reader)
     // The attribute holds one byte, or a count and that many bytes, after a two-byte prolog.
     private byte[]? Flags(CustomAttributeHandleCollection attributes) =>
         attributes.Select(reader.GetCustomAttribute)
-            .Where(attribute => AttributeName(attribute.Constructor) == "NullableAttribute")
+            .Where(attribute => AttributeName(attribute.Constructor) is "NullableAttribute")
             .Select(attribute => reader.GetBlobBytes(attribute.Value))
-            .Select(blob => blob.Length == 5 ? [blob[2]] : blob[6..(6 + BinaryPrimitives.ReadInt32LittleEndian(blob.AsSpan(2)))])
+            .Select(blob => blob.Length is 5 ? [blob[2]] : blob[6..(6 + BinaryPrimitives.ReadInt32LittleEndian(blob.AsSpan(2)))])
             .FirstOrDefault();
 
     private string AttributeName(EntityHandle constructor) =>

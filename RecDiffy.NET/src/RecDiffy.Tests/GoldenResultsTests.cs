@@ -51,7 +51,7 @@ public class GoldenResultsTests
                 .OfType<string>(),
         ];
 
-        Assert.True(failures.Length == 0, string.Join("\n\n", failures));
+        Assert.True(failures.Length is 0, string.Join("\n\n", failures));
     }
 
     // The profiles declare their cultures, so the machine's culture changes nothing (spec v3.1 §3.5).
@@ -155,7 +155,7 @@ public class GoldenResultsTests
         Assert.Equal(2, see.Rows("OMS-CONFLICT").Length);
         Assert.Equal(2, see.Rows("OMS-TWICE").Length);
         Assert.All(see.Rows("OMS-TWICE"), row => Assert.Equal((Disposition.Matched, InputValidity.ValidWithWarnings), (row.Disposition, row.Validity)));
-        Assert.Contains(result.Rows, row => row.Disposition is Disposition.Quarantined && row.Diagnostics.Any(diagnostic => diagnostic.Code == "MissingKey"));
+        Assert.Contains(result.Rows, row => row.Disposition is Disposition.Quarantined && row.Diagnostics.Any(diagnostic => diagnostic.Code is "MissingKey"));
 
         Assert.Equal((Alignment.Matched, Composition.OneToOne | Composition.LifecycleCollapsed, FieldOutcome.Exact, "P1"), Shape(see.Entry("OMS-LIFE")));
         Assert.Equal((Disposition.Suppressed, SuppressionReason.Superseded), see.Fate("ST-LIFE-NEW"));
@@ -200,7 +200,7 @@ public class GoldenResultsTests
         // A tolerance with a condition, and a field that is not compared: NotCompared fields are left out of Diffs.
         Assert.Equal(FieldOutcome.WithinTolerance, see.Diff("L-EQ", "Fees").Outcome);
         Assert.Equal(FieldOutcome.Break, see.Diff("L-BD", "Fees").Outcome);
-        Assert.DoesNotContain(see.Entry("L-EQ").Diffs, diff => diff.Field.Name == "Accrued");
+        Assert.DoesNotContain(see.Entry("L-EQ").Diffs, diff => diff.Field.Name is "Accrued");
         Assert.Equal((1.00m, 2.00m), (result.Canonical(see.Entry("L-EQ").Left[0])["Accrued"].Number, result.Canonical(see.Entry("L-EQ").Right[0])["Accrued"].Number));
 
         // The TradeRef veto: two shared references that differ keep the rows apart; two broker references do not.
@@ -243,8 +243,6 @@ public class GoldenResultsTests
         Assert.Equal(scenario.Left.Count + scenario.Right.Count, result.Rows.Length);
     }
 
-    // The comparison itself: a changed line fails with the first lines that differ, the failure says how to accept, the
-    // actual text is written beside the test output, and the golden file is left as it was.
     [Fact]
     public void A_changed_result_fails_with_the_first_differing_lines_and_never_rewrites_the_golden_file()
     {
@@ -319,7 +317,6 @@ public class GoldenResultsTests
         return order;
     }
 
-    // Reads a result by row key, for the two tests that say what the inputs cover.
     private sealed class Seen(IReconciliationResult result)
     {
         public ResultEntry Entry(string rowKey) =>
@@ -342,7 +339,6 @@ public class GoldenResultsTests
     }
 }
 
-// One fixed pair of inputs: the profile, the reference data, how each side's rows reach the engine, and the views.
 internal sealed record GoldenScenario(string Name, string Profile, ReferenceDataSet Reference, GoldenSide Left, GoldenSide Right, IReadOnlyList<GoldenView> Views)
 {
     public CompiledProfile Compile() =>
@@ -354,7 +350,6 @@ internal sealed record GoldenSide(IReadOnlyList<string> Columns, int Count, Func
 
 internal sealed record GoldenView(string Title, SideBySideSpec Spec);
 
-// Runs a scenario and writes the whole result as text, in the order the engine returns it.
 internal static class GoldenResult
 {
     // A name no profile declares and no source has, to pin what the engine returns for one.
@@ -373,7 +368,7 @@ internal static class GoldenResult
         private readonly string[] _fields = [.. scenario.Compile().Document.Fields.Select(field => field.Name), Unknown];
 
         private readonly HashSet<(string Path, string Pass)> _groupPasses =
-            [.. scenario.Compile().Document.Paths.SelectMany(path => path.Passes.Where(pass => pass.Pass == "match.groupSum").Select(pass => (path.Id, pass.Id)))];
+            [.. scenario.Compile().Document.Paths.SelectMany(path => path.Passes.Where(pass => pass.Pass is "match.groupSum").Select(pass => (path.Id, pass.Id)))];
 
         public IEnumerable<string> Lines() =>
         [
@@ -411,6 +406,7 @@ internal static class GoldenResult
         // Unmatched entries of one alignment on one route come in input order, so anyOrder sorts each such run too.
         private IEnumerable<ResultEntry> Entries()
         {
+            // Remove this sort when #426 is fixed: it hides that order, the fix included. GroupResidueOrderTests then covers it.
             var stable = Sorted(result.Entries, GroupResidue);
             return anyOrder ? Sorted(stable, SameUnmatchedKind) : stable;
         }
@@ -466,9 +462,11 @@ internal static class GoldenResult
         private IEnumerable<SourceRef> Sorted(IEnumerable<SourceRef> rows) =>
             rows.OrderBy(row => row.Source, StringComparer.Ordinal).ThenBy(row => row.RowKey, StringComparer.Ordinal).ThenBy(Position);
 
-        private int Position(SourceRef row) => (row.Source == "left" ? left : right) is { } order ? order[row.Ordinal] : row.Ordinal;
+        private int Position(SourceRef row) => Order(row) is { } order ? order[row.Ordinal] : row.Ordinal;
 
-        private string Ref(SourceRef row) => $"{row.Source}:{(row.RowKey.Length == 0 ? "<no key>" : row.RowKey)}#{Position(row).ToInvariant()}";
+        private IReadOnlyList<int>? Order(SourceRef row) => row.Source is "left" ? left : right;
+
+        private string Ref(SourceRef row) => $"{row.Source}:{(row.RowKey.Length is 0 ? "<no key>" : row.RowKey)}#{Position(row).ToInvariant()}";
 
         private string Refs(IEnumerable<SourceRef> rows) => $"[{string.Join(", ", rows.Select(Ref))}]";
 
@@ -510,7 +508,7 @@ internal static class GoldenResult
         ];
 
         private IEnumerable<string> Columns(SourceRef row) =>
-            [.. (row.Source == "left" ? scenario.Left : scenario.Right).Columns, Unknown];
+            [.. (row.Source is "left" ? scenario.Left : scenario.Right).Columns, Unknown];
 
         // Every declared field, null or not, and one name the profile does not declare: the value the row hands out, what
         // Format makes of it, and the row's own Text and IsNull.
@@ -571,11 +569,12 @@ internal static class GoldenText
     public static string? Difference(IReadOnlyList<string> golden, IReadOnlyList<string> actual)
     {
         int[] differing = [.. Enumerable.Range(0, Math.Max(golden.Count, actual.Count)).Where(index => At(golden, index) != At(actual, index))];
-        return differing.Length == 0
-            ? null
-            : $"{differing.Length.ToInvariant()} line{(differing.Length == 1 ? " differs" : "s differ")}, of {golden.Count.ToInvariant()} in the golden file and {actual.Count.ToInvariant()} now. The first {Math.Min(differing.Length, ListedLines).ToInvariant()}:"
-                + string.Concat(differing.Take(ListedLines).Select(index =>
-                    $"\nline {(index + 1).ToInvariant()}\n  golden: {At(golden, index) ?? "<no line>"}\n  actual: {At(actual, index) ?? "<no line>"}"));
+        if (differing.Length is 0)
+            return null;
+        var differ = differing.Length is 1 ? " differs" : "s differ";
+        return $"{differing.Length.ToInvariant()} line{differ}, of {golden.Count.ToInvariant()} in the golden file and {actual.Count.ToInvariant()} now. The first {Math.Min(differing.Length, ListedLines).ToInvariant()}:"
+            + string.Concat(differing.Take(ListedLines).Select(index =>
+                $"\nline {(index + 1).ToInvariant()}\n  golden: {At(golden, index) ?? "<no line>"}\n  actual: {At(actual, index) ?? "<no line>"}"));
     }
 
     private static string? At(IReadOnlyList<string> lines, int index) => index < lines.Count ? lines[index] : null;
