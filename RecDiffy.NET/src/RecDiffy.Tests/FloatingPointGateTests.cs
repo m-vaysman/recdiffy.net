@@ -59,11 +59,11 @@ public class FloatingPointGateTests
 
         var offenders = MemberHits.Value
             .Where(hit => allowed.Contains(hit.Key) is false)
-            .Select(hit => $"{hit.Key} ({hit.FloatType})")
+            .Select(hit => $"{hit.Key} ({hit.FloatTypes})")
             .ToArray();
 
         Assert.True(offenders.Length == 0,
-            "These members declare double/float/Half and are not allowlisted:" + Environment.NewLine +
+            "These members declare floating-point types (double, float, Half, NFloat, Complex, vectors) and are not allowlisted:" + Environment.NewLine +
             string.Join(Environment.NewLine, offenders) + Environment.NewLine + MoneyAndQuantityAreDecimalOnly);
     }
 
@@ -85,7 +85,7 @@ public class FloatingPointGateTests
     public void Every_method_body_token_can_be_resolved()
     {
         var unresolved = IlFindings.Value
-            .Where(finding => finding.Unresolved)
+            .Where(finding => finding.Kind is FindingKind.Unresolved)
             .Select(finding => $"{finding.Method}: {finding.What}")
             .ToArray();
 
@@ -96,33 +96,74 @@ public class FloatingPointGateTests
     [Fact]
     public void No_method_body_uses_floating_point_without_an_allowlist_entry()
     {
-        var allowed = FloatingPointAllowlist.IlMethods.Select(entry => entry.Method).ToHashSet(StringComparer.Ordinal);
+        var pinned = FloatingPointAllowlist.IlMethods.ToDictionary(entry => entry.Method, StringComparer.Ordinal);
 
-        var offenders = IlFindings.Value
-            .Where(finding => finding.Unresolved is false && allowed.Contains(finding.Method) is false)
-            .Select(finding => $"{finding.Method} {finding.What}")
-            .ToArray();
+        var offenders = UsesBeyondPins(pinned).Concat(LocalsOutsideTheList(pinned)).ToArray();
 
         Assert.True(offenders.Length == 0,
-            "These method bodies use floating point and are not allowlisted:" + Environment.NewLine +
+            "These method bodies use floating point beyond what the allowlist pins:" + Environment.NewLine +
             string.Join(Environment.NewLine, offenders) + Environment.NewLine + MoneyAndQuantityAreDecimalOnly);
     }
 
     [Fact]
-    public void Every_allowlisted_method_body_still_uses_floating_point()
+    public void Every_allowlisted_method_body_still_uses_exactly_what_it_pins()
     {
-        var present = IlFindings.Value
-            .Where(finding => finding.Unresolved is false)
-            .Select(finding => finding.Method)
-            .ToHashSet(StringComparer.Ordinal);
+        var found = IlFindings.Value
+            .Where(finding => finding.Kind is FindingKind.Use or FindingKind.Local)
+            .GroupBy(finding => finding.Method, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal);
 
-        var stale = FloatingPointAllowlist.IlMethods
-            .Select(entry => entry.Method)
-            .Where(method => present.Contains(method) is false)
+        var problems = FloatingPointAllowlist.IlMethods
+            .SelectMany(entry => found.TryGetValue(entry.Method, out var findings)
+                ? entry.Uses
+                    .Select(pin => (Pin: pin, Actual: findings.Count(finding => finding.Kind is FindingKind.Use && finding.What == pin.What)))
+                    .Where(item => item.Actual != item.Pin.Count)
+                    .Select(item => $"{entry.Method} {item.Pin.What}: pinned {item.Pin.Count.ToInvariant()}, found {item.Actual.ToInvariant()}")
+                : [$"{entry.Method}: no floating-point use in the body any more; remove the entry"])
             .ToArray();
 
-        Assert.True(stale.Length == 0,
-            "These allowlisted methods no longer use floating point in their body; remove or update them:" + Environment.NewLine + string.Join(Environment.NewLine, stale));
+        Assert.True(problems.Length == 0,
+            "These allowlist pins no longer match the method bodies; remove or update them:" + Environment.NewLine + string.Join(Environment.NewLine, problems));
+    }
+
+    [Fact]
+    public void No_method_calls_a_conversion_door_unless_it_is_an_allowed_caller()
+    {
+        var allowed = FloatingPointAllowlist.ConversionDoors
+            .SelectMany(door => door.Callers.Select(caller => (door.Method, Caller: caller.Method)))
+            .ToHashSet();
+
+        var offenders = IlFindings.Value
+            .Where(finding => finding.Kind is FindingKind.Door)
+            .Select(finding => (Finding: finding, Door: FloatingPointAllowlist.ConversionDoors.First(door => finding.What.EndsWith(" " + door.Method, StringComparison.Ordinal)).Method))
+            .Where(item => allowed.Contains((item.Door, item.Finding.Method)) is false)
+            .Select(item => $"{item.Finding.Method} {item.Finding.What}")
+            .ToArray();
+
+        Assert.True(offenders.Length == 0,
+            "These methods call a conversion door (it turns a boxed double or float into a decimal) and are not listed as allowed callers:" + Environment.NewLine +
+            string.Join(Environment.NewLine, offenders) + Environment.NewLine + MoneyAndQuantityAreDecimalOnly);
+    }
+
+    [Fact]
+    public void Every_conversion_door_exists_and_every_allowed_caller_still_calls_it()
+    {
+        var keys = FloatingPointIlScanner.MethodKeys(Libraries.SelectMany(assembly => assembly.GetTypes()));
+
+        var calls = IlFindings.Value
+            .Where(finding => finding.Kind is FindingKind.Door)
+            .Select(finding => (finding.Method, finding.What))
+            .ToArray();
+
+        var problems = FloatingPointAllowlist.ConversionDoors
+            .SelectMany(door => (keys.Contains(door.Method) ? [] : new[] { $"door does not exist: {door.Method}" })
+                .Concat(door.Callers
+                    .Where(caller => calls.Any(call => call.Method == caller.Method && call.What.EndsWith(" " + door.Method, StringComparison.Ordinal)) is false)
+                    .Select(caller => $"{caller.Method} no longer calls {door.Method}")))
+            .ToArray();
+
+        Assert.True(problems.Length == 0,
+            "These conversion door entries are stale; remove or update them:" + Environment.NewLine + string.Join(Environment.NewLine, problems));
     }
 
     [Fact]
@@ -133,11 +174,16 @@ public class FloatingPointGateTests
             Duplicates("line", FloatingPointAllowlist.Lines.Select(entry => $"{entry.RelativePath}: {entry.LineText}")),
             Duplicates("member", FloatingPointAllowlist.Members.Select(entry => entry.Key)),
             Duplicates("method body", FloatingPointAllowlist.IlMethods.Select(entry => entry.Method)),
+            Duplicates("pinned use", FloatingPointAllowlist.IlMethods.SelectMany(entry => entry.Uses.Select(use => $"{entry.Method} {use.What}"))),
+            Duplicates("conversion door", FloatingPointAllowlist.ConversionDoors.Select(door => door.Method)),
+            Duplicates("door caller", FloatingPointAllowlist.ConversionDoors.SelectMany(door => door.Callers.Select(caller => $"{door.Method} <- {caller.Method}"))),
         }.SelectMany(found => found);
 
         var withoutReason = FloatingPointAllowlist.Lines.Select(entry => (Name: entry.LineText, entry.Reason))
             .Concat(FloatingPointAllowlist.Members.Select(entry => (Name: entry.Key, entry.Reason)))
             .Concat(FloatingPointAllowlist.IlMethods.Select(entry => (Name: entry.Method, entry.Reason)))
+            .Concat(FloatingPointAllowlist.ConversionDoors.Select(door => (Name: door.Method, door.Reason)))
+            .Concat(FloatingPointAllowlist.ConversionDoors.SelectMany(door => door.Callers.Select(caller => (Name: caller.Method, caller.Reason))))
             .Where(entry => string.IsNullOrWhiteSpace(entry.Reason))
             .Select(entry => $"no reason: {entry.Name}");
 
@@ -147,9 +193,11 @@ public class FloatingPointGateTests
     }
 
     [Fact]
-    public void Every_line_allowlist_count_is_at_least_one()
+    public void Every_allowlist_count_is_at_least_one()
     {
-        var wrong = FloatingPointAllowlist.Lines.Where(entry => entry.Count < 1).Select(entry => entry.LineText).ToArray();
+        var wrong = FloatingPointAllowlist.Lines.Where(entry => entry.Count < 1).Select(entry => entry.LineText)
+            .Concat(FloatingPointAllowlist.IlMethods.SelectMany(entry => entry.Uses.Where(use => use.Count < 1).Select(use => $"{entry.Method} {use.What}")))
+            .ToArray();
 
         Assert.True(wrong.Length == 0, string.Join(Environment.NewLine, wrong));
     }
@@ -181,6 +229,17 @@ public class FloatingPointGateTests
     [InlineData("List<Single> xs;")]
     [InlineData("var r = System.Double.Parse(s);")]
     [InlineData("var s = (decimal)(double)x;")]
+    [InlineData("var n = new System.Double();")]
+    [InlineData("var n = new Double();")]
+    [InlineData("decimal[] xs = [..0.1 > 0 ? [amount] : []];")]
+    [InlineData("var r = xs[..0.5];")]
+    [InlineData("NFloat n;")]
+    [InlineData("var n = System.Runtime.InteropServices.NFloat.Zero;")]
+    [InlineData("var c = System.Numerics.Complex.One;")]
+    [InlineData("Complex c = default;")]
+    [InlineData("Vector3 v;")]
+    [InlineData("var m = System.Numerics.Matrix4x4.Identity;")]
+    [InlineData("var q = (Single)1;")]
     public void Scanner_catches_floating_point_forms(string line) =>
         Assert.True(FloatingPointLineScanner.Matches(line), $"line was not caught: {line}");
 
@@ -210,6 +269,16 @@ public class FloatingPointGateTests
     [InlineData("var c = '\"'; var d = 1.5m;")]
     [InlineData("var c = '\\'';")]
     [InlineData("/* double */ var a = 1m;")]
+    [InlineData("var n = nameof(Single);")]
+    [InlineData("var n = nameof(Enumerable.Single);")]
+    [InlineData("var row = rows.Single<(string, decimal)>();")]
+    [InlineData("var rows2 = items.Select(Enumerable.Single);")]
+    [InlineData("var row = Single(rows);")]
+    [InlineData("var row = Single<int>(rows);")]
+    [InlineData("var a = 1..5;")]
+    [InlineData("var h = x.Half;")]
+    [InlineData("var d = x.Double.Y;")]
+    [InlineData("var s = $$\"\"\"{{x:a}b}} 1.5 double\"\"\";")]
     public void Scanner_ignores_comments_strings_decimal_and_integer_literals_and_linq(string line) =>
         Assert.False(FloatingPointLineScanner.Matches(line), $"line was wrongly caught: {line}");
 
@@ -320,6 +389,7 @@ public class FloatingPointGateTests
         relativePath.Split('/').Contains(name, StringComparer.Ordinal);
 
     // Every field, method and constructor, compiler-generated ones included; properties are covered by their accessors.
+    // The key carries the field or return type, and every floating-point type of the member is reported.
     private static IReadOnlyList<MemberHit> ScanMembers()
     {
         const BindingFlags declared =
@@ -330,19 +400,41 @@ public class FloatingPointGateTests
             .. Libraries
                 .SelectMany(assembly => assembly.GetTypes())
                 .SelectMany(type => type.GetFields(declared)
-                    .Select(field => (Key: FloatingPointTypes.FieldKey(field), FloatType: FloatingPointTypes.Find(field.FieldType)))
+                    .Select(field => (Key: FloatingPointTypes.FieldMemberKey(field), Found: FloatingPointTypes.AllIn([field.FieldType])))
                     .Concat(type.GetMethods(declared).Cast<MethodBase>().Concat(type.GetConstructors(declared))
-                        .Select(method => (Key: FloatingPointTypes.MethodKey(method), FloatType: FloatingPointTypes.FirstOf(
+                        .Select(method => (Key: FloatingPointTypes.MemberKey(method), Found: FloatingPointTypes.AllIn(
                             [(method as MethodInfo)?.ReturnType, .. method.GetParameters().Select(parameter => parameter.ParameterType)])))))
-                .Where(member => member.FloatType is not null)
-                .Select(member => new MemberHit(member.Key, member.FloatType!)),
+                .Where(member => member.Found.Any())
+                .Select(member => new MemberHit(member.Key, string.Join(", ", member.Found))),
         ];
     }
 
-    private static IReadOnlyList<FloatingPointFinding> ScanIl() =>
-        [.. Libraries.SelectMany(FloatingPointIlScanner.Scan)];
+    private static IReadOnlyList<FloatingPointFinding> ScanIl()
+    {
+        var doors = FloatingPointAllowlist.ConversionDoors.Select(door => door.Method).ToHashSet(StringComparer.Ordinal);
+
+        return [.. Libraries.SelectMany(assembly => FloatingPointIlScanner.Scan(assembly, doors))];
+    }
+
+    private static int AllowedCount(IReadOnlyDictionary<string, FloatingPointIlAllow> pinned, string method, string what) =>
+        pinned.TryGetValue(method, out var entry) ? entry.Uses.Where(pin => pin.What == what).Sum(pin => pin.Count) : 0;
+
+    private static IEnumerable<string> UsesBeyondPins(IReadOnlyDictionary<string, FloatingPointIlAllow> pinned) =>
+        IlFindings.Value
+            .Where(finding => finding.Kind is FindingKind.Use)
+            .GroupBy(finding => (finding.Method, finding.What))
+            .Select(group => (group.Key.Method, group.Key.What, Found: group.Count(), Allowed: AllowedCount(pinned, group.Key.Method, group.Key.What)))
+            .Where(item => item.Found > item.Allowed)
+            .Select(item => $"{item.Method} {item.What} (found {item.Found.ToInvariant()}, allowed {item.Allowed.ToInvariant()})");
+
+    // A local differs between Debug and Release, so it is not pinned; it still has to sit in a listed method.
+    private static IEnumerable<string> LocalsOutsideTheList(IReadOnlyDictionary<string, FloatingPointIlAllow> pinned) =>
+        IlFindings.Value
+            .Where(finding => finding.Kind is FindingKind.Local && pinned.ContainsKey(finding.Method) is false)
+            .Select(finding => $"{finding.Method} {finding.What}: the method is not allowlisted")
+            .Distinct(StringComparer.Ordinal);
 
     private readonly record struct SourceHit(string RelativePath, int Number, string Line, string TrimmedLine);
 
-    private readonly record struct MemberHit(string Key, string FloatType);
+    private readonly record struct MemberHit(string Key, string FloatTypes);
 }

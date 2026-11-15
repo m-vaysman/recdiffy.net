@@ -50,35 +50,84 @@ internal static class FloatingPointAllowlist
     // Fields, methods and constructors whose declared type holds double, float or Half, keyed by type, name and parameter types.
     internal static readonly IReadOnlyList<FloatingPointMemberAllow> Members =
     [
-        new("RecDiffy.Rounding.TryFromDouble(System.Double, System.Decimal&)", FromDoubleKeptForObsoleteRules),
-        new("RecDiffy.Rules.DateParsing.TryFromOADate(System.Double, System.DateOnly&)", "Used only by the [Obsolete] DateParseRule; its parameter is the OLE Automation serial, a double."),
-        new("RecDiffy.Rules.CultureDateParsing.TryFromOADate(System.Double, System.DateOnly&)", CultureDateObsolete + "its parameter is the OLE Automation serial, a double."),
-        new("RecDiffy.Rules.DeclaredDateParsing.FromOADate(System.Double)", DeclaredDateObsolete + "its parameter is the OLE Automation serial, a double."),
-        new("RecDiffy.Rules.PartyFormatDateRule.FromOADate(System.Double)", "date.parse's PartyFormatDateRule; its parameter is the OLE Automation serial, a double."),
+        new("RecDiffy.Rounding.TryFromDouble(System.Double, System.Decimal&) : System.Boolean", FromDoubleKeptForObsoleteRules),
+        new("RecDiffy.Rules.DateParsing.TryFromOADate(System.Double, System.DateOnly&) : System.Boolean", "Used only by the [Obsolete] DateParseRule; its parameter is the OLE Automation serial, a double."),
+        new("RecDiffy.Rules.CultureDateParsing.TryFromOADate(System.Double, System.DateOnly&) : System.Boolean", CultureDateObsolete + "its parameter is the OLE Automation serial, a double."),
+        new("RecDiffy.Rules.DeclaredDateParsing.FromOADate(System.Double) : System.Nullable`1[System.DateOnly]", DeclaredDateObsolete + "its parameter is the OLE Automation serial, a double."),
+        new("RecDiffy.Rules.PartyFormatDateRule.FromOADate(System.Double) : System.Nullable`1[System.DateOnly]", "date.parse's PartyFormatDateRule; its parameter is the OLE Automation serial, a double."),
     ];
 
-    // Method bodies whose IL uses floating point, keyed by the full method.
+    // Method bodies whose IL uses floating point. Each entry pins the exact uses and how many of each, so new floating-point code
+    // inside a listed method fails the gate, and so does removing a use. A local of a floating-point type is not pinned: it differs
+    // between Debug and Release builds, and it is allowed only inside a listed method.
     internal static readonly IReadOnlyList<FloatingPointIlAllow> IlMethods =
     [
-        new("RecDiffy.DataReaderSource.CellOf(System.Object)", "Type-tests double, float and Half to pass them through unchanged so decimal.parse can reject them (#158); nothing converts."),
-        new("RecDiffy.Rules.CultureDecimalRule.Parse(RecDiffy.Rules.RowContext)", "decimal.parse type-tests double, float and Half only to reject them."),
-        new("RecDiffy.RulePacks.Trading.ScaledQuantityRule.Absolute(RecDiffy.Rules.RowContext)", "quantity.absolute type-tests double, float and Half only to leave them unread."),
-        new("RecDiffy.RulePacks.Trading.CultureQuantityRule.Absolute(RecDiffy.Rules.RowContext)", "The [Obsolete] CultureQuantityRule type-tests double, float and Half only to leave them unread."),
-        new("RecDiffy.RulePacks.Trading.CultureSideResolution.Raw(RecDiffy.Rules.RowContext, System.String, System.Globalization.NumberFormatInfo)", "side.resolve type-tests double, float and Half to refuse a floating quantity."),
+        new("RecDiffy.DataReaderSource.CellOf(System.Object)", "Type-tests double, float and Half to pass them through unchanged so decimal.parse can reject them (#158); nothing converts.", TypeTests()),
+        new("RecDiffy.Rules.CultureDecimalRule.Parse(RecDiffy.Rules.RowContext)", "decimal.parse type-tests double, float and Half only to reject them.", TypeTests()),
+        new("RecDiffy.RulePacks.Trading.ScaledQuantityRule.Absolute(RecDiffy.Rules.RowContext)", "quantity.absolute type-tests double, float and Half only to leave them unread.", TypeTests()),
+        new("RecDiffy.RulePacks.Trading.CultureQuantityRule.Absolute(RecDiffy.Rules.RowContext)", "The [Obsolete] CultureQuantityRule type-tests double, float and Half only to leave them unread.", TypeTests()),
+        new("RecDiffy.RulePacks.Trading.CultureSideResolution.Raw(RecDiffy.Rules.RowContext, System.String, System.Globalization.NumberFormatInfo)", "side.resolve type-tests double, float and Half to refuse a floating quantity.", TypeTests()),
 
-        new("RecDiffy.Rules.PartyFormatDateRule.Apply(RecDiffy.Rules.RowContext&)", "date.parse reads a double as an OLE Automation date serial; the result is a date, never money or quantity."),
-        new("RecDiffy.Rules.PartyFormatDateRule.FromOADate(System.Double)", "date.parse's OLE Automation serial reader: range-checks the double, then DateTime.FromOADate; the result is a date."),
+        new("RecDiffy.Rules.PartyFormatDateRule.Apply(RecDiffy.Rules.RowContext&)", "date.parse reads a double as an OLE Automation date serial; the result is a date, never money or quantity.", SerialCaller("RecDiffy.Rules.PartyFormatDateRule.FromOADate(System.Double)")),
+        new("RecDiffy.Rules.PartyFormatDateRule.FromOADate(System.Double)", "date.parse's OLE Automation serial reader: range-checks the double, then DateTime.FromOADate; the result is a date.", SerialReader()),
 
-        new("RecDiffy.Rules.CultureDateParsing.Read(System.Object, System.Collections.Generic.IReadOnlyList`1[System.String], System.Globalization.CultureInfo)", CultureDateObsolete + "reads a double as an OLE Automation date serial."),
-        new("RecDiffy.Rules.CultureDateParsing.TryFromOADate(System.Double, System.DateOnly&)", CultureDateObsolete + "range-checks the serial, then DateTime.FromOADate."),
-        new("RecDiffy.Rules.DeclaredDateParsing.Read(System.Object, System.Collections.Generic.IReadOnlyList`1[System.String], System.Globalization.CultureInfo)", DeclaredDateObsolete + "reads a double as an OLE Automation date serial."),
-        new("RecDiffy.Rules.DeclaredDateParsing.FromOADate(System.Double)", DeclaredDateObsolete + "range-checks the serial, then DateTime.FromOADate."),
-        new("RecDiffy.Rules.DateParsing.Read(System.Object, System.Collections.Generic.IReadOnlyList`1[System.String])", "Used only by the [Obsolete] DateParseRule (replaced by CultureDateRule, #158); reads a double as an OLE Automation date serial."),
-        new("RecDiffy.Rules.DateParsing.TryFromOADate(System.Double, System.DateOnly&)", "Used only by the [Obsolete] DateParseRule (replaced by CultureDateRule, #158); range-checks the serial, then DateTime.FromOADate."),
+        new("RecDiffy.Rules.CultureDateParsing.Read(System.Object, System.Collections.Generic.IReadOnlyList`1[System.String], System.Globalization.CultureInfo)", CultureDateObsolete + "reads a double as an OLE Automation date serial.", SerialCaller("RecDiffy.Rules.CultureDateParsing.TryFromOADate(System.Double, System.DateOnly&)")),
+        new("RecDiffy.Rules.CultureDateParsing.TryFromOADate(System.Double, System.DateOnly&)", CultureDateObsolete + "range-checks the serial, then DateTime.FromOADate.", SerialReader()),
+        new("RecDiffy.Rules.DeclaredDateParsing.Read(System.Object, System.Collections.Generic.IReadOnlyList`1[System.String], System.Globalization.CultureInfo)", DeclaredDateObsolete + "reads a double as an OLE Automation date serial.", SerialCaller("RecDiffy.Rules.DeclaredDateParsing.FromOADate(System.Double)")),
+        new("RecDiffy.Rules.DeclaredDateParsing.FromOADate(System.Double)", DeclaredDateObsolete + "range-checks the serial, then DateTime.FromOADate.", SerialReader()),
+        new("RecDiffy.Rules.DateParsing.Read(System.Object, System.Collections.Generic.IReadOnlyList`1[System.String])", "Used only by the [Obsolete] DateParseRule (replaced by CultureDateRule, #158); reads a double as an OLE Automation date serial.", SerialCaller("RecDiffy.Rules.DateParsing.TryFromOADate(System.Double, System.DateOnly&)")),
+        new("RecDiffy.Rules.DateParsing.TryFromOADate(System.Double, System.DateOnly&)", "Used only by the [Obsolete] DateParseRule (replaced by CultureDateRule, #158); range-checks the serial, then DateTime.FromOADate.", SerialReader()),
 
-        new("RecDiffy.Rounding.TryFromDouble(System.Double, System.Decimal&)", FromDoubleKeptForObsoleteRules),
-        new("RecDiffy.Rules.Numbers.CanBeNumber(System.Object)", "Calls Rounding.TryFromDouble and widens a float to double; called only by the [Obsolete] ParseDecimalRule and AbsoluteQuantityRule, which no registered rule name reaches; no active rule may call it (#361 audit)."),
-        new("RecDiffy.Rules.DecimalParsing.Read(System.Object)", "DecimalParsing is [Obsolete] and called only by the [Obsolete] DecimalParseRule; it calls Rounding.TryFromDouble and widens a float to double (#361 audit)."),
+        new("RecDiffy.Rounding.TryFromDouble(System.Double, System.Decimal&)", FromDoubleKeptForObsoleteRules, [new("calls System.Double.IsFinite(System.Double)"), new("calls System.Double.ToString(System.String, System.IFormatProvider)")]),
+        new("RecDiffy.Rules.Numbers.CanBeNumber(System.Object)", "Reads a boxed double or float into a decimal through Rounding.TryFromDouble, widening a float to double; a conversion door that only the [Obsolete] ParseDecimalRule and AbsoluteQuantityRule call (#361 audit).", BoxedFloatReader()),
+        new("RecDiffy.Rules.DecimalParsing.Read(System.Object)", "DecimalParsing is [Obsolete] and called only by the [Obsolete] DecimalParseRule; it reads a boxed double or float into a decimal through Rounding.TryFromDouble, widening a float to double (#361 audit).", BoxedFloatReader()),
+    ];
+
+    // Methods that turn a boxed double or float into a decimal and show no floating-point type in their own signature, so a new caller
+    // would escape the other gates. Only the listed callers may call or take the address of a door.
+    internal static readonly IReadOnlyList<FloatingPointConversionDoor> ConversionDoors =
+    [
+        new("RecDiffy.Rules.Numbers.CanBeNumber(System.Object)", "Converts a boxed double or float to a decimal (a float is widened to double first); the signature shows no floating-point type.",
+        [
+            new("RecDiffy.Rules.ParseDecimalRule.Parse(RecDiffy.Rules.RowContext)", "The [Obsolete] ParseDecimalRule (replaced by CultureDecimalRule, #158); no registered rule name builds it."),
+            new("RecDiffy.RulePacks.Trading.AbsoluteQuantityRule.Absolute(RecDiffy.Rules.RowContext)", "The [Obsolete] AbsoluteQuantityRule (replaced by CultureQuantityRule, #158); no registered rule name builds it."),
+        ]),
+        new("RecDiffy.Rules.DecimalParsing.Apply(RecDiffy.Rules.RowContext, System.String, System.String, System.Int32, RecDiffy.MidpointMode, System.String)", "Reads the raw cell through DecimalParsing.Read, which converts a boxed double or float; the signature shows no floating-point type.",
+        [
+            new("RecDiffy.Rules.DecimalParseRule.Apply(RecDiffy.Rules.RowContext&)", "The [Obsolete] DecimalParseRule (replaced by ParseDecimalRule, #150); no registered rule name builds it."),
+        ]),
+        new("RecDiffy.Rounding.TryFromDouble(System.Double, System.Decimal&)", "Parses a double's round-trip text as a decimal; kept only for the [Obsolete] rules (#361 audit).",
+        [
+            new("RecDiffy.Rules.Numbers.CanBeNumber(System.Object)", "Numbers.CanBeNumber is itself a door that only [Obsolete] rules call."),
+            new("RecDiffy.Rules.DecimalParsing.Read(System.Object)", "DecimalParsing is [Obsolete] and called only by the [Obsolete] DecimalParseRule."),
+        ]),
+    ];
+
+    // isinst of double, float and Half: a type test that passes the value on or rejects it.
+    private static FloatingPointIlUse[] TypeTests() =>
+        [new("isinst System.Double"), new("isinst System.Single"), new("isinst System.Half")];
+
+    // The OLE Automation serial reader: range-check a double, then DateTime.FromOADate.
+    private static FloatingPointIlUse[] SerialReader() =>
+    [
+        new("calls System.Double.IsFinite(System.Double)"),
+        new("calls System.DateTime.FromOADate(System.Double)"),
+        new("uses the floating-point opcode ldc.r8 -657435"),
+        new("uses the floating-point opcode ldc.r8 2958466"),
+    ];
+
+    // The caller of a serial reader: it tests for a boxed double, unboxes it and passes it on.
+    private static FloatingPointIlUse[] SerialCaller(string reader) =>
+        [new("isinst System.Double"), new("unbox.any System.Double"), new("calls " + reader)];
+
+    // A boxed double or a boxed float, tested, unboxed and widened to double for Rounding.TryFromDouble.
+    private static FloatingPointIlUse[] BoxedFloatReader() =>
+    [
+        new("isinst System.Double"),
+        new("unbox.any System.Double"),
+        new("isinst System.Single"),
+        new("unbox.any System.Single"),
+        new("uses the floating-point opcode conv.r8"),
     ];
 }
 
@@ -86,4 +135,10 @@ internal sealed record FloatingPointLineAllow(string RelativePath, string LineTe
 
 internal sealed record FloatingPointMemberAllow(string Key, string Reason);
 
-internal sealed record FloatingPointIlAllow(string Method, string Reason);
+internal sealed record FloatingPointIlUse(string What, int Count = 1);
+
+internal sealed record FloatingPointIlAllow(string Method, string Reason, IReadOnlyList<FloatingPointIlUse> Uses);
+
+internal sealed record FloatingPointDoorCaller(string Method, string Reason);
+
+internal sealed record FloatingPointConversionDoor(string Method, string Reason, IReadOnlyList<FloatingPointDoorCaller> Callers);

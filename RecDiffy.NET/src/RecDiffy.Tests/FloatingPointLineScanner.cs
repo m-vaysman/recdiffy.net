@@ -4,25 +4,40 @@ using System.Text.RegularExpressions;
 namespace RecDiffy.Tests;
 
 // #361: Finds floating-point code in C# source text. It masks the whole text once, then scans the code that is left.
+// The capitalised type names are matched in type positions only (see TypeNames below); the signature and IL gates catch every real use.
 internal static class FloatingPointLineScanner
 {
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(2);
 
     private const RegexOptions Options = RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture;
 
+    // Capitalised floating-point types; the unqualified forms below skip nameof(...), member access and calls such as rows.Single().
+    private const string TypeNames =
+        "Double|Single|Half|NFloat|Complex|Vector2|Vector3|Vector4|Vector|Matrix3x2|Matrix4x4|Plane|Quaternion|Vector64|Vector128|Vector256|Vector512";
+
     private static readonly Regex Keyword = new(@"\b(?:double|float)\b", Options, RegexTimeout);
 
-    // A capitalised type name; "dot" and "call" tell a member call such as rows.Single() from a type use.
-    private static readonly Regex TypeName = new(
-        @"(?<dot>\.\s*)?\b(?:Double|Single|Half)\b(?<call>\s*(?:<[^()]*>\s*)?\()?",
+    // Not after a dot, not inside nameof(...) and not a call: Single x, (Single)x, Single.Parse(s), List<Single>.
+    private static readonly Regex UnqualifiedType = new(
+        @"(?<![\w.])(?<!nameof\(\s*)(?:" + TypeNames + @")\b(?!\s*(?:<[^;{}]*?>\s*)?\()",
         Options,
         RegexTimeout);
 
+    // A namespace-qualified name is a type: System.Single, System.Numerics.Complex.
+    private static readonly Regex QualifiedType = new(
+        @"\bSystem\.(?:Numerics\.|Runtime\.InteropServices\.|Runtime\.Intrinsics\.)?(?:" + TypeNames + @")\b",
+        Options,
+        RegexTimeout);
+
+    // A constructor call is not a method call: new Double().
+    private static readonly Regex NewType = new(@"\bnew\s+(?:" + TypeNames + @")\s*\(", Options, RegexTimeout);
+
     private static readonly Regex ConvertCall = new(@"\bConvert\.To(?:Double|Single)\b", Options, RegexTimeout);
 
-    // Any numeric literal: hex and binary forms first (so 0x1F stays an integer), then digit separators, a leading dot, an exponent and a suffix.
+    // Any numeric literal: hex and binary forms first (so 0x1F stays an integer), then digit separators, a leading dot, an exponent
+    // and a suffix. A literal may follow ".." (a spread or range) but not a single dot (a member access).
     private static readonly Regex NumberLiteral = new(
-        @"(?<![\w.])(?:0[xX][0-9a-fA-F_]+[uUlL]*|0[bB][01_]+[uUlL]*|(?<body>(?:\d[\d_]*(?:\.\d[\d_]*)?|\.\d[\d_]*)(?<exp>[eE][+-]?\d[\d_]*)?)(?<suffix>[a-zA-Z]*))",
+        @"(?<!\w)(?<!(?<!\.)\.)(?:0[xX][0-9a-fA-F_]+[uUlL]*|0[bB][01_]+[uUlL]*|(?<body>(?:\d[\d_]*(?:\.\d[\d_]*)?|\.\d[\d_]*)(?<exp>[eE][+-]?\d[\d_]*)?)(?<suffix>[a-zA-Z]*))",
         Options,
         RegexTimeout);
 
@@ -52,7 +67,9 @@ internal static class FloatingPointLineScanner
     private static bool UsesFloatingPoint(string code) =>
         Keyword.IsMatch(code)
         || ConvertCall.IsMatch(code)
-        || TypeName.Matches(code).Any(match => match.Groups["dot"].Success is false || match.Groups["call"].Success is false)
+        || UnqualifiedType.IsMatch(code)
+        || QualifiedType.IsMatch(code)
+        || NewType.IsMatch(code)
         || NumberLiteral.Matches(code).Any(IsFloatingLiteral);
 
     // A hex or binary literal has no body group, so it is an integer; 1.5m is decimal; d and f suffixes, a point or an exponent make a float.
@@ -75,7 +92,7 @@ internal static class FloatingPointLineScanner
 
         public string Run()
         {
-            Code(inHole: false);
+            Code(inHole: false, braces: 1);
             return _output.ToString();
         }
 
@@ -110,42 +127,48 @@ internal static class FloatingPointLineScanner
         }
 
         // Scans code. In a hole it returns at the closing brace, or at the format part after a top-level colon.
-        private void Code(bool inHole)
+        private void Code(bool inHole, int braces)
         {
             var depth = 0;
             while (_index < text.Length)
             {
                 var c = text[_index];
 
-                if (c == '/' && At(1) == '/')
-                    LineComment();
-                else if (c == '/' && At(1) == '*')
-                    BlockComment();
-                else if (c == '\'')
-                    CharLiteral();
-                else if (StringStartAt() is { } start)
-                    StringLiteral(start);
-                else if (inHole && c == '}' && depth == 0)
-                    return;
-                else if (inHole && c == ':' && depth == 0 && At(1) != ':')
+                switch (c)
                 {
-                    FormatSpec();
-                    return;
-                }
-                else if (inHole && c == ':' && At(1) == ':')
-                {
-                    Keep();
-                    Keep();
-                }
-                else
-                {
-                    depth += c switch
-                    {
-                        '(' or '[' or '{' => 1,
-                        ')' or ']' or '}' => -1,
-                        _ => 0,
-                    };
-                    Keep();
+                    case '/' when At(1) is '/':
+                        LineComment();
+                        break;
+                    case '/' when At(1) is '*':
+                        BlockComment();
+                        break;
+                    case '\'':
+                        CharLiteral();
+                        break;
+                    case '}' when inHole && depth == 0:
+                        return;
+                    case ':' when inHole && depth == 0 && At(1) is not ':':
+                        FormatSpec(braces);
+                        return;
+                    case ':' when inHole && At(1) is ':':
+                        Keep();
+                        Keep();
+                        break;
+                    default:
+                        if (StringStartAt() is { } start)
+                        {
+                            StringLiteral(start);
+                            break;
+                        }
+
+                        depth += c switch
+                        {
+                            '(' or '[' or '{' => 1,
+                            ')' or ']' or '}' => -1,
+                            _ => 0,
+                        };
+                        Keep();
+                        break;
                 }
             }
         }
@@ -159,7 +182,7 @@ internal static class FloatingPointLineScanner
         private void BlockComment()
         {
             Blank(2);
-            while (_index < text.Length && (text[_index] == '*' && At(1) == '/') is false)
+            while (_index < text.Length && (text[_index] == '*' && At(1) is '/') is false)
                 Blank();
             Blank(2);
         }
@@ -169,8 +192,8 @@ internal static class FloatingPointLineScanner
             Blank();
             while (_index < text.Length && text[_index] is not ('\n' or '\r'))
             {
-                var closes = text[_index] == '\'';
-                var escapes = text[_index] == '\\';
+                var closes = text[_index] is '\'';
+                var escapes = text[_index] is '\\';
                 Blank();
                 if (escapes && At(0) is not ('\n' or '\r' or '\0'))
                     Blank();
@@ -179,9 +202,10 @@ internal static class FloatingPointLineScanner
             }
         }
 
-        private void FormatSpec()
+        // The format part of a hole ends at as many closing braces as the string's dollar signs: one in $"..", two in $$"""..""".
+        private void FormatSpec(int braces)
         {
-            while (_index < text.Length && text[_index] != '}')
+            while (_index < text.Length && RunLength('}') < braces)
                 Blank();
         }
 
@@ -195,7 +219,7 @@ internal static class FloatingPointLineScanner
             while (quoteIndex < text.Length && text[quoteIndex] is '$' or '@')
                 quoteIndex++;
 
-            if (quoteIndex >= text.Length || text[quoteIndex] != '"')
+            if (quoteIndex >= text.Length || text[quoteIndex] is not '"')
                 return null;
 
             var prefix = text.AsSpan(_index, quoteIndex - _index);
@@ -226,27 +250,32 @@ internal static class FloatingPointLineScanner
             Blank();
             while (_index < text.Length)
             {
-                var c = text[_index];
-
-                if (c == '"' && verbatim && At(1) == '"')
-                    Blank(2);
-                else if (c == '"')
+                switch (text[_index])
                 {
-                    Blank();
-                    return;
+                    case '"' when verbatim && At(1) is '"':
+                        Blank(2);
+                        break;
+                    case '"':
+                        Blank();
+                        return;
+                    case '\\' when verbatim is false:
+                        Blank(2);
+                        break;
+                    case '\n' or '\r' when verbatim is false:
+                        return;
+                    case '{' when interpolated && At(1) is '{':
+                        Blank(2);
+                        break;
+                    case '}' when interpolated && At(1) is '}':
+                        Blank(2);
+                        break;
+                    case '{' when interpolated:
+                        Hole(1);
+                        break;
+                    default:
+                        Blank();
+                        break;
                 }
-                else if (c == '\\' && verbatim is false)
-                    Blank(2);
-                else if (verbatim is false && c is '\n' or '\r')
-                    return;
-                else if (interpolated && c == '{' && At(1) == '{')
-                    Blank(2);
-                else if (interpolated && c == '}' && At(1) == '}')
-                    Blank(2);
-                else if (interpolated && c == '{')
-                    Hole(1);
-                else
-                    Blank();
             }
         }
 
@@ -256,22 +285,22 @@ internal static class FloatingPointLineScanner
             Blank(quotes);
             while (_index < text.Length)
             {
-                var c = text[_index];
-
-                if (c == '"')
+                switch (text[_index])
                 {
-                    var run = RunLength('"');
-                    Blank(run);
-                    if (run >= quotes)
-                        return;
+                    case '"':
+                        var run = RunLength('"');
+                        Blank(run);
+                        if (run >= quotes)
+                            return;
+                        break;
+                    case '{' when dollars > 0 && RunLength('{') >= dollars:
+                        Blank(RunLength('{') - dollars);
+                        Hole(dollars);
+                        break;
+                    default:
+                        Blank();
+                        break;
                 }
-                else if (c == '{' && dollars > 0 && RunLength('{') >= dollars)
-                {
-                    Blank(RunLength('{') - dollars);
-                    Hole(dollars);
-                }
-                else
-                    Blank();
             }
         }
 
@@ -279,7 +308,7 @@ internal static class FloatingPointLineScanner
         private void Hole(int braces)
         {
             Blank(braces);
-            Code(inHole: true);
+            Code(inHole: true, braces);
             Blank(Math.Min(braces, RunLength('}')));
         }
     }
