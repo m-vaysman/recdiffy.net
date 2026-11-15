@@ -5,40 +5,35 @@ using RecDiffy.RulePacks.Trading;
 namespace RecDiffy.IO.Tests.OracleMatrix;
 
 // Sonnet, the primary acceptance dataset (spec v3 §12.2), read from the workbook through FromExcel and compared with its
-// oracle. The profile follows §9.1 and §9.2 with registered rules only. Where §9.1 names a rule the registry lacks, the
-// profile does without it:
+// oracle. The profile follows §9.1 and §9.2 with registered rules only, price.dirtyToClean and fees.inferFromNet among
+// them. Where §9.1 names a rule the registry lacks, the profile does without it:
 // - instrument.resolve (#259): each identifier scheme is its own field, and P2 to P4 run once per scheme;
-// - tradeRef.classify: the shared reference is a plain identifier, so no field is named TradeRef and nothing is vetoed;
-// - price.dirtyToClean: a DIRTY_PCT_PAR price is read as written;
-// - fees.inferFromNet: the street side has no Fees field, so fees are not compared.
+// - tradeRef.classify: the shared reference is a plain identifier, so no field is named TradeRef and nothing is vetoed.
 public class SonnetOracleTests
 {
     private static readonly OracleDataset Dataset = OracleDatasets.Sonnet;
 
     private static readonly Lazy<IReconciliationResult> Result = new(Run);
 
-    private const string Everything = "Waits on #307, #308, price.dirtyToClean (8 known exact) and fees.inferFromNet (18 near-matches, 5 fee breaks)";
+    private const string FiveCases = "Five groups disagree: G0158 (OracleDefects.SwapFeeRoot, #431) and G0175 to G0178 (OracleDefects.TwoLegForwardFee, #432)";
+
+    private const string FourForwards = "G0175 to G0178 are Break, so the run is 141 / 18 / 24 / 85 / 7 (OracleDefects.TwoLegForwardFee, #432)";
 
     // Each check leaves out only the cases it can't judge, and says why.
     private static OracleComparison Compare(Func<OracleCase, string?>? deferred = null) => new(Result.Value, Dataset.Cases(), deferred);
 
-    // Outcomes: a near-match's net cash is settled by trading.netCash only when every root, Fees included, is compared.
-    private static string? OutcomeDeferred(OracleCase item) => item switch
-    {
-        { Kind: CaseKind.WithinTolerance } => Deferral.InferFees,
-        _ when FeeBreak(item) => Deferral.InferFees,
-        _ when Deferral.RightHas(Dataset, item, "Price_Quote_Convention", "DIRTY_PCT_PAR") => Deferral.DirtyToClean,
-        _ => null,
-    };
+    // The cases a check can't judge yet, by id and only where the check fails. SonnetFeeDefectTests holds them as skipped facts.
+    // G0175 to G0178 fail on outcome. G0158 is a Break the engine also calls a Break, so it fails on root and on delta only.
+    private static string? OutcomeDeferred(OracleCase item) =>
+        OracleDefects.SonnetTwoLegForwards.Contains(item.Id) ? OracleDefects.TwoLegForwardFee : null;
 
-    private static bool FeeBreak(OracleCase item) => item.BreakFields.Contains("Commission_Fees", StringComparer.Ordinal);
+    private static string? FeeRootDeferred(OracleCase item) =>
+        item.Id == OracleDefects.SwapFeeCase ? OracleDefects.SwapFeeRoot : null;
 
-    private static bool QuantityBreak(OracleCase item) => item.BreakFields.Contains("Quantity_Notional", StringComparer.Ordinal);
-
-    private static bool FeeDelta(OracleCase item) => item.Deltas.Any(delta => delta.Field == "Commission_Fees");
+    internal static IReconciliationResult Outcome => Result.Value;
 
     // The oracle's field names, from the internal tab's columns, as profile fields.
-    private static string? Field(string column) => column switch
+    internal static string? Field(string column) => column switch
     {
         "Clean_Price_Rate" => "Price",
         "Quantity_Notional" => "Quantity",
@@ -53,13 +48,13 @@ public class SonnetOracleTests
     public void AC1_each_group_is_one_entry_with_exactly_its_rows_and_there_are_no_other_entries() =>
         OracleAssert.None(Compare().Membership());
 
-    // 31 deferred: 8 dirty prices, 18 near-matches and 5 fee breaks.
+    // 4 deferred: G0175 to G0178.
     [Fact]
     public void AC2_each_entry_has_the_alignment_and_outcome_its_label_maps_to()
     {
         var comparison = Compare(OutcomeDeferred);
 
-        Assert.Equal(275 - 31, comparison.Checked);
+        Assert.Equal(275 - 4, comparison.Checked);
         OracleAssert.None(comparison.Outcomes());
     }
 
@@ -68,7 +63,7 @@ public class SonnetOracleTests
         OracleAssert.None(Compare().Compositions(allocationsArePackages: false));
 
     // §6.3 and §12.3: 145 Exact (120 single, 5 chains, 12 allocations, 8 packages), 18 WithinTolerance, 20 Break.
-    [Fact(Skip = Everything)]
+    [Fact(Skip = FourForwards)]
     public void AC2_the_run_counts_are_145_exact_18_within_tolerance_20_break_85_left_only_and_7_right_only()
     {
         var summary = Result.Value.Summary;
@@ -76,16 +71,14 @@ public class SonnetOracleTests
         Assert.Equal((145, 18, 20, 85, 7), (summary.Exact, summary.WithinTolerance, summary.Break, summary.LeftOnly, summary.RightOnly));
     }
 
-    // 11 of the 20 breaks: a fee break, or an 80% quantity break whose street cash embeds an 80% fee, waits on
-    // fees.inferFromNet so trading.netCash can explain NetCash (#254).
+    // G0158 is the one break left out: its street fee has no derivation, so trading.netCash must name Fees as the root (§7.4).
     [Fact]
     public void AC3_each_break_is_rooted_in_the_field_the_oracle_names_and_no_other() =>
-        OracleAssert.None(Compare(item => FeeBreak(item) || QuantityBreak(item) ? Deferral.InferFees : null).BreakRoots(Field));
+        OracleAssert.None(Compare(FeeRootDeferred).BreakRoots(Field));
 
-    // 12 of the 18 near-matches: an accrued or FX rate delta. A fee delta waits on fees.inferFromNet.
     [Fact]
     public void AC3_each_near_match_delta_equals_the_oracle_delta() =>
-        OracleAssert.None(Compare(item => FeeDelta(item) ? Deferral.InferFees : null).Deltas(Field));
+        OracleAssert.None(Compare(FeeRootDeferred).Deltas(Field));
 
     [Fact]
     public void AC4_each_chain_survivor_is_the_oracles_active_report_and_the_rest_are_suppressed() =>
@@ -95,7 +88,7 @@ public class SonnetOracleTests
     public void AC5_every_input_row_has_exactly_one_disposition() =>
         OracleAssert.None(Compare().RowAccounting(Dataset.LeftRows(), Dataset.RightRows()));
 
-    [Fact(Skip = Everything)]
+    [Fact(Skip = FiveCases)]
     public void Every_group_agrees_with_the_oracle_on_every_criterion()
     {
         var all = Compare();
@@ -153,6 +146,7 @@ public class SonnetOracleTests
             { "name": "Currency", "type": "Symbol", "role": "Economic" },
             { "name": "Price", "type": "Decimal", "scale": 6, "role": "Economic" },
             { "name": "Accrued", "type": "Decimal", "scale": 2, "role": "Economic" },
+            { "name": "Fees", "type": "Decimal", "scale": 2, "role": "Economic" },
             { "name": "NetCash", "type": "Decimal", "scale": 2, "role": "Economic" },
             { "name": "EventAction", "type": "Symbol", "role": "Lifecycle" },
             { "name": "EventTarget", "type": "Identifier", "role": "Lifecycle" },
@@ -178,6 +172,7 @@ public class SonnetOracleTests
                 { "rule": "date.parse", "from": "Settle_Date", "to": "SettleDate", "formats": ["yyyy-MM-dd"] },
                 { "rule": "decimal.parse", "from": "Clean_Price_Rate", "to": "Price" },
                 { "rule": "decimal.parse", "from": "Accrued_Interest", "to": "Accrued" },
+                { "rule": "decimal.parse", "from": "Commission_Fees", "to": "Fees" },
                 { "rule": "decimal.parse", "from": "Net_Settlement_Amount", "to": "NetCash" }
               ],
               "derive": [
@@ -209,7 +204,9 @@ public class SonnetOracleTests
               ],
               "derive": [
                 { "rule": "side.resolve", "code": "Dir_Ind", "quantity": "Reported_Qty_Notional", "perspective": "Reporting_Perspective", "invertWhen": "DEALER_BILATERAL_VIEW", "asset": "AssetClass" },
-                { "rule": "quantity.absolute", "from": "Reported_Qty_Notional", "to": "Quantity" }
+                { "rule": "quantity.absolute", "from": "Reported_Qty_Notional", "to": "Quantity" },
+                { "rule": "price.dirtyToClean", "to": "Price", "when": { "field": "Price_Quote_Convention", "equals": "DIRTY_PCT_PAR" } },
+                { "rule": "fees.inferFromNet", "to": "Fees" }
               ]
             }
           },
@@ -237,6 +234,7 @@ public class SonnetOracleTests
             "diff": { "fields": {
               "Accrued": { "tolerance": { "absolute": 1.25 }, "attributed": "trading.proRataToQuantity", "applicableWhen": { "field": "AssetClass", "in": ["Bond", "Swap"] } },
               "Price": { "tolerance": { "absolute": 0.0001, "when": { "field": "AssetClass", "equals": "Forward" } } },
+              "Fees": { "tolerance": { "absolute": 0.05 }, "attributed": "trading.proRataToQuantity", "applicableWhen": { "field": "AssetClass", "in": ["Bond", "Equity", "Forward"] } },
               "NetCash": { "tolerance": { "attributed": "trading.netCash" } } } } } ]
         }
         """;
