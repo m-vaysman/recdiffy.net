@@ -1,0 +1,94 @@
+# Public API baseline of RecDiffy.IO: one line for every public or protected type and member, sorted ordinally.
+# PublicApiBaselineTests compares the built assembly with this file on net8.0 and net10.0, and fails on any difference.
+# To accept an intended change, copy the .actual.txt file the failing test names over this file and commit it.
+RecDiffy.IO.CsvDelimiter :: method public RecDiffy.IO.CsvDelimiter <Clone>$()
+RecDiffy.IO.CsvDelimiter :: method public bool Equals(RecDiffy.IO.CsvDelimiter? other)
+RecDiffy.IO.CsvDelimiter :: method public override bool Equals(object? obj)
+RecDiffy.IO.CsvDelimiter :: method public override int GetHashCode()
+RecDiffy.IO.CsvDelimiter :: method public override string ToString()
+RecDiffy.IO.CsvDelimiter :: method public static RecDiffy.IO.CsvDelimiter Of(char character)
+RecDiffy.IO.CsvDelimiter :: method public static bool op_Equality(RecDiffy.IO.CsvDelimiter? left, RecDiffy.IO.CsvDelimiter? right)
+RecDiffy.IO.CsvDelimiter :: method public static bool op_Inequality(RecDiffy.IO.CsvDelimiter? left, RecDiffy.IO.CsvDelimiter? right)
+RecDiffy.IO.CsvDelimiter :: property public char? Character { get; }
+RecDiffy.IO.CsvDelimiter :: property public static RecDiffy.IO.CsvDelimiter Comma { get; }
+RecDiffy.IO.CsvDelimiter :: property public static RecDiffy.IO.CsvDelimiter DetectAutomatically { get; }
+RecDiffy.IO.CsvDelimiter :: property public static RecDiffy.IO.CsvDelimiter Pipe { get; }
+RecDiffy.IO.CsvDelimiter :: property public static RecDiffy.IO.CsvDelimiter Semicolon { get; }
+RecDiffy.IO.CsvDelimiter :: property public static RecDiffy.IO.CsvDelimiter Tab { get; }
+RecDiffy.IO.CsvDelimiter :: type public sealed class implements System.IEquatable<RecDiffy.IO.CsvDelimiter>
+RecDiffy.IO.CsvOptions :: constructor [Obsolete("Constructors of types with required members are not supported in this version of your compiler.", true)] public ()
+RecDiffy.IO.CsvOptions :: method public RecDiffy.IO.CsvOptions <Clone>$()
+RecDiffy.IO.CsvOptions :: method public bool Equals(RecDiffy.IO.CsvOptions? other)
+RecDiffy.IO.CsvOptions :: method public override bool Equals(object? obj)
+RecDiffy.IO.CsvOptions :: method public override int GetHashCode()
+RecDiffy.IO.CsvOptions :: method public override string ToString()
+RecDiffy.IO.CsvOptions :: method public static bool op_Equality(RecDiffy.IO.CsvOptions? left, RecDiffy.IO.CsvOptions? right)
+RecDiffy.IO.CsvOptions :: method public static bool op_Inequality(RecDiffy.IO.CsvOptions? left, RecDiffy.IO.CsvOptions? right)
+RecDiffy.IO.CsvOptions :: property public System.Text.Encoding Encoding { get; init; }
+RecDiffy.IO.CsvOptions :: property public char Escape { get; init; }
+RecDiffy.IO.CsvOptions :: property public char Quote { get; init; }
+RecDiffy.IO.CsvOptions :: property public required RecDiffy.IO.CsvDelimiter Delimiter { get; init; }
+RecDiffy.IO.CsvOptions :: property public required bool HasHeader { get; init; }
+RecDiffy.IO.CsvOptions :: type public sealed class implements System.IEquatable<RecDiffy.IO.CsvOptions>
+RecDiffy.IO.ExcelFormat :: enum value Xls = 2
+RecDiffy.IO.ExcelFormat :: enum value Xlsb = 1
+RecDiffy.IO.ExcelFormat :: enum value Xlsx = 0
+RecDiffy.IO.ExcelFormat :: type public enum : int
+RecDiffy.IO.ExcelOptions :: constructor [Obsolete("Constructors of types with required members are not supported in this version of your compiler.", true)] public ()
+RecDiffy.IO.ExcelOptions :: method public RecDiffy.IO.ExcelOptions <Clone>$()
+RecDiffy.IO.ExcelOptions :: method public bool Equals(RecDiffy.IO.ExcelOptions? other)
+RecDiffy.IO.ExcelOptions :: method public override bool Equals(object? obj)
+RecDiffy.IO.ExcelOptions :: method public override int GetHashCode()
+RecDiffy.IO.ExcelOptions :: method public override string ToString()
+RecDiffy.IO.ExcelOptions :: method public static bool op_Equality(RecDiffy.IO.ExcelOptions? left, RecDiffy.IO.ExcelOptions? right)
+RecDiffy.IO.ExcelOptions :: method public static bool op_Inequality(RecDiffy.IO.ExcelOptions? left, RecDiffy.IO.ExcelOptions? right)
+RecDiffy.IO.ExcelOptions :: property public required RecDiffy.IO.ExcelSheet Sheet { get; init; }
+RecDiffy.IO.ExcelOptions :: property public required bool HasHeader { get; init; }
+RecDiffy.IO.ExcelOptions :: type public sealed class implements System.IEquatable<RecDiffy.IO.ExcelOptions>
+RecDiffy.IO.ExcelSheet :: method public RecDiffy.IO.ExcelSheet <Clone>$()
+RecDiffy.IO.ExcelSheet :: method public bool Equals(RecDiffy.IO.ExcelSheet? other)
+RecDiffy.IO.ExcelSheet :: method public override bool Equals(object? obj)
+RecDiffy.IO.ExcelSheet :: method public override int GetHashCode()
+RecDiffy.IO.ExcelSheet :: method public override string ToString()
+RecDiffy.IO.ExcelSheet :: method public static RecDiffy.IO.ExcelSheet Named(string name)
+RecDiffy.IO.ExcelSheet :: method public static RecDiffy.IO.ExcelSheet Numbered(int number)
+RecDiffy.IO.ExcelSheet :: method public static bool op_Equality(RecDiffy.IO.ExcelSheet? left, RecDiffy.IO.ExcelSheet? right)
+RecDiffy.IO.ExcelSheet :: method public static bool op_Inequality(RecDiffy.IO.ExcelSheet? left, RecDiffy.IO.ExcelSheet? right)
+RecDiffy.IO.ExcelSheet :: property public int Number { get; }
+RecDiffy.IO.ExcelSheet :: property public string? Name { get; }
+RecDiffy.IO.ExcelSheet :: type public sealed class implements System.IEquatable<RecDiffy.IO.ExcelSheet>
+RecDiffy.IO.FileSources :: method public static RecDiffy.IO.TabularPeek PeekCsv(System.IO.Stream stream, RecDiffy.IO.CsvOptions options, int sampleSize, int seed, System.Threading.CancellationToken cancellationToken = default)
+RecDiffy.IO.FileSources :: method public static RecDiffy.IO.TabularPeek PeekCsv(string path, RecDiffy.IO.CsvOptions options, int sampleSize, int seed, System.Threading.CancellationToken cancellationToken = default)
+RecDiffy.IO.FileSources :: method public static RecDiffy.IO.TabularPeek PeekExcel(System.IO.Stream stream, RecDiffy.IO.ExcelFormat format, RecDiffy.IO.ExcelOptions options, int sampleSize, int seed, System.Threading.CancellationToken cancellationToken = default)
+RecDiffy.IO.FileSources :: method public static RecDiffy.IO.TabularPeek PeekExcel(string path, RecDiffy.IO.ExcelOptions options, int sampleSize, int seed, System.Threading.CancellationToken cancellationToken = default)
+RecDiffy.IO.FileSources :: method public static RecDiffy.RecordSource FromCsv(string name, System.IO.Stream stream, RecDiffy.IO.CsvOptions options)
+RecDiffy.IO.FileSources :: method public static RecDiffy.RecordSource FromCsv(string name, string path, RecDiffy.IO.CsvOptions options)
+RecDiffy.IO.FileSources :: method public static RecDiffy.RecordSource FromExcel(string name, System.IO.Stream stream, RecDiffy.IO.ExcelFormat format, RecDiffy.IO.ExcelOptions options)
+RecDiffy.IO.FileSources :: method public static RecDiffy.RecordSource FromExcel(string name, string path, RecDiffy.IO.ExcelOptions options)
+RecDiffy.IO.FileSources :: method public static System.Collections.Generic.IReadOnlyList<string> ExcelSheetNames(string path)
+RecDiffy.IO.FileSources :: type public static class
+RecDiffy.IO.TabularPeek :: constructor public (System.Collections.Generic.IReadOnlyList<string> Headers, System.Collections.Generic.IReadOnlyList<RecDiffy.IO.TabularRow> Rows, long RowCount)
+RecDiffy.IO.TabularPeek :: method public RecDiffy.IO.TabularPeek <Clone>$()
+RecDiffy.IO.TabularPeek :: method public bool Equals(RecDiffy.IO.TabularPeek? other)
+RecDiffy.IO.TabularPeek :: method public override bool Equals(object? obj)
+RecDiffy.IO.TabularPeek :: method public override int GetHashCode()
+RecDiffy.IO.TabularPeek :: method public override string ToString()
+RecDiffy.IO.TabularPeek :: method public static bool op_Equality(RecDiffy.IO.TabularPeek? left, RecDiffy.IO.TabularPeek? right)
+RecDiffy.IO.TabularPeek :: method public static bool op_Inequality(RecDiffy.IO.TabularPeek? left, RecDiffy.IO.TabularPeek? right)
+RecDiffy.IO.TabularPeek :: method public void Deconstruct(out System.Collections.Generic.IReadOnlyList<string> Headers, out System.Collections.Generic.IReadOnlyList<RecDiffy.IO.TabularRow> Rows, out long RowCount)
+RecDiffy.IO.TabularPeek :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.IO.TabularRow> Rows { get; init; }
+RecDiffy.IO.TabularPeek :: property public System.Collections.Generic.IReadOnlyList<string> Headers { get; init; }
+RecDiffy.IO.TabularPeek :: property public long RowCount { get; init; }
+RecDiffy.IO.TabularPeek :: type public sealed class implements System.IEquatable<RecDiffy.IO.TabularPeek>
+RecDiffy.IO.TabularRow :: constructor public (long Index, System.Collections.Generic.IReadOnlyList<object?> Values)
+RecDiffy.IO.TabularRow :: method public RecDiffy.IO.TabularRow <Clone>$()
+RecDiffy.IO.TabularRow :: method public bool Equals(RecDiffy.IO.TabularRow? other)
+RecDiffy.IO.TabularRow :: method public override bool Equals(object? obj)
+RecDiffy.IO.TabularRow :: method public override int GetHashCode()
+RecDiffy.IO.TabularRow :: method public override string ToString()
+RecDiffy.IO.TabularRow :: method public static bool op_Equality(RecDiffy.IO.TabularRow? left, RecDiffy.IO.TabularRow? right)
+RecDiffy.IO.TabularRow :: method public static bool op_Inequality(RecDiffy.IO.TabularRow? left, RecDiffy.IO.TabularRow? right)
+RecDiffy.IO.TabularRow :: method public void Deconstruct(out long Index, out System.Collections.Generic.IReadOnlyList<object?> Values)
+RecDiffy.IO.TabularRow :: property public System.Collections.Generic.IReadOnlyList<object?> Values { get; init; }
+RecDiffy.IO.TabularRow :: property public long Index { get; init; }
+RecDiffy.IO.TabularRow :: type public sealed class implements System.IEquatable<RecDiffy.IO.TabularRow>
