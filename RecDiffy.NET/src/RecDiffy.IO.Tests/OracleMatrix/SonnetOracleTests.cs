@@ -15,20 +15,20 @@ public class SonnetOracleTests
 
     private static readonly Lazy<IReconciliationResult> Result = new(Run);
 
-    private const string FiveCases = "Five groups disagree: G0158 (Deferral.SwapFeeRoot, #431) and G0175 to G0178 (Deferral.TwoLegForwardFee, #432)";
+    private const string FiveCases = "Five groups disagree: G0158 (OracleDefects.SwapFeeRoot, #431) and G0175 to G0178 (OracleDefects.TwoLegForwardFee, #432)";
 
-    private const string FourForwards = "G0175 to G0178 are Break, so the run is 141 / 18 / 24 / 85 / 7 (Deferral.TwoLegForwardFee, #432)";
+    private const string FourForwards = "G0175 to G0178 are Break, so the run is 141 / 18 / 24 / 85 / 7 (OracleDefects.TwoLegForwardFee, #432)";
 
     // Each check leaves out only the cases it can't judge, and says why.
     private static OracleComparison Compare(Func<OracleCase, string?>? deferred = null) => new(Result.Value, Dataset.Cases(), deferred);
 
-    // The cases a check on outcomes, roots or deltas can't judge yet. SonnetFeeDefectTests holds them as skipped facts.
-    private static string? Deferred(OracleCase item) => item switch
-    {
-        { Id: "G0158" } => Deferral.SwapFeeRoot,
-        { Kind: CaseKind.MultiLeg } when Deferral.LeftHas(Dataset, item, "Asset_Class", "Forward") => Deferral.TwoLegForwardFee,
-        _ => null,
-    };
+    // The cases a check can't judge yet, by id and only where the check fails. SonnetFeeDefectTests holds them as skipped facts.
+    // G0175 to G0178 fail on outcome. G0158 is a Break the engine also calls a Break, so it fails on root and on delta only.
+    private static string? OutcomeDeferred(OracleCase item) =>
+        OracleDefects.SonnetTwoLegForwards.Contains(item.Id) ? OracleDefects.TwoLegForwardFee : null;
+
+    private static string? FeeRootDeferred(OracleCase item) =>
+        item.Id == OracleDefects.SwapFeeCase ? OracleDefects.SwapFeeRoot : null;
 
     internal static IReconciliationResult Outcome => Result.Value;
 
@@ -48,13 +48,13 @@ public class SonnetOracleTests
     public void AC1_each_group_is_one_entry_with_exactly_its_rows_and_there_are_no_other_entries() =>
         OracleAssert.None(Compare().Membership());
 
-    // 5 deferred: G0158 and G0175 to G0178.
+    // 4 deferred: G0175 to G0178.
     [Fact]
     public void AC2_each_entry_has_the_alignment_and_outcome_its_label_maps_to()
     {
-        var comparison = Compare(Deferred);
+        var comparison = Compare(OutcomeDeferred);
 
-        Assert.Equal(275 - 5, comparison.Checked);
+        Assert.Equal(275 - 4, comparison.Checked);
         OracleAssert.None(comparison.Outcomes());
     }
 
@@ -74,11 +74,11 @@ public class SonnetOracleTests
     // G0158 is the one break left out: its street fee has no derivation, so trading.netCash must name Fees as the root (§7.4).
     [Fact]
     public void AC3_each_break_is_rooted_in_the_field_the_oracle_names_and_no_other() =>
-        OracleAssert.None(Compare(Deferred).BreakRoots(Field));
+        OracleAssert.None(Compare(FeeRootDeferred).BreakRoots(Field));
 
     [Fact]
     public void AC3_each_near_match_delta_equals_the_oracle_delta() =>
-        OracleAssert.None(Compare(Deferred).Deltas(Field));
+        OracleAssert.None(Compare(FeeRootDeferred).Deltas(Field));
 
     [Fact]
     public void AC4_each_chain_survivor_is_the_oracles_active_report_and_the_rest_are_suppressed() =>

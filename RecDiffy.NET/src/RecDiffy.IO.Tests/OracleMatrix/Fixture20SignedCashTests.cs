@@ -1,18 +1,29 @@
 namespace RecDiffy.IO.Tests.OracleMatrix;
 
-// Fixture 2.0 signs cash (§9.2), and trading.netCash explains only unsigned cash (§7.4). Thirteen near-matches and breaks
-// whose internal cash is negative disagree with the oracle (Deferral.SignedCash). The fact states what the oracle says and
-// fails today, so it is skipped with the issue that holds the cause.
+// Fixture 2.0 cases the registered trading rules get wrong under the §9.2 profile of Fixture20OracleTests. Each fact states
+// what the oracle says and fails today, so it is skipped with the issue that holds the cause.
 public class Fixture20SignedCashTests
 {
-    private static OracleComparison SignedBuys() =>
-        new(Fixture20OracleTests.Outcome, OracleDatasets.Fixture20.Cases(), item => Deferral.SignedCash.Contains(item.Id) ? null : "not a signed BUY");
+    private static OracleComparison Only(IReadOnlySet<string> cases) =>
+        new(Fixture20OracleTests.Outcome, OracleDatasets.Fixture20.Cases(), item => cases.Contains(item.Id) ? null : "another case");
 
-    [Fact(Skip = Deferral.SignedCashReason)]
-    public void A_signed_BUYs_near_match_is_WithinTolerance_and_its_break_is_rooted_where_the_oracle_says()
+    // Fixture 2.0 signs cash (§9.2), and trading.netCash explains only unsigned cash (§7.4).
+    [Fact(Skip = OracleDefects.SignedCash)]
+    public void A_signed_BUYs_near_match_is_WithinTolerance()
     {
-        var signed = SignedBuys();
+        OracleAssert.None(Only(OracleDefects.SignedNearMatches).Outcomes());
+    }
 
-        OracleAssert.None([.. signed.Outcomes(), .. signed.BreakRoots(Fixture20OracleTests.Field)]);
+    [Fact(Skip = OracleDefects.SignedCash)]
+    public void A_signed_BUYs_break_is_rooted_where_the_oracle_says()
+    {
+        OracleAssert.None(Only(OracleDefects.SignedBreaks).BreakRoots(Fixture20OracleTests.Field));
+    }
+
+    // §3.3 lists fees.inferFromNet before cash.toPerspective, and with signed cash a dealer-view bond then gets a wrong fee.
+    [Fact(Skip = OracleDefects.DealerViewFeeOrder)]
+    public void A_dealer_view_bond_with_signed_cash_matches_exactly()
+    {
+        OracleAssert.None(Only(OracleDefects.DealerViewExact).Outcomes());
     }
 }

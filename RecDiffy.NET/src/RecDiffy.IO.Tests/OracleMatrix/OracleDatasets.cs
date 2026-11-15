@@ -27,9 +27,6 @@ internal sealed record OracleDataset(string Name, string Workbook, string Oracle
 
     public IReadOnlyList<string> RightRows() => SheetRows.Keys(Right(), RightKey);
 
-    public IReadOnlyDictionary<string, object?>? LeftRow(string key) =>
-        Left().FirstOrDefault(row => SheetRows.Text(row.GetValueOrDefault(LeftKey)) == key);
-
     public IReadOnlyDictionary<string, object?>? RightRow(string key) =>
         Right().FirstOrDefault(row => SheetRows.Text(row.GetValueOrDefault(RightKey)) == key);
 
