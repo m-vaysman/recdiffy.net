@@ -66,7 +66,7 @@ public class SourceMapCapacityTests
     }
 
     [Fact]
-    public void Projecting_eight_text_cells_allocates_under_six_hundred_bytes_per_row()
+    public void Projecting_eight_text_cells_allocates_under_eight_hundred_bytes_per_row()
     {
         for (var index = 0; index < 200; index++)
             _ = TextOnly.Project(Trade);
@@ -77,9 +77,11 @@ public class SourceMapCapacityTests
             _projected[index] = TextOnly.Project(Trade);
         var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
 
+        // Before the capacity was given this was about 1,110 bytes; with it, about 560. The bound sits between the two
+        // with room to spare, so a small change in the runtime's dictionary layout does not fail the test.
         var perCall = (double)allocated / _projected.Length;
         Assert.True(
-            perCall < 600,
-            $"Projecting eight text cells allocated {perCall.ToString("F1", CultureInfo.InvariantCulture)} bytes per row, above the 600-byte budget.");
+            perCall < 800,
+            $"Projecting eight text cells allocated {perCall.ToString("F1", CultureInfo.InvariantCulture)} bytes per row, above the 800-byte budget.");
     }
 }
