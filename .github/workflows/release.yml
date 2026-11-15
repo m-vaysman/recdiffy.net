@@ -27,7 +27,7 @@ jobs:
           global-json-file: RecDiffy.NET/global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('RecDiffy.NET/**/*.csproj', 'RecDiffy.NET/**/*.props', 'RecDiffy.NET/**/*.targets', 'RecDiffy.NET/global.json') }}
