@@ -187,9 +187,9 @@ internal static class FieldDiffer
     }
 
     // A null cell is reported as text, whatever type the field has.
-    private static CanonicalValue Value(RowContext row, string field) => row.IsNull(field)
-        ? new CanonicalValue(FieldType.Text, true, 0m, default, 0)
-        : new CanonicalValue(row.Values[field].Type, false, row.Values[field].Number, row.Values[field].Date, row.Values[field].Interned, row.Display(field));
+    private static CanonicalValue Value(RowContext row, string field) => row.Values.TryGetValue(field, out var cell) && !cell.IsNull
+        ? new CanonicalValue(cell.Type, false, cell.Number, cell.Date, cell.Interned, row.Display(field))
+        : new CanonicalValue(FieldType.Text, true, 0m, default, 0);
 
     private static decimal Abs(decimal value) => value < 0m ? -value : value;
 
