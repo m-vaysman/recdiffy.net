@@ -372,10 +372,13 @@ internal sealed record GroupIndex(
         [.. indexes.Distinct().Select(index => Workspace.Items[index].Row)];
 
     // A null key part is not placed. The row stays free for a later pass.
-    private static IReadOnlyList<BlockedRow> Placed(MatchWorkspace workspace, IReadOnlyList<string> block) =>
-        [.. workspace.Free
-            .Select(index => MatchKeys.Compose(workspace.Items[index], block, workspace.Schema) is { } key ? new BlockedRow(index, key) : null)
+    private static IReadOnlyList<BlockedRow> Placed(MatchWorkspace workspace, IReadOnlyList<string> block)
+    {
+        var keyOf = workspace.Keys.Reader(workspace, block, false);
+        return [.. workspace.Free
+            .Select(index => keyOf(index) is { } key ? new BlockedRow(index, key) : null)
             .OfType<BlockedRow>()];
+    }
 
     private sealed record BlockedRow(int Index, MatchKey Key);
 
