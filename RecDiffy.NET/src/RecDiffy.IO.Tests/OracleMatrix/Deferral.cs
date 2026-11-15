@@ -21,7 +21,7 @@ internal static class Deferral
 
     // Fixture 2.0 signs cash (§9.2: a BUY is negative). trading.netCash's identity adds each root's delta to the net-cash delta
     // as an unsigned amount, so a signed BUY's net-cash delta, which has the opposite sign, is not explained.
-    public const string SignedCash = "#433: fixture 2.0's cash is signed, and trading.netCash explains only unsigned cash (§7.4): a BUY's net-cash delta is not explained";
+    public const string SignedCashReason = "#433: fixture 2.0's cash is signed, and trading.netCash explains only unsigned cash (§7.4): a BUY's net-cash delta is not explained";
 
     // True when any of the case's right rows holds the value in the column.
     public static bool RightHas(OracleDataset dataset, OracleCase item, string column, string value) =>
@@ -31,7 +31,22 @@ internal static class Deferral
     public static bool LeftHas(OracleDataset dataset, OracleCase item, string column, string value) =>
         item.Left.Any(key => dataset.LeftRow(key) is { } row && SheetRows.Text(row.GetValueOrDefault(column)) == value);
 
-    // True when any of the case's left rows has a net settlement amount below zero.
-    public static bool LeftPaysCash(OracleDataset dataset, OracleCase item) =>
-        item.Left.Any(key => dataset.LeftRow(key) is { } row && row.GetValueOrDefault("Net_Settlement_Amount") is decimal net && net < 0m);
+    // The fixture 2.0 cases that disagree with the oracle because their cash is signed (#433): 9 near-matches and 4 breaks,
+    // every one a BUY whose internal net cash is negative. Two other signed breaks agree, so they are judged.
+    public static IReadOnlySet<string> SignedCash { get; } = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "CASE-C23BAF9FAE2304F9",
+        "CASE-B30F53E282BBF4EB",
+        "CASE-5815B5E725A14A99",
+        "CASE-464C3900AB52BBF9",
+        "CASE-CD0C3AD6F2EDA44E",
+        "CASE-7C59E6C3CA837D6A",
+        "CASE-AD6C6A30F2D0A8AD",
+        "CASE-91DE8E3917A9B141",
+        "CASE-09CAFF9B562A8642",
+        "CASE-32BADE5493F96F8D",
+        "CASE-AD2E22ECBC168DF4",
+        "CASE-E56D4A056DC1D66E",
+        "CASE-B3C99CCF3208F735",
+    };
 }

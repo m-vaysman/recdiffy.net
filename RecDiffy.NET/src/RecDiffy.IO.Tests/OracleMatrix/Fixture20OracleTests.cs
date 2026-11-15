@@ -16,7 +16,7 @@ public class Fixture20OracleTests
 
     private static readonly Lazy<IReconciliationResult> Result = new(Run);
 
-    private const string FourteenCases = "14 cases disagree: 13 signed-cash BUYs (Deferral.SignedCash, #433) and the swap coupon (CouponIsTheRate)";
+    private const string FourteenCases = "14 cases disagree: 13 signed-cash BUYs (Deferral.SignedCashReason, #433) and the swap coupon (CouponIsTheRate)";
 
     internal static IReconciliationResult Outcome => Result.Value;
 
@@ -32,7 +32,7 @@ public class Fixture20OracleTests
     private static string? Deferred(OracleCase item) => item switch
     {
         { Id: "CASE-BCC487E33A290260" } => CouponIsTheRate,
-        { Kind: CaseKind.WithinTolerance or CaseKind.Break } when Deferral.LeftPaysCash(Dataset, item) => Deferral.SignedCash,
+        { Id: var id } when Deferral.SignedCash.Contains(id) => Deferral.SignedCashReason,
         _ => null,
     };
 
@@ -55,13 +55,13 @@ public class Fixture20OracleTests
     public void AC1_each_case_is_one_entry_with_exactly_its_rows_and_there_are_no_other_entries() =>
         OracleAssert.None(Compare().Membership());
 
-    // 16 deferred: the swap coupon and the 15 signed BUYs among the near-matches and breaks. 13 of those 15 disagree with the oracle (the skipped fact below).
+    // 14 deferred: the swap coupon and the 13 signed BUYs that disagree with the oracle (the skipped fact below).
     [Fact]
     public void AC2_each_entry_has_the_alignment_and_outcome_its_label_maps_to()
     {
         var comparison = Compare(Deferred);
 
-        Assert.Equal(275 - 16, comparison.Checked);
+        Assert.Equal(275 - 14, comparison.Checked);
         OracleAssert.None(comparison.Outcomes());
     }
 
