@@ -1,11 +1,15 @@
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 
 namespace RecDiffy.ApiBaseline;
 
 // The public surface of an assembly as text: one line for every public or protected type and member, sorted ordinally.
 // A line holds the kind, the accessibility, static or instance, and the full signature: parameter names and types,
-// nullable annotations, default values, generic constraints, enum values, the base type and the interfaces.
+// nullable annotations, default values, constant values, generic constraints, enum values, the base type and the interfaces.
 //
 // This file is kept byte for byte the same in RecDiffy.Tests, RecDiffy.IO.Tests and RecDiffy.Excel.Tests, because each
 // baseline test lives in a test project that already references its library. PublicApiBaselineTests in RecDiffy.Tests
@@ -37,10 +41,14 @@ internal static class PublicApiSurface
     };
 
     // Only attributes a caller can see the effect of. The compiler's own bookkeeping attributes are read where they
-    // change a signature (nullability, tuple names, params, extension methods) and are not listed.
+    // change a signature (nullability, tuple names, params, extension methods, readonly, scoped) and are not listed.
     private static readonly HashSet<string> ShownAttributes = new(StringComparer.Ordinal)
     {
         "AllowNullAttribute",
+        "CallerArgumentExpressionAttribute",
+        "CallerFilePathAttribute",
+        "CallerLineNumberAttribute",
+        "CallerMemberNameAttribute",
         "DisallowNullAttribute",
         "DoesNotReturnAttribute",
         "EditorBrowsableAttribute",
@@ -53,9 +61,11 @@ internal static class PublicApiSurface
         "NotNullIfNotNullAttribute",
         "NotNullWhenAttribute",
         "ObsoleteAttribute",
+        "OverloadResolutionPriorityAttribute",
         "RequiresDynamicCodeAttribute",
         "RequiresUnreferencedCodeAttribute",
         "SetsRequiredMembersAttribute",
+        "UnscopedRefAttribute",
     };
 
     public static string BaselinePath(string testProject, string assemblyName) =>
@@ -133,14 +143,30 @@ internal static class PublicApiSurface
     public static IReadOnlyList<string> Describe(Assembly assembly)
     {
         ArgumentNullException.ThrowIfNull(assembly);
-        return [.. assembly.GetTypes().Where(Visible).SelectMany(type => TypeLines(type)).Order(StringComparer.Ordinal)];
+        return
+        [
+            .. Describe(assembly, assembly.GetTypes().Where(Visible))
+                .Concat(assembly.GetForwardedTypes().Select(type => $"{TypeName(type)} :: type forwarded to {type.Assembly.GetName().Name}"))
+                .Order(StringComparer.Ordinal),
+        ];
     }
 
-    private static string Count(int lines) => $"{lines.ToString(CultureInfo.InvariantCulture)} line{(lines == 1 ? "" : "s")}";
+    // The types must be declared in the assembly: its file is read for the annotations reflection does not reach.
+    public static IReadOnlyList<string> Describe(Assembly assembly, IEnumerable<Type> types)
+    {
+        ArgumentNullException.ThrowIfNull(assembly);
+        ArgumentNullException.ThrowIfNull(types);
+        using var file = File.OpenRead(assembly.Location);
+        using var image = new PEReader(file);
+        var rows = new NullableRows(image.GetMetadataReader());
+        return [.. types.SelectMany(type => TypeLines(type, rows)).Order(StringComparer.Ordinal)];
+    }
+
+    private static string Count(int lines) => $"{lines.ToInvariant()} line{(lines == 1 ? "" : "s")}";
 
     private static string Listed(string mark, IReadOnlyList<string> lines) =>
         string.Concat(lines.Take(ListedLines).Select(line => $"\n{mark}{line}"))
-        + (lines.Count > ListedLines ? $"\n{mark}... and {(lines.Count - ListedLines).ToString(CultureInfo.InvariantCulture)} more" : "");
+        + (lines.Count > ListedLines ? $"\n{mark}... and {(lines.Count - ListedLines).ToInvariant()} more" : "");
 
     private static string RepoRoot()
     {
@@ -155,13 +181,13 @@ internal static class PublicApiSurface
             ? (type.IsNestedPublic || type.IsNestedFamily || type.IsNestedFamORAssem) && type.DeclaringType is { } outer && Visible(outer)
             : type.IsPublic;
 
-    private static IEnumerable<string> TypeLines(Type type)
+    private static IEnumerable<string> TypeLines(Type type, NullableRows rows)
     {
         var name = Named(type, index => type.GetGenericArguments()[index].Name);
-        return [$"{name} :: {Header(type)}", .. Members(type).Select(member => $"{name} :: {member}")];
+        return [$"{name} :: {Header(type, rows)}", .. Members(type, rows).Select(member => $"{name} :: {member}")];
     }
 
-    private static string Header(Type type)
+    private static string Header(Type type, NullableRows rows)
     {
         var access = type switch
         {
@@ -170,8 +196,10 @@ internal static class PublicApiSurface
             _ => "protected internal",
         };
         var attributes = Attributes(type.GetCustomAttributesData());
+        var variance = string.Concat(type.GetGenericArguments().Where(argument => argument.IsGenericParameter).Select(Variance));
+        var constraints = Constraints(type.GetGenericArguments(), rows);
         if (IsDelegate(type) && type.GetMethod("Invoke") is { } invoke)
-            return $"type {attributes}{access} delegate {Returned(invoke)} Invoke({Parameters(invoke)}){Constraints(type.GetGenericArguments())}";
+            return $"type {attributes}{access} delegate{variance} {Returned(invoke)} Invoke({Parameters(invoke)}){constraints}";
         var kind = type switch
         {
             { IsEnum: true } => $"enum : {TypeName(Enum.GetUnderlyingType(type))}",
@@ -182,14 +210,14 @@ internal static class PublicApiSurface
             { IsSealed: true } => "sealed class",
             _ => "class",
         };
-        var variance = string.Concat(type.GetGenericArguments().Where(argument => argument.IsGenericParameter).Select(Variance));
+        // The compiler writes the base type's annotations on the type itself.
         var inherited = type.BaseType is { } parent && parent != typeof(object) && parent != typeof(ValueType) && parent != typeof(Enum)
-            ? $" extends {TypeName(parent)}"
+            ? $" extends {TypeName(parent, Annotations.Of(type.GetCustomAttributesData(), null, type))}"
             : "";
         // Only the interfaces this type adds to its base type's, so a change in a framework base type does not move the line.
-        var added = type.GetInterfaces().Except(type.BaseType?.GetInterfaces() ?? []).Select(contract => TypeName(contract)).Order(StringComparer.Ordinal).ToArray();
+        var added = type.GetInterfaces().Except(type.BaseType?.GetInterfaces() ?? []).Select(contract => TypeName(contract, rows.Interface(type, contract))).Order(StringComparer.Ordinal).ToArray();
         var implemented = added.Length == 0 ? "" : $" implements {string.Join(", ", added)}";
-        return $"type {attributes}{access} {kind}{variance}{inherited}{implemented}{Constraints(type.GetGenericArguments())}{TupleNames(type.GetCustomAttributesData())}";
+        return $"type {attributes}{access} {kind}{variance}{inherited}{implemented}{constraints}{TupleNames(type.GetCustomAttributesData())}";
     }
 
     private static string Variance(Type parameter) =>
@@ -202,7 +230,7 @@ internal static class PublicApiSurface
 
     private static bool IsDelegate(Type type) => typeof(MulticastDelegate).IsAssignableFrom(type.BaseType);
 
-    private static IEnumerable<string> Members(Type type)
+    private static IEnumerable<string> Members(Type type, NullableRows rows)
     {
         if (IsDelegate(type))
             return [];
@@ -219,10 +247,11 @@ internal static class PublicApiSurface
             .. type.GetConstructors(Declared).Select(constructor => Constructor(constructor)).OfType<string>(),
             .. properties.Select(property => Property(property)).OfType<string>(),
             .. events.Select(raised => Event(raised)).OfType<string>(),
-            .. type.GetMethods(Declared).Where(method => accessors.Contains(method) is false).Select(method => Method(method)).OfType<string>(),
+            .. type.GetMethods(Declared).Where(method => accessors.Contains(method) is false).Select(method => Method(method, rows)).OfType<string>(),
         ];
     }
 
+    // A decimal constant is a static readonly field in metadata, with its value in an attribute.
     private static string? Field(FieldInfo field)
     {
         var access = field switch
@@ -232,19 +261,34 @@ internal static class PublicApiSurface
             { IsFamilyOrAssembly: true } => "protected internal",
             _ => null,
         };
+        var constant = field.IsLiteral ? Literal(field.GetRawConstantValue()) : DecimalConstant(field);
         var modifiers = field switch
         {
-            { IsLiteral: true } => "const ",
+            _ when constant is not null => "const ",
             { IsStatic: true, IsInitOnly: true } => "static readonly ",
             { IsStatic: true } => "static ",
             { IsInitOnly: true } => "readonly ",
             _ => "",
         };
-        var value = field.IsLiteral ? $" = {Literal(field.GetRawConstantValue())}" : "";
+        var value = constant is null ? "" : $" = {constant}";
         return access is null
             ? null
             : $"field {Attributes(field.GetCustomAttributesData())}{access} {Required(field)}{modifiers}{TypeName(field.FieldType, Annotations.Of(field.GetCustomAttributesData(), null, field.DeclaringType))} {field.Name}{value}{TupleNames(field.GetCustomAttributesData())}";
     }
+
+    private static string? DecimalConstant(FieldInfo field) =>
+        field.GetCustomAttributesData().FirstOrDefault(attribute => attribute.AttributeType.Name == "DecimalConstantAttribute")
+            is { ConstructorArguments: [{ Value: byte scale }, { Value: byte sign }, var high, var middle, var low] }
+            ? new decimal(Bits(low), Bits(middle), Bits(high), sign != 0, scale).ToInvariant()
+            : null;
+
+    private static int Bits(CustomAttributeTypedArgument part) =>
+        part.Value switch
+        {
+            uint unsigned => unchecked((int)unsigned),
+            int signed => signed,
+            _ => 0,
+        };
 
     private static string? Constructor(ConstructorInfo constructor) =>
         Access(constructor) is { } access && constructor.IsStatic is false
@@ -262,10 +306,17 @@ internal static class PublicApiSurface
         if (accessors.Length == 0)
             return null;
         var widest = accessors.MinBy(accessor => Rank(accessor.Access));
-        var body = string.Join(" ", accessors.Select(accessor => $"{(accessor.Access == widest.Access ? "" : accessor.Access + " ")}{accessor.Word};"));
+        var body = string.Join(" ", accessors.Select(accessor =>
+            $"{Attributes(accessor.Method.GetCustomAttributesData())}{(accessor.Access == widest.Access ? "" : accessor.Access + " ")}{ReadOnly(accessor.Method)}{accessor.Word};"));
         var index = property.GetIndexParameters();
         var name = index.Length == 0 ? property.Name : $"{property.Name}[{string.Join(", ", index.Select(parameter => Parameter(parameter, false)))}]";
-        return $"property {Attributes(property.GetCustomAttributesData())}{widest.Access} {Required(property)}{Modifiers(widest.Method)}{TypeName(property.PropertyType, Annotations.Of(property.GetCustomAttributesData(), null, property.DeclaringType))} {name} {{ {body} }}{TupleNames(property.GetCustomAttributesData())}";
+        var byReference = property switch
+        {
+            { PropertyType.IsByRef: true, GetMethod: { } getter } when ReturnsReadOnly(getter) => "ref readonly ",
+            { PropertyType.IsByRef: true } => "ref ",
+            _ => "",
+        };
+        return $"property {Attributes(property.GetCustomAttributesData())}{widest.Access} {Required(property)}{Modifiers(widest.Method)}{byReference}{TypeName(property.PropertyType, Annotations.Of(property.GetCustomAttributesData(), null, property.DeclaringType))} {name} {{ {body} }}{TupleNames(property.GetCustomAttributesData())}";
     }
 
     private static string? Event(EventInfo raised) =>
@@ -273,17 +324,33 @@ internal static class PublicApiSurface
             ? $"event {Attributes(raised.GetCustomAttributesData())}{access} {Modifiers(add)}{TypeName(handler, Annotations.Of(raised.GetCustomAttributesData(), null, raised.DeclaringType))} {raised.Name}"
             : null;
 
-    private static string? Method(MethodInfo method)
+    private static string? Method(MethodInfo method, NullableRows rows)
     {
         var generic = method.IsGenericMethodDefinition ? $"<{string.Join(", ", method.GetGenericArguments().Select(argument => argument.Name))}>" : "";
-        var constraints = method.IsGenericMethodDefinition ? Constraints(method.GetGenericArguments()) : "";
+        var constraints = method.IsGenericMethodDefinition ? Constraints(method.GetGenericArguments(), rows) : "";
         return Access(method) is { } access
-            ? $"method {Attributes(method.GetCustomAttributesData())}{access} {Modifiers(method)}{Returned(method)} {method.Name}{generic}({Parameters(method)}){constraints}{TupleNames(method.ReturnParameter.GetCustomAttributesData())}"
+            ? $"method {Attributes(method.GetCustomAttributesData())}{access} {Modifiers(method)}{ReadOnly(method)}{Returned(method)} {method.Name}{generic}({Parameters(method)}){constraints}{TupleNames(method.ReturnParameter.GetCustomAttributesData())}"
             : null;
     }
 
-    private static string Returned(MethodInfo method) =>
-        $"{Attributes(method.ReturnParameter.GetCustomAttributesData())}{(method.ReturnType.IsByRef ? "ref " : "")}{TypeName(method.ReturnType, Annotations.Of(method.ReturnParameter.GetCustomAttributesData(), method, method.DeclaringType))}";
+    private static string Returned(MethodInfo method)
+    {
+        var byReference = method switch
+        {
+            { ReturnType.IsByRef: true } when ReturnsReadOnly(method) => "ref readonly ",
+            { ReturnType.IsByRef: true } => "ref ",
+            _ => "",
+        };
+        return $"{Attributes(method.ReturnParameter.GetCustomAttributesData())}{byReference}{TypeName(method.ReturnType, Annotations.Of(method.ReturnParameter.GetCustomAttributesData(), method, method.DeclaringType))}";
+    }
+
+    private static bool ReturnsReadOnly(MethodInfo method) =>
+        Has(method.ReturnParameter.GetCustomAttributesData(), "IsReadOnlyAttribute")
+        || method.ReturnParameter.GetRequiredCustomModifiers().Any(modifier => modifier.Name == "InAttribute");
+
+    // A member of a struct that promises not to change it. A readonly struct says so once, on its own line.
+    private static string ReadOnly(MethodInfo method) =>
+        method.DeclaringType is { IsValueType: true } && Has(method.GetCustomAttributesData(), "IsReadOnlyAttribute") ? "readonly " : "";
 
     private static string Parameters(MethodBase method)
     {
@@ -295,6 +362,7 @@ internal static class PublicApiSurface
     {
         var attributes = parameter.GetCustomAttributesData();
         var receiver = extension && parameter.Position == 0 ? "this " : "";
+        var scoped = Has(attributes, "ScopedRefAttribute") ? "scoped " : "";
         var passing = parameter switch
         {
             { ParameterType.IsByRef: true, IsOut: true } => "out ",
@@ -305,7 +373,7 @@ internal static class PublicApiSurface
             _ => "",
         };
         var value = parameter.HasDefaultValue ? $" = {Default(parameter)}" : "";
-        return $"{Attributes(attributes)}{receiver}{passing}{TypeName(parameter.ParameterType, Annotations.Of(attributes, Owner(parameter), parameter.Member.DeclaringType))} {parameter.Name}{value}{TupleNames(attributes)}";
+        return $"{Attributes(attributes)}{receiver}{scoped}{passing}{TypeName(parameter.ParameterType, Annotations.Of(attributes, Owner(parameter), parameter.Member.DeclaringType))} {parameter.Name}{value}{TupleNames(attributes)}";
     }
 
     private static string Default(ParameterInfo parameter) =>
@@ -354,15 +422,15 @@ internal static class PublicApiSurface
     private static string Required(MemberInfo member) =>
         Has(member.GetCustomAttributesData(), "RequiredMemberAttribute") ? "required " : "";
 
-    private static string Constraints(IEnumerable<Type> arguments) =>
-        string.Concat(arguments.Where(argument => argument.IsGenericParameter).Select(Constraint));
+    private static string Constraints(IEnumerable<Type> arguments, NullableRows rows) =>
+        string.Concat(arguments.Where(argument => argument.IsGenericParameter).Select(argument => Constraint(argument, rows)));
 
-    private static string Constraint(Type parameter)
+    private static string Constraint(Type parameter, NullableRows rows)
     {
         var flags = parameter.GenericParameterAttributes;
         var valueType = flags.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint);
         var referenceType = flags.HasFlag(GenericParameterAttributes.ReferenceTypeConstraint);
-        var types = parameter.GetGenericParameterConstraints().Where(type => type != typeof(ValueType)).Select(type => TypeName(type)).Order(StringComparer.Ordinal).ToArray();
+        var types = parameter.GetGenericParameterConstraints().Where(type => type != typeof(ValueType)).Select(type => TypeName(type, rows.Constraint(parameter, type))).Order(StringComparer.Ordinal).ToArray();
         string[] parts =
         [
             .. referenceType ? [NullableFlag(parameter) is 2 ? "class?" : "class"] : Array.Empty<string>(),
@@ -434,7 +502,8 @@ internal static class PublicApiSurface
             return $"{TypeName(type.GetElementType()!, annotations)}*";
         if (Nullable.GetUnderlyingType(type) is { } underlying)
             return $"{TypeName(underlying, annotations)}?";
-        // A value type that is not generic has no annotation. A generic one has an annotation that says nothing.
+        // A value type that is not generic has no annotation. A generic one, and a type parameter that must be a struct,
+        // has an annotation that says nothing.
         var reference = type.IsGenericParameter || type.IsValueType is false;
         var flag = reference || type.IsGenericType ? annotations?.Next() : null;
         var mark = reference && flag is 2 ? "?" : "";
@@ -493,6 +562,15 @@ internal sealed class Annotations
             _ => new(null, Context(method, declaring)),
         };
 
+    // each holds one flag for each part, or the one flag that stands for every part. Null means the context decides.
+    public static Annotations Of(byte[]? each, byte context) =>
+        each switch
+        {
+            null => new(null, context),
+            [var all] => new(null, all),
+            _ => new(each, 0),
+        };
+
     public static byte Context(MethodBase? method, Type? declaring) =>
         (method is null ? [] : new[] { method.GetCustomAttributesData() })
             .Concat(Enclosing(declaring).Select(type => type.GetCustomAttributesData()))
@@ -516,4 +594,48 @@ internal sealed class Annotations
         for (var current = type; current is not null; current = current.DeclaringType)
             yield return current;
     }
+}
+
+// The compiler writes the annotations of an implemented interface and of a type constraint on metadata rows that
+// reflection does not expose. They are read from the assembly file, so the text does not depend on the runtime.
+internal sealed class NullableRows(MetadataReader reader)
+{
+    public Annotations Interface(Type type, Type contract)
+    {
+        var declared = reader.GetTypeDefinition((TypeDefinitionHandle)MetadataTokens.EntityHandle(type.MetadataToken));
+        var rows = declared.GetInterfaceImplementations().Select(reader.GetInterfaceImplementation)
+            .Where(row => Resolve(type.Module, row.Interface, type.GetGenericArguments(), null) == contract)
+            .Select(row => Flags(row.GetCustomAttributes()));
+        return Annotations.Of(rows.FirstOrDefault(), Annotations.Context(null, type));
+    }
+
+    public Annotations Constraint(Type parameter, Type constraint)
+    {
+        var declared = reader.GetGenericParameter((GenericParameterHandle)MetadataTokens.EntityHandle(parameter.MetadataToken));
+        var rows = declared.GetConstraints().Select(reader.GetGenericParameterConstraint)
+            .Where(row => Resolve(parameter.Module, row.Type, parameter.DeclaringType?.GetGenericArguments(), parameter.DeclaringMethod?.GetGenericArguments()) == constraint)
+            .Select(row => Flags(row.GetCustomAttributes()));
+        return Annotations.Of(rows.FirstOrDefault(), Annotations.Context(parameter.DeclaringMethod, parameter.DeclaringType));
+    }
+
+    private static Type Resolve(Module module, EntityHandle type, Type[]? typeArguments, Type[]? methodArguments) =>
+        module.ResolveType(MetadataTokens.GetToken(type), typeArguments, methodArguments);
+
+    // The attribute holds one byte, or a count and that many bytes, after a two-byte prolog.
+    private byte[]? Flags(CustomAttributeHandleCollection attributes) =>
+        attributes.Select(reader.GetCustomAttribute)
+            .Where(attribute => AttributeName(attribute.Constructor) == "NullableAttribute")
+            .Select(attribute => reader.GetBlobBytes(attribute.Value))
+            .Select(blob => blob.Length == 5 ? [blob[2]] : blob[6..(6 + BinaryPrimitives.ReadInt32LittleEndian(blob.AsSpan(2)))])
+            .FirstOrDefault();
+
+    private string AttributeName(EntityHandle constructor) =>
+        constructor.Kind switch
+        {
+            HandleKind.MemberReference when reader.GetMemberReference((MemberReferenceHandle)constructor).Parent is { Kind: HandleKind.TypeReference } parent =>
+                reader.GetString(reader.GetTypeReference((TypeReferenceHandle)parent).Name),
+            HandleKind.MethodDefinition =>
+                reader.GetString(reader.GetTypeDefinition(reader.GetMethodDefinition((MethodDefinitionHandle)constructor).GetDeclaringType()).Name),
+            _ => "",
+        };
 }

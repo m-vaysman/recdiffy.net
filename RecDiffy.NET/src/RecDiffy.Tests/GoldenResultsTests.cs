@@ -1,48 +1,52 @@
-using System.Data;
 using System.Globalization;
 using RecDiffy.Results;
 using RecDiffy.RulePacks.Trading;
 
 namespace RecDiffy.Tests;
 
-// What the engine returns for one fixed pair of inputs, as text, compared with Goldens/golden-results.txt. Any change
-// in the result fails here, on net8.0 and net10.0: entries, diffs, rows, diagnostics, the summary, explanations, the
-// canonical values and trace of every row, and one side-by-side view (spec v3.1 §10.1).
+// What the engine returns for two fixed pairs of inputs, as text, compared with Goldens/golden-trades.txt and
+// Goldens/golden-structures.txt. Any change in a result fails here, on net8.0 and net10.0: entries, diffs, rows,
+// diagnostics, the summary, explanations, the raw cells, canonical values and trace of every row, and two side-by-side
+// views, all in the order the engine returns them (spec v3.1 §10.1).
 //
 // Accepting an intended change is a manual step: copy the .actual.txt file the failure names over the golden file and
-// commit it. Nothing rewrites the golden file.
+// commit it. Nothing rewrites a golden file.
 public class GoldenResultsTests
 {
     private static readonly int[] Seeds = [1, 2, 3, 5, 8, 13, 21, 34];
 
-    private static string GoldenPath => Path.Combine(ProfileCorpus.Source, "RecDiffy.Tests", "Goldens", "golden-results.txt");
+    public static TheoryData<string> Scenarios => ["trades", "structures"];
 
-    private static string ActualPath(string name) => Path.Combine(AppContext.BaseDirectory, "Goldens", $"golden-results.{name}.actual.txt");
-
-    [Fact]
-    public void The_result_matches_the_golden_file()
+    [Theory]
+    [MemberData(nameof(Scenarios))]
+    public void The_result_matches_the_golden_file(string name)
     {
-        var failure = GoldenText.Check(GoldenText.Lines(GoldenResult.Text(GoldenResult.Run())), GoldenPath, ActualPath("run"));
+        var scenario = Scenario(name);
+
+        var failure = GoldenText.Check(GoldenText.Lines(GoldenResult.Text(scenario, GoldenResult.Run(scenario))), GoldenPath(scenario), ActualPath(scenario, "run"));
 
         Assert.True(failure is null, failure);
     }
 
     // Spec v3.1 §10.1: the same rows in any order give the same result. A SourceRef carries the row's position in its
-    // input, so each shuffled position is mapped back to the position the golden file knows. Three things follow the
-    // input order, and the golden file keeps them in its last section, which is left out here: the order of the
-    // unmatched entries, the order of the members inside an entry, and the order of the rows. §10.1 allows that: commit
-    // order "affects output order only", and output is compared as sets.
-    [Fact]
-    public void The_result_is_the_same_for_rows_in_any_order()
+    // input, so each shuffled position is mapped back to the position the fixed input has. Three orders follow the
+    // input, and only they are put in a fixed order before the two texts are compared: the rows; unmatched entries of
+    // one alignment on one route, among themselves; and inside an entry, the members of an unmatched entry and the
+    // copies of one row key. §10.1 allows that: commit order "affects output order only". Everything else must be in
+    // the same order, the matched entries and their members included.
+    [Theory]
+    [MemberData(nameof(Scenarios))]
+    public void The_result_is_the_same_for_rows_in_any_order(string name)
     {
-        var expected = AnyOrder(GoldenText.Read(GoldenPath));
-        var shuffles = Seeds.Select(seed => (Name: $"seed {seed.ToString(CultureInfo.InvariantCulture)}", Left: Shuffled(GoldenInputs.Left.Length, seed), Right: Shuffled(GoldenInputs.Right.Length, seed + 1000)))
-            .Append((Name: "reversed", Left: [.. Enumerable.Range(0, GoldenInputs.Left.Length).Reverse()], Right: [.. Enumerable.Range(0, GoldenInputs.Right.Length).Reverse()]));
+        var scenario = Scenario(name);
+        var expected = GoldenText.Lines(GoldenResult.Text(scenario, GoldenResult.Run(scenario), anyOrder: true));
+        var shuffles = Seeds.Select(seed => (Name: $"seed {seed.ToInvariant()}", Left: Shuffled(scenario.Left.Count, seed), Right: Shuffled(scenario.Right.Count, seed + 1000)))
+            .Append((Name: "reversed", Left: [.. Enumerable.Range(0, scenario.Left.Count).Reverse()], Right: [.. Enumerable.Range(0, scenario.Right.Count).Reverse()]));
 
         string[] failures =
         [
             .. shuffles
-                .Select(shuffle => (shuffle.Name, Lines: AnyOrder(GoldenText.Lines(GoldenResult.Text(GoldenResult.Run(shuffle.Left, shuffle.Right), shuffle.Left, shuffle.Right)))))
+                .Select(shuffle => (shuffle.Name, Lines: GoldenText.Lines(GoldenResult.Text(scenario, GoldenResult.Run(scenario, shuffle.Left, shuffle.Right), anyOrder: true, shuffle.Left, shuffle.Right))))
                 .Select(run => GoldenText.Difference(expected, run.Lines) is { } difference ? $"Rows shuffled with {run.Name} give a different result:\n{difference}" : null)
                 .OfType<string>(),
         ];
@@ -50,22 +54,28 @@ public class GoldenResultsTests
         Assert.True(failures.Length == 0, string.Join("\n\n", failures));
     }
 
-    // The profile declares its cultures, so the machine's culture changes nothing (spec v3.1 §3.5).
+    // The profiles declare their cultures, so the machine's culture changes nothing (spec v3.1 §3.5).
     [Theory]
-    [InlineData("")]
-    [InlineData("de-DE")]
-    [InlineData("tr-TR")]
-    [InlineData("fr-FR")]
-    [InlineData("ar-SA")]
-    public void The_result_is_the_same_under_any_machine_culture(string machine)
+    [InlineData("trades", "")]
+    [InlineData("trades", "de-DE")]
+    [InlineData("trades", "tr-TR")]
+    [InlineData("trades", "fr-FR")]
+    [InlineData("trades", "ar-SA")]
+    [InlineData("structures", "")]
+    [InlineData("structures", "de-DE")]
+    [InlineData("structures", "tr-TR")]
+    [InlineData("structures", "fr-FR")]
+    [InlineData("structures", "ar-SA")]
+    public void The_result_is_the_same_under_any_machine_culture(string name, string machine)
     {
+        var scenario = Scenario(name);
         var before = (CultureInfo.CurrentCulture, CultureInfo.CurrentUICulture);
         try
         {
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(machine);
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(machine);
 
-            var failure = GoldenText.Check(GoldenText.Lines(GoldenResult.Text(GoldenResult.Run())), GoldenPath, ActualPath("culture"));
+            var failure = GoldenText.Check(GoldenText.Lines(GoldenResult.Text(scenario, GoldenResult.Run(scenario))), GoldenPath(scenario), ActualPath(scenario, "culture"));
 
             Assert.True(failure is null, failure);
         }
@@ -76,94 +86,161 @@ public class GoldenResultsTests
     }
 
     // RunOptions: "The value does not change the result."
-    [Fact]
-    public void The_result_is_the_same_when_result_building_runs_in_parallel()
+    [Theory]
+    [MemberData(nameof(Scenarios))]
+    public void The_result_is_the_same_when_result_building_runs_in_parallel(string name)
     {
-        var result = GoldenResult.Run(options: new RunOptions(MaxDegreeOfParallelism: 4));
+        var scenario = Scenario(name);
+        var result = GoldenResult.Run(scenario, options: new RunOptions(MaxDegreeOfParallelism: 4));
 
-        var failure = GoldenText.Check(GoldenText.Lines(GoldenResult.Text(result)), GoldenPath, ActualPath("parallel"));
+        var failure = GoldenText.Check(GoldenText.Lines(GoldenResult.Text(scenario, result)), GoldenPath(scenario), ActualPath(scenario, "parallel"));
 
         Assert.True(failure is null, failure);
     }
 
     [Fact]
-    public async Task The_result_is_the_same_from_RunAsync()
+    public async Task The_trades_result_is_the_same_from_RunAsync()
     {
-        var result = await Reconciler.RunAsync(GoldenInputs.Compile(), GoldenInputs.LeftSource(), GoldenInputs.RightSource(), GoldenInputs.Reference);
+        var scenario = GoldenTrades.Scenario;
+        var result = await Reconciler.RunAsync(scenario.Compile(), GoldenTrades.LeftSource(), GoldenTrades.RightSource(), scenario.Reference);
 
-        var failure = GoldenText.Check(GoldenText.Lines(GoldenResult.Text(result)), GoldenPath, ActualPath("async"));
+        var failure = GoldenText.Check(GoldenText.Lines(GoldenResult.Text(scenario, result)), GoldenPath(scenario), ActualPath(scenario, "async"));
 
         Assert.True(failure is null, failure);
     }
 
     // The same cells through the data reader source: the second way rows reach intake.
     [Fact]
-    public void The_result_is_the_same_when_the_rows_come_from_a_data_reader()
+    public void The_trades_result_is_the_same_when_the_rows_come_from_a_data_reader()
     {
-        using var left = GoldenInputs.LeftTable();
-        using var right = GoldenInputs.RightTable();
+        var scenario = GoldenTrades.Scenario;
+        using var left = GoldenTrades.LeftTable();
+        using var right = GoldenTrades.RightTable();
         var result = Reconciler.Run(
-            GoldenInputs.Compile(),
+            scenario.Compile(),
             RecordSources.FromDataReader("left", left.CreateDataReader, new TabularOptions()),
             RecordSources.FromDataReader("right", right.CreateDataReader, new TabularOptions()),
-            GoldenInputs.Reference);
+            scenario.Reference);
 
-        var failure = GoldenText.Check(GoldenText.Lines(GoldenResult.Text(result)), GoldenPath, ActualPath("reader"));
+        var failure = GoldenText.Check(GoldenText.Lines(GoldenResult.Text(scenario, result)), GoldenPath(scenario), ActualPath(scenario, "reader"));
 
         Assert.True(failure is null, failure);
     }
 
-    // What the inputs are there to cover. If an edit to the inputs drops a case, this says which.
+    // What the trades inputs are there to cover. If an edit to the inputs drops a case, this says which.
     [Fact]
-    public void The_inputs_cover_every_case_the_golden_file_is_there_for()
+    public void The_trades_inputs_cover_every_case_they_are_there_for()
     {
-        var result = GoldenResult.Run();
-        ResultEntry Entry(string rowKey) => result.Entries.Single(entry => entry.Left.Concat(entry.Right).Any(member => member.RowKey == rowKey));
-        RowResult[] Rows(string rowKey) => [.. result.Rows.Where(row => row.Row.RowKey == rowKey)];
-        string[] Codes(string rowKey) => [.. Rows(rowKey).SelectMany(row => row.Diagnostics).Select(diagnostic => diagnostic.Code).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)];
+        var scenario = GoldenTrades.Scenario;
+        var result = GoldenResult.Run(scenario);
+        var see = new Seen(result);
 
-        Assert.Equal((Alignment.Matched, Composition.OneToOne, FieldOutcome.Exact, "P1"), Shape(Entry("OMS-EXACT")));
-        Assert.Equal((Alignment.Matched, Composition.OneToOne, FieldOutcome.WithinTolerance, "P2"), Shape(Entry("OMS-WITHIN")));
-        Assert.Equal((Alignment.Matched, Composition.OneToOne, FieldOutcome.Break, "P1"), Shape(Entry("OMS-BREAK")));
-        Assert.Equal(Alignment.LeftOnly, Entry("OMS-ORPHAN").Alignment);
-        Assert.Equal(Alignment.RightOnly, Entry("ST-ALLEGED").Alignment);
-        Assert.Equal((Alignment.Ambiguous, 2, 1), (Entry("ST-AMB").Alignment, Entry("ST-AMB").Left.Length, Entry("ST-AMB").Right.Length));
-        Assert.Equal(Alignment.SearchIncomplete, Entry("ST-BIG").Alignment);
+        Assert.Equal((Alignment.Matched, Composition.OneToOne, FieldOutcome.Exact, "P1"), Shape(see.Entry("OMS-EXACT")));
+        Assert.Equal((Alignment.Matched, Composition.OneToOne, FieldOutcome.WithinTolerance, "P2"), Shape(see.Entry("OMS-WITHIN")));
+        Assert.Equal((Alignment.Matched, Composition.OneToOne, FieldOutcome.Break, "P1"), Shape(see.Entry("OMS-BREAK")));
+        Assert.Equal(Alignment.LeftOnly, see.Entry("OMS-ORPHAN").Alignment);
+        Assert.Equal(Alignment.RightOnly, see.Entry("ST-ALLEGED").Alignment);
+        Assert.Equal((Alignment.Ambiguous, 2, 1), (see.Entry("ST-AMB").Alignment, see.Entry("ST-AMB").Left.Length, see.Entry("ST-AMB").Right.Length));
+        Assert.Equal((Alignment.SearchIncomplete, "BlockTooLarge"), (see.Entry("ST-BIG").Alignment, see.Entry("ST-BIG").Explanation.Trail[0].Detail));
 
-        Assert.Equal(["DecimalParse"], Codes("OMS-BADQTY"), StringComparer.Ordinal);
-        Assert.Equal(["PriceParse"], Codes("ST-BADPX"), StringComparer.Ordinal);
-        Assert.Equal(["DuplicateConflict"], Codes("OMS-CONFLICT"), StringComparer.Ordinal);
-        Assert.Equal(["DuplicateRowCollapsed"], Codes("OMS-TWICE"), StringComparer.Ordinal);
-        Assert.All(new[] { "OMS-BADQTY", "ST-BADPX", "OMS-CONFLICT", "OMS-HALF-PAY", "ST-LOST-CORR", "ST-NOPARTY", "OMS-NODATE" }, rowKey =>
-            Assert.All(Rows(rowKey), row => Assert.Equal((Disposition.Quarantined, InputValidity.Invalid, (GroupId?)null), (row.Disposition, row.Validity, row.EntryId))));
-        Assert.Equal(2, Rows("OMS-CONFLICT").Length);
-        Assert.Equal(2, Rows("OMS-TWICE").Length);
-        Assert.All(Rows("OMS-TWICE"), row => Assert.Equal((Disposition.Matched, InputValidity.ValidWithWarnings), (row.Disposition, row.Validity)));
+        Assert.Equal(["DecimalParse"], see.Codes("OMS-BADQTY"), StringComparer.Ordinal);
+        Assert.Equal(["PriceParse"], see.Codes("ST-BADPX"), StringComparer.Ordinal);
+        Assert.Equal(["DateParse", "RequiredMissing", "UnknownParty"], see.Codes("ST-NOPARTY"), StringComparer.Ordinal);
+        Assert.Equal(["RequiredMissing"], see.Codes("OMS-NODATE"), StringComparer.Ordinal);
+        Assert.Equal(["DuplicateConflict"], see.Codes("OMS-CONFLICT"), StringComparer.Ordinal);
+        Assert.Equal(["DuplicateRowCollapsed"], see.Codes("OMS-TWICE"), StringComparer.Ordinal);
+        Assert.Equal(["IncompletePackage"], see.Codes("OMS-HALF-PAY"), StringComparer.Ordinal);
+        Assert.Equal(["MissingLifecycleTarget"], see.Codes("ST-LOST-CORR"), StringComparer.Ordinal);
+        Assert.All(new[] { "OMS-BADQTY", "ST-BADPX", "OMS-CONFLICT", "OMS-HALF-PAY", "ST-LOST-CORR", "ST-NOPARTY", "OMS-NODATE" }, rowKey => see.Quarantined(rowKey));
+        Assert.Equal(2, see.Rows("OMS-CONFLICT").Length);
+        Assert.Equal(2, see.Rows("OMS-TWICE").Length);
+        Assert.All(see.Rows("OMS-TWICE"), row => Assert.Equal((Disposition.Matched, InputValidity.ValidWithWarnings), (row.Disposition, row.Validity)));
         Assert.Contains(result.Rows, row => row.Disposition is Disposition.Quarantined && row.Diagnostics.Any(diagnostic => diagnostic.Code == "MissingKey"));
 
-        Assert.Equal((Alignment.Matched, Composition.OneToOne | Composition.LifecycleCollapsed, FieldOutcome.Exact, "P1"), Shape(Entry("OMS-LIFE")));
-        Assert.Equal((Disposition.Suppressed, SuppressionReason.Superseded), (Rows("ST-LIFE-NEW")[0].Disposition, Rows("ST-LIFE-NEW")[0].Suppression));
-        Assert.Equal((Disposition.Suppressed, SuppressionReason.CancelEvent), (Rows("ST-LIFE-CANC")[0].Disposition, Rows("ST-LIFE-CANC")[0].Suppression));
-        Assert.Equal((Disposition.Suppressed, SuppressionReason.FullyCancelled), (Rows("ST-GONE-NEW")[0].Disposition, Rows("ST-GONE-NEW")[0].Suppression));
+        Assert.Equal((Alignment.Matched, Composition.OneToOne | Composition.LifecycleCollapsed, FieldOutcome.Exact, "P1"), Shape(see.Entry("OMS-LIFE")));
+        Assert.Equal((Disposition.Suppressed, SuppressionReason.Superseded), see.Fate("ST-LIFE-NEW"));
+        Assert.Equal((Disposition.Suppressed, SuppressionReason.CancelEvent), see.Fate("ST-LIFE-CANC"));
+        Assert.Equal((Disposition.Suppressed, SuppressionReason.FullyCancelled), see.Fate("ST-GONE-NEW"));
 
-        Assert.Equal((Alignment.Matched, Composition.ManyToOne | Composition.Package, FieldOutcome.Exact, "P1"), Shape(Entry("OMS-LEG-PAY")));
-        Assert.Equal((Alignment.Matched, Composition.ManyToOne, FieldOutcome.Exact, "P3"), Shape(Entry("ST-BLOCK")));
-        Assert.Equal(3, Entry("ST-BLOCK").Left.Length);
+        Assert.Equal((Alignment.Matched, Composition.ManyToOne | Composition.Package, FieldOutcome.Exact, "P1"), Shape(see.Entry("OMS-LEG-PAY")));
+        Assert.Equal((Alignment.Matched, Composition.ManyToOne, FieldOutcome.Exact, "P3"), Shape(see.Entry("ST-BLOCK")));
+        Assert.Equal(3, see.Entry("ST-BLOCK").Left.Length);
 
-        var fill = Entry("OMS-FILL");
-        Assert.Equal((Alignment.Matched, Composition.OneToOne, FieldOutcome.Break, "P4"), Shape(fill));
-        Assert.Equal(["Quantity"], fill.Diffs.Single(diff => diff.Field.Name == "Accrued").AttributedTo, StringComparer.Ordinal);
-        Assert.Equal(["Quantity", "Accrued"], fill.Diffs.Single(diff => diff.Field.Name == "NetCash").AttributedTo, StringComparer.Ordinal);
-        Assert.Equal(["Accrued"], Entry("OMS-WITHIN").Diffs.Single(diff => diff.Field.Name == "NetCash").AttributedTo, StringComparer.Ordinal);
+        Assert.Equal((Alignment.Matched, Composition.OneToOne, FieldOutcome.Break, "P4"), Shape(see.Entry("OMS-FILL")));
+        Assert.Equal(["Quantity"], see.Diff("OMS-FILL", "Accrued").AttributedTo, StringComparer.Ordinal);
+        Assert.Equal(["Quantity", "Accrued"], see.Diff("OMS-FILL", "NetCash").AttributedTo, StringComparer.Ordinal);
+        Assert.Equal(["Accrued"], see.Diff("OMS-WITHIN", "NetCash").AttributedTo, StringComparer.Ordinal);
+        Assert.Equal((FieldOutcome.WithinTolerance, 1), (see.Diff("OMS-WITHIN", "SettleDate").Outcome, see.Diff("OMS-WITHIN", "SettleDate").Delta.Days));
 
         Assert.Equal(["", "bonds", "equities", "swaps"], result.Entries.Select(entry => entry.PathId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal), StringComparer.Ordinal);
-        Assert.Equal("", Entry("OMS-FX").PathId);
+        Assert.Equal("", see.Entry("OMS-FX").PathId);
+        Assert.Equal((FieldOutcome.Break, false, true), (see.Diff("OMS-NOSETTLE", "SettleDate").Outcome, see.Diff("OMS-NOSETTLE", "SettleDate").Left.IsNull, see.Diff("OMS-NOSETTLE", "SettleDate").Right.IsNull));
+        Assert.Equal(["P1", "P2", "P3", "P4"], see.CommittingPasses(), StringComparer.Ordinal);
+        Assert.Equal((CultureOrigin.Run, CultureOrigin.Side), (result.Run.Reading["left"].Origin, result.Run.Reading["right"].Origin));
+        Assert.Equal(scenario.Left.Count + scenario.Right.Count, result.Rows.Length);
+    }
 
-        var settle = Entry("OMS-NOSETTLE").Diffs.Single(diff => diff.Field.Name == "SettleDate");
-        Assert.Equal((FieldOutcome.Break, false, true), (settle.Outcome, settle.Left.IsNull, settle.Right.IsNull));
+    // What the structures inputs add. Each line names the behavior the trades inputs do not reach.
+    [Fact]
+    public void The_structures_inputs_cover_every_case_they_are_there_for()
+    {
+        var scenario = GoldenStructures.Scenario;
+        var result = GoldenResult.Run(scenario);
+        var see = new Seen(result);
 
-        Assert.Equal(["P1", "P2", "P3", "P4"], result.Entries.Where(entry => entry.Alignment is Alignment.Matched).Select(entry => entry.Explanation.CommittedBy).OfType<string>().Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal), StringComparer.Ordinal);
-        Assert.Equal(GoldenInputs.Left.Length + GoldenInputs.Right.Length, result.Rows.Length);
+        // route.all, and match.sharedRef with its default key.
+        Assert.All(result.Entries, entry => Assert.Equal("all", entry.PathId));
+        Assert.Equal(("P1", "ACME · EX-1"), (see.Entry("L-ABS").Explanation.CommittedBy, see.Entry("L-ABS").Explanation.Trail[0].Key));
+
+        // A tolerance with two bounds: inside the absolute one, inside the relative one only, and outside both.
+        Assert.Equal(("AbsoluteOrRelative", FieldOutcome.WithinTolerance, 0.0004m), (see.Diff("L-ABS", "Price").Tolerance.Value, see.Diff("L-ABS", "Price").Outcome, see.Diff("L-ABS", "Price").Delta.Number));
+        Assert.Equal((FieldOutcome.WithinTolerance, 0.15m), (see.Diff("L-REL", "Price").Outcome, see.Diff("L-REL", "Price").Delta.Number));
+        Assert.Equal((FieldOutcome.Break, 0.02m), (see.Diff("L-PXB", "Price").Outcome, see.Diff("L-PXB", "Price").Delta.Number));
+
+        // A tolerance with a condition, and a field that is not compared: NotCompared fields are left out of Diffs.
+        Assert.Equal(FieldOutcome.WithinTolerance, see.Diff("L-EQ", "Fees").Outcome);
+        Assert.Equal(FieldOutcome.Break, see.Diff("L-BD", "Fees").Outcome);
+        Assert.DoesNotContain(see.Entry("L-EQ").Diffs, diff => diff.Field.Name == "Accrued");
+        Assert.Equal((1.00m, 2.00m), (result.Canonical(see.Entry("L-EQ").Left[0])["Accrued"].Number, result.Canonical(see.Entry("L-EQ").Right[0])["Accrued"].Number));
+
+        // The TradeRef veto: two shared references that differ keep the rows apart; two broker references do not.
+        Assert.Equal((Alignment.LeftOnly, Alignment.RightOnly), (see.Entry("L-VETO").Alignment, see.Entry("R-VETO").Alignment));
+        Assert.Equal((Alignment.Matched, FieldOutcome.Exact, "P2"), (see.Entry("L-BRK").Alignment, see.Entry("L-BRK").Outcome, see.Entry("L-BRK").Explanation.CommittedBy));
+
+        // Midpoint away from zero: 2.125 is 2.13.
+        Assert.Equal((Alignment.Matched, 2.13m), (see.Entry("L-MID").Alignment, result.Canonical(see.Entry("L-MID").Left[0])["Quantity"].Number));
+
+        // match.groupSum with the many rows on the right: OneToMany, with MembersDisagree on a field the group does not agree on.
+        Assert.Equal((Alignment.Matched, Composition.OneToMany, "P3", 3), (see.Entry("L-BLK").Alignment, see.Entry("L-BLK").Composition, see.Entry("L-BLK").Explanation.CommittedBy, see.Entry("L-BLK").Right.Length));
+        Assert.Contains("MembersDisagree", see.Codes("R-A1"), StringComparer.Ordinal);
+
+        // A contested group and a search that ran out of nodes.
+        Assert.Equal((Alignment.Ambiguous, "P3"), (see.Entry("L-TWIN").Alignment, see.Entry("L-TWIN").Explanation.CommittedBy));
+        Assert.Equal("BudgetExhausted", see.Entry("L-BUD").Explanation.Trail[0].Detail);
+
+        // A package on the right with summed amounts: OneToMany and Package, fees 1.00 + 2.00 and cash 100.00 + 150.00.
+        Assert.Equal((Alignment.Matched, Composition.OneToMany | Composition.Package, FieldOutcome.Exact), (see.Entry("L-FX").Alignment, see.Entry("L-FX").Composition, see.Entry("L-FX").Outcome));
+        Assert.Equal((3.00m, 250.00m), (result.Projection(see.Entry("L-FX").Id, Side.Right)["Fees"].Number, result.Projection(see.Entry("L-FX").Id, Side.Right)["NetCash"].Number));
+        Assert.Contains("MembersDisagree", see.Codes("R-NEAR"), StringComparer.Ordinal);
+        Assert.Contains("AggregateOverflow", see.Codes("R-ON"), StringComparer.Ordinal);
+        Assert.Equal(["PackageInconsistent"], see.Codes("R-BN"), StringComparer.Ordinal);
+
+        // A lifecycle where the correction points at the new event, and the three ways a chain fails.
+        Assert.Equal((Alignment.Matched, Composition.OneToOne | Composition.LifecycleCollapsed), (see.Entry("L-LC").Alignment, see.Entry("L-LC").Composition));
+        Assert.Equal((Disposition.Suppressed, SuppressionReason.Superseded), see.Fate("L-LN"));
+        Assert.Equal(["LifecycleCycle"], see.Codes("L-CY1"), StringComparer.Ordinal);
+        Assert.Equal(["LifecycleConflict"], see.Codes("L-K1"), StringComparer.Ordinal);
+        Assert.Equal(["UndeterminedSide"], see.Codes("L-Q0"), StringComparer.Ordinal);
+        Assert.Equal(["ChainMemberQuarantined"], see.Codes("L-Q1"), StringComparer.Ordinal);
+
+        // Invalid input the trades inputs do not have.
+        Assert.Equal(["SideSignConflict"], see.Codes("R-SIGN"), StringComparer.Ordinal);
+        Assert.Equal(["UnknownSymbol"], see.Codes("R-WHO"), StringComparer.Ordinal);
+        Assert.Equal(["FloatValue"], see.Codes("R-FLOAT"), StringComparer.Ordinal);
+        Assert.All(new[] { "L-CY1", "L-CY2", "L-K0", "L-K1", "L-K2", "L-Q0", "L-Q1", "R-BN", "R-BF", "R-SIGN", "R-WHO", "R-FLOAT" }, rowKey => see.Quarantined(rowKey));
+
+        Assert.Equal(["P1", "P2", "P3"], see.CommittingPasses(), StringComparer.Ordinal);
+        Assert.Equal(scenario.Left.Count + scenario.Right.Count, result.Rows.Length);
     }
 
     // The comparison itself: a changed line fails with the first lines that differ, the failure says how to accept, the
@@ -211,11 +288,22 @@ public class GoldenResultsTests
         Assert.False(File.Exists(goldenPath));
     }
 
+    private static GoldenScenario Scenario(string name) =>
+        name switch
+        {
+            "trades" => GoldenTrades.Scenario,
+            "structures" => GoldenStructures.Scenario,
+            _ => throw new ArgumentOutOfRangeException(nameof(name), name, "There is no such golden scenario."),
+        };
+
+    private static string GoldenPath(GoldenScenario scenario) =>
+        Path.Combine(ProfileCorpus.Source, "RecDiffy.Tests", "Goldens", $"golden-{scenario.Name}.txt");
+
+    private static string ActualPath(GoldenScenario scenario, string run) =>
+        Path.Combine(AppContext.BaseDirectory, "Goldens", $"golden-{scenario.Name}.{run}.actual.txt");
+
     private static (Alignment Alignment, Composition Composition, FieldOutcome Outcome, string? CommittedBy) Shape(ResultEntry entry) =>
         (entry.Alignment, entry.Composition, entry.Outcome, entry.Explanation.CommittedBy);
-
-    private static IReadOnlyList<string> AnyOrder(IReadOnlyList<string> lines) =>
-        GoldenText.Lines(string.Join('\n', lines.TakeWhile(line => line != GoldenResult.InputOrderSection)));
 
     // A Fisher-Yates shuffle with a fixed seed: position i of the shuffled input holds row Shuffled[i] of the fixed input.
     private static int[] Shuffled(int count, int seed)
@@ -230,386 +318,224 @@ public class GoldenResultsTests
 
         return order;
     }
-}
 
-// The fixed inputs: an internal blotter on the left, read as en-US, and a street report on the right, read as de-DE with
-// dates in each counterparty's format. Core rules and the trading pack normalize them, and three routes match them.
-internal static class GoldenInputs
-{
-    public const string Profile = """
-        {
-          "formatVersion": 1,
-          "profileId": "golden-results",
-          "version": "1.0.0",
-          "rounding": { "midpoint": "ToEven" },
-          "culture": "en-US",
-          "sources": { "left": { "rowKey": "Trade_Id" }, "right": { "rowKey": "Report_Id", "culture": "de-DE" } },
-          "fields": [
-            { "name": "Counterparty", "type": "Identifier", "role": "Key" },
-            { "name": "Instrument", "type": "Identifier", "role": "Key" },
-            { "name": "AssetClass", "type": "Symbol", "role": "Key" },
-            { "name": "TradeDate", "type": "Date", "role": "Key" },
-            { "name": "Side", "type": "Symbol", "role": "Key" },
-            { "name": "Quantity", "type": "Decimal", "scale": 2, "role": "Economic" },
-            { "name": "Price", "type": "Decimal", "scale": 6, "role": "Economic" },
-            { "name": "Accrued", "type": "Decimal", "scale": 2, "role": "Economic" },
-            { "name": "Fees", "type": "Decimal", "scale": 2, "role": "Economic" },
-            { "name": "NetCash", "type": "Decimal", "scale": 2, "role": "Economic" },
-            { "name": "SettleDate", "type": "Date", "role": "Economic" },
-            { "name": "Uti", "type": "Identifier", "role": "Identity" },
-            { "name": "EventAction", "type": "Symbol", "role": "Lifecycle" },
-            { "name": "EventTarget", "type": "Text", "role": "Lifecycle" },
-            { "name": "PackageRef", "type": "Text", "role": "Package" },
-            { "name": "LegRole", "type": "Symbol", "role": "Package" }
-          ],
-          "normalization": {
-            "left": {
-              "identify": [
-                { "rule": "party.resolveAlias", "from": "Cpty", "to": "Counterparty" },
-                { "rule": "identifier.map", "from": "Isin", "to": "Instrument", "scheme": "ISIN" },
-                { "rule": "symbol.map", "from": "Asset", "to": "AssetClass" },
-                { "rule": "identifier.map", "from": "Uti_Ref", "to": "Uti", "scheme": "UTI" },
-                { "rule": "text.copy", "from": "Parent", "to": "PackageRef" },
-                { "rule": "symbol.map", "from": "Leg", "to": "LegRole" }
-              ],
-              "parse": [
-                { "rule": "date.parse", "from": "Trade_Dt", "to": "TradeDate", "formats": ["yyyy-MM-dd"] },
-                { "rule": "date.parse", "from": "Settle_Dt", "to": "SettleDate", "formats": ["yyyy-MM-dd"] },
-                { "rule": "decimal.parse", "from": "Px", "to": "Price" },
-                { "rule": "decimal.parse", "from": "Acc", "to": "Accrued" },
-                { "rule": "decimal.parse", "from": "Fee", "to": "Fees" },
-                { "rule": "decimal.parse", "from": "Cash", "to": "NetCash" }
-              ],
-              "derive": [
-                { "rule": "side.resolve", "code": "Dir", "quantity": "Qty" },
-                { "rule": "quantity.absolute", "from": "Qty", "to": "Quantity" }
-              ],
-              "validate": [ { "rule": "required.present", "fields": ["Counterparty", "TradeDate"] } ]
-            },
-            "right": {
-              "identify": [
-                { "rule": "party.resolveLei", "from": "Lei", "to": "Counterparty" },
-                { "rule": "identifier.map", "from": "Isin", "to": "Instrument", "scheme": "ISIN" },
-                { "rule": "symbol.map", "from": "Product", "to": "AssetClass", "map": { "BD": "Bond", "EQ": "Equity", "SW": "Swap" } },
-                { "rule": "identifier.map", "from": "Uti_Ref", "to": "Uti", "scheme": "UTI" },
-                { "rule": "symbol.map", "from": "Event", "to": "EventAction" },
-                { "rule": "text.copy", "from": "Prior", "to": "EventTarget" }
-              ],
-              "parse": [
-                { "rule": "date.parse", "from": "Trade_Dt", "to": "TradeDate", "formatBy": "Counterparty" },
-                { "rule": "date.parse", "from": "Settle_Dt", "to": "SettleDate", "formatBy": "Counterparty" },
-                { "rule": "price.from32nds", "from": "Px", "to": "Price", "when": { "field": "Conv", "equals": "32NDS" } },
-                { "rule": "decimal.parse", "from": "Px", "to": "Price", "when": { "field": "Conv", "notEquals": "32NDS" } },
-                { "rule": "decimal.parse", "from": "Acc", "to": "Accrued" },
-                { "rule": "decimal.parse", "from": "Fee", "to": "Fees" },
-                { "rule": "decimal.parse", "from": "Cash", "to": "NetCash" }
-              ],
-              "derive": [
-                { "rule": "side.resolve", "code": "Dir", "quantity": "Qty", "invertWhen": "DEALER", "perspective": "View" },
-                { "rule": "quantity.absolute", "from": "Qty", "to": "Quantity" }
-              ],
-              "validate": [ { "rule": "required.present", "fields": ["Counterparty", "TradeDate"] } ]
-            }
-          },
-          "consolidation": {
-            "left": { "packages": [ {
-              "link": "PackageRef", "role": "LegRole", "requiredRoles": ["PAY", "REC"],
-              "aggregate": { "Quantity": "Same", "Price": "FromRole(PAY)", "Side": "FromRole(PAY)", "NetCash": "DifferenceByRole(PAY,REC)", "Fees": "Sum" }
-            } ] },
-            "right": { "lifecycle": { "action": "EventAction", "target": "EventTarget", "scope": "Counterparty", "corrTarget": "CANC" } }
-          },
-          "paths": [
-            {
-              "id": "bonds",
-              "route": { "rule": "route.byField", "field": "AssetClass", "equals": "Bond" },
-              "passes": [
-                { "id": "P1", "pass": "match.sharedRef", "key": ["Uti"] },
-                { "id": "P2", "pass": "match.naturalKey", "key": ["Counterparty", "Instrument", "TradeDate", "Side", "Quantity"] },
-                { "id": "P3", "pass": "match.groupSum", "many": "left", "block": ["Counterparty", "Instrument", "TradeDate", "Side", "Price"], "conserve": ["Quantity", "NetCash"] },
-                { "id": "P4", "pass": "match.reducedKey", "key": ["Counterparty", "Instrument", "TradeDate", "Side"] }
-              ],
-              "diff": { "fields": {
-                "Quantity": { "tolerance": { "relative": 0.0001 } },
-                "Accrued": { "tolerance": { "absolute": 1.25 }, "attributed": "trading.proRataToQuantity", "applicableWhen": { "field": "AssetClass", "in": ["Bond", "Swap"] } },
-                "NetCash": { "tolerance": { "attributed": "trading.netCash" } },
-                "SettleDate": { "tolerance": { "days": 1 } }
-              } }
-            },
-            {
-              "id": "swaps",
-              "route": { "rule": "route.byField", "field": "AssetClass", "equals": "Swap" },
-              "passes": [
-                { "id": "P1", "pass": "match.sharedRef", "key": ["Uti"] },
-                { "id": "P2", "pass": "match.naturalKey", "key": ["Counterparty", "Instrument", "TradeDate", "Side", "Quantity"] }
-              ],
-              "diff": { "fields": { "NetCash": { "tolerance": { "absolute": 0.05 } } } }
-            },
-            {
-              "id": "equities",
-              "route": { "rule": "route.byField", "field": "AssetClass", "equals": "Equity" },
-              "passes": [
-                { "id": "P2", "pass": "match.naturalKey", "key": ["Counterparty", "Instrument", "TradeDate", "Side", "Quantity"] },
-                { "id": "P3", "pass": "match.groupSum", "many": "left", "block": ["Counterparty", "Instrument", "TradeDate", "Side", "Price"], "conserve": ["Quantity", "NetCash"] }
-              ]
-            }
-          ],
-          "limits": { "maxBlockItems": 4 }
-        }
-        """;
-
-    private const string Alfa = "5493000000000000ALFA";
-    private const string Brav = "5493000000000000BRAV";
-    private const string Char = "5493000000000000CHAR";
-
-    public static readonly ReferenceDataSet Reference = ReferenceDataSet.Create(
-        "golden-reference",
-        new DateOnly(2026, 3, 6),
-        "golden-reference-hash",
-        new Dictionary<string, string>(StringComparer.Ordinal) { [Alfa] = "ALFA", [Brav] = "BRAV", [Char] = "CHAR" },
-        new Dictionary<string, string>(StringComparer.Ordinal) { ["Alfa Bank"] = "ALFA", ["Bravo Sec"] = "BRAV", ["Charlie Capital"] = "CHAR" },
-        new Dictionary<string, string>(StringComparer.Ordinal) { ["ALFA"] = "yyyy-MM-dd", ["BRAV"] = "dd/MM/yyyy", ["CHAR"] = "MM/dd/yyyy" });
-
-    public static readonly Internal[] Left =
-    [
-        // An exact match on the shared reference. The street quotes the price in 32nds and reports from the dealer's side.
-        new("OMS-EXACT", "Alfa Bank", "US0000000001", "Bond", "2026-03-02", "B", "3,000,000.00", "96.078125", "12,500.00", "150.00", "2,894,993.75", "2026-03-04", "UTI-EXACT"),
-        // Within tolerance on the natural key: accrued is 0.94 lower, net cash follows it, and settlement is a day later.
-        new("OMS-WITHIN", "Bravo Sec", "US0000000002", "Bond", "2026-03-02", "S", "-2,000,000", "101.5", "8,333.33", "100.00", "2,038,233.33", "2026-03-04"),
-        // A break on the shared reference: the price differs, and net cash is attributed to it.
-        new("OMS-BREAK", "Alfa Bank", "US0000000003", "Bond", "2026-03-03", "B", "1,000,000", "96.572", "5,000.00", "50.00", "970,770.00", "2026-03-05", "UTI-BREAK"),
-        // Left only, twice on one route.
-        new("OMS-ORPHAN", "Charlie Capital", "US0000000004", "Bond", "2026-03-03", "S", "500,000", "100", null, null, "500,000.00", "2026-03-05"),
-        new("OMS-ORPHAN-2", "Bravo Sec", "US0000000019", "Bond", "2026-03-05", "B", "250,000", "101", null, null, "252,500.00", "2026-03-09"),
-        // An ambiguous key: two identical trades against one report.
-        new("OMS-AMB-1", "Bravo Sec", "US0000000006", "Equity", "2026-03-02", "B", "2,200", "114", null, null, "250,800.00"),
-        new("OMS-AMB-2", "Bravo Sec", "US0000000006", "Equity", "2026-03-02", "B", "2,200", "114", null, null, "250,800.00"),
-        // Invalid input: a quantity that is not a number, a row with no key, and a row with no trade date.
-        new("OMS-BADQTY", "Alfa Bank", "US0000000007", "Bond", "2026-03-02", "B", "abc", "100", null, null, "1,000.00"),
-        new(null, "Alfa Bank", "US0000000007", "Bond", "2026-03-02", "B", "1,000", "100", null, null, "1,000.00"),
-        new("OMS-NODATE", "Alfa Bank", "US0000000007", "Bond", null, "B", "1,000", "100", null, null, "1,000.00"),
-        // A conflicting duplicate: one key, two quantities.
-        new("OMS-CONFLICT", "Charlie Capital", "US0000000013", "Equity", "2026-03-04", "B", "100", "10", null, null, "1,000.00"),
-        new("OMS-CONFLICT", "Charlie Capital", "US0000000013", "Equity", "2026-03-04", "B", "200", "10", null, null, "2,000.00"),
-        // A collapsed duplicate: the same row twice, matched once.
-        new("OMS-TWICE", "Charlie Capital", "US0000000008", "Equity", "2026-03-04", "S", "1,500", "20.5", null, null, "30,750.00"),
-        new("OMS-TWICE", "Charlie Capital", "US0000000008", "Equity", "2026-03-04", "S", "1,500", "20.5", null, null, "30,750.00"),
-        // The trade a lifecycle chain on the street side ends in.
-        new("OMS-LIFE", "Alfa Bank", "US0000000009", "Bond", "2026-03-03", "B", "2,000,000", "105.149", null, null, "2,102,980.00", "2026-03-05", "UTI-LIFE"),
-        // A package: two swap legs against one street row. A second package has one leg only.
-        new("OMS-LEG-PAY", "Bravo Sec", "XS0000000010", "Swap", "2026-03-02", "P", "13,000,000", "4.268", null, null, "278,961.22", null, "UTI-SWAP", "PKG-1", "PAY"),
-        new("OMS-LEG-REC", "Bravo Sec", "XS0000000010", "Swap", "2026-03-02", "R", "13,000,000", "3.9645", null, null, "259,124.12", null, "UTI-SWAP", "PKG-1", "REC"),
-        new("OMS-HALF-PAY", "Bravo Sec", "XS0000000015", "Swap", "2026-03-02", "P", "5,000,000", "4.1", null, null, "100,000.00", null, null, "PKG-2", "PAY"),
-        // Many to one: three allocations that sum to one street block.
-        new("OMS-ALLOC-1", "Charlie Capital", "US0000000011", "Bond", "2026-03-04", "B", "2,200", "114", null, null, "2,508.00", "2026-03-06"),
-        new("OMS-ALLOC-2", "Charlie Capital", "US0000000011", "Bond", "2026-03-04", "B", "5,400", "114", null, null, "6,156.00", "2026-03-06"),
-        new("OMS-ALLOC-3", "Charlie Capital", "US0000000011", "Bond", "2026-03-04", "B", "1,400", "114", null, null, "1,596.00", "2026-03-06"),
-        // An attributed break on the reduced key: an 80% fill, with accrued pro rata and net cash following both.
-        new("OMS-FILL", "Alfa Bank", "US0000000012", "Bond", "2026-03-04", "S", "1,000,000", "100", "4,784.72", "50.00", "1,004,734.72", "2026-03-06"),
-        // No route takes FX.
-        new("OMS-FX", "Alfa Bank", "EURUSD", "FX", "2026-03-02", "B", "1,000,000", "1.0930", null, null, "1,093,000.00"),
-        // A null on one side of a compared field: the street row has no settle date.
-        new("OMS-NOSETTLE", "Bravo Sec", "US0000000014", "Bond", "2026-03-02", "B", "400,000", "99.5", null, null, "398,000.00", "2026-03-04", "UTI-NULL"),
-        // A block over the limit of four items: the search is not run.
-        new("OMS-BIG-1", "Alfa Bank", "US0000000017", "Equity", "2026-03-05", "B", "100", "50", null, null, "5,000.00"),
-        new("OMS-BIG-2", "Alfa Bank", "US0000000017", "Equity", "2026-03-05", "B", "100", "50", null, null, "5,000.00"),
-        new("OMS-BIG-3", "Alfa Bank", "US0000000017", "Equity", "2026-03-05", "B", "100", "50", null, null, "5,000.00"),
-        new("OMS-BIG-4", "Alfa Bank", "US0000000017", "Equity", "2026-03-05", "B", "100", "50", null, null, "5,000.00"),
-        new("OMS-BIG-5", "Alfa Bank", "US0000000017", "Equity", "2026-03-05", "B", "100", "50", null, null, "5,000.00"),
-    ];
-
-    public static readonly Street[] Right =
-    [
-        new("ST-EXACT", Alfa, "US0000000001", "BD", "2026-03-02", "S", "DEALER", "3.000.000,00", "96-02+", "32NDS", "12.500,00", "150,00", "2.894.993,75", "2026-03-04", "UTI-EXACT"),
-        new("ST-WITHIN", Brav, "US0000000002", "BD", "02/03/2026", "B", "DEALER", "2.000.000", "101,5", null, "8.332,39", "100,00", "2.038.232,39", "05/03/2026"),
-        new("ST-BREAK", Alfa, "US0000000003", "BD", "2026-03-03", "B", "CLIENT", "1.000.000", "99,966", null, "5.000,00", "50,00", "1.004.710,00", "2026-03-05", "UTI-BREAK"),
-        // Right only.
-        new("ST-ALLEGED", Char, "US0000000005", "BD", "03/04/2026", "B", "CLIENT", "750.000", "100", null, null, null, "750.000,00", "03/06/2026"),
-        new("ST-AMB", Brav, "US0000000006", "EQ", "02/03/2026", "B", "CLIENT", "2.200", "114", null, null, null, "250.800,00"),
-        // Invalid input: a price that is not in 32nds, and a counterparty the reference data does not know.
-        new("ST-BADPX", Alfa, "US0000000007", "BD", "2026-03-02", "B", "CLIENT", "1.000", "98-1X", "32NDS", null, null, "1.000,00"),
-        new("ST-NOPARTY", "5493000000000000ZULU", "US0000000007", "BD", "2026-03-02", "B", "CLIENT", "1.000", "100", null, null, null, "1.000,00"),
-        new("ST-TWICE", Char, "US0000000008", "EQ", "03/04/2026", "B", "DEALER", "1.500", "20,5", null, null, null, "30.750,00"),
-        // A lifecycle chain: a new report, its cancel, and the correction that replaces it.
-        new("ST-LIFE-NEW", Alfa, "US0000000009", "BD", "2026-03-03", "B", "CLIENT", "2.000.000", "102,604", null, null, null, "2.052.080,00", "2026-03-05", "UTI-LIFE", "NEW"),
-        new("ST-LIFE-CANC", Alfa, "US0000000009", "BD", "2026-03-03", "B", "CLIENT", "2.000.000", "102,604", null, null, null, "2.052.080,00", "2026-03-05", "UTI-LIFE", "CANC", "ST-LIFE-NEW"),
-        new("ST-LIFE-CORR", Alfa, "US0000000009", "BD", "2026-03-03", "B", "CLIENT", "2.000.000", "105,149", null, null, null, "2.102.980,00", "2026-03-05", "UTI-LIFE", "CORR", "ST-LIFE-CANC"),
-        // A chain that is cancelled and not replaced, and a correction whose target does not exist.
-        new("ST-GONE-NEW", Brav, "US0000000016", "BD", "02/03/2026", "B", "CLIENT", "300.000", "100", null, null, null, "300.000,00", null, null, "NEW"),
-        new("ST-GONE-CANC", Brav, "US0000000016", "BD", "02/03/2026", "B", "CLIENT", "300.000", "100", null, null, null, "300.000,00", null, null, "CANC", "ST-GONE-NEW"),
-        new("ST-LOST-CORR", Brav, "US0000000018", "BD", "02/03/2026", "B", "CLIENT", "300.000", "100", null, null, null, "300.000,00", null, null, "CORR", "ST-NOWHERE"),
-        // The street reports the swap as one row, with a blank direction and a signed notional.
-        new("ST-SWAP", Brav, "XS0000000010", "SW", "02/03/2026", null, "CLIENT", "-13.000.000", "4,268", null, null, null, "19.837,10", null, "UTI-SWAP"),
-        new("ST-BLOCK", Char, "US0000000011", "BD", "03/04/2026", "B", "CLIENT", "9.000", "114", null, null, null, "10.260,00", "03/06/2026"),
-        new("ST-FILL", Alfa, "US0000000012", "BD", "2026-03-04", "B", "DEALER", "800.000", "100", null, "3.827,78", "50,00", "803.777,78", "2026-03-06"),
-        new("ST-FX", Alfa, "EURUSD", "FX", "2026-03-02", "B", "CLIENT", "1.000.000", "1,0930", null, null, null, "1.093.000,00"),
-        new("ST-NOSETTLE", Brav, "US0000000014", "BD", "02/03/2026", "B", "CLIENT", "400.000", "99,5", null, null, null, "398.000,00", null, "UTI-NULL"),
-        new("ST-BIG", Alfa, "US0000000017", "EQ", "2026-03-05", "B", "CLIENT", "500", "50", null, null, null, "25.000,00"),
-    ];
-
-    private static readonly (string Column, Func<Internal, string?> Read)[] LeftColumns =
-    [
-        ("Trade_Id", row => row.Id), ("Cpty", row => row.Cpty), ("Isin", row => row.Isin), ("Asset", row => row.Asset), ("Trade_Dt", row => row.TradeDate),
-        ("Dir", row => row.Dir), ("Qty", row => row.Qty), ("Px", row => row.Px), ("Acc", row => row.Accrued), ("Fee", row => row.Fee), ("Cash", row => row.Cash),
-        ("Settle_Dt", row => row.Settle), ("Uti_Ref", row => row.Uti), ("Parent", row => row.Parent), ("Leg", row => row.Leg),
-    ];
-
-    private static readonly (string Column, Func<Street, string?> Read)[] RightColumns =
-    [
-        ("Report_Id", row => row.Id), ("Lei", row => row.Lei), ("Isin", row => row.Isin), ("Product", row => row.Product), ("Trade_Dt", row => row.TradeDate),
-        ("Dir", row => row.Dir), ("View", row => row.View), ("Qty", row => row.Qty), ("Px", row => row.Px), ("Conv", row => row.Convention), ("Acc", row => row.Accrued),
-        ("Fee", row => row.Fee), ("Cash", row => row.Cash), ("Settle_Dt", row => row.Settle), ("Uti_Ref", row => row.Uti), ("Event", row => row.Event), ("Prior", row => row.Prior),
-    ];
-
-    public static CompiledProfile Compile() =>
-        Reconciler.Compile(ProfileDocument.Parse(Profile), TradingRulePack.AddTo(RuleRegistry.CreateCore()));
-
-    public static RecordSource LeftSource(IReadOnlyList<int>? order = null) =>
-        RecordSources.FromObjects("left", Ordered(Left, order), Map(LeftColumns));
-
-    public static RecordSource RightSource(IReadOnlyList<int>? order = null) =>
-        RecordSources.FromObjects("right", Ordered(Right, order), Map(RightColumns));
-
-    public static DataTable LeftTable() => Table(Left, LeftColumns);
-
-    public static DataTable RightTable() => Table(Right, RightColumns);
-
-    private static T[] Ordered<T>(T[] rows, IReadOnlyList<int>? order) =>
-        order is null ? rows : [.. order.Select(position => rows[position])];
-
-    private static SourceMap<T> Map<T>((string Column, Func<T, string?> Read)[] columns) =>
-        columns.Aggregate(new SourceMap<T>(), (map, column) => map.Text(column.Column, column.Read));
-
-    private static DataTable Table<T>(T[] rows, (string Column, Func<T, string?> Read)[] columns)
+    // Reads a result by row key, for the two tests that say what the inputs cover.
+    private sealed class Seen(IReconciliationResult result)
     {
-        var table = new DataTable { Locale = CultureInfo.InvariantCulture };
-#pragma warning disable IDISP004 // The table owns the columns it adds.
-        foreach (var (column, _) in columns)
-            table.Columns.Add(column, typeof(string));
-#pragma warning restore IDISP004
-        foreach (var row in rows)
-            table.Rows.Add([.. columns.Select(column => (object?)column.Read(row) ?? DBNull.Value)]);
-        return table;
+        public ResultEntry Entry(string rowKey) =>
+            result.Entries.Single(entry => entry.Left.Concat(entry.Right).Any(member => member.RowKey == rowKey));
+
+        public RowResult[] Rows(string rowKey) => [.. result.Rows.Where(row => row.Row.RowKey == rowKey)];
+
+        public string[] Codes(string rowKey) =>
+            [.. Rows(rowKey).SelectMany(row => row.Diagnostics).Select(diagnostic => diagnostic.Code).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)];
+
+        public FieldDiff Diff(string rowKey, string field) => Entry(rowKey).Diffs.Single(diff => diff.Field.Name == field);
+
+        public (Disposition Disposition, SuppressionReason? Suppression) Fate(string rowKey) => (Rows(rowKey)[0].Disposition, Rows(rowKey)[0].Suppression);
+
+        public void Quarantined(string rowKey) =>
+            Assert.All(Rows(rowKey), row => Assert.Equal((Disposition.Quarantined, InputValidity.Invalid, (GroupId?)null), (row.Disposition, row.Validity, row.EntryId)));
+
+        public IEnumerable<string> CommittingPasses() =>
+            result.Entries.Where(entry => entry.Alignment is Alignment.Matched).Select(entry => entry.Explanation.CommittedBy).OfType<string>().Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal);
     }
-
-    internal sealed record Internal(
-        string? Id, string? Cpty, string? Isin, string? Asset, string? TradeDate, string? Dir, string? Qty, string? Px,
-        string? Accrued = null, string? Fee = null, string? Cash = null, string? Settle = null, string? Uti = null, string? Parent = null, string? Leg = null);
-
-    internal sealed record Street(
-        string? Id, string? Lei, string? Isin, string? Product, string? TradeDate, string? Dir, string? View, string? Qty, string? Px,
-        string? Convention = null, string? Accrued = null, string? Fee = null, string? Cash = null, string? Settle = null, string? Uti = null, string? Event = null, string? Prior = null);
 }
 
-// Runs the fixed inputs and writes the whole result as text. Everything is written with the invariant culture.
+// One fixed pair of inputs: the profile, the reference data, how each side's rows reach the engine, and the views.
+internal sealed record GoldenScenario(string Name, string Profile, ReferenceDataSet Reference, GoldenSide Left, GoldenSide Right, IReadOnlyList<GoldenView> Views)
+{
+    public CompiledProfile Compile() =>
+        Reconciler.Compile(ProfileDocument.Parse(Profile), TradingRulePack.AddTo(RuleRegistry.CreateCore()));
+}
+
+// Run builds the side's source with its rows in the given order, and hands it to the run. A null order is the fixed order.
+internal sealed record GoldenSide(IReadOnlyList<string> Columns, int Count, Func<IReadOnlyList<int>?, Func<RecordSource, IReconciliationResult>, IReconciliationResult> Run);
+
+internal sealed record GoldenView(string Title, SideBySideSpec Spec);
+
+// Runs a scenario and writes the whole result as text, in the order the engine returns it.
 internal static class GoldenResult
 {
-    // Everything above this line is the same for the rows in any order. What is below follows the order of the input.
-    public const string InputOrderSection = "[all entries with their members, then the rows, in the order the engine returned them: this follows the input order]";
+    // A name no profile declares and no source has, to pin what the engine returns for one.
+    private const string Unknown = "NotDeclared";
 
-    private static readonly SideBySideSpec View = new(["Counterparty"], ["AssetClass"], [new MeasureSpec("Quantity"), new MeasureSpec("NetCash")], null);
-
-    public static IReconciliationResult Run(IReadOnlyList<int>? left = null, IReadOnlyList<int>? right = null, RunOptions? options = null) =>
-        Reconciler.Run(GoldenInputs.Compile(), GoldenInputs.LeftSource(left), GoldenInputs.RightSource(right), GoldenInputs.Reference, options);
+    public static IReconciliationResult Run(GoldenScenario scenario, IReadOnlyList<int>? left = null, IReadOnlyList<int>? right = null, RunOptions? options = null) =>
+        scenario.Left.Run(left, leftSource => scenario.Right.Run(right, rightSource => Reconciler.Run(scenario.Compile(), leftSource, rightSource, scenario.Reference, options)));
 
     // left and right say which fixed row each input position holds, so a row reads the same wherever it was fed in.
-    public static string Text(IReconciliationResult result, IReadOnlyList<int>? left = null, IReadOnlyList<int>? right = null)
+    // anyOrder puts the three orders that follow the input into a fixed order; it changes nothing else.
+    public static string Text(GoldenScenario scenario, IReconciliationResult result, bool anyOrder = false, IReadOnlyList<int>? left = null, IReadOnlyList<int>? right = null) =>
+        string.Join('\n', new Writer(scenario, result, anyOrder, left, right).Lines());
+
+    private sealed class Writer(GoldenScenario scenario, IReconciliationResult result, bool anyOrder, IReadOnlyList<int>? left, IReadOnlyList<int>? right)
     {
-        int Position(SourceRef row) => (row.Source == "left" ? left : right) is { } order ? order[row.Ordinal] : row.Ordinal;
-        string Ref(SourceRef row) => $"{row.Source}:{(row.RowKey.Length == 0 ? "<no key>" : row.RowKey)}#{Position(row).ToString(CultureInfo.InvariantCulture)}";
-        IEnumerable<SourceRef> Sorted(IEnumerable<SourceRef> rows) =>
-            rows.OrderBy(row => row.Source, StringComparer.Ordinal).ThenBy(row => row.RowKey, StringComparer.Ordinal).ThenBy(Position);
-        string Refs(IEnumerable<SourceRef> rows) => $"[{string.Join(", ", Sorted(rows).Select(Ref))}]";
-        string[] fields = [.. GoldenInputs.Compile().Document.Fields.Select(field => field.Name)];
-        var entries = result.Entries.OrderBy(entry => Refs(entry.Left.Concat(entry.Right)), StringComparer.Ordinal).ToArray();
-        var byRef = result.Rows.ToDictionary(row => row.Row);
-        RowResult[] rows = [.. Sorted(result.Rows.Select(row => row.Row)).Select(row => byRef[row])];
-        IEnumerable<string> lines =
+        private readonly string[] _fields = [.. scenario.Compile().Document.Fields.Select(field => field.Name), Unknown];
+
+        private readonly HashSet<(string Path, string Pass)> _groupPasses =
+            [.. scenario.Compile().Document.Paths.SelectMany(path => path.Passes.Where(pass => pass.Pass == "match.groupSum").Select(pass => (path.Id, pass.Id)))];
+
+        public IEnumerable<string> Lines() =>
         [
-            "# What the engine returns for the fixed inputs of GoldenResultsTests: every entry, diff, row, diagnostic and explanation,",
-            "# the summary, each row's canonical values and trace, and one side-by-side view. Entries and rows are sorted by their members,",
-            "# and the last two sections list them in the order the engine returned them.",
+            $"# What the engine returns for the fixed {scenario.Name} inputs of GoldenResultsTests, in the order the engine returns it:",
+            "# every entry, member, diff, explanation, row, diagnostic, raw cell, canonical value and trace step, the summary,",
+            "# and the side-by-side views. A value is written with every part it has, and with what Format and Text() make of it.",
             "# Not here: the engine version, which changes with every build, and the interned ids inside a canonical value.",
+            "# One order is not the engine's: the entries one group pass leaves ambiguous or search-incomplete on one route come out",
+            "# in a different order in every process, so they are written sorted by their members. See GroupResidueOrderTests.",
             "# GoldenResultsTests compares the engine with this file on net8.0 and net10.0, and fails on any difference.",
             "# To accept an intended change, copy the .actual.txt file the failing test names over this file and commit it.",
             "",
             "[run]",
             $"profileHash={result.Run.ProfileHash}",
-            $"reference={result.Run.ReferenceId} hash={result.Run.ReferenceHash}",
+            $"reference={result.Run.ReferenceId} hash={Quote(result.Run.ReferenceHash)}",
             .. result.Run.Reading.OrderBy(side => side.Key, StringComparer.Ordinal).Select(side =>
-                $"reading {side.Key}: culture={Quote(side.Value.Culture)} decimal={Quote(side.Value.DecimalSeparator)} group={Quote(side.Value.GroupSeparator)} origin={side.Value.Origin} strictDateFormats={Flag(side.Value.StrictDateFormats)}"),
+                $"reading {side.Key}: culture={Quote(side.Value.Culture)} decimal={Quote(side.Value.DecimalSeparator)} group={Quote(side.Value.GroupSeparator)} origin={side.Value.Origin.ToInvariant()} strictDateFormats={Flag(side.Value.StrictDateFormats)}"),
             "",
             "[summary]",
-            $"Matched={Number(result.Summary.Matched)} Exact={Number(result.Summary.Exact)} WithinTolerance={Number(result.Summary.WithinTolerance)} Break={Number(result.Summary.Break)}",
-            $"LeftOnly={Number(result.Summary.LeftOnly)} RightOnly={Number(result.Summary.RightOnly)} Ambiguous={Number(result.Summary.Ambiguous)} SearchIncomplete={Number(result.Summary.SearchIncomplete)}",
-            $"Quarantined={Number(result.Summary.Quarantined)} Suppressed={Number(result.Summary.Suppressed)}",
-            $"entries={Number(result.Entries.Length)} rows={Number(result.Rows.Length)}",
+            $"Matched={result.Summary.Matched.ToInvariant()} Exact={result.Summary.Exact.ToInvariant()} WithinTolerance={result.Summary.WithinTolerance.ToInvariant()} Break={result.Summary.Break.ToInvariant()}",
+            $"LeftOnly={result.Summary.LeftOnly.ToInvariant()} RightOnly={result.Summary.RightOnly.ToInvariant()} Ambiguous={result.Summary.Ambiguous.ToInvariant()} SearchIncomplete={result.Summary.SearchIncomplete.ToInvariant()}",
+            $"Quarantined={result.Summary.Quarantined.ToInvariant()} Suppressed={result.Summary.Suppressed.ToInvariant()}",
+            $"entries={result.Entries.Length.ToInvariant()} rows={result.Rows.Length.ToInvariant()}",
             "",
             "[entries]",
-            .. entries.SelectMany(entry => Entry(result, entry, fields, Ref, Refs)),
+            .. Entries().SelectMany(Entry),
             "[rows]",
-            .. rows.SelectMany(row => Row(result, row, fields, Ref)),
-            "[side by side] rows=Counterparty columns=AssetClass measures=Quantity,NetCash",
-            .. result.BuildSideBySide(View).Lines.SelectMany(line => line.Cells.OrderBy(cell => cell.Key, StringComparer.Ordinal).Select(cell =>
-                $"{line.Row} | {line.Column} | {cell.Key}: left={Number(cell.Value.Left)} right={Number(cell.Value.Right)} delta={Number(cell.Value.Delta)} leftOnly={Number(cell.Value.LeftOnly)} rightOnly={Number(cell.Value.RightOnly)} matchedDelta={Number(cell.Value.MatchedDelta)}")),
-            "",
-            "[matched entries, in the order the engine returned them]",
-            .. result.Entries.Where(entry => entry.Alignment is Alignment.Matched).Select(entry => $"entry {entry.Id}"),
-            "",
-            InputOrderSection,
-            .. result.Entries.Select(entry => $"entry {entry.Id} left=[{string.Join(", ", entry.Left.Select(Ref))}] right=[{string.Join(", ", entry.Right.Select(Ref))}]"),
-            .. result.Rows.Select(row => $"row {Ref(row.Row)}"),
+            .. Rows().SelectMany(Row),
+            .. scenario.Views.SelectMany(View),
+        ];
+
+        // The entries one group pass leaves ambiguous or search-incomplete on one route come out in a different order
+        // from one process to the next: GroupIndex.Residue lists a dictionary keyed by text, and text hashes differ in
+        // every process (#426, GroupResidueOrderTests). So that one run is always written sorted by its members.
+        // Unmatched entries of one alignment on one route come in input order, so anyOrder sorts each such run too.
+        private IEnumerable<ResultEntry> Entries()
+        {
+            var stable = Sorted(result.Entries, GroupResidue);
+            return anyOrder ? Sorted(stable, SameUnmatchedKind) : stable;
+        }
+
+        private IEnumerable<ResultEntry> Sorted(IEnumerable<ResultEntry> entries, Func<ResultEntry, ResultEntry, bool> together) =>
+            Runs(entries, together).SelectMany(run => run.OrderBy(entry => Refs(Sorted(entry.Left.Concat(entry.Right))), StringComparer.Ordinal));
+
+        private static IEnumerable<IReadOnlyList<ResultEntry>> Runs(IEnumerable<ResultEntry> entries, Func<ResultEntry, ResultEntry, bool> together)
+        {
+            var run = new List<ResultEntry>();
+            foreach (var entry in entries)
+            {
+                if (run is [.., var last] && together(last, entry) is false)
+                {
+                    yield return run;
+                    run = [];
+                }
+
+                run.Add(entry);
+            }
+
+            if (run.Count > 0)
+                yield return run;
+        }
+
+        private static bool SameUnmatchedKind(ResultEntry first, ResultEntry second) =>
+            first.Alignment is not Alignment.Matched && first.Alignment == second.Alignment && first.PathId == second.PathId;
+
+        private bool GroupResidue(ResultEntry first, ResultEntry second) =>
+            first.Alignment is Alignment.Ambiguous or Alignment.SearchIncomplete
+            && second.Alignment is Alignment.Ambiguous or Alignment.SearchIncomplete
+            && first.PathId == second.PathId
+            && first.Explanation.CommittedBy is { } pass
+            && pass == second.Explanation.CommittedBy
+            && _groupPasses.Contains((first.PathId, pass));
+
+        private IEnumerable<RowResult> Rows()
+        {
+            var byRef = result.Rows.ToDictionary(row => row.Row);
+            return anyOrder ? Sorted(result.Rows.Select(row => row.Row)).Select(row => byRef[row]) : result.Rows;
+        }
+
+        // The members of an unmatched entry come in input order, so anyOrder sorts them. A matched entry's members keep
+        // the engine's order, except that the copies of one row key, which come in input order, are put in position order.
+        private IEnumerable<SourceRef> Members(IEnumerable<SourceRef> members, bool matched) =>
+            (anyOrder, matched) switch
+            {
+                (false, _) => members,
+                (true, false) => Sorted(members),
+                (true, true) => members.GroupBy(member => (member.Source, member.RowKey)).SelectMany(copies => copies.OrderBy(Position)),
+            };
+
+        private IEnumerable<SourceRef> Sorted(IEnumerable<SourceRef> rows) =>
+            rows.OrderBy(row => row.Source, StringComparer.Ordinal).ThenBy(row => row.RowKey, StringComparer.Ordinal).ThenBy(Position);
+
+        private int Position(SourceRef row) => (row.Source == "left" ? left : right) is { } order ? order[row.Ordinal] : row.Ordinal;
+
+        private string Ref(SourceRef row) => $"{row.Source}:{(row.RowKey.Length == 0 ? "<no key>" : row.RowKey)}#{Position(row).ToInvariant()}";
+
+        private string Refs(IEnumerable<SourceRef> rows) => $"[{string.Join(", ", rows.Select(Ref))}]";
+
+        private IEnumerable<string> Entry(ResultEntry entry)
+        {
+            var matched = entry.Alignment is Alignment.Matched;
+            return
+            [
+                $"entry {entry.Id.Value} path={Quote(entry.PathId)} alignment={entry.Alignment.ToInvariant()} composition={entry.Composition.ToInvariant()} outcome={entry.Outcome.ToInvariant()}",
+                $"  left={Refs(Members(entry.Left, matched))}",
+                $"  right={Refs(Members(entry.Right, matched))}",
+                .. entry.Diffs.SelectMany(diff => (IEnumerable<string>)
+                [
+                    $"  diff {diff.Field.Name}: outcome={diff.Outcome.ToInvariant()} delta={diff.Delta.Kind.ToInvariant()}/{diff.Delta.Number.ToInvariant()}/{diff.Delta.Days.ToInvariant()} tolerance={Quote(diff.Tolerance.Value)} attribution={Quote(diff.Attribution.Value)} attributedTo=[{string.Join(", ", diff.AttributedTo.IsDefault ? [] : diff.AttributedTo)}]",
+                    $"    left: {Value(diff.Left)}",
+                    $"    right: {Value(diff.Right)}",
+                ]),
+                $"  committedBy={entry.Explanation.CommittedBy ?? "<none>"}",
+                .. entry.Explanation.Trail.Select(attempt =>
+                    $"  trail {attempt.PassId}: verdict={attempt.Verdict.ToInvariant()} key={Quote(attempt.Key)} candidates={Refs(Members(attempt.Candidates, matched))} detail={Quote(attempt.Detail)}"),
+                $"  hints={entry.Explanation.Hints.Count.ToInvariant()}",
+                .. entry.Explanation.Hints.Select(hint => $"  hint {hint.Code}: {hint.Detail}"),
+                .. matched
+                    ? [.. Canonical("  projection left", result.Projection(entry.Id, Side.Left)), .. Canonical("  projection right", result.Projection(entry.Id, Side.Right))]
+                    : Array.Empty<string>(),
+                "",
+            ];
+        }
+
+        private IEnumerable<string> Row(RowResult row) =>
+        [
+            $"row {Ref(row.Row)} disposition={row.Disposition.ToInvariant()} suppression={row.Suppression?.ToInvariant() ?? "<none>"} validity={row.Validity.ToInvariant()} entry={row.EntryId?.Value ?? "<none>"}",
+            .. row.Diagnostics.Select(diagnostic =>
+                $"  diagnostic {diagnostic.Code}: severity={diagnostic.Severity.ToInvariant()} rule={diagnostic.RuleId} field={Quote(diagnostic.Field)} raw={Quote(diagnostic.RawText)}"),
+            $"  raw: {string.Join(" ", Columns(row.Row).Select(column => $"{column}={Quote(result.Raw(row.Row, column))}"))}",
+            .. Canonical("  canonical", result.Canonical(row.Row)),
+            .. result.Trace(row.Row).Select(step => $"  trace {step.RuleId}: {step.Field} {Quote(step.Raw)} -> {Quote(step.Canonical)}"),
             "",
         ];
-        return string.Join('\n', lines);
+
+        private IEnumerable<string> Columns(SourceRef row) =>
+            [.. (row.Source == "left" ? scenario.Left : scenario.Right).Columns, Unknown];
+
+        // Every declared field, null or not, and one name the profile does not declare: the value the row hands out, what
+        // Format makes of it, and the row's own Text and IsNull.
+        private IEnumerable<string> Canonical(string title, CanonicalRow row) =>
+        [
+            $"{title}:",
+            .. _fields.Select(field => $"    {field}: {Value(row[field])} Text()={Quote(row.Text(field))} IsNull()={Flag(row.IsNull(field))}"),
+        ];
+
+        private string Value(CanonicalValue value) =>
+            $"type={value.Type.ToInvariant()} null={Flag(value.IsNull)} number={value.Number.ToInvariant()} date={value.Date.ToInvariant("yyyy-MM-dd")} text={Quote(value.Text)} Format={Quote(result.Format(in value))}";
+
+        // A line is one row label and column label. Its cells are a dictionary, so they are written by measure name.
+        private IEnumerable<string> View(GoldenView view) =>
+        [
+            $"[side by side: {view.Title}] rows={string.Join(",", view.Spec.Rows)} columns={string.Join(",", view.Spec.Columns)} measures={string.Join(",", view.Spec.Measures.Select(measure => measure.Field))} filter={(view.Spec.Filter is { } filter ? $"{filter.Field}={Quote(filter.EqualsValue)}" : "<none>")}",
+            .. result.BuildSideBySide(view.Spec).Lines.SelectMany(line => line.Cells.OrderBy(cell => cell.Key, StringComparer.Ordinal).Select(cell =>
+                $"{Quote(line.Row)} | {Quote(line.Column)} | {cell.Key}: left={cell.Value.Left.ToInvariant()} right={cell.Value.Right.ToInvariant()} delta={cell.Value.Delta.ToInvariant()} leftOnly={cell.Value.LeftOnly.ToInvariant()} rightOnly={cell.Value.RightOnly.ToInvariant()} matchedDelta={cell.Value.MatchedDelta.ToInvariant()}")),
+            "",
+        ];
+
+        private static string Quote(string? text) => text is null ? "<null>" : $"\"{text}\"";
+
+        private static string Flag(bool value) => value ? "true" : "false";
     }
-
-    private static IEnumerable<string> Entry(IReconciliationResult result, ResultEntry entry, string[] fields, Func<SourceRef, string> name, Func<IEnumerable<SourceRef>, string> names) =>
-    [
-        $"entry {entry.Id} path={Quote(entry.PathId)} alignment={entry.Alignment} composition={entry.Composition} outcome={entry.Outcome}",
-        $"  left={names(entry.Left)}",
-        $"  right={names(entry.Right)}",
-        .. entry.Diffs.Select(diff =>
-            $"  diff {diff.Field.Name}: outcome={diff.Outcome} left={Value(diff.Left)} right={Value(diff.Right)} delta={diff.Delta.Kind}/{Number(diff.Delta.Number)}/{Number(diff.Delta.Days)} tolerance={Quote(diff.Tolerance.Value)} attribution={Quote(diff.Attribution.Value)} attributedTo=[{string.Join(", ", diff.AttributedTo.IsDefault ? [] : diff.AttributedTo)}]"),
-        $"  committedBy={entry.Explanation.CommittedBy ?? "<none>"}",
-        .. entry.Explanation.Trail.Select(attempt =>
-            $"  trail {attempt.PassId}: verdict={attempt.Verdict} key={Quote(attempt.Key)} candidates={names(attempt.Candidates)} detail={Quote(attempt.Detail)}"),
-        .. entry.Explanation.Hints.Select(hint => $"  hint {hint.Code}: {hint.Detail}"),
-        .. entry.Alignment is Alignment.Matched
-            ? [$"  projection left: {Canonical(result.Projection(entry.Id, Side.Left), fields)}", $"  projection right: {Canonical(result.Projection(entry.Id, Side.Right), fields)}"]
-            : Array.Empty<string>(),
-        "",
-    ];
-
-    private static IEnumerable<string> Row(IReconciliationResult result, RowResult row, string[] fields, Func<SourceRef, string> name) =>
-    [
-        $"row {name(row.Row)} disposition={row.Disposition} suppression={row.Suppression?.ToString() ?? "<none>"} validity={row.Validity} entry={row.EntryId?.Value ?? "<none>"}",
-        .. row.Diagnostics.Select(diagnostic =>
-            $"  diagnostic {diagnostic.Code}: severity={diagnostic.Severity} rule={diagnostic.RuleId} field={Quote(diagnostic.Field)} raw={Quote(diagnostic.RawText)}"),
-        $"  canonical: {Canonical(result.Canonical(row.Row), fields)}",
-        .. result.Trace(row.Row).Select(step => $"  trace {step.RuleId}: {step.Field} {Quote(step.Raw)} -> {Quote(step.Canonical)}"),
-        "",
-    ];
-
-    private static string Canonical(CanonicalRow row, string[] fields) =>
-        string.Join(" ", fields.Where(field => row.IsNull(field) is false).Select(field => $"{field}={Value(row[field])}"));
-
-    // A value reads as its type and its text. Decimals keep their scale, so 1.5 and 1.50 read differently.
-    private static string Value(CanonicalValue value) =>
-        value switch
-        {
-            { IsNull: true } => "<null>",
-            { Type: FieldType.Decimal } => $"Decimal:{Number(value.Number)}",
-            { Type: FieldType.Date } => $"Date:{value.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}",
-            _ => $"{value.Type}:{Quote(value.Text)}",
-        };
-
-    private static string Quote(string? text) => text is null ? "<null>" : $"\"{text}\"";
-
-    private static string Flag(bool value) => value ? "true" : "false";
-
-    private static string Number(decimal value) => value.ToString(CultureInfo.InvariantCulture);
-
-    private static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
 }
 
 // Compares text with a committed golden file, line by line. The golden file is only ever read.
@@ -647,9 +573,9 @@ internal static class GoldenText
         int[] differing = [.. Enumerable.Range(0, Math.Max(golden.Count, actual.Count)).Where(index => At(golden, index) != At(actual, index))];
         return differing.Length == 0
             ? null
-            : $"{differing.Length.ToString(CultureInfo.InvariantCulture)} line{(differing.Length == 1 ? " differs" : "s differ")}, of {golden.Count.ToString(CultureInfo.InvariantCulture)} in the golden file and {actual.Count.ToString(CultureInfo.InvariantCulture)} now. The first {Math.Min(differing.Length, ListedLines).ToString(CultureInfo.InvariantCulture)}:"
+            : $"{differing.Length.ToInvariant()} line{(differing.Length == 1 ? " differs" : "s differ")}, of {golden.Count.ToInvariant()} in the golden file and {actual.Count.ToInvariant()} now. The first {Math.Min(differing.Length, ListedLines).ToInvariant()}:"
                 + string.Concat(differing.Take(ListedLines).Select(index =>
-                    $"\nline {(index + 1).ToString(CultureInfo.InvariantCulture)}\n  golden: {At(golden, index) ?? "<no line>"}\n  actual: {At(actual, index) ?? "<no line>"}"));
+                    $"\nline {(index + 1).ToInvariant()}\n  golden: {At(golden, index) ?? "<no line>"}\n  actual: {At(actual, index) ?? "<no line>"}"));
     }
 
     private static string? At(IReadOnlyList<string> lines, int index) => index < lines.Count ? lines[index] : null;
