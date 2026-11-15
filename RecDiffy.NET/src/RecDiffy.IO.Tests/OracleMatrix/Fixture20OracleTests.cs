@@ -6,19 +6,19 @@ namespace RecDiffy.IO.Tests.OracleMatrix;
 
 // Fixture 2.0, the field-level acceptance dataset (spec v3 §12.2), read from the workbook through FromExcel and compared
 // with RecDiffy_Hidden_Test_Oracle.json. The profile follows §9.2 with registered rules only: P1 and P2, lifecycle CANC
-// and CORR to NEW, BLOCK allocations summed as packages, swap legs as packages with one notional and summed cash.
-// Where the oracle's rules need a rule the registry lacks, the profile does without it:
-// - instrument.resolve (#259): each identifier scheme is its own field, and P2 runs once per scheme;
-// - price.dirtyToClean: a DIRTY_PERCENT price is read as written;
-// - fees.inferFromNet: the street side has no Fees field, so fees are not compared;
-// - cash.toPerspective: a DEALER_BILATERAL_VIEW row's cash is not negated.
+// and CORR to NEW, BLOCK allocations summed as packages, swap legs as packages with one notional and summed cash, and the
+// street side's price.dirtyToClean, cash.toPerspective and fees.inferFromNet. Where the oracle's rules need a rule the
+// registry lacks, the profile does without it:
+// - instrument.resolve (#259): each identifier scheme is its own field, and P2 runs once per scheme.
 public class Fixture20OracleTests
 {
     private static readonly OracleDataset Dataset = OracleDatasets.Fixture20;
 
     private static readonly Lazy<IReconciliationResult> Result = new(Run);
 
-    private const string Everything = "Waits on price.dirtyToClean (8 known exact), cash.toPerspective (dealer-view rows), fees.inferFromNet (18 near-matches), and the lead's call on the swap coupon";
+    private const string FourteenCases = "14 cases disagree: 13 signed-cash BUYs (Deferral.SignedCash, #433) and the swap coupon (CouponIsTheRate)";
+
+    internal static IReconciliationResult Outcome => Result.Value;
 
     // The swap price break CASE-BCC487E33A290260 also lists the coupon, which for a swap is the fixed rate. The engine
     // reports both as roots; the oracle blames the price alone, and no attribution ties the coupon to the price.
@@ -27,23 +27,25 @@ public class Fixture20OracleTests
     // Each check leaves out only the cases it can't judge, and says why.
     private static OracleComparison Compare(Func<OracleCase, string?>? deferred = null) => new(Result.Value, Dataset.Cases(), deferred);
 
-    // Outcomes: a near-match's net cash is settled by trading.netCash only when every root, Fees included, is compared.
-    private static string? OutcomeDeferred(OracleCase item) => item switch
+    // The cases a check on outcomes or roots can't judge yet: the swap coupon, and a signed BUY whose cash delta
+    // trading.netCash can't explain. Every other case, dirty prices and dealer-view cash included, is judged.
+    private static string? Deferred(OracleCase item) => item switch
     {
-        { Kind: CaseKind.WithinTolerance } => Deferral.InferFees,
-        _ when Deferral.RightHas(Dataset, item, "Price_Quote_Convention", "DIRTY_PERCENT") => Deferral.DirtyToClean,
-        _ when Deferral.RightHas(Dataset, item, "Reporting_Perspective", "DEALER_BILATERAL_VIEW") => Deferral.CashToPerspective,
+        { Id: "CASE-BCC487E33A290260" } => CouponIsTheRate,
+        { Kind: CaseKind.WithinTolerance or CaseKind.Break } when Deferral.LeftPaysCash(Dataset, item) => Deferral.SignedCash,
         _ => null,
     };
 
     // The oracle's root causes and difference fields as profile fields. The oracle says a fee break is a net cash
-    // difference with root cause COMMISSION, because the street schema has no commission column.
-    private static string? Field(string name) => name switch
+    // difference with root cause COMMISSION, because the street schema has no commission column. The profile infers the
+    // street fee (§3.3), so the engine blames Fees, as §7.4 does for G0157.
+    internal static string? Field(string name) => name switch
     {
         "PRICE" or "price" => "Price",
         "QUANTITY_80_PERCENT" or "quantity" => "Quantity",
         "SETTLE_DATE" or "settle_date" => "SettleDate",
-        "COMMISSION" or "net_cash" => "NetCash",
+        "COMMISSION" => "Fees",
+        "net_cash" => "NetCash",
         "accrued" => "Accrued",
         "coupon" => "Coupon",
         _ => null,
@@ -53,13 +55,13 @@ public class Fixture20OracleTests
     public void AC1_each_case_is_one_entry_with_exactly_its_rows_and_there_are_no_other_entries() =>
         OracleAssert.None(Compare().Membership());
 
-    // 41 deferred: 18 near-matches, 8 dirty prices and 15 dealer-view cases.
+    // 16 deferred: the swap coupon and the 15 signed BUYs among the near-matches and breaks. 13 of those 15 disagree with the oracle (the skipped fact below).
     [Fact]
     public void AC2_each_entry_has_the_alignment_and_outcome_its_label_maps_to()
     {
-        var comparison = Compare(OutcomeDeferred);
+        var comparison = Compare(Deferred);
 
-        Assert.Equal(275 - 41, comparison.Checked);
+        Assert.Equal(275 - 16, comparison.Checked);
         OracleAssert.None(comparison.Outcomes());
     }
 
@@ -67,18 +69,9 @@ public class Fixture20OracleTests
     public void AC2_each_entry_has_the_composition_its_label_maps_to() =>
         OracleAssert.None(Compare().Compositions(allocationsArePackages: true));
 
-    // 16 of the 20 breaks: the swap coupon is the lead's call, and the three signed-cash BUY breaks wait on
-    // cash.toPerspective so trading.netCash can explain NetCash (#254).
     [Fact]
     public void AC3_each_break_is_rooted_in_the_field_the_oracle_names_and_no_other() =>
-        OracleAssert.None(Compare(BreakRootDeferred).BreakRoots(Field));
-
-    private static string? BreakRootDeferred(OracleCase item) => item.Id switch
-    {
-        "CASE-BCC487E33A290260" => CouponIsTheRate,
-        "CASE-32BADE5493F96F8D" or "CASE-AD2E22ECBC168DF4" or "CASE-B3C99CCF3208F735" => Deferral.CashToPerspective,
-        _ => null,
-    };
+        OracleAssert.None(Compare(Deferred).BreakRoots(Field));
 
     // Every expected difference: the 18 near-matches and the 20 breaks, fee breaks included as net cash.
     [Fact]
@@ -93,7 +86,7 @@ public class Fixture20OracleTests
     public void AC5_every_input_row_has_exactly_one_disposition() =>
         OracleAssert.None(Compare().RowAccounting(Dataset.LeftRows(), Dataset.RightRows()));
 
-    [Fact(Skip = Everything)]
+    [Fact(Skip = FourteenCases)]
     public void Every_case_agrees_with_the_oracle_on_every_criterion()
     {
         var all = Compare();
@@ -141,6 +134,7 @@ public class Fixture20OracleTests
             { "name": "Currency", "type": "Symbol", "role": "Economic" },
             { "name": "Price", "type": "Decimal", "scale": 6, "role": "Economic" },
             { "name": "Accrued", "type": "Decimal", "scale": 2, "role": "Economic" },
+            { "name": "Fees", "type": "Decimal", "scale": 2, "role": "Economic" },
             { "name": "NetCash", "type": "Decimal", "scale": 2, "role": "Economic" },
             { "name": "Coupon", "type": "Decimal", "scale": 6, "role": "Economic" },
             { "name": "Maturity", "type": "Date", "role": "Economic" },
@@ -171,6 +165,7 @@ public class Fixture20OracleTests
                 { "rule": "date.parse", "from": "Maturity_Date", "to": "Maturity", "formats": ["yyyy-MM-dd"] },
                 { "rule": "decimal.parse", "from": "Clean_Price_Rate", "to": "Price" },
                 { "rule": "decimal.parse", "from": "Accrued_Interest", "to": "Accrued" },
+                { "rule": "decimal.parse", "from": "Commission_Fees", "to": "Fees" },
                 { "rule": "decimal.parse", "from": "Net_Settlement_Amount", "to": "NetCash" },
                 { "rule": "decimal.parse", "from": "Coupon_Rate", "to": "Coupon" }
               ],
@@ -205,15 +200,18 @@ public class Fixture20OracleTests
               ],
               "derive": [
                 { "rule": "side.resolve", "code": "Dir_Ind", "quantity": "Reported_Qty_Notional", "perspective": "Reporting_Perspective", "invertWhen": "DEALER_BILATERAL_VIEW", "asset": "AssetClass" },
-                { "rule": "quantity.absolute", "from": "Reported_Qty_Notional", "to": "Quantity" }
+                { "rule": "quantity.absolute", "from": "Reported_Qty_Notional", "to": "Quantity" },
+                { "rule": "price.dirtyToClean", "to": "Price", "when": { "field": "Price_Quote_Convention", "equals": "DIRTY_PERCENT" } },
+                { "rule": "cash.toPerspective", "to": "NetCash", "perspective": "Reporting_Perspective", "invertWhen": "DEALER_BILATERAL_VIEW" },
+                { "rule": "fees.inferFromNet", "to": "Fees" }
               ]
             }
           },
           "consolidation": {
             "right": { "lifecycle": { "action": "EventAction", "target": "EventTarget", "scope": "Counterparty", "corrTarget": "CANC" } },
             "left": { "packages": [
-              { "link": "AllocationLink", "role": "LegRole", "aggregate": { "Quantity": "Sum", "Accrued": "Sum", "NetCash": "Sum" } },
-              { "link": "LegLink", "role": "LegRole", "requiredRoles": ["LEG_1_PAY", "LEG_2_RECEIVE"], "aggregate": { "Quantity": "Same", "Accrued": "Sum", "NetCash": "Sum" } } ] }
+              { "link": "AllocationLink", "role": "LegRole", "aggregate": { "Quantity": "Sum", "Accrued": "Sum", "Fees": "Sum", "NetCash": "Sum" } },
+              { "link": "LegLink", "role": "LegRole", "requiredRoles": ["LEG_1_PAY", "LEG_2_RECEIVE"], "aggregate": { "Quantity": "Same", "Accrued": "Sum", "Fees": "Sum", "NetCash": "Sum" } } ] }
           },
           "paths": [ { "id": "trade", "route": { "rule": "route.all" },
             "passes": [
@@ -225,6 +223,7 @@ public class Fixture20OracleTests
             "diff": { "fields": {
               "Accrued": { "tolerance": { "absolute": 1.20 }, "attributed": "trading.proRataToQuantity", "applicableWhen": { "field": "AssetClass", "in": ["Bond", "Swap"] } },
               "Price": { "tolerance": { "absolute": 0.0001, "when": { "field": "AssetClass", "equals": "Forward" } } },
+              "Fees": { "tolerance": { "absolute": 0.01 }, "attributed": "trading.proRataToQuantity", "applicableWhen": { "field": "AssetClass", "in": ["Bond", "Equity", "Forward"] } },
               "NetCash": { "tolerance": { "attributed": "trading.netCash" } } } } } ]
         }
         """;
