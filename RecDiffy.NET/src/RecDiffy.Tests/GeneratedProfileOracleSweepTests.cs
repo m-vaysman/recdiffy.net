@@ -176,12 +176,16 @@ public class GeneratedProfileOracleSweepTests
         .Text("Action", r => r.Action)
         .Text("Target", r => r.Target)
         .Text("Pkg", r => r.Pkg)
-        .Text("Role", r => r.Role);
+        .Text("Role", r => r.Role)
+        .Text("Accrued", r => r.Accrued)
+        .Text("Quote", r => r.Quote)
+        .Text("Persp", r => r.Persp)
+        .Text("Fees", r => r.Fees);
 
     private static DataTable ToDataTable(IReadOnlyList<RawRow> rows)
     {
         var table = new DataTable { Locale = CultureInfo.InvariantCulture };
-        string[] columns = ["Id", "Cpty", "Lei", "Alias", "Asset", "Instr", "Ref", "TradeDate", "SettleDate", "SideCode", "Qty", "Price", "Cash", "Note", "Action", "Target", "Pkg", "Role"];
+        string[] columns = ["Id", "Cpty", "Lei", "Alias", "Asset", "Instr", "Ref", "TradeDate", "SettleDate", "SideCode", "Qty", "Price", "Cash", "Note", "Action", "Target", "Pkg", "Role", "Accrued", "Quote", "Persp", "Fees"];
 #pragma warning disable IDISP004 // The table owns the columns and rows it adds.
         foreach (var col in columns)
             table.Columns.Add(col, typeof(object));
@@ -206,7 +210,11 @@ public class GeneratedProfileOracleSweepTests
                 Cell(r.Action),
                 Cell(r.Target),
                 Cell(r.Pkg),
-                Cell(r.Role));
+                Cell(r.Role),
+                Cell(r.Accrued),
+                Cell(r.Quote),
+                Cell(r.Persp),
+                Cell(r.Fees));
         }
 #pragma warning restore IDISP004
 
@@ -376,7 +384,9 @@ public class GeneratedProfileOracleSweepTests
             parse.Add(Rule("decimal.parse", ("from", "Price"), ("to", "Price")));
 
         parse.Add(Rule("decimal.parse", ("from", "Accrued"), ("to", "Accrued")));
-        parse.Add(Rule("decimal.parse", ("from", "Fees"), ("to", "Fees")));
+        // The street feed has no commission column: fees.inferFromNet writes Fees on the right.
+        if (!includeLifecycle)
+            parse.Add(Rule("decimal.parse", ("from", "Fees"), ("to", "Fees")));
         parse.Add(Rule("decimal.parse", ("from", "Cash"), ("to", "NetCash")));
 
         var derive = new List<RuleCall>();
@@ -389,6 +399,15 @@ public class GeneratedProfileOracleSweepTests
         {
             identify.Add(Rule("symbol.map", ("from", "SideCode"), ("to", "Side")));
             parse.Add(Rule("decimal.parse", ("from", "Qty"), ("to", "Quantity")));
+        }
+
+        // The street side's derive rules (spec v3.1 §3.3). Rows with no Quote or Persp are left alone, and a Corporate asset has no principal, so no fee.
+        // Only scenario 5 is a Bond, so it is the one that gives fees.inferFromNet a fee to write.
+        if (includeLifecycle)
+        {
+            derive.Add(Rule("price.dirtyToClean", ("to", "Price")) with { When = new WhenClause("Quote", "DIRTY", null, null) });
+            derive.Add(Rule("cash.toPerspective", ("to", "NetCash"), ("perspective", "Persp"), ("invertWhen", "DEALER_VIEW")));
+            derive.Add(Rule("fees.inferFromNet", ("to", "Fees")));
         }
 
         RuleCall[] validate =
@@ -465,7 +484,11 @@ public class GeneratedProfileOracleSweepTests
         string? Action = null,
         string? Target = null,
         string? Pkg = null,
-        string? Role = null);
+        string? Role = null,
+        string? Accrued = null,
+        string? Quote = null,
+        string? Persp = null,
+        string? Fees = null);
 
     private sealed record ExpectedRow(Disposition Disposition, InputValidity Validity, SuppressionReason? Suppression);
 
@@ -981,6 +1004,58 @@ public class GeneratedProfileOracleSweepTests
                     null,
                     ImmutableDictionary<string, ExpectedFieldDiff>.Empty));
                 leftOnlyQty += 50m;
+            }
+
+            // Scenario 5: a dealer-view dirty bond. 98.5 dirty less 40.00 accrued over 400 face (10.0) is the internal clean 88.5, the cash is negated,
+            // and the fee comes from the cash: 419.00 less 354.00 principal and 40.00 accrued is the internal fee of 25.00.
+            {
+                var cpty = "CP_B";
+                var instr = "XS000002";
+                var tDate = new DateOnly(2025, 6, 18);
+                left.Add(MakeRow(
+                    "L_DIRTY",
+                    cpty,
+                    useAlias: true,
+                    instr,
+                    null,
+                    FormatDate(cpty, tDate),
+                    FormatDate(cpty, tDate),
+                    SideToken(),
+                    "400",
+                    FormatPrice(88m, 16),
+                    "419.00") with { Accrued = "40.00", Fees = "25.00", Asset = "Bond" });
+                right.Add(MakeRow(
+                    "R_DIRTY",
+                    cpty,
+                    useAlias: false,
+                    instr,
+                    null,
+                    FormatDate(cpty, tDate),
+                    FormatDate(cpty, tDate),
+                    SideToken(),
+                    "400",
+                    FormatPrice(98m, 16),
+                    "-419.00") with { Accrued = "40.00", Quote = "DIRTY", Persp = "DEALER_VIEW", Asset = "Bond" });
+
+                expectedRows[("left", "L_DIRTY")] = new(Disposition.Matched, InputValidity.Valid, null);
+                expectedRows[("right", "R_DIRTY")] = new(Disposition.Matched, InputValidity.Valid, null);
+                expectedEntries.Add(new(
+                    [("left", "L_DIRTY")],
+                    [("right", "R_DIRTY")],
+                    Alignment.Matched,
+                    Composition.OneToOne,
+                    FieldOutcome.Exact,
+                    "P2",
+                    new Dictionary<string, ExpectedFieldDiff>(StringComparer.Ordinal)
+                    {
+                        ["SettleDate"] = new(FieldOutcome.Exact, []),
+                        ["Price"] = new(FieldOutcome.Exact, []),
+                        ["Accrued"] = new(FieldOutcome.Exact, []),
+                        ["Fees"] = new(FieldOutcome.Exact, []),
+                        ["NetCash"] = new(FieldOutcome.Exact, []),
+                    }));
+                matchedQtyLeft += 400m;
+                matchedQtyRight += 400m;
             }
 
             return new GeneratedRun(
