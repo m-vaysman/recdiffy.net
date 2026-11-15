@@ -73,6 +73,7 @@ What this means:
 - **The peak comes from** both sides resident at once, the normalized row contexts the result retains for `Projection`, `Trace` and `Raw`, and, with the Excel report, the writer's copy of the workbook.
 - **Failure modes:** a managed `OutOfMemoryException` is recorded and the report says `OutOfMemory`; a host OOM kill kills the process without a report; there is no wall-clock timeout unless the caller sets `--case-timeout-seconds` (harness) or a cancellation token, and cancellation during consolidation is **TBD**.
 - **Search limits protect the host.** A block over `maxBlockItems` ends `BlockTooLarge`, and a search over `maxNodesPerTarget` ends `BudgetExhausted`; both are recorded in the result. The limits and their mechanics are in [PROFILES.md](PROFILES.md#limits-search-limits) and [RESULTS.md](RESULTS.md#incomplete-search). The measured cost of raising each limit is **TBD**.
+- **Building a wide group block costs in proportion to its width.** The budget: a `match.groupSum` block with eight times the targets allocates less than sixteen times as much to build its components. `GroupComponentWidthCostTests` checks it on every build, for targets that each carry their own shared reference, for targets that all carry the same one, and for rows that carry none. Committing inside a wide block is a separate cost and is not in this budget: each commit evaluates its block again, so a block whose targets all commit costs in proportion to the square of its width.
 
 ## Production sizing
 

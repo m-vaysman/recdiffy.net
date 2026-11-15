@@ -104,18 +104,27 @@ internal sealed record GroupIndex(
         MatchCounters counters,
         bool dirty)
     {
-        var index = dropped with { Decisions = dropped.Decisions.SetItem(key, []) };
+        // The block's decisions and its ready keys are gathered here and stored once, after the last component (#41).
+        // Stored per component, each was an immutable array copied again for every component of the block. Drop has
+        // taken the block's ready keys out before this runs, so the block starts with none.
+        var decisions = ImmutableArray.CreateBuilder<Decision>();
+        var readyKeys = ImmutableArray.CreateBuilder<string>();
+        var index = dropped;
         foreach (var component in components)
         {
             var decided = index.Decide(component, counters.SawComponent(), dirty);
-            var stored = index with { Decisions = index.Decisions.SetItem(key, index.Decisions[key].Add(decided.Decision)) };
-            index = decided.Decision is { Kind: DecisionKind.Commit }
-                ? decided.Decision.Commits.Aggregate(stored, (current, proposal) => current.Add(key, proposal))
-                : stored;
+            decisions.Add(decided.Decision);
+            if (decided.Decision is { Kind: DecisionKind.Commit })
+            {
+                index = decided.Decision.Commits.Aggregate(index, (current, proposal) => current.Add(key, proposal));
+                readyKeys.AddRange(decided.Decision.Commits.Select(proposal => proposal.Key));
+            }
+
             counters = decided.Counters;
         }
 
-        return (index, counters);
+        var posted = index with { Decisions = index.Decisions.SetItem(key, decisions.ToImmutable()) };
+        return (readyKeys.Count is 0 ? posted : posted with { ReadyByBlock = posted.ReadyByBlock.SetItem(key, readyKeys.ToImmutable()) }, counters);
     }
 
     private GroupIndex Without(int index) =>
@@ -140,22 +149,15 @@ internal sealed record GroupIndex(
             : this with { Ready = Ready.SetItem(key, kept) };
     }
 
-    private GroupIndex Add(MatchKey blockKey, MatchProposal proposal)
-    {
-        var keys = ReadyByBlock.TryGetValue(blockKey, out var existing) ? existing.Add(proposal.Key) : [proposal.Key];
-        return Ready.TryGetValue(proposal.Key, out var list)
-            ? this with
-            {
-                Ready = Ready.SetItem(proposal.Key, list.Add(new ReadyProposal(proposal, blockKey))),
-                ReadyByBlock = ReadyByBlock.SetItem(blockKey, keys),
-            }
+    // PostComponents records the proposal's key under its block, once for the whole block.
+    private GroupIndex Add(MatchKey blockKey, MatchProposal proposal) =>
+        Ready.TryGetValue(proposal.Key, out var list)
+            ? this with { Ready = Ready.SetItem(proposal.Key, list.Add(new ReadyProposal(proposal, blockKey))) }
             : this with
             {
                 Ready = Ready.SetItem(proposal.Key, [new ReadyProposal(proposal, blockKey)]),
-                ReadyByBlock = ReadyByBlock.SetItem(blockKey, keys),
                 ReadyOrder = ReadyOrder.Add(proposal.Key),
             };
-    }
 
     // The block limits count targets and eligible rows, and they are applied before any search.
     private (Decision Decision, MatchCounters Counters) Decide(Component component, MatchCounters counters, bool dirty) =>
@@ -165,15 +167,16 @@ internal sealed record GroupIndex(
 
     private (ImmutableArray<(int Target, TargetSearch Search)> Rows, MatchCounters Counters) SearchTargets(Component component, MatchCounters counters, bool dirty)
     {
-        var rows = ImmutableArray<(int Target, TargetSearch Search)>.Empty;
+        // One array of the component's size, filled in place: adding to the immutable array copied it for every target (#41).
+        var rows = ImmutableArray.CreateBuilder<(int Target, TargetSearch Search)>(component.Targets.Length);
         foreach (var target in component.Targets)
         {
             var searched = Search(target, component, counters, dirty);
-            rows = rows.Add((target, searched.Result));
+            rows.Add((target, searched.Result));
             counters = searched.Counters;
         }
 
-        return (rows, counters);
+        return (rows.MoveToImmutable(), counters);
     }
 
     // Two targets with unique subsets still contest when they draw the same row.
@@ -231,58 +234,69 @@ internal sealed record GroupIndex(
         var targets = blockItems.Where(item => item.Side != Many).Select(item => item.Index).OrderBy(index => index).ToArray();
         var manyItems = blockItems.Where(item => item.Side == Many).Select(item => item.Index).ToArray();
         var census = Census.Collect(manyItems, ClaimOf, Workspace.Cancellation);
-        return targets.Aggregate(ImmutableList<Draft>.Empty, (components, target) => Merge(components, target, census))
-            .Select(draft => Finish(draft, census));
+        var claims = Claims(targets);
+        return ComponentPartition.Of(claims, census.Many.Length > 0, census.Wildcards.Length > 0, census.Has)
+            .Select(positions => Finish(positions, targets, claims, census));
     }
 
     private MatchKeys.SharedClaim ClaimOf(int index) =>
         MatchKeys.Claim(Workspace.Items[index].Row.Context, Workspace.SharedField, Workspace.Schema);
 
-    private ImmutableList<Draft> Merge(ImmutableList<Draft> components, int target, Census census)
+    // Each target's claim is read once, here (#41). The token is checked before every read, as it was when each target
+    // was merged into the components.
+    private MatchKeys.SharedClaim[] Claims(int[] targets)
     {
-        Workspace.Cancellation.ThrowIfCancellationRequested();
-        var claim = ClaimOf(target);
-        var joined = components.Where(component => Intersects(component, claim, census)).ToArray();
-        var kept = components.Where(component => joined.Contains(component) is false);
-        var values = joined.Aggregate(
-            claim.Wildcard || claim.Value is null ? ImmutableHashSet.Create<string>(StringComparer.Ordinal) : ImmutableHashSet.Create(StringComparer.Ordinal, claim.Value),
-            (set, component) => set.Union(component.Values));
-        var merged = new Draft(
-            [.. joined.SelectMany(component => component.Targets), target],
-            claim.Wildcard || joined.Any(component => component.WildcardTarget),
-            values);
-        return [.. kept, merged];
+        var claims = new MatchKeys.SharedClaim[targets.Length];
+        for (var position = 0; position < targets.Length; position++)
+        {
+            Workspace.Cancellation.ThrowIfCancellationRequested();
+            claims[position] = ClaimOf(targets[position]);
+        }
+
+        return claims;
     }
 
-    private static bool Intersects(Draft draft, MatchKeys.SharedClaim claim, Census census) =>
-        NonEmpty(claim, census) && Occupied(draft, census) && (draft.WildcardTarget || claim.Wildcard || census.Wildcards.Length > 0 || (claim.Value is { } value && draft.Values.Contains(value) && census.Has(value)));
-
-    private static bool Occupied(Draft draft, Census census) =>
-        (draft.WildcardTarget && census.Many.Length > 0) || census.Wildcards.Length > 0 || draft.Values.Any(census.Has);
-
-    private static bool NonEmpty(MatchKeys.SharedClaim claim, Census census) =>
-        claim.Wildcard ? census.Many.Length > 0 : census.Wildcards.Length > 0 || (claim.Value is { } value && census.Has(value));
-
-    private Component Finish(Draft draft, Census census)
+    // A component arrives as the positions of its targets, so a target's claim is claims[position].
+    private Component Finish(int[] positions, int[] targets, MatchKeys.SharedClaim[] claims, Census census)
     {
-        var eligible = Union(draft, census);
-        var blocked = draft.Targets.Length > Workspace.Limits.MaxTargetsPerComponent || eligible.Length > Workspace.Limits.MaxBlockItems;
+        int[] members = [.. positions.Select(position => targets[position])];
+        var eligible = Union(positions, claims, census);
+        var blocked = members.Length > Workspace.Limits.MaxTargetsPerComponent || eligible.Length > Workspace.Limits.MaxBlockItems;
         return new Component(
-            draft.Targets,
+            members,
             eligible,
-            blocked ? ImmutableDictionary<int, int[]>.Empty : draft.Targets.ToImmutableDictionary(target => target, target => ListFor(ClaimOf(target), census)));
+            blocked ? ImmutableDictionary<int, int[]>.Empty : Lists(positions, targets, claims, census));
     }
 
-    private int[] Union(Draft draft, Census census)
+    // The rows each target can draw. Targets with the same claim share one array, which nothing writes to afterwards;
+    // a merged array was built for every target before (#41).
+    private static ImmutableDictionary<int, int[]> Lists(int[] positions, int[] targets, MatchKeys.SharedClaim[] claims, Census census)
+    {
+        var byValue = new Dictionary<string, int[]>(StringComparer.Ordinal);
+        var lists = ImmutableDictionary.CreateBuilder<int, int[]>();
+        foreach (var position in positions)
+        {
+            lists.Add(targets[position], claims[position] switch
+            {
+                { Wildcard: true } => census.Many,
+                { Value: { } value } => byValue.TryGetValue(value, out var known) ? known : byValue[value] = census.For(value),
+                _ => [],
+            });
+        }
+
+        return lists.ToImmutable();
+    }
+
+    private int[] Union(int[] positions, MatchKeys.SharedClaim[] claims, Census census)
     {
         var seen = new HashSet<int>();
         var result = new List<int>();
         var emitted = new HashSet<string>(StringComparer.Ordinal);
         var covered = false;
-        foreach (var target in draft.Targets)
+        foreach (var position in positions)
         {
             Workspace.Cancellation.ThrowIfCancellationRequested();
-            var claim = ClaimOf(target);
+            var claim = claims[position];
             if (claim.Wildcard)
             {
                 if (covered)
@@ -303,11 +317,6 @@ internal sealed record GroupIndex(
 
         return [.. result];
     }
-
-    private static int[] ListFor(MatchKeys.SharedClaim claim, Census census) =>
-        claim.Wildcard ? census.Many : claim.Value is { } value ? census.For(value) : [];
-
-    private sealed record Draft(int[] Targets, bool WildcardTarget, ImmutableHashSet<string> Values);
 
     private sealed record Census(int[] Many, int[] Wildcards, ImmutableDictionary<string, int[]> Buckets)
     {
