@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using RecDiffy.ExcelAddIn.ViewModels;
 
 namespace RecDiffy.ExcelAddIn.ViewModels.Tests;
@@ -32,7 +33,8 @@ public class SetupProfilesTests
     {
         var strict = SetupProfiles.Draft() with
         {
-            SourceReadings = new Dictionary<string, SourceReading>(StringComparer.Ordinal) { ["left"] = new SourceReading("en-GB", false) },
+            SourceReadings = ImmutableDictionary.Create<string, SourceReading>(StringComparer.Ordinal)
+                .Add("left", new SourceReading("en-GB", false)),
         };
 
         var profile = SetupProfiles.WithCultures(strict, "de-DE", "fr-FR");

@@ -7,7 +7,7 @@ public sealed record SummaryCount(string Label, int Count, bool NeedsAttention);
 
 public sealed record ExplanationSection(string Title, IReadOnlyList<string> Lines);
 
-public sealed record RunContext(ReconciliationResult Result, SideRows Left, SideRows Right, IReadOnlyList<string> KeyFields);
+public sealed record RunContext(IReconciliationResult Result, SideRows Left, SideRows Right, IReadOnlyList<string> KeyFields);
 
 public sealed class ResultRow(ResultEntry entry, RunContext context)
 {
@@ -111,7 +111,7 @@ public static class ResultText
         };
     }
 
-    public static string Details(ResultEntry entry, ReconciliationResult result)
+    public static string Details(ResultEntry entry, IReconciliationResult result)
     {
         ArgumentNullException.ThrowIfNull(entry);
         ArgumentNullException.ThrowIfNull(result);
@@ -146,8 +146,8 @@ public static class ResultText
             ]),
             .. explanation.Hints.Count == 0 ? Array.Empty<ExplanationSection>() : [new("Hints", [.. explanation.Hints.Select(hint => $"{hint.Code}: {hint.Detail}")])],
             .. entry.Left.Concat(entry.Right).Take(ExplainedRows).Select(row => RowSection(row, context)),
-            .. entry.Left.Count + entry.Right.Count > ExplainedRows
-                ? [new ExplanationSection("More rows", [string.Create(CultureInfo.CurrentCulture, $"{entry.Left.Count + entry.Right.Count - ExplainedRows:N0} more rows belong to this result.")])]
+            .. entry.Left.Length + entry.Right.Length > ExplainedRows
+                ? [new ExplanationSection("More rows", [string.Create(CultureInfo.CurrentCulture, $"{entry.Left.Length + entry.Right.Length - ExplainedRows:N0} more rows belong to this result.")])]
                 : Array.Empty<ExplanationSection>(),
         ];
     }
@@ -188,14 +188,14 @@ public static class ResultText
         PassVerdict.NoKey => "the record has no value for the key.",
         PassVerdict.NoCandidate => $"no record on the other side has key {KeyText(attempt.Key)}.",
         PassVerdict.Vetoed => $"a candidate with key {KeyText(attempt.Key)} was refused{Detail(attempt.Detail)}.",
-        PassVerdict.Contest => string.Create(CultureInfo.CurrentCulture, $"{attempt.Candidates.Count:N0} records share key {KeyText(attempt.Key)}, so none was picked."),
+        PassVerdict.Contest => string.Create(CultureInfo.CurrentCulture, $"{attempt.Candidates.Length:N0} records share key {KeyText(attempt.Key)}, so none was picked."),
         PassVerdict.SearchIncomplete => "the search limit was reached before a match was settled.",
         _ => attempt.Verdict.ToString(),
     };
 
     private static string Detail(string? detail) => detail is { Length: > 0 } text ? $": {text}" : string.Empty;
 
-    private static string Difference(FieldDiff diff, ReconciliationResult result)
+    private static string Difference(FieldDiff diff, IReconciliationResult result)
     {
         var sign = diff.Outcome is FieldOutcome.Break ? "≠" : "≈";
         var delta = diff.Delta.Kind switch
@@ -249,11 +249,11 @@ public static class ResultText
         $"{diagnostic.Code}{(diagnostic.Field is { } field ? $" in {field}" : string.Empty)}{(diagnostic.RawText is { } raw ? $" ('{raw}')" : string.Empty)}";
 
     private static IEnumerable<string> Composition(ResultEntry entry) =>
-        entry.Left.Count > 1 || entry.Right.Count > 1
-            ? [string.Create(CultureInfo.CurrentCulture, $"{entry.Left.Count:N0} left {(entry.Left.Count == 1 ? "row" : "rows")} and {entry.Right.Count:N0} right {(entry.Right.Count == 1 ? "row" : "rows")}.")]
+        entry.Left.Length > 1 || entry.Right.Length > 1
+            ? [string.Create(CultureInfo.CurrentCulture, $"{entry.Left.Length:N0} left {(entry.Left.Length == 1 ? "row" : "rows")} and {entry.Right.Length:N0} right {(entry.Right.Length == 1 ? "row" : "rows")}.")]
             : [];
 
-    private static string Side(SideRows side, ReconciliationResult result, string name) =>
+    private static string Side(SideRows side, IReconciliationResult result, string name) =>
         string.Create(CultureInfo.CurrentCulture, $"{side.Label}, {result.Rows.Count(row => string.Equals(row.Row.Source, name, StringComparison.Ordinal)):N0} rows");
 
     private static string Capitalized(string side) => side switch
