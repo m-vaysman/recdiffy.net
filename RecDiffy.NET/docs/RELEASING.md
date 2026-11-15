@@ -139,7 +139,7 @@ The push uses `--skip-duplicate`, so a version that is already on nuget.org is s
 ## Known limitations of the preview
 
 - **Prerelease API.** Names and behaviour can change between previews. The API review before 1.0 is [#45](https://github.com/m-vaysman/recdiffy.net/issues/45), and the compatibility promise is [#74](https://github.com/m-vaysman/recdiffy.net/issues/74).
-- **Linux-only CI.** The library tests run only on Ubuntu ([#53](https://github.com/m-vaysman/recdiffy.net/issues/53)).
+- **Native AOT publishing runs only on Linux** ([#53](https://github.com/m-vaysman/recdiffy.net/issues/53)).
 - **Release packages are smoke-tested before the push.** The release workflow copies the packed files into the PackageSmoke feed and runs the consumer and AOT checks on them ([#296](https://github.com/m-vaysman/recdiffy.net/issues/296)). They are not re-run on the files nuget.org serves after indexing, and the Excel add-in tests are not part of a release.
 - **No XML API documentation** in the packages. No project sets `GenerateDocumentationFile`.
 - **Package metadata gaps,** such as links in the packed README, are tracked in [#46](https://github.com/m-vaysman/recdiffy.net/issues/46).
