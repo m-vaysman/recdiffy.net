@@ -2,8 +2,6 @@
 # every entry, member, diff, explanation, row, diagnostic, raw cell, canonical value and trace step, the summary,
 # and the side-by-side views. A value is written with every part it has, and with what Format and Text() make of it.
 # Not here: the engine version, which changes with every build, and the interned ids inside a canonical value.
-# One order is not the engine's: the entries one group pass leaves ambiguous or search-incomplete on one route come out
-# in a different order in every process, so they are written sorted by their members. See GroupResidueOrderTests.
 # GoldenResultsTests compares the engine with this file on net8.0 and net10.0, and fails on any difference.
 # To accept an intended change, copy the .actual.txt file the failing test names over this file and commit it.
 
@@ -514,18 +512,18 @@ entry f9218ddfb21e470383e98e905dec313f path="all" alignment=Matched composition=
     LegRole: type=Text null=true number=0 date=0001-01-01 text=<null> Format="" Text()="" IsNull()=true
     NotDeclared: type=Text null=true number=0 date=0001-01-01 text=<null> Format="" Text()="" IsNull()=true
 
-entry 9360335e77555a251101accc3e7c1e69 path="all" alignment=SearchIncomplete composition=None outcome=NotCompared
-  left=[left:L-BUD#10]
-  right=[right:R-U1#14, right:R-U2#15, right:R-U3#16, right:R-U4#17, right:R-U5#18, right:R-U6#19, right:R-U7#20]
-  committedBy=P3
-  trail P3: verdict=SearchIncomplete key=<null> candidates=[left:L-BUD#10, right:R-U1#14, right:R-U2#15, right:R-U3#16, right:R-U4#17, right:R-U5#18, right:R-U6#19, right:R-U7#20] detail="BudgetExhausted"
-  hints=0
-
 entry 40c4cea92eb9a9705fce77882bb7c9e9 path="all" alignment=Ambiguous composition=None outcome=NotCompared
   left=[left:L-TWIN#9]
   right=[right:R-T2#12, right:R-T3#13, right:R-T1#11]
   committedBy=P3
   trail P3: verdict=Contest key="BIRCH · I-TWIN · 2026-04-01 · SELL · 20.0000" candidates=[left:L-TWIN#9, right:R-T2#12, right:R-T3#13, right:R-T1#11] detail=<null>
+  hints=0
+
+entry 9360335e77555a251101accc3e7c1e69 path="all" alignment=SearchIncomplete composition=None outcome=NotCompared
+  left=[left:L-BUD#10]
+  right=[right:R-U1#14, right:R-U2#15, right:R-U3#16, right:R-U4#17, right:R-U5#18, right:R-U6#19, right:R-U7#20]
+  committedBy=P3
+  trail P3: verdict=SearchIncomplete key=<null> candidates=[left:L-BUD#10, right:R-U1#14, right:R-U2#15, right:R-U3#16, right:R-U4#17, right:R-U5#18, right:R-U6#19, right:R-U7#20] detail="BudgetExhausted"
   hints=0
 
 entry 976a173657d8ef0de55366ac4172c9bc path="all" alignment=LeftOnly composition=None outcome=NotCompared

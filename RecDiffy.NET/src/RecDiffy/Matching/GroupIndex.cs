@@ -81,8 +81,10 @@ internal sealed record GroupIndex(
         return (current, counters);
     }
 
+    // Blocks are listed by ordinal key, as PairIndex lists its keys. The dictionary's own order follows a text hash that
+    // is seeded per process (#426, spec §10.1).
     public override IReadOnlyList<ResidueCluster> Residue() =>
-        [.. Decisions.SelectMany(pair => pair.Value.SelectMany(decision => FromDecision(pair.Key, decision)))];
+        [.. Decisions.OrderBy(pair => pair.Key, MatchKey.Ordinal).SelectMany(pair => pair.Value.SelectMany(decision => FromDecision(pair.Key, decision)))];
 
     private (GroupIndex Index, MatchCounters Counters) Evaluate(MatchKey key, MatchCounters counters, bool dirty)
     {

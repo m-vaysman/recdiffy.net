@@ -367,17 +367,12 @@ internal static class GoldenResult
     {
         private readonly string[] _fields = [.. scenario.Compile().Document.Fields.Select(field => field.Name), Unknown];
 
-        private readonly HashSet<(string Path, string Pass)> _groupPasses =
-            [.. scenario.Compile().Document.Paths.SelectMany(path => path.Passes.Where(pass => pass.Pass is "match.groupSum").Select(pass => (path.Id, pass.Id)))];
-
         public IEnumerable<string> Lines() =>
         [
             $"# What the engine returns for the fixed {scenario.Name} inputs of GoldenResultsTests, in the order the engine returns it:",
             "# every entry, member, diff, explanation, row, diagnostic, raw cell, canonical value and trace step, the summary,",
             "# and the side-by-side views. A value is written with every part it has, and with what Format and Text() make of it.",
             "# Not here: the engine version, which changes with every build, and the interned ids inside a canonical value.",
-            "# One order is not the engine's: the entries one group pass leaves ambiguous or search-incomplete on one route come out",
-            "# in a different order in every process, so they are written sorted by their members. See GroupResidueOrderTests.",
             "# GoldenResultsTests compares the engine with this file on net8.0 and net10.0, and fails on any difference.",
             "# To accept an intended change, copy the .actual.txt file the failing test names over this file and commit it.",
             "",
@@ -400,16 +395,9 @@ internal static class GoldenResult
             .. scenario.Views.SelectMany(View),
         ];
 
-        // The entries one group pass leaves ambiguous or search-incomplete on one route come out in a different order
-        // from one process to the next: GroupIndex.Residue lists a dictionary keyed by text, and text hashes differ in
-        // every process (#426, GroupResidueOrderTests). So that one run is always written sorted by its members.
-        // Unmatched entries of one alignment on one route come in input order, so anyOrder sorts each such run too.
-        private IEnumerable<ResultEntry> Entries()
-        {
-            // Remove this sort when #426 is fixed: it hides that order, the fix included. GroupResidueOrderTests then covers it.
-            var stable = Sorted(result.Entries, GroupResidue);
-            return anyOrder ? Sorted(stable, SameUnmatchedKind) : stable;
-        }
+        // Unmatched entries of one alignment on one route come in input order, so anyOrder sorts each such run.
+        private IEnumerable<ResultEntry> Entries() =>
+            anyOrder ? Sorted(result.Entries, SameUnmatchedKind) : result.Entries;
 
         private IEnumerable<ResultEntry> Sorted(IEnumerable<ResultEntry> entries, Func<ResultEntry, ResultEntry, bool> together) =>
             Runs(entries, together).SelectMany(run => run.OrderBy(entry => Refs(Sorted(entry.Left.Concat(entry.Right))), StringComparer.Ordinal));
@@ -434,14 +422,6 @@ internal static class GoldenResult
 
         private static bool SameUnmatchedKind(ResultEntry first, ResultEntry second) =>
             first.Alignment is not Alignment.Matched && first.Alignment == second.Alignment && first.PathId == second.PathId;
-
-        private bool GroupResidue(ResultEntry first, ResultEntry second) =>
-            first.Alignment is Alignment.Ambiguous or Alignment.SearchIncomplete
-            && second.Alignment is Alignment.Ambiguous or Alignment.SearchIncomplete
-            && first.PathId == second.PathId
-            && first.Explanation.CommittedBy is { } pass
-            && pass == second.Explanation.CommittedBy
-            && _groupPasses.Contains((first.PathId, pass));
 
         private IEnumerable<RowResult> Rows()
         {
