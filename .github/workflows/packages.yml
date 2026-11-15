@@ -40,7 +40,7 @@ jobs:
           global-json-file: RecDiffy.NET/global.json
 
       - name: Restore cached NuGet packages
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('RecDiffy.NET/**/*.csproj', 'RecDiffy.NET/**/*.props', 'RecDiffy.NET/**/*.targets', 'RecDiffy.NET/global.json') }}
@@ -161,7 +161,7 @@ jobs:
           global-json-file: RecDiffy.NET/global.json
 
       - name: Restore cached NuGet packages
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('RecDiffy.NET/**/*.csproj', 'RecDiffy.NET/**/*.props', 'RecDiffy.NET/**/*.targets', 'RecDiffy.NET/global.json') }}
@@ -196,7 +196,7 @@ jobs:
           global-json-file: RecDiffy.NET/global.json
 
       - name: Restore cached NuGet packages
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('RecDiffy.NET/**/*.csproj', 'RecDiffy.NET/**/*.props', 'RecDiffy.NET/**/*.targets', 'RecDiffy.NET/global.json') }}
