@@ -1,0 +1,3 @@
+[*.cs]
+# A test writes expected text and reads it back in the same culture, so an implicit hole is not a defect here.
+dotnet_diagnostic.MA0076.severity = suggestion
