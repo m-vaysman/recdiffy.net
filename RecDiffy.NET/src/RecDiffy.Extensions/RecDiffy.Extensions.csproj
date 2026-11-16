@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ProjectGuid>{C495496A-43E8-49FB-9692-8AF8800AB8AC}</ProjectGuid>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>RecDiffy.Extensions</RootNamespace>
+    <Title>Reconciliation: DataTable and HTML tables from a RecDiffy.NET result</Title>
+    <Description>Reconciliation for .NET: extension methods that return the result of a RecDiffy.NET run as DataTables or HTML tables. The package has no dependencies; it works beside the RecDiffy package you already use.</Description>
+    <PackageTags>reconciliation;reconcile;data-reconciliation;matching;diff;dotnet;datatable;html;linqpad</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Compile-only: PrivateAssets keeps RecDiffy out of this package's nuspec, so installing it pulls in nothing. -->
+    <ProjectReference Include="..\RecDiffy\RecDiffy.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>
