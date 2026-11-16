@@ -53,10 +53,10 @@ jobs:
       - name: Pack the whole solution
         run: dotnet pack RecDiffy.slnx -c Release -o ../artifacts/packages -warnaserror -p:Version="$VERSION"
 
-      - name: Check that only the four libraries were packed
+      - name: Check that only the five libraries were packed
         working-directory: artifacts/packages
         run: |
-          expected="RecDiffy RecDiffy.Excel RecDiffy.IO RecDiffy.RulePacks.Trading"
+          expected="RecDiffy RecDiffy.Excel RecDiffy.Extensions RecDiffy.IO RecDiffy.RulePacks.Trading"
           status=0
           for kind in nupkg snupkg; do
             actual=$(for file in *."$kind"; do echo "${file%."$VERSION.$kind"}"; done | sort | xargs)
@@ -67,6 +67,14 @@ jobs:
             fi
           done
           exit "$status"
+
+      - name: Check that RecDiffy.Extensions declares no dependencies
+        working-directory: artifacts/packages
+        run: |
+          if unzip -p "RecDiffy.Extensions.$VERSION.nupkg" RecDiffy.Extensions.nuspec | grep -q '<dependency '; then
+            echo "::error::RecDiffy.Extensions declares a dependency. It must declare none."
+            exit 1
+          fi
 
       - name: Check that each symbol package finds the source at this commit (#49)
         working-directory: .

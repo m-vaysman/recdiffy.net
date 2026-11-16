@@ -10,5 +10,7 @@
     <Project Path="src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj" />
     <Project Path="src/RecDiffy.IO/RecDiffy.IO.csproj" />
     <Project Path="src/RecDiffy.IO.Tests/RecDiffy.IO.Tests.csproj" />
+    <Project Path="src/RecDiffy.Extensions/RecDiffy.Extensions.csproj" />
+    <Project Path="src/RecDiffy.Extensions.Tests/RecDiffy.Extensions.Tests.csproj" />
   </Folder>
 </Solution>
