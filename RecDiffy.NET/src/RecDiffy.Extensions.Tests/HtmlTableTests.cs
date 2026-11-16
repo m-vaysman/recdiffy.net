@@ -18,7 +18,7 @@ public sealed class HtmlTableTests
         var html = Samples.OmsBroker().ToSummaryHtml(caption: "OMS vs broker");
 
         Assert.StartsWith(
-            "<table class=\"rec\"><caption>OMS vs broker</caption><thead><tr><th>Group</th><th>Status</th><th>Shape</th><th>Left</th><th>Right</th><th>Diffs</th></tr></thead><tbody>",
+            "<table class=\"rec\"><caption>OMS vs broker</caption><thead><tr><th class=\"num\">Group</th><th>Status</th><th>Shape</th><th>Left</th><th>Right</th><th>Diffs</th></tr></thead><tbody>",
             html,
             StringComparison.Ordinal);
         Assert.EndsWith("</tbody></table>", html, StringComparison.Ordinal);
@@ -35,8 +35,8 @@ public sealed class HtmlTableTests
         Assert.Equal(6, Count(html, "<tr class=\"orphan\">"));
         Assert.Contains("<span class=\"pill\">✅ Exact</span>", html, StringComparison.Ordinal);
         Assert.Contains("<span class=\"pill\">🔴 Break</span>", html, StringComparison.Ordinal);
-        Assert.Contains("<span class=\"pill\">⬅️ LeftOnly</span>", html, StringComparison.Ordinal);
-        Assert.Contains("<span class=\"pill\">➡️ RightOnly</span>", html, StringComparison.Ordinal);
+        Assert.Contains("<span class=\"pill\">← LeftOnly</span>", html, StringComparison.Ordinal);
+        Assert.Contains("<span class=\"pill\">→ RightOnly</span>", html, StringComparison.Ordinal);
     }
 
     [Fact]
