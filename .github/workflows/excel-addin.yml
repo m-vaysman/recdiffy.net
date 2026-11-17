@@ -15,9 +15,11 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 env:
   INSTALLER_VERSION: 0.1.${{ github.run_number }}
+  SIGN_ARTIFACTS: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
 
 jobs:
   build:
@@ -40,6 +42,210 @@ jobs:
 
       - name: Test
         run: dotnet test RecDiffy.ExcelAddIn/RecDiffy.ExcelAddIn.slnx -c Release --no-build
+
+      - name: Check Artifact Signing settings
+        if: env.SIGN_ARTIFACTS == 'true'
+        shell: pwsh
+        env:
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          ARTIFACT_SIGNING_ENDPOINT: ${{ vars.ARTIFACT_SIGNING_ENDPOINT }}
+          ARTIFACT_SIGNING_ACCOUNT: ${{ vars.ARTIFACT_SIGNING_ACCOUNT }}
+          ARTIFACT_SIGNING_PROFILE: ${{ vars.ARTIFACT_SIGNING_PROFILE }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $missing = @(
+            'AZURE_CLIENT_ID',
+            'AZURE_TENANT_ID',
+            'AZURE_SUBSCRIPTION_ID',
+            'ARTIFACT_SIGNING_ENDPOINT',
+            'ARTIFACT_SIGNING_ACCOUNT',
+            'ARTIFACT_SIGNING_PROFILE'
+          ) | Where-Object { [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($_)) }
+          if ($missing) {
+            throw "Signing $($env:GITHUB_REF) requires repository variables: $($missing -join ', ')."
+          }
+
+      - name: Sign in to Azure
+        if: env.SIGN_ARTIFACTS == 'true'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install signtool and the Artifact Signing dlib
+        id: signing-tools
+        if: env.SIGN_ARTIFACTS == 'true'
+        shell: pwsh
+        env:
+          ARTIFACT_SIGNING_ENDPOINT: ${{ vars.ARTIFACT_SIGNING_ENDPOINT }}
+          ARTIFACT_SIGNING_ACCOUNT: ${{ vars.ARTIFACT_SIGNING_ACCOUNT }}
+          ARTIFACT_SIGNING_PROFILE: ${{ vars.ARTIFACT_SIGNING_PROFILE }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $runtimes = & dotnet --list-runtimes
+          if ($runtimes -notmatch 'Microsoft\.NETCore\.App ([89]|1[0-9])\.') {
+            throw 'Azure.CodeSigning.Dlib needs the .NET 8 runtime, or a later major via roll-forward. None was found.'
+          }
+
+          $root = Join-Path $env:RUNNER_TEMP 'artifact-signing'
+          New-Item -ItemType Directory -Force -Path $root | Out-Null
+          $nuget = Join-Path $root 'nuget.exe'
+          Invoke-WebRequest -Uri 'https://dist.nuget.org/win-x86-commandline/v6.14.0/nuget.exe' -OutFile $nuget
+
+          $sdkOut = Join-Path $root 'sdk'
+          & $nuget install Microsoft.Windows.SDK.BuildTools -Version 10.0.26100.4188 -OutputDirectory $sdkOut -ExcludeVersion -Verbosity quiet
+          if ($LASTEXITCODE -ne 0) { throw "nuget install Microsoft.Windows.SDK.BuildTools failed with exit code $LASTEXITCODE." }
+
+          $dlibOut = Join-Path $root 'dlib'
+          & $nuget install Microsoft.ArtifactSigning.Client -Version 1.0.128 -OutputDirectory $dlibOut -ExcludeVersion -Verbosity quiet
+          if ($LASTEXITCODE -ne 0) { throw "nuget install Microsoft.ArtifactSigning.Client failed with exit code $LASTEXITCODE." }
+
+          $signTool = Get-ChildItem -Path $sdkOut -Recurse -Filter signtool.exe |
+            Where-Object { $_.Directory.Name -eq 'x64' } |
+            Select-Object -First 1
+          if (-not $signTool) { throw 'x64 signtool.exe was not found in Microsoft.Windows.SDK.BuildTools.' }
+
+          $dlib = Get-ChildItem -Path $dlibOut -Recurse -Filter Azure.CodeSigning.Dlib.dll |
+            Where-Object { $_.Directory.Name -eq 'x64' } |
+            Select-Object -First 1
+          if (-not $dlib) { throw 'x64 Azure.CodeSigning.Dlib.dll was not found in Microsoft.ArtifactSigning.Client.' }
+
+          $metadataPath = Join-Path $root 'metadata.json'
+          $metadata = [ordered]@{
+            Endpoint = $env:ARTIFACT_SIGNING_ENDPOINT
+            CodeSigningAccountName = $env:ARTIFACT_SIGNING_ACCOUNT
+            CertificateProfileName = $env:ARTIFACT_SIGNING_PROFILE
+            CorrelationId = "gha-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+            ExcludeCredentials = @(
+              'EnvironmentCredential',
+              'WorkloadIdentityCredential',
+              'ManagedIdentityCredential',
+              'SharedTokenCacheCredential',
+              'VisualStudioCredential',
+              'VisualStudioCodeCredential',
+              'AzurePowerShellCredential',
+              'AzureDeveloperCliCredential',
+              'InteractiveBrowserCredential'
+            )
+          }
+          $json = $metadata | ConvertTo-Json -Depth 5
+          [System.IO.File]::WriteAllText($metadataPath, $json)
+
+          $signScript = Join-Path $root 'sign.ps1'
+          $signScriptBody = @'
+          $ErrorActionPreference = 'Stop'
+          $files = $env:FILES -split "[`r`n]+" | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+          if (-not $files) { throw 'No files were passed to sign.' }
+          $paths = foreach ($file in $files) {
+            $path = if ([System.IO.Path]::IsPathRooted($file)) { $file } else { Join-Path $env:GITHUB_WORKSPACE $file }
+            if (-not (Test-Path -LiteralPath $path)) { throw "File to sign was not found: $path" }
+            $path
+          }
+          & $env:SIGNTOOL sign /v /fd SHA256 /tr http://timestamp.acs.microsoft.com /td SHA256 /dlib $env:DLIB /dmdf $env:METADATA @paths
+          if ($LASTEXITCODE -ne 0) { throw "signtool sign failed with exit code $LASTEXITCODE." }
+          foreach ($path in $paths) {
+            & $env:SIGNTOOL verify /pa /v $path
+            if ($LASTEXITCODE -ne 0) { throw "signtool verify failed for $path with exit code $LASTEXITCODE." }
+            $signature = Get-AuthenticodeSignature -LiteralPath $path
+            if ($signature.Status -ne 'Valid') {
+              throw "Authenticode status for $path is $($signature.Status): $($signature.StatusMessage)"
+            }
+            if (-not $signature.TimeStamperCertificate) {
+              throw "Signature for $path has no RFC3161 timestamp."
+            }
+            Write-Host "Valid signature: $path"
+          }
+          '@
+          Set-Content -LiteralPath $signScript -Value $signScriptBody -Encoding utf8NoBOM
+
+          Add-Content -Path $env:GITHUB_OUTPUT -Encoding utf8NoBOM -Value @(
+            "signtool=$($signTool.FullName)",
+            "dlib=$($dlib.FullName)",
+            "metadata=$metadataPath",
+            "sign_script=$signScript"
+          )
+
+      - name: Sign the packed add-ins
+        if: env.SIGN_ARTIFACTS == 'true'
+        shell: pwsh
+        env:
+          SIGNTOOL: ${{ steps.signing-tools.outputs.signtool }}
+          DLIB: ${{ steps.signing-tools.outputs.dlib }}
+          METADATA: ${{ steps.signing-tools.outputs.metadata }}
+          SIGN_SCRIPT: ${{ steps.signing-tools.outputs.sign_script }}
+          FILES: |
+            RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/RecDiffy.ExcelAddIn-AddIn64-packed.xll
+            RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/RecDiffy.ExcelAddIn-AddIn-packed.xll
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:SIGN_SCRIPT
+
+      - name: Rebuild the installer from the signed add-ins
+        if: env.SIGN_ARTIFACTS == 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $publish = Join-Path $env:GITHUB_WORKSPACE 'RecDiffy.ExcelAddIn\src\RecDiffy.ExcelAddIn\bin\Release\net10.0-windows\publish'
+          $names = @(
+            'RecDiffy.ExcelAddIn-AddIn64-packed.xll',
+            'RecDiffy.ExcelAddIn-AddIn-packed.xll'
+          )
+          $saved = Join-Path $env:RUNNER_TEMP 'signed-xll'
+          New-Item -ItemType Directory -Force -Path $saved | Out-Null
+          $hashes = @{}
+          foreach ($name in $names) {
+            $path = Join-Path $publish $name
+            if (-not (Test-Path -LiteralPath $path)) { throw "Packed add-in not found: $path" }
+            Copy-Item -LiteralPath $path -Destination (Join-Path $saved $name) -Force
+            $hashes[$name] = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
+          }
+
+          $wixDir = Join-Path $env:GITHUB_WORKSPACE 'RecDiffy.ExcelAddIn\src\RecDiffy.ExcelAddIn.Installer'
+          $wixproj = Join-Path $wixDir 'RecDiffy.ExcelAddIn.Installer.wixproj'
+
+          function Build-Installer {
+            foreach ($folder in @('bin', 'obj')) {
+              $path = Join-Path $wixDir $folder
+              if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force }
+            }
+            & dotnet build $wixproj -c Release -warnaserror "-p:InstallerVersion=$env:INSTALLER_VERSION" "-p:BuildProjectReferences=false"
+            if ($LASTEXITCODE -ne 0) { throw "Installer rebuild failed with exit code $LASTEXITCODE." }
+          }
+
+          function Test-SignedXllsUntouched {
+            foreach ($name in $names) {
+              $hash = (Get-FileHash -LiteralPath (Join-Path $publish $name) -Algorithm SHA256).Hash
+              if ($hash -ne $hashes[$name]) { return $false }
+            }
+            return $true
+          }
+
+          Build-Installer
+          if (-not (Test-SignedXllsUntouched)) {
+            foreach ($name in $names) {
+              Copy-Item -LiteralPath (Join-Path $saved $name) -Destination (Join-Path $publish $name) -Force
+            }
+            Build-Installer
+            if (-not (Test-SignedXllsUntouched)) {
+              throw 'Rebuilding the installer overwrote the signed .xll files, so the MSI would contain unsigned add-ins.'
+            }
+          }
+
+      - name: Sign the installer
+        if: env.SIGN_ARTIFACTS == 'true'
+        shell: pwsh
+        env:
+          SIGNTOOL: ${{ steps.signing-tools.outputs.signtool }}
+          DLIB: ${{ steps.signing-tools.outputs.dlib }}
+          METADATA: ${{ steps.signing-tools.outputs.metadata }}
+          SIGN_SCRIPT: ${{ steps.signing-tools.outputs.sign_script }}
+          FILES: RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn.Installer/bin/Release/RecDiffy.ExcelAddIn.msi
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:SIGN_SCRIPT
 
       - name: Upload the packed add-ins
         uses: actions/upload-artifact@v7
@@ -78,7 +284,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          notes="Version $INSTALLER_VERSION of the RecDiffy Excel add-in installer, built from ${GITHUB_SHA::7} on main. It's replaced each time the add-in changes on main. It isn't signed yet, so Windows asks before it runs it. To install it, see $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/main/RecDiffy.ExcelAddIn#install"
+          notes="Version $INSTALLER_VERSION of the RecDiffy Excel add-in installer, built from ${GITHUB_SHA::7} on main. It's replaced each time the add-in changes on main. It's Authenticode-signed (SHA256, RFC3161 timestamp). To install it, see $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/main/RecDiffy.ExcelAddIn#install"
           if gh release view excel-addin > /dev/null 2>&1; then
             gh release upload excel-addin installer/RecDiffy.ExcelAddIn.msi --clobber
             gh release edit excel-addin --notes "$notes"
