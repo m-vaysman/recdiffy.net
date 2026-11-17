@@ -38,7 +38,7 @@ internal static class MatchKeys
             };
 
     // A profile never compiles with a scale outside 0..28. A declaration built by hand still gets the text it got before.
-    private static string Format(int scale) => scale is >= 0 and <= 28 ? FixedPoint[scale] : "F" + scale;
+    private static string Format(int scale) => scale is >= 0 and <= 28 ? FixedPoint[scale] : "F" + scale.ToInvariant();
 
     // The form a person reads (#338, R2): each key field by its value, joined with a middle dot, and no scheme. The join is
     // display only, so a value that holds the separator itself is shown as written. A missing field has no value form.
