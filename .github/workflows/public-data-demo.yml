@@ -61,6 +61,9 @@ jobs:
     needs: gate
     if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     steps:
       - name: Check out
         uses: actions/checkout@v7
@@ -89,6 +92,21 @@ jobs:
           sed -i "s|<base href=\"/\" />|<base href=\"$base\" />|" site/try/index.html
           grep -q "<base href=\"$base\" />" site/try/index.html
           touch site/.nojekyll
+
+      # The newest mutation score from main's nightly mutation workflow: badge.json for the README's shields.io
+      # badge, and the Stryker reports. A run without a score (an area did not finish) is skipped for the one before.
+      - name: Add the latest mutation score
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for id in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow mutation.yml --branch main --status success --limit 10 --json databaseId --jq '.[].databaseId'); do
+            if gh run download "$id" --repo "$GITHUB_REPOSITORY" --name mutation-score --dir site/mutation && [ -f site/mutation/badge.json ]; then
+              echo "Mutation score from run $id: $(cat site/mutation/badge.json)"
+              exit 0
+            fi
+            rm -rf site/mutation
+          done
+          echo "No mutation score yet."
 
       - name: Upload the page
         uses: actions/upload-pages-artifact@v5

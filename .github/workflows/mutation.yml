@@ -1,5 +1,10 @@
 # T4 (#312): Nightly Stryker.NET mutation testing on Matching, Consolidation, Diff, and ProfileCompiler.
 # Informational only — runs off the PR path and never fails the workflow.
+#
+# One job per area, so each gets a runner's full time limit: the four areas together did not finish in two
+# hours. The score job combines the four reports into one mutation score, written as a shields.io endpoint
+# badge with the HTML reports. The public data demo's Pages build publishes the latest successful one under
+# /mutation/.
 name: Mutation Testing
 
 on:
@@ -12,10 +17,22 @@ permissions:
 
 jobs:
   mutate:
-    name: Stryker.NET
+    name: Stryker.NET (${{ matrix.area }})
     runs-on: ubuntu-latest
     continue-on-error: true
-    timeout-minutes: 120
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - area: matching
+            mutate: "Matching/**/*.cs"
+          - area: consolidation
+            mutate: "Consolidation/**/*.cs"
+          - area: diff
+            mutate: "Diff/**/*.cs"
+          - area: compiler
+            mutate: "Profile/ProfileCompiler.cs"
     defaults:
       run:
         working-directory: RecDiffy.NET
@@ -53,12 +70,11 @@ jobs:
             --project "RecDiffy.csproj" \
             --test-project "../RecDiffy.Tests/RecDiffy.Tests.csproj" \
             --target-framework net10.0 \
-            --mutate "Matching/**/*.cs" \
-            --mutate "Consolidation/**/*.cs" \
-            --mutate "Diff/**/*.cs" \
-            --mutate "Profile/ProfileCompiler.cs" \
+            --mutate "${{ matrix.mutate }}" \
+            --concurrency 4 \
             --reporter html \
             --reporter json \
+            --reporter progress \
             --reporter cleartext \
             --output "../../StrykerOutput"
 
@@ -67,6 +83,67 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
-          name: stryker-mutation-report
-          path: RecDiffy.NET/StrykerOutput/**
+          name: stryker-${{ matrix.area }}
+          path: RecDiffy.NET/StrykerOutput/reports/**
+          if-no-files-found: ignore
+
+  score:
+    name: Mutation score
+    needs: mutate
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the area reports
+        uses: actions/download-artifact@v8
+        with:
+          pattern: stryker-*
+          path: reports
+
+      # Stryker's own definition: detected (Killed, Timeout) over detected plus undetected (Survived, NoCoverage).
+      # The badge is written only when all four areas reported, so a partial run never publishes a partial score.
+      - name: Combine the reports into one score
+        run: |
+          mkdir -p mutation
+          node - <<'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          const areas = ['matching', 'consolidation', 'diff', 'compiler'];
+          const counts = { Killed: 0, Timeout: 0, Survived: 0, NoCoverage: 0 };
+          const rows = [];
+          const missing = areas.filter(area => !fs.existsSync(path.join('reports', `stryker-${area}`, 'mutation-report.json')));
+          if (missing.length > 0) { console.log(`No report for ${missing.join(', ')}: no score this run.`); process.exit(0); }
+          for (const area of areas) {
+            const file = path.join('reports', `stryker-${area}`, 'mutation-report.json');
+            const report = JSON.parse(fs.readFileSync(file, 'utf8'));
+            const area_counts = { Killed: 0, Timeout: 0, Survived: 0, NoCoverage: 0 };
+            for (const result of Object.values(report.files))
+              for (const mutant of result.mutants)
+                if (mutant.status in area_counts) area_counts[mutant.status]++;
+            for (const key of Object.keys(counts)) counts[key] += area_counts[key];
+            const detected = area_counts.Killed + area_counts.Timeout;
+            const valid = detected + area_counts.Survived + area_counts.NoCoverage;
+            rows.push({ area, detected, valid, score: valid ? (100 * detected) / valid : 0 });
+            fs.mkdirSync(path.join('mutation', area), { recursive: true });
+            fs.copyFileSync(path.join('reports', `stryker-${area}`, 'mutation-report.html'), path.join('mutation', area, 'index.html'));
+          }
+          const detected = counts.Killed + counts.Timeout;
+          const valid = detected + counts.Survived + counts.NoCoverage;
+          const score = valid ? (100 * detected) / valid : 0;
+          const color = score >= 80 ? 'brightgreen' : score >= 60 ? 'yellow' : 'red';
+          fs.writeFileSync('mutation/badge.json', JSON.stringify({ schemaVersion: 1, label: 'mutation score', message: `${score.toFixed(1)}%`, color }));
+          const list = rows.map(row => `<tr><td><a href="${row.area}/">${row.area}</a></td><td>${row.detected} of ${row.valid}</td><td>${row.score.toFixed(1)}%</td></tr>`).join('');
+          fs.writeFileSync('mutation/index.html', `<!doctype html><meta charset="utf-8"><title>RecDiffy.NET mutation score</title>
+          <style>body{font:15px system-ui,sans-serif;margin:32px;color:#1f2937}td,th{padding:6px 14px;border-bottom:1px solid #e2e8f0;text-align:left}</style>
+          <h1>Mutation score: ${score.toFixed(1)}%</h1>
+          <p>Stryker.NET changes the engine's code one small edit at a time, and checks that a test fails each time. Detected mutants were caught by a test (killed) or made it hang (timeout); the rest survived or were not covered.</p>
+          <table><tr><th>Area</th><th>Detected</th><th>Score</th></tr>${list}</table>
+          <p>Generated by the nightly mutation workflow of <a href="https://github.com/m-vaysman/recdiffy.net">RecDiffy.NET</a>.</p>`);
+          console.log(`Mutation score ${score.toFixed(1)}% (${detected} of ${valid})`);
+          EOF
+
+      - name: Upload the score and reports
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-score
+          path: mutation/**
           if-no-files-found: ignore
