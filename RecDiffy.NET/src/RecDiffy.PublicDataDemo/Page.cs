@@ -45,6 +45,8 @@ internal static class Page
             header h1 { margin: 0; font-size: 26px; letter-spacing: -0.01em; }
             header p { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
             header a { color: var(--accent); }
+            header p.try { margin-top: 10px; color: var(--ink); }
+            header p.try a { font-weight: 600; }
             main { margin-top: 22px; }
             input[name="tab"] { position: absolute; opacity: 0; pointer-events: none; }
             label { display: inline-block; padding: 9px 16px; margin-right: 4px; border: 1px solid var(--line); border-bottom: 0;
@@ -74,6 +76,7 @@ internal static class Page
             <p>Every business day, <a href="https://github.com/m-vaysman/recdiffy.net">RecDiffy.NET</a> reconciles two pairs of public datasets that
             should agree, and shows what ties, what doesn't, and why. Grids labelled with a call, such as <code>result.ToMatchTable()</code>, are
             tables the engine's result returns through RecDiffy.Extensions; the others are built from the same results.</p>
+            <p class="try"><a href="try/">Try it with your own files</a>: reconcile two CSV or Excel files in your browser. Nothing is uploaded.</p>
             </header>
             <main>
             {{inputs}}
