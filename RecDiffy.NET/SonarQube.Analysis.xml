@@ -9,7 +9,7 @@
                              xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
   <!-- Docs, fixtures, logos, and reference workbooks are not product source. -->
   <Property Name="sonar.exclusions">**/docs/**,**/resources/**,**/test-data/**,**/*.xlsx</Property>
-  <!-- Samples / benchmarks / AOT host / tests should not drag down coverage. -->
-  <Property Name="sonar.coverage.exclusions">**/RecDiffy.Samples/**,**/RecDiffy.Benchmarks/**,**/RecDiffy.AotHost/**,**/RecDiffy.Tests/**,**/RecDiffy.Excel.Tests/**,**/docs/**</Property>
+  <!-- Samples / benchmarks / AOT host / demo apps / tests should not drag down coverage. -->
+  <Property Name="sonar.coverage.exclusions">**/RecDiffy.Samples/**,**/RecDiffy.Benchmarks/**,**/RecDiffy.AotHost/**,**/RecDiffy.PublicDataDemo/**,**/RecDiffy.BrowserDemo/**,**/RecDiffy.Tests/**,**/RecDiffy.Excel.Tests/**,**/docs/**</Property>
   <Property Name="sonar.cpd.exclusions">**/RecDiffy.Samples/**,**/RecDiffy.Benchmarks/**</Property>
 </SonarQubeAnalysisProperties>

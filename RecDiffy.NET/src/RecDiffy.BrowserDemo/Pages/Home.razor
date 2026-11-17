@@ -184,7 +184,10 @@
     {
         try
         {
+            // Not an HTTP request: the visitor's own file is read inside the browser tab, and there is no server to protect.
+#pragma warning disable S5693
             await using var stream = e.File.OpenReadStream(MaxFileBytes);
+#pragma warning restore S5693
             using var buffer = new MemoryStream();
             await stream.CopyToAsync(buffer);
             var file = LoadedFile.Read(e.File.Name, buffer.ToArray());

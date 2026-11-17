@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using RecDiffy;
 using RecDiffy.PublicDataDemo;
 
@@ -10,8 +11,7 @@ var now = clock.GetUtcNow();
 var today = DateOnly.FromDateTime(now.UtcDateTime);
 var from = today.AddDays(-days);
 
-using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
-http.DefaultRequestHeaders.UserAgent.ParseAdd("RecDiffy-PublicDataDemo/1.0");
+var http = SharedHttp.Client;
 
 // FINRA: newest day first, so the first day found is the one the tab shows in full.
 var finraRuns = new List<FinraRun>();
@@ -51,4 +51,17 @@ Tab[] tabs =
 Directory.CreateDirectory(output);
 await File.WriteAllTextAsync(Path.Combine(output, "index.html"), Page.Render(tabs, now)).ConfigureAwait(false);
 Console.WriteLine($"Wrote {Path.GetFullPath(Path.Combine(output, "index.html"))}");
+
+namespace RecDiffy.PublicDataDemo
+{
+    /// <summary>The one HttpClient every download in the run shares.</summary>
+    internal static class SharedHttp
+    {
+        public static readonly HttpClient Client = new()
+        {
+            Timeout = TimeSpan.FromSeconds(60),
+            DefaultRequestHeaders = { UserAgent = { new ProductInfoHeaderValue("RecDiffy-PublicDataDemo", "1.0") } },
+        };
+    }
+}
 

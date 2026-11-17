@@ -52,7 +52,7 @@ public sealed record LoadedFile(string Name, byte[] Bytes, ExcelFormat? Excel, T
     };
 
     /// <summary>True when every non-blank sampled value in the column reads as a number.</summary>
-    public bool IsNumeric(string column) => Values(column) is { Count: > 0 } values && values.All(value => Number(value) is not null);
+    public bool IsNumeric(string column) => Values(column) is { Count: > 0 } values && values.TrueForAll(value => Number(value) is not null);
 
     /// <summary>The most decimal places any sampled value in the column has.</summary>
     public int Decimals(string column) => Values(column).Select(Number).Max(number => number?.Scale ?? 0);

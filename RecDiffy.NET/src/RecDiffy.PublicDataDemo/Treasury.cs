@@ -33,6 +33,8 @@ internal static class Treasury
 {
     private const string Api = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/";
 
+    private static readonly string[] ComparedFields = ["Net", "Intragovernmental", "Public"];
+
     /// <summary>Each of the statement's 23 lines is rounded to the nearest million, so a day's sum can be off by up to $11.5M.</summary>
     public const decimal Tolerance = 12m;
 
@@ -187,7 +189,7 @@ internal static class Treasury
     /// <summary>For each compared field, how many matched days were exact, within tolerance or a break.</summary>
     public static ImmutableArray<(string Field, int Exact, int WithinTolerance, int Break)> FieldOutcomes(RecResult<DtsDay, DebtChange> result) =>
     [
-        .. new[] { "Net", "Intragovernmental", "Public" }.Select(field =>
+        .. ComparedFields.Select(field =>
         {
             var outcomes = result.Matched
                 .SelectMany(match => match.Diffs)
@@ -210,9 +212,12 @@ internal static class Treasury
     {
         using var response = await http.GetAsync(new Uri(Api + path), cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
-        using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
-        using var rows = document.RootElement.GetProperty("data").EnumerateArray();
-        return [.. rows.Select(row => row.Clone())];
+        var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        await using (stream.ConfigureAwait(false))
+        {
+            using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+            using var rows = document.RootElement.GetProperty("data").EnumerateArray();
+            return [.. rows.Select(row => row.Clone())];
+        }
     }
 }
