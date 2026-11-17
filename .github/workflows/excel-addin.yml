@@ -19,7 +19,7 @@ permissions:
 
 env:
   INSTALLER_VERSION: 0.1.${{ github.run_number }}
-  SIGN_ARTIFACTS: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
+  SIGN_ARTIFACTS: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
 jobs:
   build:
@@ -137,8 +137,11 @@ jobs:
           $signScript = Join-Path $root 'sign.ps1'
           $signScriptBody = @'
           $ErrorActionPreference = 'Stop'
-          $files = $env:FILES -split "[`r`n]+" | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-          if (-not $files) { throw 'No files were passed to sign.' }
+          $files = @($env:FILES -split "[`r`n]+" | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+          $expected = [int]$env:EXPECTED_COUNT
+          if ($files.Count -ne $expected) {
+            throw "Expected $expected file(s) to sign, got $($files.Count)."
+          }
           $paths = foreach ($file in $files) {
             $path = if ([System.IO.Path]::IsPathRooted($file)) { $file } else { Join-Path $env:GITHUB_WORKSPACE $file }
             if (-not (Test-Path -LiteralPath $path)) { throw "File to sign was not found: $path" }
@@ -176,6 +179,7 @@ jobs:
           DLIB: ${{ steps.signing-tools.outputs.dlib }}
           METADATA: ${{ steps.signing-tools.outputs.metadata }}
           SIGN_SCRIPT: ${{ steps.signing-tools.outputs.sign_script }}
+          EXPECTED_COUNT: 2
           FILES: |
             RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/RecDiffy.ExcelAddIn-AddIn64-packed.xll
             RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/RecDiffy.ExcelAddIn-AddIn-packed.xll
@@ -223,6 +227,32 @@ jobs:
             return $true
           }
 
+          function Assert-MsiEmbedsSignedAddIns {
+            $msiPath = Join-Path $wixDir 'bin\Release\RecDiffy.ExcelAddIn.msi'
+            if (-not (Test-Path -LiteralPath $msiPath)) {
+              throw "Installer was not produced: $msiPath"
+            }
+            $extract = Join-Path $env:RUNNER_TEMP ('msi-layout-' + [guid]::NewGuid().ToString('n'))
+            New-Item -ItemType Directory -Force -Path $extract | Out-Null
+            $target = (Resolve-Path -LiteralPath $extract).Path.TrimEnd('\') + '\\'
+            $msiFull = (Resolve-Path -LiteralPath $msiPath).Path
+            & "$env:SystemRoot\System32\msiexec.exe" /a $msiFull /qn "TARGETDIR=$target"
+            if ($LASTEXITCODE -ne 0) {
+              throw "Reading the MSI layout failed. msiexec exit code $LASTEXITCODE."
+            }
+            foreach ($name in $names) {
+              $embedded = @(Get-ChildItem -LiteralPath $extract -Recurse -File -Filter $name)
+              if ($embedded.Count -ne 1) {
+                throw "Expected one copy of $name inside the MSI. Found $($embedded.Count)."
+              }
+              $hash = (Get-FileHash -LiteralPath $embedded[0].FullName -Algorithm SHA256).Hash
+              if ($hash -ne $hashes[$name]) {
+                throw "The MSI does not embed the signed $name. Expected hash $($hashes[$name]), found $hash."
+              }
+              Write-Host "MSI embeds the signed $name ($hash)."
+            }
+          }
+
           Build-Installer
           if (-not (Test-SignedXllsUntouched)) {
             foreach ($name in $names) {
@@ -233,6 +263,7 @@ jobs:
               throw 'Rebuilding the installer overwrote the signed .xll files, so the MSI would contain unsigned add-ins.'
             }
           }
+          Assert-MsiEmbedsSignedAddIns
 
       - name: Sign the installer
         if: env.SIGN_ARTIFACTS == 'true'
@@ -242,16 +273,33 @@ jobs:
           DLIB: ${{ steps.signing-tools.outputs.dlib }}
           METADATA: ${{ steps.signing-tools.outputs.metadata }}
           SIGN_SCRIPT: ${{ steps.signing-tools.outputs.sign_script }}
+          EXPECTED_COUNT: 1
           FILES: RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn.Installer/bin/Release/RecDiffy.ExcelAddIn.msi
         run: |
           $ErrorActionPreference = 'Stop'
           & $env:SIGN_SCRIPT
 
+      - name: Require both add-ins and the installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = @(
+            'RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/RecDiffy.ExcelAddIn-AddIn64-packed.xll',
+            'RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/RecDiffy.ExcelAddIn-AddIn-packed.xll',
+            'RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn.Installer/bin/Release/RecDiffy.ExcelAddIn.msi'
+          )
+          foreach ($file in $files) {
+            $path = Join-Path $env:GITHUB_WORKSPACE $file
+            if (-not (Test-Path -LiteralPath $path)) { throw "Required build output is missing: $path" }
+          }
+
       - name: Upload the packed add-ins
         uses: actions/upload-artifact@v7
         with:
           name: recdiffy-excel-addin
-          path: RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/*-packed.xll
+          path: |
+            RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/RecDiffy.ExcelAddIn-AddIn64-packed.xll
+            RecDiffy.ExcelAddIn/src/RecDiffy.ExcelAddIn/bin/Release/net10.0-windows/publish/RecDiffy.ExcelAddIn-AddIn-packed.xll
           if-no-files-found: error
 
       - name: Upload the installer
@@ -262,7 +310,7 @@ jobs:
           if-no-files-found: error
 
   publish:
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -284,7 +332,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          notes="Version $INSTALLER_VERSION of the RecDiffy Excel add-in installer, built from ${GITHUB_SHA::7} on main. It's replaced each time the add-in changes on main. It's Authenticode-signed (SHA256, RFC3161 timestamp). To install it, see $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/main/RecDiffy.ExcelAddIn#install"
+          notes="Version $INSTALLER_VERSION of the RecDiffy Excel add-in installer, built from ${GITHUB_SHA::7} on a push to main. It's replaced each time the add-in changes on main. It's Authenticode-signed (SHA256, RFC3161 timestamp). To install it, see $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/main/RecDiffy.ExcelAddIn#install"
           if gh release view excel-addin > /dev/null 2>&1; then
             gh release upload excel-addin installer/RecDiffy.ExcelAddIn.msi --clobber
             gh release edit excel-addin --notes "$notes"
