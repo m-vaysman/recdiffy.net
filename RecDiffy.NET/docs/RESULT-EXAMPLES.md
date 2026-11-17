@@ -157,7 +157,7 @@ So a side-by-side total isn't a file total. Read it with the summary, which says
 
 ## Bins against a book
 
-The bins and book from the [README's quickstart](../../README.md#quickstart-your-first-reconciliation). A group pass matches several bins to one book position by SKU, and a natural-key pass then pairs what is left.
+The bins and book from the [README's profile example](../../README.md#reconcile-two-csv-files-with-a-profile). A group pass matches several bins to one book position by SKU, and a natural-key pass then pairs what is left.
 
 ```text
 Matched    ManyToOne  Exact            A1 A2 | BOOK-1

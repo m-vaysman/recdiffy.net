@@ -1,91 +1,439 @@
-<p align="center">
-  <img alt="RecDiffy.NET" src="RecDiffy.NET/resources/logos/columns-dark.jpg" width="640" />
-</p>
+<p align="center"><img alt="RecDiffy.NET" src="RecDiffy.NET/resources/logos/columns-dark.jpg" width="240" /></p>
 
-# RecDiffy.NET
-
-[![NuGet](https://img.shields.io/nuget/vpre/RecDiffy?label=NuGet)](https://www.nuget.org/packages/RecDiffy)
-[![CI](https://github.com/m-vaysman/recdiffy.net/actions/workflows/ci.yml/badge.svg)](https://github.com/m-vaysman/recdiffy.net/actions/workflows/ci.yml)
+[![NuGet](https://img.shields.io/nuget/vpre/RecDiffy?label=NuGet)](https://www.nuget.org/packages/RecDiffy) [![CI](https://github.com/m-vaysman/recdiffy.net/actions/workflows/ci.yml/badge.svg)](https://github.com/m-vaysman/recdiffy.net/actions/workflows/ci.yml)
 [![Quality Gate](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=alert_status)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Coverage](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=coverage)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Bugs](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=bugs)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Vulnerabilities](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=vulnerabilities)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Code Smells](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=code_smells)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Maintainability](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=sqale_rating)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net) [![Security](https://sonar.cobblerhill.net/api/project_badges/measure?project=m-vaysman_recdiffy.net&metric=security_rating)](https://sonar.cobblerhill.net/dashboard?id=m-vaysman_recdiffy.net)
 [![Benchmarks](https://img.shields.io/badge/benchmarks-Bencher-0b7285)](https://bench.cobblerhill.net/perf/recdiffy)
 [![Test report](https://img.shields.io/badge/tests-Allure-ff6a00)](https://recdiffytests.cobblerhill.net/allure-docker-service/projects/recdiffy/reports/latest/index.html)
 
-Reconciliation for two datasets: match every record, show every difference, and explain every unmatched row.
-
-> **Prerelease.** Every RecDiffy release is a prerelease for now, and the API may change from one preview to the next. Pin the version you build against.
-
-RecDiffy.NET is a reconciliation and diffing library for .NET. Use it when records from two systems represent the same underlying activity but differ in identifiers, formatting, or grouping—for example, warehouse bins versus book inventory, or internal trades versus broker records.
-
-A reconciliation runs through:
-
-**Normalize → Consolidate → Match → Compare → Explain**
+**RecDiffy.NET** is a reconciliation engine for .NET, for the developers behind fund and bank operations. Give it two lists, such as your blotter and the broker's confirms, and it matches every record, compares every field at the tolerance you set, and explains every row left over.
 
 Matching determines which records belong together. Comparison determines whether their field values agree.
 
-## What is reconciliation?
+A reconciliation runs through **Normalize → Consolidate → Match → Compare → Explain**.
 
-Reconciliation is the accounting and data-engineering control that proves two records of the same activity agree. A ledger and a broker statement, a warehouse count and a stock book, or two database extracts are meant to describe the same events, so every row should have a counterpart and every amount should match. Reconciling is how you find the ones that do not.
+It is the engine inside your own tools, not a workflow or audit platform. Don't write C#? The [Excel add-in](RecDiffy.ExcelAddIn/docs/USER-GUIDE.md) runs the same engine inside Excel.
 
-A reconciliation answers five questions, and RecDiffy.NET answers each one:
+---
 
-| Question | What you get |
-|---|---|
-| Which records belong together? | Matching, even when identifiers, formatting or grouping differ: one row to one row, several rows to one, or a subset that adds up. |
-| Do their values agree? | Field-by-field comparison at each declared tolerance, so `Exact`, `WithinTolerance` and `Break` are distinct outcomes. |
-| Which rows are unmatched, on which side? | Every entry is `Matched`, `LeftOnly`, `RightOnly`, `Ambiguous` or `SearchIncomplete`, and every input row has a disposition. |
-| Where is the difference, and how much of it? | Grouping, packages, lifecycle collapse and attributions, with totals and subsets that balance. |
-| Can I prove the result to someone else? | A deterministic result with a profile hash and an engine version, and Excel reports that tie every number back to the files. |
+## 1. Trade match in 60 seconds: our blotter vs broker confirms
 
-That makes it the .NET tool for data reconciliation, trade reconciliation and ledger matching, record linkage, data quality checks, and revenue or billing controls, whether the input is CSV, Excel, or your own objects in memory.
-
-## See it work: two files, two readers, one reconciliation
-
-The broker emails a CSV of confirmations. Your order system exports its blotter to Excel. Read each with any reader you like, then let `RecBuilder` line them up:
-
-![The broker's CSV and the blotter workbook side by side, with the differences highlighted](docs/typed-reconciliation/images/finance-files.svg)
+```shell
+dotnet new console -n TradeMatch && cd TradeMatch
+dotnet add package RecDiffy --prerelease
+dotnet add package RecDiffy.Extensions --prerelease
+```
 
 ```csharp
-var confirms = ReadConfirms("broker-confirms.csv");  // reader 1: Sylvan.Data.Csv
-var blotter = ReadBlotter("blotter.xlsx");           // reader 2: Sylvan.Data.Excel
+// Program.cs
+using System.Data;
+using RecDiffy;
+using RecDiffy.Extensions;
 
-var result = RecBuilder.Between(confirms, blotter)
-    .MatchOn(confirm => confirm.TradeRef, trade => trade.TradeId)
-    .ThenMatchOn(confirm => confirm.Isin, trade => trade.Isin)
-        .And(confirm => confirm.TradeDate, trade => trade.ExecutedOn)
-        .And(confirm => confirm.Side, trade => trade.BuySell)
-    .Compare(confirm => confirm.Quantity, trade => trade.Qty)
-    .Compare(confirm => confirm.Price, trade => trade.AvgPrice, tolerance: 0.0001m)
-    .Compare(confirm => confirm.NetAmount, trade => trade.NetConsideration, tolerance: 0.01m)
+Order[] orders =
+[
+    new("OMS-1042", "AAPL", 10_000, 189.2100m),
+    new("OMS-1043", "MSFT",  5_000, 411.2500m),
+    new("OMS-1044", "NVDA",  2_500, 131.4000m),
+    new("OMS-1045", "TSLA",    800, 248.1000m),
+    new("OMS-1046", "AMZN",  1_200, 201.4000m),
+    new("OMS-1047", "GOOGL",   900, 171.5500m),
+    new("OMS-1048", "JPM",   3_000, 214.3000m),
+];
+Confirm[] confirms =
+[
+    new("X9917", "AAPL",  10_000, 189.2100m),
+    new("X9918", "MSFT",   5_000, 411.2501m),
+    new("X9920", "NVDA",   2_000, 131.4000m),
+    new("X9921", "AMZN",   1_200, 201.4000m),
+    new("X9922", "GOOGL",    900, 171.5500m),
+    new("X9923", "JPM",    3_000, 214.3000m),
+    new("X9925", "F",        300,  11.0200m),
+];
+
+var trades = RecBuilder.Between(orders, confirms)
+    .MatchOn(o => o.Sec, c => c.Sec)
+    .Compare(o => o.Qty, c => c.Qty)
+    .Compare(o => o.Price, c => c.Price, tolerance: 0.0001m)
     .Run();
+
+DataTable table = trades.ToMatchTable();
+File.WriteAllText("match.html", $"<style>{DataGrid.Css}</style>{table.ToDataGridHtml()}");   // dotnet run, then open match.html
+
+record Order(string OurRef, string Sec, int Qty, decimal Price);
+record Confirm(string BrokerRef, string Sec, int Qty, decimal Price);
 ```
 
-```text
-Matched 4 (2 with breaks) | Ambiguous 0 | Left only 1 | Right only 1
+<img src="RecDiffy.NET/resources/readme/1-trade-match.png" width="944" alt="1-trade-match" />
 
-  Exact             C-1001 ↔ T-5001
-  Within tolerance  C-1002 ↔ T-5002
-                      NetAmount: 206050.00 vs 206049.99
-  Break             C-1003 ↔ T-5003
-                      Quantity: 250 vs 200
-                      NetAmount: 61450.00 vs 49160
-  Break             C-1004 ↔ T-5004
-                      TradeRef: (blank) vs T-5004
-  Left only         C-1005
-  Right only        T-5006
-```
+Every grid in this README is the `DataTable` its code returns, drawn with `ToDataGridHtml()`. The examples below add their records and code to the same `Program.cs`.
 
-Every bucket holds your own `BrokerConfirm` and `BlotterTrade` objects. RecDiffy doesn't read the files here: [Sylvan](https://github.com/MarkPflug/Sylvan) does, and any reader that gives you objects works. The [full walkthrough](docs/typed-reconciliation/README.md) covers the two readers, the mapping line by line, and examples from logistics, retail and healthcare billing.
+---
 
-When several rows on one side add up to one row on the other, add `Sum`. Three allocations of 300, 200 and 500 match one block of 1,000, whichever side holds the several rows:
+## 2. Position break report: fund books vs custodian
 
 ```csharp
-var result = RecBuilder.Between(allocations, blocks)
-    .MatchOn(allocation => allocation.Isin, block => block.Isin)
-        .And(allocation => allocation.TradeDate, block => block.TradeDate)
-    .Sum(allocation => allocation.Quantity, block => block.Quantity)
+Book[] books =
+[
+    new("Fund A", "US0378331005", 120_000, 189.21m),
+    new("Fund A", "US5949181045",  45_000, 411.25m),
+    new("Fund B", "US67066G1040",  30_000, 131.40m),
+    new("Fund C", "US0231351067",  12_400, 201.40m),
+    new("Fund C", "US02079K3059",   8_000, 171.55m),
+    new("Fund D", "US30303M1027",   4_200, 590.10m),
+    new("Fund D", "US92826C8394",   6_500, 280.00m),
+    new("Fund E", "US1912161007",  18_000,  62.40m),
+    new("Fund F", "US7427181091",   9_000, 166.80m),
+    new("Fund G", "US30231G1022",  15_000, 112.40m),
+];
+Custody[] custody =
+[
+    new("Fund A", "US0378331005", 120_000, 189.21m),
+    new("Fund A", "US5949181045",  44_500, 411.25m),
+    new("Fund B", "US67066G1040",  30_000, 131.40m),
+    new("Fund B", "US88160R1014",     800, 248.10m),
+    new("Fund C", "US0231351067",  12_400, 201.40m),
+    new("Fund C", "US02079K3059",   8_000, 171.55m),
+    new("Fund D", "US30303M1027",   4_200, 590.00m),
+    new("Fund E", "US1912161007",  18_000,  62.40m),
+    new("Fund F", "US7427181091",   9_000, 166.80m),
+    new("Fund G", "US30231G1022",  15_000, 112.40m),
+];
+
+var positions = RecBuilder.Between(books, custody)
+    .MatchOn(b => b.Fund, c => c.Fund)
+        .And(b => b.Isin, c => c.Isin)
+    .Compare(b => b.Qty, c => c.Qty)
+    .Compare(b => b.Value, c => c.Value)
     .Run();
-// result.Matched: one RecMatch, with three Left rows and one Right row.
+
+DataTable breaks = positions.ToBreakTable(["Fund", "Isin"], "Qty", "Value");
+
+record Book(string Fund, string Isin, int Qty, decimal Price)    { public decimal Value => Qty * Price; }
+record Custody(string Fund, string Isin, int Qty, decimal Price) { public decimal Value => Qty * Price; }
 ```
+
+<img src="RecDiffy.NET/resources/readme/2-break-report.png" width="485" alt="2-break-report" />
+
+---
+
+## 3. Control totals: where the gap comes from
+
+```csharp
+DataTable totals = positions.ToControlTotalsTable(["Fund"], "Value");
+```
+
+<img src="RecDiffy.NET/resources/readme/3-control-totals.png" width="689" alt="3-control-totals" />
+
+---
+
+## 4. Allocations: OMS block vs accounting (one block to many funds)
+
+```csharp
+BlockOrder[] blocks =
+[
+    new("BLK-771", "AAPL",  10_000),
+    new("BLK-772", "MSFT",   5_000),
+    new("BLK-773", "NVDA",   2_000),
+    new("BLK-774", "AMZN",   8_000),
+    new("BLK-775", "JPM",    3_000),
+    new("BLK-776", "META",   4_500),
+    new("BLK-777", "GOOGL",  6_000),
+];
+Allocation[] allocations =
+[
+    new("BLK-771", "Fund A", 6_000), new("BLK-771", "Fund B", 4_000),
+    new("BLK-772", "Fund A", 3_000), new("BLK-772", "Fund B", 1_800),
+    new("BLK-774", "Fund A", 5_000), new("BLK-774", "Fund B", 2_000), new("BLK-774", "Fund C", 1_000),
+    new("BLK-775", "Fund A", 3_000),
+    new("BLK-776", "Fund B", 2_500), new("BLK-776", "Fund C", 2_000),
+    new("BLK-777", "Fund A", 4_000), new("BLK-777", "Fund C", 2_000),
+    new("BLK-779", "Fund C",   700),
+];
+
+var alloc = RecBuilder.Between(blocks, allocations)
+    .MatchOn(b => b.Block, a => a.Block)
+    .Sum(b => b.Qty, a => a.Qty)
+    .Run();
+
+DataTable summary = alloc.ToSummaryTable(b => $"{b.Block} {b.Sec} {b.Qty:N0}", a => $"{a.Fund} {a.Qty:N0}");
+
+record BlockOrder(string Block, string Sec, int Qty);
+record Allocation(string Block, string Fund, int Qty);
+```
+
+<img src="RecDiffy.NET/resources/readme/4-allocations.png" width="708" alt="4-allocations" />
+
+---
+
+## 5. Cross trades: Fund A's sell vs Fund B's buy
+
+```csharp
+FundATrade[] fundA =
+[
+    new("AAPL",  "Sell", 1_000, 189.2100m),
+    new("MSFT",  "Sell",   500, 411.2500m),
+    new("TSLA",  "Sell",   300, 248.1000m),
+    new("AMZN",  "Sell", 2_000, 201.4000m),
+    new("NVDA",  "Sell", 1_500, 131.4000m),
+    new("JPM",   "Sell",   800, 214.3000m),
+    new("META",  "Sell",   600, 590.0000m),
+    new("GOOGL", "Sell", 1_200, 171.5500m),
+];
+FundBTrade[] fundB =
+[
+    new("AAPL",  "Buy", 1_000, 189.2100m),
+    new("MSFT",  "Buy",   500, 411.2000m),
+    new("AMZN",  "Buy", 2_000, 201.4000m),
+    new("NVDA",  "Buy", 1_500, 131.4000m),
+    new("JPM",   "Buy",   800, 214.3000m),
+    new("META",  "Buy",   600, 590.0000m),
+    new("GOOGL", "Buy", 1_000, 171.5500m),
+];
+
+var cross = RecBuilder.Between(fundA, fundB)
+    .MatchOn(a => a.Sec, b => b.Sec)
+    .Compare(a => a.Qty, b => b.Qty)
+    .Compare(a => a.Price, b => b.Price)
+    .Run();
+
+DataTable crossTable = cross.ToMatchTable();
+
+record FundATrade(string Sec, string Side, int Qty, decimal Price);
+record FundBTrade(string Sec, string Side, int Qty, decimal Price);
+```
+
+<img src="RecDiffy.NET/resources/readme/5-cross-trades.png" width="861" alt="5-cross-trades" />
+
+---
+
+## 6. Cash: our ledger vs custodian statement
+
+```csharp
+DateOnly nov2 = new(2026, 11, 2);
+
+LedgerEntry[] ledger =
+[
+    new(nov2, "USD", "9917",     "Buy AAPL",   -1_892_100.00m),
+    new(nov2, "USD", "9918",     "Sell MSFT",     205_625.00m),
+    new(nov2, "USD", "9920",     "Buy NVDA",     -262_800.00m),
+    new(nov2, "USD", "9925",     "Buy F",          -3_306.00m),
+    new(nov2, "USD", "SWEEP",    "Sweep in 1",    600_000.00m),
+    new(nov2, "USD", "SWEEP",    "Sweep in 2",    400_000.00m),
+    new(nov2, "USD", "INT-OCT",  "Interest",         1_842.17m),
+    new(nov2, "EUR", "DIV-NVDA", "Dividend",        12_480.00m),
+];
+StatementLine[] statement =
+[
+    new(nov2, "USD", "9917",     "SETT 9917",  -1_892_100.00m),
+    new(nov2, "USD", "9918",     "SETT 9918",     205_625.00m),
+    new(nov2, "USD", "9920",     "SETT 9920",    -262_800.00m),
+    new(nov2, "USD", "9925",     "SETT 9925",      -3_360.00m),
+    new(nov2, "USD", "SWEEP",    "SWEEP IN",    1_000_000.00m),
+    new(nov2, "USD", "INT-OCT",  "CREDIT INT",       1_842.17m),
+    new(nov2, "EUR", "DIV-NVDA", "DIV NVDA",        12_479.99m),
+    new(nov2, "USD", "FEE",      "BANK FEE",          -250.00m),
+];
+
+var cash = RecBuilder.Between(ledger, statement)
+    .MatchOn(l => l.Ref, s => s.Ref)
+    .Sum(l => l.Amount, s => s.Amount)
+    .Compare(l => l.Amount, s => s.Amount, tolerance: 0.01m)
+    .Run();
+
+DataTable cashTable = cash.ToMatchTable();
+
+record LedgerEntry(DateOnly ValueDate, string Ccy, string Ref, string Entry, decimal Amount);
+record StatementLine(DateOnly ValueDate, string Ccy, string Ref, string Line, decimal Amount);
+```
+
+<img src="RecDiffy.NET/resources/readme/6-cash.png" width="1222" alt="6-cash" />
+
+---
+
+## 7. Pending settlements: our unsettled trades vs custodian pending and fails
+
+```csharp
+DateOnly oct31 = new(2026, 10, 31), nov4 = new(2026, 11, 4), nov5 = new(2026, 11, 5);
+
+Unsettled[] unsettled =
+[
+    new("OMS-1042", "AAPL",  10_000, nov4),
+    new("OMS-1043", "MSFT",   5_000, nov4),
+    new("OMS-1030", "MSFT",   5_000, oct31),
+    new("OMS-1038", "NVDA",   2_500, nov4),
+    new("OMS-1039", "AMZN",   1_200, nov4),
+    new("OMS-1040", "GOOGL",    900, nov4),
+    new("OMS-1041", "JPM",    3_000, nov4),
+    new("OMS-1045", "TSLA",     800, nov4),
+];
+CustodianPending[] pending =
+[
+    new("OMS-1042", "Pending",          nov4),
+    new("OMS-1043", "Pending",          nov4),
+    new("OMS-1030", "Failed: no stock", oct31),
+    new("OMS-1038", "Pending",          nov5),
+    new("OMS-1039", "Pending",          nov4),
+    new("OMS-1040", "Pending",          nov4),
+    new("OMS-1041", "Pending",          nov4),
+    new("OMS-1029", "Pending",          oct31),
+];
+
+var settle = RecBuilder.Between(unsettled, pending)
+    .MatchOn(u => u.Trade, p => p.Trade)
+    .Compare(u => u.SettleDate, p => p.SettleDate)
+    .Run();
+
+DataTable settleTable = settle.ToMatchTable();
+
+record Unsettled(string Trade, string Sec, int Qty, DateOnly SettleDate);
+record CustodianPending(string Trade, string Status, DateOnly SettleDate);
+```
+
+<img src="RecDiffy.NET/resources/readme/7-pending-settlements.png" width="978" alt="7-pending-settlements" />
+
+---
+
+## 8. Corporate actions: expected events vs custodian entitlements
+
+```csharp
+DateOnly nov9 = new(2026, 11, 9), nov10 = new(2026, 11, 10), nov12 = new(2026, 11, 12), nov13 = new(2026, 11, 13);
+
+ExpectedEvent[] expected =
+[
+    new("Fund A", "AAPL", "Dividend", nov9,  28_800.00m),
+    new("Fund A", "V",    "Dividend", nov9,   3_575.00m),
+    new("Fund B", "NVDA", "Dividend", nov10,  1_200.00m),
+    new("Fund B", "JPM",  "Dividend", nov10,  3_450.00m),
+    new("Fund A", "MSFT", "Dividend", nov12, 33_750.00m),
+    new("Fund B", "META", "Dividend", nov12,  2_100.00m),
+    new("Fund C", "KO",   "Dividend", nov13, 14_550.00m),
+    new("Fund C", "PG",   "Dividend", nov13,  8_056.80m),
+];
+Entitlement[] entitlements =
+[
+    new("Fund A", "AAPL", "Dividend",  nov9,  28_800.00m),
+    new("Fund B", "NVDA", "Dividend",  nov10,  1_199.99m),
+    new("Fund B", "JPM",  "Dividend",  nov10,  3_450.00m),
+    new("Fund A", "MSFT", "Dividend",  nov12, 28_687.50m),
+    new("Fund B", "META", "Dividend",  nov12,  2_100.00m),
+    new("Fund C", "KO",   "Dividend",  nov13, 14_550.00m),
+    new("Fund C", "PG",   "Dividend",  nov13,  8_056.80m),
+    new("Fund B", "XYZ",  "Split 2:1", nov13,          0m),
+];
+
+var corp = RecBuilder.Between(expected, entitlements)
+    .MatchOn(e => e.Fund, n => n.Fund)
+        .And(e => e.Sec, n => n.Sec)
+        .And(e => e.Event, n => n.Event)
+    .Compare(e => e.Net, n => n.Net, tolerance: 0.01m)
+    .Run();
+
+DataTable corpTable = corp.ToMatchTable();
+
+record ExpectedEvent(string Fund, string Sec, string Event, DateOnly ExDate, decimal Net);
+record Entitlement(string Fund, string Sec, string Event, DateOnly ExDate, decimal Net);
+```
+
+<img src="RecDiffy.NET/resources/readme/8-corporate-actions.png" width="1106" alt="8-corporate-actions" />
+
+---
+
+## 9. Stock loan: our books vs prime broker loan list
+
+```csharp
+Loan[] ours =
+[
+    new("SL-5518", "AAPL", 10_000,  0.30m, 1_987_000m),
+    new("SL-5521", "TSLA",  5_000,  0.45m, 1_240_500m),
+    new("SL-5524", "NVDA",  4_000,  0.35m,   551_880m),
+    new("SL-5527", "BYND",  3_000, 12.50m,    21_600m),
+    new("SL-5530", "GME",   2_000,  3.10m,    48_200m),
+    new("SL-5533", "MSFT",  1_500,  0.25m,   649_500m),
+    new("SL-5536", "RIVN",  6_000,  6.75m,    74_400m),
+];
+PbLoan[] pb =
+[
+    new("SL-5518", "AAPL", 10_000,  0.30m, 1_987_000m),
+    new("SL-5521", "TSLA",  5_000,  0.45m, 1_240_500m),
+    new("SL-5524", "NVDA",  4_000,  0.35m,   551_880m),
+    new("SL-5527", "BYND",  3_000, 12.50m,    20_900m),
+    new("SL-5530", "GME",   2_000,  3.40m,    48_200m),
+    new("SL-5533", "MSFT",  1_500,  0.25m,   649_500m),
+    new("SL-5536", "RIVN",  6_000,  6.75m,    74_400m),
+    new("SL-5541", "AMC",   1_500,  5.00m,     6_300m),
+];
+
+var loans = RecBuilder.Between(ours, pb)
+    .MatchOn(o => o.LoanId, p => p.LoanId)
+    .Compare(o => o.Qty, p => p.Qty)
+    .Compare(o => o.Rate, p => p.Rate)
+    .Compare(o => o.Collateral, p => p.Collateral)
+    .Run();
+
+DataTable loanTable = loans.ToMatchTable();
+
+record Loan(string LoanId, string Sec, int Qty, decimal Rate, decimal Collateral);
+record PbLoan(string LoanId, string Sec, int Qty, decimal Rate, decimal Collateral);
+```
+
+<img src="RecDiffy.NET/resources/readme/9-stock-loan.png" width="1090" alt="9-stock-loan" />
+
+---
+
+## 10. Fallback match: when the reference is missing
+
+`MatchOn` tries the trade reference first. When a confirm has no reference, `ThenMatchOn` falls back to ISIN and side. C-1004 has no reference, so it matches T-5004 on the fallback key, and its `Diff` shows the missing reference.
+
+```csharp
+BrokerConfirm[] brokerConfirms =
+[
+    new("C-1001", "T-5001", "US0378331005", "B", 1_000, 189_250.00m),
+    new("C-1002", "T-5002", "US5949181045", "S",   500, 206_050.00m),
+    new("C-1003", "T-5003", "US88160R1014", "B",   250,  61_450.00m),
+    new("C-1004", null,     "US02079K3059", "B",   300,  51_465.00m),
+    new("C-1005", "T-5007", "US0231351067", "S",   120,  24_168.00m),
+    new("C-1006", "T-5008", "US30303M1027", "B",   400, 236_000.00m),
+    new("C-1007", "T-5009", "US46625H1005", "S", 1_500, 321_450.00m),
+];
+BlotterTrade[] blotter =
+[
+    new("T-5001", "US0378331005", "B", 1_000, 189_250.00m),
+    new("T-5002", "US5949181045", "S",   500, 206_049.99m),
+    new("T-5003", "US88160R1014", "B",   200,  49_160.00m),
+    new("T-5004", "US02079K3059", "B",   300,  51_465.00m),
+    new("T-5006", "US67066G1040", "B",    80,  11_624.00m),
+    new("T-5008", "US30303M1027", "B",   400, 236_000.00m),
+    new("T-5009", "US46625H1005", "S", 1_500, 321_450.00m),
+];
+
+var fallback = RecBuilder.Between(brokerConfirms, blotter)
+    .MatchOn(c => c.TradeRef, t => t.TradeId)      // first: the trade reference
+    .ThenMatchOn(c => c.Isin, t => t.Isin)         // fallback: ISIN and side
+        .And(c => c.Side, t => t.Side)
+    .Compare(c => c.Qty, t => t.Qty)
+    .Compare(c => c.Net, t => t.Net, tolerance: 0.01m)
+    .Run();
+
+DataTable fallbackTable = fallback.ToMatchTable();
+
+record BrokerConfirm(string ConfirmId, string? TradeRef, string Isin, string Side, int Qty, decimal Net);
+record BlotterTrade(string TradeId, string Isin, string Side, int Qty, decimal Net);
+```
+
+<img src="RecDiffy.NET/resources/readme/10-fallback-match.png" width="1372" alt="10-fallback-match" />
+
+---
+
+## Why trust it
+
+- **Tests:** about 1,420 test methods (1,150 facts and 274 theories), about 42,800 lines of tests against 14,300 lines of library.
+- **Acceptance bar:** 310 verification cases run on every build, from objects and from the Excel workbook.
+- **Beyond examples:** oracle tests check the engine against independent implementations, and property tests sweep generated profiles, keys and decimal boundaries.
+- **Analysis:** Stryker.NET mutation testing, CodeQL, and the Sonar quality gate in the badges above.
+- **Determinism:** the same rows in any order, with the same profile and engine version, give the same result.
+- **Scale, in the works:** a multi-parallel harness that reconciles 1 million rows in seconds. It is not released yet.
+
+---
 
 ## Install
 
@@ -101,11 +449,14 @@ dotnet add package RecDiffy --prerelease
 | [RecDiffy.IO](https://www.nuget.org/packages/RecDiffy.IO) | Reads CSV and Excel files as record sources |
 | [RecDiffy.Excel](https://www.nuget.org/packages/RecDiffy.Excel) | Writes formatted Excel reports from a result |
 | [RecDiffy.RulePacks.Trading](https://www.nuget.org/packages/RecDiffy.RulePacks.Trading) | Normalization rules for trade reconciliations |
+| [RecDiffy.Extensions](https://www.nuget.org/packages/RecDiffy.Extensions) | The grids in this README: `DataTable` and HTML tables from a `RecResult` |
 
 - **Runtimes.** The packages target .NET 8 and .NET 10, so any app on .NET 8 or later can use them.
-- **Versions.** The four packages ship together. Use the same version of each.
+- **Versions.** RecDiffy, RecDiffy.IO, RecDiffy.Excel and RecDiffy.RulePacks.Trading ship together; use the same version of each. RecDiffy.Extensions has its own version numbers and works beside them.
 
-## Quickstart: your first reconciliation
+---
+
+## Reconcile two CSV files with a profile
 
 This builds a console app that reconciles a warehouse's bin counts against its stock book. You need the .NET SDK, version 8 or later, and nothing from this repository. It was checked against `1.2.0-preview.3`.
 
@@ -239,6 +590,8 @@ LeftOnly  None      NotCompared C1 | -
 
 To reconcile objects you already hold in memory, replace the two `FileSources.FromCsv` calls with `RecordSources.FromObjects` and a `SourceMap` for each type. [FirstReconciliation.cs](RecDiffy.NET/src/RecDiffy.Samples/FirstReconciliation.cs) shows how.
 
+---
+
 ## Documentation
 
 - **[What a result means](RecDiffy.NET/docs/RESULTS.md):** how to read a result.
@@ -249,6 +602,8 @@ To reconcile objects you already hold in memory, replace the two `FileSources.Fr
 - **[Capacity and concurrency](RecDiffy.NET/docs/CAPACITY.md):** how large a reconciliation can be, and how many can run at once.
 - **[Typed reconciliation](docs/typed-reconciliation/README.md):** `RecBuilder` with your own objects, step by step.
 - **[Excel report layouts](RecDiffy.NET/docs/report-specs/README.md):** what each Excel report shows.
+
+---
 
 ## Understand the result
 
@@ -265,6 +620,8 @@ These concepts answer different questions:
 
 An entry can also represent multiple source rows. In the warehouse example, one result entry accounts for three input rows. Keep entry counts and source-row counts separate when building reports.
 
+---
+
 ## Configure a reconciliation
 
 A profile declares:
@@ -279,6 +636,8 @@ A profile declares:
 - **Search limits:** bounds on group matching.
 
 Compile the profile once, then pass the compiled profile to reconciliation runs. Start with the warehouse profile in the quickstart above before adapting it to your own fields and source mappings.
+
+---
 
 ## Consolidation
 
@@ -428,6 +787,8 @@ A chain that cannot be resolved quarantines every row in it: `MissingLifecycleTa
 
 The two blocks are independent. `lifecycle` and `packages` can appear on the same side, and consolidation runs the lifecycle collapse first, then the packages. The full reference, with every key and diagnostic code, is in [PROFILES.md](RecDiffy.NET/docs/PROFILES.md#consolidation-lifecycles-and-packages).
 
+---
+
 ## Declare how each file is read
 
 Text in a file is read with a culture. Declare it once for the run and, when one file differs, for that side. Nothing below the declaration picks a culture, and nothing is guessed.
@@ -462,6 +823,8 @@ var reading = result.Run.Reading["left"];   // SideReading
 Console.WriteLine($"{reading.Culture} {reading.Origin} decimal '{reading.DecimalSeparator}' group '{reading.GroupSeparator}' strict {reading.StrictDateFormats}");
 // en-US Run decimal '.' group ',' strict True
 ```
+
+---
 
 ## Write Excel reports
 
@@ -525,6 +888,8 @@ A run writes into the as-of date, so a second run on the same day silently repla
 - **BO6 signs cash by `Side`.** A row whose `Side` is in `ExcelReportOptions.PayingSides` pays, so its net cash counts negative, and every other side receives. The default is `BUY`, `PAY_FIXED` and `PAY`, compared exactly with the canonical value, so a profile whose sides are `B` and `S` needs `PayingSides = ["B"]`, or every row lands as a receipt.
 - **BO4 needs consolidation, not just the two roles.** It draws the chains that `consolidation.lifecycle` collapsed, so a profile without that block writes no BO4 rows. See [Consolidation](#consolidation).
 
+---
+
 ## Troubleshooting
 
 | Symptom | First thing to check |
@@ -542,6 +907,8 @@ A run writes into the as-of date, so a second run on the same day silently repla
 
 `SearchIncomplete` means the search did not establish a complete decision. Do not present it as an ordinary unmatched result.
 
+---
+
 ## Run the samples
 
 The repository has a sample program that goes further than the quickstart: a quarantined row, a side-by-side view, an async run, a trading-pack run that uses reference data, Excel reports, a profile built in code, and `RecBuilder` with typed objects. It needs a clone, and the .NET SDK that [global.json](RecDiffy.NET/global.json) pins.
@@ -558,6 +925,8 @@ The clone checks out `main`, which holds the latest release. The first example r
 dotnet test src/RecDiffy.Tests/RecDiffy.Tests.csproj --filter FullyQualifiedName~Matches_warehouse_bins_to_book_stock_without_the_trading_pack
 ```
 
+---
+
 ## Contribute
 
 To build RecDiffy from source, test it or change it, follow [CONTRIBUTING.md](CONTRIBUTING.md). It covers the SDK, the build, the branch to start from, and the rules for a change.
@@ -567,6 +936,8 @@ GitHub Actions publishes an [Allure](https://allurereport.org/) report for pushe
 [Latest test report](https://recdiffytests.cobblerhill.net/allure-docker-service/projects/recdiffy/reports/latest/index.html)
 
 `dotnet test` writes `allure-results` under each RecDiffy.NET test project's build output, once for `net8.0` and once for `net10.0`. The packages that ship RecDiffy do not reference Allure.
+
+---
 
 ## Find your way around
 
@@ -584,6 +955,8 @@ GitHub Actions publishes an [Allure](https://allurereport.org/) report for pushe
 | [docs/SPEC-STATUS.md](RecDiffy.NET/docs/SPEC-STATUS.md) | Which architecture spec is in force, and the shipped behavior that amends it; the committed v1 spec is historical |
 
 See the [Architecture Overview](https://github.com/m-vaysman/recdiffy.net/wiki/Architecture-Overview) for more background.
+
+---
 
 ## License
 

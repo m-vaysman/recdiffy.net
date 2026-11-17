@@ -58,7 +58,7 @@ Matching uses the keys a pass declares. Comparison runs afterwards, on every mat
 var breaks = result.Entries.Where(entry => entry is { Alignment: Alignment.Matched, Outcome: FieldOutcome.Break });
 ```
 
-The [README example](../../README.md#see-it-work-two-files-two-readers-one-reconciliation) shows this: C-1003 matches T-5003 on its trade reference, but its quantity and net amount break.
+The [README example](../../README.md#10-fallback-match-when-the-reference-is-missing) shows this: C-1003 matches T-5003 on its trade reference, but its quantity and net amount break.
 
 ### How a field is compared
 
