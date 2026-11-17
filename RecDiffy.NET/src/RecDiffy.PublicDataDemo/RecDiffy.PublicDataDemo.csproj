@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ProjectGuid>{DCF26EBA-FB93-4F08-8283-4CC84430A55C}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>RecDiffy.PublicDataDemo</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RecDiffy\RecDiffy.csproj" />
+    <ProjectReference Include="..\RecDiffy.Extensions\RecDiffy.Extensions.csproj" />
+  </ItemGroup>
+
+</Project>
