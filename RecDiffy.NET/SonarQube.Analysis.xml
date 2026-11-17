@@ -12,4 +12,13 @@
   <!-- Samples / benchmarks / AOT host / demo apps / tests should not drag down coverage. -->
   <Property Name="sonar.coverage.exclusions">**/RecDiffy.Samples/**,**/RecDiffy.Benchmarks/**,**/RecDiffy.AotHost/**,**/RecDiffy.PublicDataDemo/**,**/RecDiffy.BrowserDemo/**,**/RecDiffy.Tests/**,**/RecDiffy.Excel.Tests/**,**/docs/**</Property>
   <Property Name="sonar.cpd.exclusions">**/RecDiffy.Samples/**,**/RecDiffy.Benchmarks/**</Property>
+  <!--
+    Web:S7039 ('unsafe-inline' in a Content-Security-Policy), for the browser demo's page only. Blazor WebAssembly on
+    .NET 10 writes the import map into an inline <script> at publish time and sets inline styles, so script-src and
+    style-src need 'unsafe-inline' unless the publish step computes hashes. The privacy promise rests on
+    connect-src 'self', which is unchanged.
+  -->
+  <Property Name="sonar.issue.ignore.multicriteria">csp</Property>
+  <Property Name="sonar.issue.ignore.multicriteria.csp.ruleKey">Web:S7039</Property>
+  <Property Name="sonar.issue.ignore.multicriteria.csp.resourceKey">**/RecDiffy.BrowserDemo/wwwroot/index.html</Property>
 </SonarQubeAnalysisProperties>
