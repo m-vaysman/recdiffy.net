@@ -11,6 +11,12 @@ on:
     # 6:30 pm in New York that day: 22:30 UTC under daylight saving time (UTC-4), 23:30 UTC otherwise (UTC-5).
     - cron: '30 22 * * 1-5'
     - cron: '30 23 * * 1-5'
+  # A release that changes the demo republishes it straight away.
+  push:
+    branches: [main]
+    paths:
+      - RecDiffy.NET/src/RecDiffy.PublicDataDemo/**
+      - .github/workflows/public-data-demo.yml
   workflow_dispatch:
 
 permissions:
