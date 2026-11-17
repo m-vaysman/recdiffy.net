@@ -43,9 +43,15 @@ public static partial class HtmlTable
     [GeneratedRegex(@"\d{6,}", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex Identifier { get; }
 #else
-    private static readonly Regex Numeric = new(@"^[\d,.\-\s]+(?:vs [\d,.\-\s]+)?$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(1000));
+    [GeneratedRegex(@"^[\d,.\-\s]+(?:vs [\d,.\-\s]+)?$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex NumericPattern();
 
-    private static readonly Regex Identifier = new(@"\d{6,}", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(1000));
+    [GeneratedRegex(@"\d{6,}", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex IdentifierPattern();
+
+    private static Regex Numeric => NumericPattern();
+
+    private static Regex Identifier => IdentifierPattern();
 #endif
 
     /// <summary>

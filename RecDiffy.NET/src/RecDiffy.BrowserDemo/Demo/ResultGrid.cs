@@ -37,7 +37,7 @@ public sealed record ResultGrid(string Html, int Shown, int Total)
             .ToList();
 
         var cells = entries.Take(limit)
-            .Select(entry => columns.Select(column => Raw(result, column.Left ? entry.Entry.Left : entry.Entry.Right, column.Source)).ToList())
+            .Select(entry => columns.ConvertAll(column => Raw(result, column.Left ? entry.Entry.Left : entry.Entry.Right, column.Source)))
             .ToList();
         var numeric = columns.Select((column, index) => column.Number && cells.TrueForAll(row => row[index] is null || Number(row[index]!) is not null)).ToList();
 

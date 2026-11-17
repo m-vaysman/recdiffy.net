@@ -90,6 +90,6 @@ public static class ProfileJson
         };
     }
 
-    private static JsonNode Rule(string rule, string from, string to) =>
+    private static JsonObject Rule(string rule, string from, string to) =>
         new JsonObject { ["rule"] = rule, ["from"] = from, ["to"] = to };
 }
