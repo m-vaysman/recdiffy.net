@@ -16,6 +16,7 @@ on:
     branches: [main]
     paths:
       - RecDiffy.NET/src/RecDiffy.PublicDataDemo/**
+      - RecDiffy.NET/src/RecDiffy.BrowserDemo/**
       - .github/workflows/public-data-demo.yml
   workflow_dispatch:
 
@@ -74,6 +75,20 @@ jobs:
           dotnet run --project RecDiffy.NET/src/RecDiffy.PublicDataDemo -c Release
           -p:InformationalVersion="${GITHUB_REF_NAME}@${GITHUB_SHA::7}"
           -- site 30
+
+      # The Blazor browser demo, under /try/. Its base path is rewritten for the project site
+      # (/recdiffy.net/try/), and the step fails if the rewrite did not happen. GitHub Pages compresses on its
+      # own, so the precompressed copies are dropped.
+      - name: Publish the browser demo under /try/
+        run: |
+          dotnet publish RecDiffy.NET/src/RecDiffy.BrowserDemo -c Release -o browser-demo
+          mkdir -p site/try
+          cp -r browser-demo/wwwroot/. site/try/
+          find site/try \( -name '*.br' -o -name '*.gz' \) -delete
+          base="/${GITHUB_REPOSITORY#*/}/try/"
+          sed -i "s|<base href=\"/\" />|<base href=\"$base\" />|" site/try/index.html
+          grep -q "<base href=\"$base\" />" site/try/index.html
+          touch site/.nojekyll
 
       - name: Upload the page
         uses: actions/upload-pages-artifact@v5
