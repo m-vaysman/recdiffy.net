@@ -1,0 +1,258 @@
+﻿@page "/"
+@using System.Globalization
+@using RecDiffy.BrowserDemo.Demo
+@using RecDiffy.Extensions
+@inject IJSRuntime JS
+
+<PageTitle>Reconcile two files in your browser · RecDiffy.NET</PageTitle>
+
+<style>@((MarkupString)DataGrid.Css)</style>
+
+<section class="step">
+    <h2><span class="n">1</span> Files</h2>
+    <div class="sides">
+        @foreach (var side in new[] { Side.Left, Side.Right })
+        {
+            var file = side == Side.Left ? left : right;
+            <div class="side">
+                <h3>@(side == Side.Left ? "Left file" : "Right file")</h3>
+                <label class="drop @(file is null ? "" : "loaded")">
+                    <InputFile OnChange="e => Load(side, e)" accept=".csv,.txt,.xlsx,.xlsb,.xls" />
+                    @if (file is null)
+                    {
+                        <span>Drop a CSV or Excel file here, or click to choose one</span>
+                    }
+                    else
+                    {
+                        <span class="file-name">@file.Name</span>
+                        <span class="file-meta">@file.Peek.RowCount.ToString("N0", CultureInfo.InvariantCulture) rows · @file.Headers.Count columns</span>
+                    }
+                </label>
+                @if (file is not null)
+                {
+                    <div class="preview">
+                        <table>
+                            <thead><tr>@foreach (var header in file.Headers) { <th>@header</th> }</tr></thead>
+                            <tbody>
+                                @foreach (var row in file.Preview(3))
+                                {
+                                    <tr>@foreach (var cell in row) { <td>@cell</td> }</tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+    @if (loadError is not null)
+    {
+        <p class="error">@loadError</p>
+    }
+    <button class="link" @onclick="UseSample">No files at hand? Use the sample: a broker's confirms against a fund's blotter</button>
+</section>
+
+@if (left is not null && right is not null)
+{
+    <section class="step">
+        <h2><span class="n">2</span> Match and compare</h2>
+
+        <h3>Rows match when these agree</h3>
+        @for (var i = 0; i < setup.Keys.Count; i++)
+        {
+            var index = i;
+            var pair = setup.Keys[index];
+            <div class="pair">
+                <select value="@pair.Left" @onchange="e => SetKey(index, pair with { Left = Text(e) })">
+                    <option value="">Left column</option>
+                    @foreach (var column in left.Headers) { <option value="@column">@column</option> }
+                </select>
+                <span class="eq">=</span>
+                <select value="@pair.Right" @onchange="e => SetKey(index, pair with { Right = Text(e) })">
+                    <option value="">Right column</option>
+                    @foreach (var column in right.Headers) { <option value="@column">@column</option> }
+                </select>
+                @if (setup.Keys.Count > 1)
+                {
+                    <button class="remove" title="Remove" @onclick="() => RemoveKey(index)">Remove</button>
+                }
+            </div>
+        }
+        <button class="link" @onclick="AddKey">Add another key column</button>
+
+        <h3>Then compare</h3>
+        @for (var i = 0; i < setup.Compares.Count; i++)
+        {
+            var index = i;
+            var pair = setup.Compares[index];
+            <div class="pair">
+                <select value="@pair.Left" @onchange="e => SetCompare(index, pair with { Left = Text(e) })">
+                    <option value="">Left column</option>
+                    @foreach (var column in left.Headers) { <option value="@column">@column</option> }
+                </select>
+                <span class="eq">vs</span>
+                <select value="@pair.Right" @onchange="e => SetCompare(index, pair with { Right = Text(e) })">
+                    <option value="">Right column</option>
+                    @foreach (var column in right.Headers) { <option value="@column">@column</option> }
+                </select>
+                <select value="@Kind(pair)" @onchange="e => SetCompare(index, pair with { Number = IsNumber(e) })">
+                    <option value="text">as text</option>
+                    <option value="number">as numbers</option>
+                </select>
+                @if (pair.Number)
+                {
+                    <label class="tolerance">within
+                        <input type="number" step="any" min="0" value="@pair.Tolerance.ToString(CultureInfo.InvariantCulture)"
+                               @onchange="e => SetCompare(index, pair with { Tolerance = Tolerance(e) })" />
+                    </label>
+                }
+                <button class="remove" title="Remove" @onclick="() => RemoveCompare(index)">Remove</button>
+            </div>
+        }
+        <button class="link" @onclick="AddCompare">Add a comparison</button>
+
+        <div class="run">
+            <button class="primary" disabled="@(!setup.CanRun || running)" @onclick="Run">@(running ? "Reconciling…" : "Reconcile")</button>
+            @if (!setup.CanRun)
+            {
+                <span class="hint">Choose at least one pair of key columns.</span>
+            }
+        </div>
+    </section>
+}
+
+@if (outcome is { Error: { } error })
+{
+    <section class="step"><p class="error">@error</p></section>
+}
+
+@if (outcome is { Result: { } result })
+{
+    var summary = result.Summary;
+    var grid = ResultGrid.Build(result, outcome.Setup, filter, Limit);
+    <section class="step">
+        <h2><span class="n">3</span> Result</h2>
+        <div class="chips">
+            <button class="chip @(filter is null ? "on" : "")" @onclick="() => filter = null">All <b>@result.Entries.Length</b></button>
+            @foreach (var (status, count) in Counts(summary))
+            {
+                <button class="chip tag-@status @(filter == status ? "on" : "")" @onclick="() => filter = status">@status <b>@count</b></button>
+            }
+        </div>
+        @if (summary.Quarantined > 0)
+        {
+            <p class="note">@summary.Quarantined rows could not be read as declared and were set aside, for example a number column holding text.</p>
+        }
+        <div class="grid-wrap">@((MarkupString)grid.Html)</div>
+        @if (grid.Shown < grid.Total)
+        {
+            <p class="note">Showing the first @grid.Shown of @grid.Total.ToString("N0", CultureInfo.InvariantCulture) entries, exceptions first.</p>
+        }
+        <dl class="stamp">
+            <div><dt>Ran in this tab</dt><dd>@outcome.Elapsed.TotalMilliseconds.ToString("N0", CultureInfo.InvariantCulture) ms</dd></div>
+            <div><dt>Rows read</dt><dd>@result.Rows.Length.ToString("N0", CultureInfo.InvariantCulture)</dd></div>
+            <div><dt>Engine</dt><dd>@result.Run.EngineVersion</dd></div>
+            <div><dt>Profile hash</dt><dd>@result.Run.ProfileHash[..Math.Min(12, result.Run.ProfileHash.Length)]</dd></div>
+        </dl>
+    </section>
+}
+
+@code {
+    private const int Limit = 500;
+    private const long MaxFileBytes = 50L * 1024 * 1024;
+
+    private enum Side { Left, Right }
+
+    private readonly long origin = TimeProvider.System.GetTimestamp();
+    private LoadedFile? left;
+    private LoadedFile? right;
+    private RecSetup setup = RecSetup.Empty;
+    private RunOutcome? outcome;
+    private string? filter;
+    private string? loadError;
+    private bool running;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("recdiffyReady");
+        }
+    }
+
+    private async Task Load(Side side, InputFileChangeEventArgs e)
+    {
+        try
+        {
+            await using var stream = e.File.OpenReadStream(MaxFileBytes);
+            using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer);
+            var file = LoadedFile.Read(e.File.Name, buffer.ToArray());
+            (left, right) = side == Side.Left ? (file, right) : (left, file);
+            loadError = null;
+        }
+        catch (Exception ex) when (ex is IOException or InvalidDataException or FormatException or NotSupportedException)
+        {
+            loadError = $"{e.File.Name} could not be read: {ex.Message}";
+            return;
+        }
+
+        outcome = null;
+        setup = left is not null && right is not null ? RecSetup.Suggest(left, right) : RecSetup.Empty;
+    }
+
+    private void UseSample()
+    {
+        (left, right, setup, outcome, filter, loadError) = (SampleFiles.Left(), SampleFiles.Right(), SampleFiles.Setup, null, null, null);
+    }
+
+    private async Task Run()
+    {
+        if (left is null || right is null)
+        {
+            return;
+        }
+
+        running = true;
+        StateHasChanged();
+        await Task.Delay(20);
+        outcome = RunOutcome.Run(left, right, setup, () => TimeProvider.System.GetElapsedTime(origin));
+        filter = null;
+        running = false;
+    }
+
+    private void SetKey(int index, ColumnPair pair) => setup = setup with { Keys = Replace(setup.Keys, index, pair) };
+
+    private void SetCompare(int index, ColumnPair pair) => setup = setup with { Compares = Replace(setup.Compares, index, pair) };
+
+    private void AddKey() => setup = setup with { Keys = [.. setup.Keys, new ColumnPair("", "")] };
+
+    private void AddCompare() => setup = setup with { Compares = [.. setup.Compares, new ColumnPair("", "")] };
+
+    private void RemoveKey(int index) => setup = setup with { Keys = [.. setup.Keys.Where((_, i) => i != index)] };
+
+    private void RemoveCompare(int index) => setup = setup with { Compares = [.. setup.Compares.Where((_, i) => i != index)] };
+
+    private static IReadOnlyList<ColumnPair> Replace(IReadOnlyList<ColumnPair> pairs, int index, ColumnPair pair) =>
+        [.. pairs.Select((existing, i) => i == index ? pair : existing)];
+
+    private static string Text(ChangeEventArgs e) => e.Value?.ToString() ?? "";
+
+    private static string Kind(ColumnPair pair) => pair.Number ? "number" : "text";
+
+    private static bool IsNumber(ChangeEventArgs e) => string.Equals(Text(e), "number", StringComparison.Ordinal);
+
+    private static decimal Tolerance(ChangeEventArgs e) =>
+        decimal.TryParse(Text(e), NumberStyles.Number, CultureInfo.InvariantCulture, out var value) && value >= 0m ? value : 0m;
+
+    private static IEnumerable<(string Status, int Count)> Counts(RecDiffy.Results.RunSummary summary) =>
+        new (string Status, int Count)[]
+        {
+            ("Exact", summary.Exact),
+            ("WithinTolerance", summary.WithinTolerance),
+            ("Break", summary.Break),
+            ("LeftOnly", summary.LeftOnly),
+            ("RightOnly", summary.RightOnly),
+            ("Ambiguous", summary.Ambiguous),
+        }.Where(count => count.Count > 0);
+}
