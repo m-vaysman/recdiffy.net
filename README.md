@@ -15,6 +15,16 @@ It is the engine inside your own tools, not a workflow or audit platform. Don't 
 
 ---
 
+## See it live
+
+[RecDiffy.NET, reconciling public data](https://m-vaysman.github.io/recdiffy.net/) runs the engine on public datasets every business day:
+
+- **FINRA short volume:** each trade facility's daily short-sale file, summed per symbol, against FINRA's consolidated file. About 12,300 symbols a day.
+- **US Treasury debt:** each day's change in total public debt against that day's issues minus redemptions. The total ties within rounding, and the split by holder breaks.
+- **Tolerance:** the same Treasury data at six tolerances. Too tight and rounding breaks; too loose and real breaks disappear.
+
+---
+
 ## 1. Trade match in 60 seconds: our blotter vs broker confirms
 
 ```shell
