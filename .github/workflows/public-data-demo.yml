@@ -1,0 +1,89 @@
+name: Public data demo
+
+# Every weekday at 6:30 pm US Eastern: download the last 30 days of FINRA short-sale volume and US Treasury
+# debt data, reconcile them with RecDiffy.NET, and publish the page to GitHub Pages. Nothing is committed:
+# the downloads live only on the runner, and the page is deployed straight from the build. If a source is
+# down the run fails before deploying, so the previous page stays up.
+
+on:
+  schedule:
+    # GitHub's cron is UTC only, so both offsets are scheduled and the gate below keeps the one that is
+    # 6:30 pm in New York that day: 22:30 UTC under daylight saving time (UTC-4), 23:30 UTC otherwise (UTC-5).
+    - cron: '30 22 * * 1-5'
+    - cron: '30 23 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      # GitHub switches off scheduled workflows in a public repo after 60 days with no activity; re-enabling
+      # this workflow on every run keeps the schedule alive through quiet months.
+      - name: Keep the schedule enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/public-data-demo.yml/enable"
+
+      - name: Run only at 6:30 pm New York time
+        id: check
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          offset=$(TZ=America/New_York date +%z)
+          case "$SCHEDULE|$offset" in
+            "|"*) run=true ;;
+            "30 22 * * 1-5|-0400") run=true ;;
+            "30 23 * * 1-5|-0500") run=true ;;
+            *) run=false ;;
+          esac
+          echo "Schedule '$SCHEDULE', New York offset $offset: run=$run"
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: RecDiffy.NET/global.json
+
+      - name: Reconcile and build the page
+        run: >-
+          dotnet run --project RecDiffy.NET/src/RecDiffy.PublicDataDemo -c Release
+          -p:InformationalVersion="${GITHUB_REF_NAME}@${GITHUB_SHA::7}"
+          -- site 30
+
+      - name: Upload the page
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

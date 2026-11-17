@@ -6,6 +6,7 @@
     <Project Path="src/RecDiffy.Benchmarks/RecDiffy.Benchmarks.csproj" />
     <Project Path="src/RecDiffy.AotHost/RecDiffy.AotHost.csproj" />
     <Project Path="src/RecDiffy.Samples/RecDiffy.Samples.csproj" />
+    <Project Path="src/RecDiffy.PublicDataDemo/RecDiffy.PublicDataDemo.csproj" />
     <Project Path="src/RecDiffy.Excel/RecDiffy.Excel.csproj" />
     <Project Path="src/RecDiffy.Excel.Tests/RecDiffy.Excel.Tests.csproj" />
     <Project Path="src/RecDiffy.IO/RecDiffy.IO.csproj" />
