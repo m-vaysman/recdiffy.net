@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <ProjectGuid>{DB71E2DA-0033-4FFC-96A7-8E8E64AAEBED}</ProjectGuid>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.15" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.15" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RecDiffy\RecDiffy.csproj" />
+    <ProjectReference Include="..\RecDiffy.IO\RecDiffy.IO.csproj" />
+    <ProjectReference Include="..\RecDiffy.Extensions\RecDiffy.Extensions.csproj" />
+  </ItemGroup>
+
+</Project>

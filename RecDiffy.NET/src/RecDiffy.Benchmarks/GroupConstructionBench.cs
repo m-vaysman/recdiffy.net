@@ -20,8 +20,7 @@ public class GroupConstructionBench
     [Params(8, 64)]
     public int Width { get; set; }
 
-    [Params(BenchScale.Large)]
-    public int Rows { get; set; }
+    public int Rows { get; set; } = BenchScale.Large;
 
     private ConsolidatedRow[] _left = [];
     private ConsolidatedRow[] _right = [];

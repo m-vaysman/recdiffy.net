@@ -36,11 +36,17 @@ public static partial class HtmlTable
         table.rec tr.orphan td:first-child { border-left: 4px solid #0969da; } table.rec tr.orphan .pill { background: #ddf4ff; }
         """;
 
+#if NET10_0_OR_GREATER
     [GeneratedRegex(@"^[\d,.\-\s]+(?:vs [\d,.\-\s]+)?$",RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
-    private static partial Regex Numeric();
+    private static partial Regex Numeric { get; }
 
     [GeneratedRegex(@"\d{6,}", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
-    private static partial Regex Identifier();
+    private static partial Regex Identifier { get; }
+#else
+    private static readonly Regex Numeric = new(@"^[\d,.\-\s]+(?:vs [\d,.\-\s]+)?$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(1000));
+
+    private static readonly Regex Identifier = new(@"\d{6,}", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(1000));
+#endif
 
     /// <summary>
     /// Renders any sequence as a table with one column per public property. A <c>Status</c> column colours the row and
@@ -116,12 +122,12 @@ public static partial class HtmlTable
     private static bool IsNumber(object value) => value switch
     {
         decimal or double or float or int or long or short or byte or sbyte or ushort or uint or ulong => true,
-        string text => Numeric().IsMatch(text),
+        string text => Numeric.IsMatch(text),
         _ => false,
     };
 
     private static bool IsIdentifier(object value) =>
-        value is string { Length: < 120 } text && Identifier().IsMatch(text);
+        value is string { Length: < 120 } text && Identifier.IsMatch(text);
 
     private static bool IsPlainNumber(string text) =>
         text.All(character => char.IsAsciiDigit(character) || character is '-' or '.');

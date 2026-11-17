@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- The page may only talk to the site it came from. No script on it can send your files anywhere else. -->
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; form-action 'none'; base-uri 'self'" />
+    <title>Reconcile two files in your browser · RecDiffy.NET</title>
+    <base href="/" />
+    <link rel="preload" id="webassembly" />
+    <link rel="stylesheet" href="css/app.css" />
+    <script type="importmap"></script>
+    <script src="js/privacy.js"></script>
+</head>
+
+<body>
+    <main class="page">
+        <header class="top">
+            <p class="brand"><a href="https://github.com/m-vaysman/recdiffy.net">RecDiffy.NET</a>, a reconciliation engine for .NET</p>
+            <h1>Reconcile two files in your browser</h1>
+            <p class="lede">Drop a CSV or Excel file on each side, choose the columns that identify a row, and see every match, every break and every row left over.</p>
+        </header>
+
+        <section class="proof" aria-live="polite">
+            <p class="proof-count" id="net-count">…</p>
+            <div class="proof-text">
+                <p><strong>Network requests since the engine loaded.</strong> Your files are read by this page, in this tab, and are never uploaded. There is no server behind it to upload them to.</p>
+                <p class="proof-check">Check it yourself: open your browser's developer tools on the Network tab, or turn off Wi-Fi once the page has loaded. It keeps working.</p>
+                <ol id="net-list"></ol>
+            </div>
+        </section>
+
+        <div id="app"><p class="loading">Loading the engine. It downloads once, about 4 MB.</p></div>
+
+        <footer class="foot">
+            <p>Every release of RecDiffy.NET is a prerelease for now. <a href="https://www.nuget.org/packages/RecDiffy">NuGet</a> · <a href="https://github.com/m-vaysman/recdiffy.net">Source</a></p>
+        </footer>
+    </main>
+
+    <div id="blazor-error-ui">
+        Something went wrong. <a href="." class="reload">Reload</a>
+        <span class="dismiss">×</span>
+    </div>
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+</body>
+
+</html>
