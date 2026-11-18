@@ -341,6 +341,10 @@ RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, T
 RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> Named(string profileId, string version)
 RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> Sum<TLeftValue, TRightValue>(System.Linq.Expressions.Expression<System.Func<TLeft, TLeftValue>> left, System.Linq.Expressions.Expression<System.Func<TRight, TRightValue>> right)
 RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> ThenMatchOn<TLeftValue, TRightValue>(System.Linq.Expressions.Expression<System.Func<TLeft, TLeftValue>> left, System.Linq.Expressions.Expression<System.Func<TRight, TRightValue>> right)
+RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> Value(System.Func<string, string?> ours, System.Func<string, string?> theirs)
+RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> Value(System.Func<string, string?> spelling)
+RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> Value(string value, System.Collections.Generic.IReadOnlyList<string> accepts)
+RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> Value(string value, System.Collections.Generic.IReadOnlyList<string> ours, System.Collections.Generic.IReadOnlyList<string> theirs)
 RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecResult<TLeft, TRight> Run(System.Threading.CancellationToken cancellationToken = default)
 RecDiffy.RecBuilder<TLeft, TRight> :: property public RecDiffy.ProfileDocument Profile { get; }
 RecDiffy.RecBuilder<TLeft, TRight> :: type public sealed class

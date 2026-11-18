@@ -32,8 +32,9 @@ public sealed class RecBuilder<TLeft, TRight>
     private readonly ImmutableList<ImmutableList<TypedPair>> _passes;
     private readonly ImmutableList<TypedPair> _compared;
     private readonly ImmutableList<string> _summed;
+    private readonly bool _atKey;
 
-    internal RecBuilder(ImmutableArray<TLeft> left, ImmutableArray<TRight> right, string profileId, string version, ImmutableList<ImmutableList<TypedPair>> passes, ImmutableList<TypedPair> compared, ImmutableList<string>? summed = null)
+    internal RecBuilder(ImmutableArray<TLeft> left, ImmutableArray<TRight> right, string profileId, string version, ImmutableList<ImmutableList<TypedPair>> passes, ImmutableList<TypedPair> compared, ImmutableList<string>? summed = null, bool atKey = false)
     {
         _left = left;
         _right = right;
@@ -42,6 +43,7 @@ public sealed class RecBuilder<TLeft, TRight>
         _passes = passes;
         _compared = compared;
         _summed = summed ?? [];
+        _atKey = atKey;
     }
 
     /// <summary>The profile this reconciliation runs, for <see cref="ProfileWriter.ToJson"/>.</summary>
@@ -52,12 +54,12 @@ public sealed class RecBuilder<TLeft, TRight>
     {
         ArgumentNullException.ThrowIfNull(profileId);
         ArgumentNullException.ThrowIfNull(version);
-        return new(_left, _right, profileId, version, _passes, _compared, _summed);
+        return new(_left, _right, profileId, version, _passes, _compared, _summed, _atKey);
     }
 
     /// <summary>Adds a natural-key pass on one pair of members.</summary>
     public RecBuilder<TLeft, TRight> MatchOn<TLeftValue, TRightValue>(Expression<Func<TLeft, TLeftValue>> left, Expression<Func<TRight, TRightValue>> right) =>
-        new(_left, _right, _profileId, _version, _passes.Add([TypedPair.Of(left, right, key: true)]), _compared, _summed);
+        new(_left, _right, _profileId, _version, _passes.Add([TypedPair.Of(left, right, key: true)]), _compared, _summed, atKey: true);
 
     /// <summary>Adds the next natural-key pass, tried on what earlier passes left unmatched.</summary>
     public RecBuilder<TLeft, TRight> ThenMatchOn<TLeftValue, TRightValue>(Expression<Func<TLeft, TLeftValue>> left, Expression<Func<TRight, TRightValue>> right) =>
@@ -69,7 +71,105 @@ public sealed class RecBuilder<TLeft, TRight>
     public RecBuilder<TLeft, TRight> And<TLeftValue, TRightValue>(Expression<Func<TLeft, TLeftValue>> left, Expression<Func<TRight, TRightValue>> right) =>
         _passes.IsEmpty
             ? throw new InvalidOperationException("Call MatchOn before And.")
-            : new(_left, _right, _profileId, _version, _passes.SetItem(_passes.Count - 1, _passes[^1].Add(TypedPair.Of(left, right, key: true))), _compared, _summed);
+            : new(_left, _right, _profileId, _version, _passes.SetItem(_passes.Count - 1, _passes[^1].Add(TypedPair.Of(left, right, key: true))), _compared, _summed, atKey: true);
+
+    /// <summary>
+    /// Names a value of the string member just added to the key, and the spellings that count as it, on both sides. Call it
+    /// once for each value. A spelling is matched exactly as written, after trimming, so list each case you expect. A row
+    /// whose spelling nobody listed is quarantined with <c>UnknownSymbol</c>, never guessed. Call it right after
+    /// <c>MatchOn</c>, <c>ThenMatchOn</c> or <c>And</c>, on a <c>string</c> member.
+    /// </summary>
+    /// <param name="value">The value the spellings mean, such as <c>"BUY"</c>.</param>
+    /// <param name="accepts">Every spelling that means <paramref name="value"/>, on either side. Include the value itself if it is one.</param>
+    /// <example>
+    /// <code>
+    /// RecBuilder.Between(ours, confirms)
+    ///     .MatchOn(trade => trade.Isin, confirm => confirm.Isin)
+    ///         .And(trade => trade.Side, confirm => confirm.BuySell)
+    ///             .Value("BUY",  accepts: ["B", "BOT", "BUY"])
+    ///             .Value("SELL", accepts: ["S", "SLD", "SELL"])
+    ///     .Run();
+    /// // A trade booked "B" matches a confirm that says "BOT": both mean BUY.
+    /// </code>
+    /// </example>
+    public RecBuilder<TLeft, TRight> Value(string value, IReadOnlyList<string> accepts)
+    {
+        ArgumentNullException.ThrowIfNull(accepts);
+        return accepts.Count == 0
+            ? throw new ArgumentException("List at least one spelling.", nameof(accepts))
+            : Meaning(nameof(Value), meaning => meaning.Value(value, accepts, accepts));
+    }
+
+    /// <summary>
+    /// Names a value of the string member just added to the key, with the spellings each side uses for it. Use it when the two
+    /// systems write the same value differently. The rules of <see cref="Value(string, IReadOnlyList{string})"/> apply.
+    /// </summary>
+    /// <param name="value">The value the spellings mean, such as <c>"BUY"</c>.</param>
+    /// <param name="ours">The spellings in the left items that mean <paramref name="value"/>.</param>
+    /// <param name="theirs">The spellings in the right items that mean <paramref name="value"/>.</param>
+    /// <example>
+    /// <code>
+    /// RecBuilder.Between(ours, confirms)
+    ///     .MatchOn(trade => trade.Side, confirm => confirm.BuySell)
+    ///         .Value("BUY",  ours: ["BUY"],  theirs: ["B", "BOT"])
+    ///         .Value("SELL", ours: ["SELL"], theirs: ["S", "SLD"])
+    ///     .Run();
+    /// </code>
+    /// </example>
+    public RecBuilder<TLeft, TRight> Value(string value, IReadOnlyList<string> ours, IReadOnlyList<string> theirs)
+    {
+        ArgumentNullException.ThrowIfNull(ours);
+        ArgumentNullException.ThrowIfNull(theirs);
+        return ours.Count + theirs.Count == 0
+            ? throw new ArgumentException("List at least one spelling.", nameof(ours))
+            : Meaning(nameof(Value), meaning => meaning.Value(value, ours, theirs));
+    }
+
+    /// <summary>
+    /// Decides the value of every spelling of the string member just added to the key, with one function for both sides. The
+    /// function returns the value a spelling means, or <c>null</c> for a spelling that is not accepted. It is asked once about
+    /// each distinct spelling found in the two lists, when the profile is built, and its answers are written into the profile
+    /// as a table. A spelling that appears only in later data is not in the table, so its row is quarantined.
+    /// </summary>
+    /// <param name="spelling">Returns the value a spelling means, or <c>null</c> when it is not accepted.</param>
+    /// <example>
+    /// <code>
+    /// RecBuilder.Between(ours, confirms)
+    ///     .MatchOn(trade => trade.Side, confirm => confirm.BuySell)
+    ///         .Value(text => text switch
+    ///         {
+    ///             "B" or "BOT" or "BUY" => "BUY",
+    ///             "S" or "SLD" or "SELL" => "SELL",
+    ///             _ => null,
+    ///         })
+    ///     .Run();
+    /// </code>
+    /// </example>
+    public RecBuilder<TLeft, TRight> Value(Func<string, string?> spelling) => Value(spelling, spelling);
+
+    /// <summary>
+    /// Decides the value of every spelling of the string member just added to the key, with a function for each side. Use it
+    /// when the two systems write the same value differently. The rules of <see cref="Value(Func{string, string?})"/> apply.
+    /// </summary>
+    /// <param name="ours">Returns the value a left spelling means, or <c>null</c> when it is not accepted.</param>
+    /// <param name="theirs">Returns the value a right spelling means, or <c>null</c> when it is not accepted.</param>
+    /// <example>
+    /// <code>
+    /// RecBuilder.Between(ours, confirms)
+    ///     .MatchOn(trade => trade.Side, confirm => confirm.BuySell)
+    ///         .Value(
+    ///             ours: text => text,                      // BUY and SELL are already the values
+    ///             theirs: text => text switch
+    ///             {
+    ///                 "B" or "BOT" => "BUY",
+    ///                 "S" or "SLD" => "SELL",
+    ///                 _ => null,
+    ///             })
+    ///     .Run();
+    /// </code>
+    /// </example>
+    public RecBuilder<TLeft, TRight> Value(Func<string, string?> ours, Func<string, string?> theirs) =>
+        Meaning(nameof(Value), meaning => meaning.Decided(ours, theirs));
 
     /// <summary>Compares a member pair on matched items. A decimal may differ by up to <paramref name="tolerance"/>, inclusive.</summary>
     public RecBuilder<TLeft, TRight> Compare<TLeftValue, TRightValue>(Expression<Func<TLeft, TLeftValue>> left, Expression<Func<TRight, TRightValue>> right, decimal? tolerance = null)
@@ -110,6 +210,32 @@ public sealed class RecBuilder<TLeft, TRight>
         return new RecResult<TLeft, TRight>(result, profile, _left, _right);
     }
 
+    // Changes what the latest key member's text means. The latest key pair is the one MatchOn, ThenMatchOn or And just added.
+    private RecBuilder<TLeft, TRight> Meaning(string method, Func<TypedMeaning, TypedMeaning> change)
+    {
+        if (!_atKey)
+            throw new InvalidOperationException($"Call {method} right after MatchOn, ThenMatchOn or And.");
+        var latest = _passes[^1][^1];
+        if (latest.Kind is not TypedKind.Text)
+            throw new InvalidOperationException($"{method} names the values of a string member; '{latest.Field}' is not one.");
+        var changed = latest with { Meaning = change(latest.Meaning ?? TypedMeaning.Empty) };
+        var pass = _passes[^1].SetItem(_passes[^1].Count - 1, changed);
+        return new(_left, _right, _profileId, _version, _passes.SetItem(_passes.Count - 1, pass), _compared, _summed, atKey: true);
+    }
+
+    // The spellings found in the items, trimmed, with blanks left out. A function that decides is asked about these.
+    private static IEnumerable<string> Spellings<T>(ImmutableArray<T> items, Func<object, object?> read) =>
+        items
+            .Select(item => item is null ? null : read(item) as string)
+            .Select(text => text?.Trim())
+            .OfType<string>()
+            .Where(text => text.Length > 0);
+
+    private TypedField Resolved(TypedField field) =>
+        field.Pair.Meaning is { } meaning
+            ? field with { Maps = meaning.Resolve(Spellings(_left, field.Pair.ReadLeft), Spellings(_right, field.Pair.ReadRight)) }
+            : field;
+
     private (ProfileDocument Profile, SourceMap<TLeft> Left, SourceMap<TRight> Right) Build()
     {
         if (_passes.IsEmpty)
@@ -118,7 +244,7 @@ public sealed class RecBuilder<TLeft, TRight>
         var fields = keys
             .Concat(_compared)
             .GroupBy(pair => pair.Field, StringComparer.Ordinal)
-            .Select(group => Declare(group.Key, group.ToArray()))
+            .Select(group => Resolved(Declare(group.Key, group.ToArray())))
             .ToArray();
         var passes = _passes
             .Select((pass, index) => (Id: "P" + (index + 1).ToString(CultureInfo.InvariantCulture), Key: pass.Select(pair => pair.Field).ToArray()))
@@ -128,8 +254,8 @@ public sealed class RecBuilder<TLeft, TRight>
             .Aggregate(GroupSums(passes), (current, pair) => current.Tolerance(pair.Field, absolute: pair.Tolerance));
         var declared = fields.Aggregate(ProfileBuilder.Create(_profileId, _version), (profile, field) => profile.Field(field.Pair.Field, field.Type, field.Role, field.Scale));
         var built = declared
-            .Left(fields.Aggregate(SideBuilder.Empty, (side, field) => Normalize(side, field, field.Pair.LeftColumn)))
-            .Right(fields.Aggregate(SideBuilder.Empty, (side, field) => Normalize(side, field, field.Pair.RightColumn)))
+            .Left(fields.Aggregate(SideBuilder.Empty, (side, field) => Normalize(side, field, field.Pair.LeftColumn, field.Maps?.Left)))
+            .Right(fields.Aggregate(SideBuilder.Empty, (side, field) => Normalize(side, field, field.Pair.RightColumn, field.Maps?.Right)))
             .Path(path)
             .Build(RuleRegistry.CreateCore());
         return built.Succeeded
@@ -146,26 +272,30 @@ public sealed class RecBuilder<TLeft, TRight>
 
     // A member used both as a key and in Compare is declared once, as a key; keys are compared too.
     // A decimal is declared at scale 28, so parsing keeps the full value.
+    // A member that names its values is declared as a symbol, and the first key use that names them is the one that counts.
     private static TypedField Declare(string name, TypedPair[] uses)
     {
         var key = uses.FirstOrDefault(use => use.Key);
-        var pair = key ?? uses[0];
+        var pair = uses.FirstOrDefault(use => use is { Key: true, Meaning: not null }) ?? key ?? uses[0];
         if (uses.FirstOrDefault(use => use.RightColumn != pair.RightColumn) is { } other)
             throw new ArgumentException($"Left member '{name}' is paired with right members '{pair.RightColumn}' and '{other.RightColumn}'; pair it with one.", nameof(uses));
         return pair.Kind switch
         {
             TypedKind.Decimal => new(pair, FieldType.Decimal, key is null ? FieldRole.Economic : FieldRole.Key, 28),
             TypedKind.Date => new(pair, FieldType.Date, key is null ? FieldRole.Economic : FieldRole.Key, 0),
+            TypedKind.Text when pair.Meaning is not null => new(pair, FieldType.Symbol, FieldRole.Key, 0),
             TypedKind.Text when key is not null => new(pair, FieldType.Identifier, FieldRole.Key, 0),
             _ => new(pair, FieldType.Text, FieldRole.Economic, 0),
         };
     }
 
     // An identifier's scheme is the left member name, so two fields do not share an intern bucket.
-    private static SideBuilder Normalize(SideBuilder side, TypedField field, string column) => field.Type switch
+    // A symbol is read through its table, and a spelling that is not in it is not passed through.
+    private static SideBuilder Normalize(SideBuilder side, TypedField field, string column, ImmutableDictionary<string, string>? values) => field.Type switch
     {
         FieldType.Decimal => side.ParseDecimal(column, field.Pair.Field),
         FieldType.Date => side.ParseDate(column, field.Pair.Field, []),
+        FieldType.Symbol => side.MapSymbol(column, field.Pair.Field, values, passthrough: false),
         FieldType.Identifier => side.MapIdentifier(column, field.Pair.Field, field.Pair.Field),
         _ => side.CopyText(column, field.Pair.Field),
     };
@@ -178,7 +308,7 @@ public sealed class RecBuilder<TLeft, TRight>
             (_, var value) => map.Text(column(field), row => value(row!) as string),
         });
 
-    private sealed record TypedField(TypedPair Pair, FieldType Type, FieldRole Role, int Scale);
+    private sealed record TypedField(TypedPair Pair, FieldType Type, FieldRole Role, int Scale, TypedMaps? Maps = null);
 }
 
 internal enum TypedKind
@@ -189,7 +319,7 @@ internal enum TypedKind
 }
 
 // One selected member pair: the field it becomes, the column each side reads, how to read it, and its kind.
-internal sealed record TypedPair(string Field, string LeftColumn, string RightColumn, Func<object, object?> ReadLeft, Func<object, object?> ReadRight, TypedKind Kind, bool Key, decimal? Tolerance)
+internal sealed record TypedPair(string Field, string LeftColumn, string RightColumn, Func<object, object?> ReadLeft, Func<object, object?> ReadRight, TypedKind Kind, bool Key, decimal? Tolerance, TypedMeaning? Meaning = null)
 {
     public static TypedPair Of<TLeft, TLeftValue, TRight, TRightValue>(Expression<Func<TLeft, TLeftValue>> left, Expression<Func<TRight, TRightValue>> right, bool key)
     {
