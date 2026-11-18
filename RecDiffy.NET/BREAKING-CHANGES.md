@@ -1,8 +1,10 @@
 # Breaking changes
 
-RecDiffy is in preview; the public API can change between previews. Each entry lists what breaks and how to update.
+1.2.0 is the first stable release. From 1.2.0 on, a breaking change to the public API waits for a new major version. Before it, the API could change from one preview to the next. Each entry lists what breaks and how to update.
 
-## Unreleased — the field comparers are internal (#408)
+## 1.2.0 — the field comparers are internal (#408)
+
+The one break between `1.2.0-preview.7` and `1.2.0`. Every preview up to `1.2.0-preview.7` has these types public.
 
 - `IFieldComparer<T>`, `DecimalComparer` and `DateComparer` are now internal.
 
