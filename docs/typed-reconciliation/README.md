@@ -46,6 +46,7 @@ foreach (var entry in result.LeftOnly)
 | `.MatchOn(l => …, r => …)` | The first matching pass. A left item and a right item match when these members are equal. |
 | `.And(l => …, r => …)` | Adds another member to the latest pass, so that pass matches only when all its members are equal. |
 | `.ThenMatchOn(l => …, r => …)` | The next pass. It only tries items that the earlier passes left unmatched. |
+| `.Value("BUY", accepts: ["B", "BOT", "BUY"])` | Right after a string key member: names a value and the spellings that count as it. A function can decide instead. See [Spellings that mean the same thing](#spellings-that-mean-the-same-thing). |
 | `.Compare(l => …, r => …, tolerance)` | Compares a member pair on every matched pair. A number may differ by up to `tolerance`, inclusive. |
 | `.Sum(l => …, r => …)` | Sums a decimal member pair, so several rows on one side can match one row on the other. See [Several rows against one](#several-rows-against-one). |
 | `.Named(id, version)` | Names the profile the builder generates. Optional. |
@@ -79,6 +80,39 @@ var match = result.Matched[0];   // match.Left holds the three allocations, matc
 ```
 
 Either side may hold the several rows. `Sum` takes a decimal member pair, and the quantities must add up exactly. It matches only rows that share the key of the last `MatchOn` or `ThenMatchOn`, with its `And` pairs. Call `Sum` again to add up another member in the same match. Put `Sum` last in the chain, so it is clear which key it follows.
+
+### Spellings that mean the same thing
+
+Two systems rarely write a code the same way. One says `BUY`, another `B`, another `BOT`. Right after a string member in the key, `Value` names a value and lists the spellings that count as it:
+
+```csharp
+var result = RecBuilder.Between(ours, confirms)
+    .MatchOn(trade => trade.Isin, confirm => confirm.Isin)
+        .And(trade => trade.Quantity, confirm => confirm.Qty)
+        .And(trade => trade.Side, confirm => confirm.BuySell)
+            .Value("BUY",  accepts: ["B", "BOT", "BUY"])
+            .Value("SELL", accepts: ["S", "SLD", "SELL"])
+    .Run();
+```
+
+A trade booked `B` now matches a confirm that says `BOT`. When the two sides spell it differently, list each side's spellings: `.Value("BUY", ours: ["BUY"], theirs: ["B", "BOT"])`.
+
+A function can decide instead. It returns the value a spelling means, or `null` for a spelling that isn't accepted:
+
+```csharp
+.Value(text => text switch
+{
+    "B" or "BOT" or "BUY" => "BUY",
+    "S" or "SLD" or "SELL" => "SELL",
+    _ => null,
+})
+```
+
+Use `Value(ours: …, theirs: …)` for a function on each side. List the values or use a function for one member, not both.
+
+- **The profile holds a table, not your function.** The function is asked once about each distinct spelling in the two lists, when the profile is built, and the answers go into the profile. `result.Profile.ToJson()` shows the table, and the profile hash covers it.
+- **A spelling nobody listed is quarantined,** with the diagnostic `UnknownSymbol`. It is never guessed. A spelling that shows up only in later data is not in a function's table, so it is quarantined too.
+- **A spelling is matched exactly,** after trimming spaces. `bot` is not `BOT`. List each case you expect.
 
 ---
 
