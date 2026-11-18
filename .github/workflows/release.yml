@@ -48,8 +48,8 @@ jobs:
       - name: Read the version from the tag
         run: |
           tag="${GITHUB_REF#refs/tags/}"
-          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*$ ]]; then
-            echo "Tag '$tag' must be a prerelease, vX.Y.Z-label, for example v1.2.0-preview.1. Every release is a prerelease for now."
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+            echo "Tag '$tag' must be vX.Y.Z-label for a prerelease, for example v1.2.0-preview.1, or vX.Y.Z for a stable release, for example v1.2.0."
             exit 1
           fi
           echo "VERSION=${tag#v}" >> "$GITHUB_ENV"
@@ -58,10 +58,10 @@ jobs:
       - name: Pack
         run: |
           mkdir -p artifacts
-          dotnet pack RecDiffy.NET/src/RecDiffy/RecDiffy.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true
-          dotnet pack RecDiffy.NET/src/RecDiffy.RulePacks.Trading/RecDiffy.RulePacks.Trading.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true
-          dotnet pack RecDiffy.NET/src/RecDiffy.Excel/RecDiffy.Excel.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true
-          dotnet pack RecDiffy.NET/src/RecDiffy.IO/RecDiffy.IO.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true
+          dotnet pack RecDiffy.NET/src/RecDiffy/RecDiffy.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:AllowStableVersion=true -p:ContinuousIntegrationBuild=true
+          dotnet pack RecDiffy.NET/src/RecDiffy.RulePacks.Trading/RecDiffy.RulePacks.Trading.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:AllowStableVersion=true -p:ContinuousIntegrationBuild=true
+          dotnet pack RecDiffy.NET/src/RecDiffy.Excel/RecDiffy.Excel.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:AllowStableVersion=true -p:ContinuousIntegrationBuild=true
+          dotnet pack RecDiffy.NET/src/RecDiffy.IO/RecDiffy.IO.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:AllowStableVersion=true -p:ContinuousIntegrationBuild=true
 
       # #296: the files pushed to nuget.org are the files these checks see. Both scripts read the packages from
       # RecDiffy.NET/tests/PackageSmoke/feed, so copy them there first, and let either script fail the job before
@@ -95,4 +95,7 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$TAG" artifacts/*.nupkg artifacts/*.snupkg --title "$TAG" --notes-file RecDiffy.NET/BREAKING-CHANGES.md --generate-notes --prerelease
+        run: |
+          kind=()
+          if [[ "$VERSION" == *-* ]]; then kind=(--prerelease); fi
+          gh release create "$TAG" artifacts/*.nupkg artifacts/*.snupkg --title "$TAG" --notes-file RecDiffy.NET/BREAKING-CHANGES.md --generate-notes "${kind[@]}"

@@ -2,7 +2,7 @@
 
 Packages published by the release workflow are `RecDiffy`, `RecDiffy.RulePacks.Trading`, `RecDiffy.Excel` and `RecDiffy.IO`. Tests, benchmarks, samples and the AOT host are not packed.
 
-Every package is a prerelease for now. A pack whose version has no prerelease label, such as `1.2.0`, fails the build, and the release workflow rejects a tag without one.
+A release is a prerelease, tagged `vX.Y.Z-label`, or stable, tagged `vX.Y.Z`. Only the release workflow packs a stable version. Any other pack of a version with no prerelease label, such as `1.2.0`, fails the build.
 
 ## Release scope
 
@@ -26,18 +26,18 @@ What runs on which framework and operating system is in [SUPPORT.md](SUPPORT.md)
 
 ### The version sequence
 
-- **Releases are `1.2.0-preview.N`.** `1.2.0-preview.1`, `.2` and `.3` are on nuget.org, published on 9 and 10 November 2026. The next is `1.2.0-preview.4`.
+- **The previews are `1.2.0-preview.N`.** `1.2.0-preview.1` to `.7` are on nuget.org, the first published on 9 November 2026.
 - **Every number is used once.** nuget.org never deletes a version, and a version can't be pushed twice.
 - **Numbers may skip.** A gap is harmless. A number lower than one already published isn't.
-- **No stable version yet.** `v1.2.0` and other tags without a label fail the workflow before anything is packed. Lifting that rule is the maintainer's decision. The earlier plan for a `0.1.0` preview line was dropped in favour of `1.2.0-preview.N`.
+- **The first stable version is `1.2.0`.** NuGet ranks `1.2.0` above every `1.2.0-preview.N`. A stable version below one already published, such as `1.0.0`, ranks below the previews: `dotnet add package` without `--prerelease` would take it while every preview stays newer. Don't use one. The earlier plan for a `0.1.0` preview line was dropped in favour of `1.2.0-preview.N`.
 
 ### One public channel
 
-nuget.org prereleases are the only public channel. Two other workflows pack the libraries for this repository's own checks. They keep the packages as workflow artifacts, and publish nothing.
+nuget.org is the only public channel. Two other workflows pack the libraries for this repository's own checks. They keep the packages as workflow artifacts, and publish nothing.
 
 | Workflow | Trigger | Version | Where the packages go |
 |---|---|---|---|
-| [release.yml](../../.github/workflows/release.yml) | A pushed `vX.Y.Z-label` tag | The tag without its `v`, such as `1.2.0-preview.3` | nuget.org, and the GitHub Release |
+| [release.yml](../../.github/workflows/release.yml) | A pushed `vX.Y.Z-label` or `vX.Y.Z` tag | The tag without its `v`, such as `1.2.0-preview.3` or `1.2.0` | nuget.org, and the GitHub Release |
 | [packages.yml](../../.github/workflows/packages.yml) | Every pull request, and every push to `dev` and `main` | `0.0.0-ci.<run number>` | The `packages` workflow artifact, kept for seven days |
 | [ci.yml](../../.github/workflows/ci.yml) | Every push to `main` | `1.1.0-preview.<run number>` | The `nuget-prerelease` workflow artifact |
 
@@ -55,10 +55,10 @@ nuget.org prereleases are the only public channel. Two other workflows pack the 
 ## Release to nuget.org
 
 1. Merge the change to `main`.
-2. Tag that commit `vX.Y.Z-label`, for example `v1.2.0-preview.1`.
+2. Tag that commit `vX.Y.Z-label` for a prerelease, for example `v1.2.0-preview.1`, or `vX.Y.Z` for a stable release, for example `v1.2.0`.
 3. Push the tag: `git push origin v1.2.0-preview.1`.
 
-The workflow builds, runs the tests, packs all four projects as that version, checks those exact files the way a consumer gets them, pushes the packages to nuget.org, and opens a GitHub Release marked as a prerelease, with the packages attached.
+The workflow builds, runs the tests, packs all four projects as that version, checks those exact files the way a consumer gets them, pushes the packages to nuget.org, and opens a GitHub Release with the packages attached. A labelled tag's release is marked as a prerelease. A stable tag's release becomes the repository's latest release.
 
 **The pushed files are the checked files.** Before `Log in to nuget.org`, the job copies `artifacts/*.nupkg` into `RecDiffy.NET/tests/PackageSmoke/feed` and runs the two checks the [Packages workflow](../../.github/workflows/packages.yml) runs on every pull request:
 
@@ -132,7 +132,7 @@ Nothing is published to GitHub Packages. The `1.1.0-preview.<run number>` builds
 The push uses `--skip-duplicate`, so a version that is already on nuget.org is skipped without an error. A green run doesn't prove that all four packages went out.
 
 1. **Check nuget.org.** Each of the four packages should list the new version. A new version can take a few minutes to appear while nuget.org validates and indexes it.
-2. **Check the GitHub Release.** It should be marked as a prerelease, with four `.nupkg` and four `.snupkg` files.
+2. **Check the GitHub Release.** It should have four `.nupkg` and four `.snupkg` files. It should be marked as a prerelease for a labelled tag, or as the latest release for a stable one.
 
 **`dev` is never deleted or recreated.** Releases move `main` to `dev` by fast-forward only. The ruleset `dev-no-delete` blocks deleting `dev`.
 
