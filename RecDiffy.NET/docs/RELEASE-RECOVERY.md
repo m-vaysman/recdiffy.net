@@ -187,12 +187,13 @@ On our side, make sure every version has all four packages, as in [Find out what
 
 ### The tag names the wrong version
 
-The workflow rejects a tag that has no prerelease label, and a pack fails on a version without one. So a stable version can't go out by accident.
+The workflow accepts only `vX.Y.Z-label` and `vX.Y.Z` tags. Outside the release workflow, a pack fails on a version without a label, so a stable version goes out only from a pushed `vX.Y.Z` tag. Check a stable tag twice before you push it.
 
 - **The run hasn't reached "Push to nuget.org":** cancel the run, delete the tag and tag again.
 - **The packages are published:** the version is permanent.
   - **It skips a number,** such as `preview.6` after `preview.4`: leave it and carry on from it. Nothing is broken.
   - **It sorts below an earlier release,** such as `1.1.0-preview.1` after `1.2.0-preview.4`, or `preview10` after `preview9`: `dotnet add package --prerelease` and floating versions keep taking the earlier release. Release the intended code at a version above both, then deprecate and unlist the misnumbered one.
+  - **It is stable but should have been a prerelease,** such as `v1.3.0` for `v1.3.0-preview.1`: `dotnet add package` without `--prerelease` now takes it. Deprecate and unlist it, then release the intended code as a prerelease that sorts above it, such as `1.4.0-preview.1`. `1.3.0-preview.1` would sort below the mistake. The number `1.3.0` stays used.
 
 ### The tag is on the wrong commit
 
