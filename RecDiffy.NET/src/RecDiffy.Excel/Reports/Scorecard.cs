@@ -39,7 +39,7 @@ internal static class Scorecard
             ("Unmatched theirs", $"COUNTIFS({source},\"right\",{disposition},\"RightOnly\",{lead},1)", Formats.Count),
             ("Ambiguous", $"COUNTIF({alignment},\"Ambiguous\")", Formats.Count),
         ];
-        var r0 = ReportSheet.Body;
+        const int r0 = ReportSheet.Body;
         var passRow = r0 + 3 * ((tiles.Length + 4) / 5);
         var passes = context.Facts.Passes;
         var header = passRow + 4;
@@ -56,13 +56,13 @@ internal static class Scorecard
         var sheet = ReportSheet.Head(context, info)
             .Fold(tiles, (current, tile, index) =>
             {
-                var column = 1 + index % 5 * 2;
-                var row = r0 + index / 5 * 3;
+                var column = 1 + (index % 5 * 2);
+                var row = r0 + (index / 5 * 3);
                 return current
                     .Put(row, column, context.Label(tile.Label), new CellStyle(Color: Palette.Muted, Fill: Palette.Card))
                     .Put(row, column + 1, null, new CellStyle(Fill: Palette.Card))
                     .Merge(row, column, row, column + 1)
-                    .PutFormula(row + 1, column, tile.Formula, new CellStyle(Bold: true, Size: 16, Fill: Palette.Card, Format: tile.Format, Align: HorizontalAlign.Left))
+                    .PutFormula(row + 1, column, tile.Formula, new CellStyle(Bold: true, Fill: Palette.Card, Format: tile.Format, Align: HorizontalAlign.Left, Size: 16))
                     .Put(row + 1, column + 1, null, new CellStyle(Fill: Palette.Card))
                     .Merge(row + 1, column, row + 1, column + 1)
                     .Height(row + 1, 26);

@@ -62,8 +62,8 @@ internal static class ControlTotals
             .OrderBy(pair => pair.Counterparty, StringComparer.Ordinal)
             .ThenBy(pair => pair.Asset, StringComparer.Ordinal)
             .ToImmutableArray();
-        var r0 = ReportSheet.Body + 1;
-        var p1First = r0 + 2;
+        const int r0 = ReportSheet.Body + 1;
+        const int p1First = r0 + 2;
         var p1Last = p1First + pairs.Length - 1;
         var p1Total = p1Last + 1;
         var checkColumn = others ? 13 : 11;
@@ -128,7 +128,7 @@ internal static class ControlTotals
         var p2Last = blocks.IsEmpty ? p2Head : blocks[^1].Subtotal;
         var lead = rows.Range("itemLead");
         string Sum(string side, string criteria, IEnumerable<string> states, string narrow = "") =>
-            string.Join("+", states.Select(state => $"SUMIFS({quantity},{source},\"{side}\",{disposition},\"{state}\"{narrow},{criteria})"));
+            string.Join('+', states.Select(state => $"SUMIFS({quantity},{source},\"{side}\",{disposition},\"{state}\"{narrow},{criteria})"));
         var packages = context.Facts.Rows.Any(row => row is { ItemLead: false, Row.Disposition: Disposition.Matched or Disposition.LeftOnly or Disposition.RightOnly });
         ImmutableArray<AddBack> addBacks =
         [

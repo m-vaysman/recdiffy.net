@@ -99,13 +99,13 @@ internal static class Styles
 
     public static CellStyle SubHeader { get; } = new(Bold: true, Fill: Palette.Sub, Align: HorizontalAlign.Center);
 
-    public static CellStyle Title { get; } = new(Bold: true, Size: 14, Border: false);
+    public static CellStyle Title { get; } = new(Bold: true, Border: false, Size: 14);
 
     public static CellStyle Section { get; } = new(Bold: true, Border: false);
 
     public static CellStyle Muted { get; } = new(Color: Palette.Muted, Border: false);
 
-    public static CellStyle Note { get; } = new(Color: Palette.Muted, Italic: true, Border: false);
+    public static CellStyle Note { get; } = new(Italic: true, Color: Palette.Muted, Border: false);
 
     public static CellStyle Banner { get; } = new(Bold: true, Color: Palette.White, Fill: Palette.Head);
 

@@ -11,6 +11,8 @@ namespace RecDiffy.Excel.Reports;
 // settle-date break moves cash between dates and a currency split moves it between currencies. Never totalled across currencies.
 internal static class CashLadder
 {
+    private static readonly ImmutableArray<int> SummedColumns = [3, 4, 5, 7, 8, 9, 10];
+
     public static ReportDefinition Definition { get; } = new(
         ReportKind.CashLadder,
         [ReportRole.NetCash, ReportRole.Side, ReportRole.SettleDate, ReportRole.Currency],
@@ -43,9 +45,9 @@ internal static class CashLadder
             $"SUMIFS({signed},{source},\"{side}\",{settle},$A{row.ToInvariant()},{currency},$B{row.ToInvariant()},{lead},1"
             + (only is null ? $",{disposition},\"<>Suppressed\",{disposition},\"<>Quarantined\")" : $",{disposition},\"{only}\")");
 
-        var note = ReportSheet.Body;
-        var header = note + 1;
-        var first = header + 1;
+        const int note = ReportSheet.Body;
+        const int header = note + 1;
+        const int first = header + 1;
         var last = Math.Max(first, header + lines.Length);
         var totalsTitle = last + 2;
         var totalsHeader = totalsTitle + 1;
@@ -84,7 +86,7 @@ internal static class CashLadder
                 return current
                     .Put(row, 1, code, Styles.Bold)
                     .Put(row, 2, null)
-                    .Fold(new[] { 3, 4, 5, 7, 8, 9, 10 }, (inner, column, _) => inner.PutFormula(
+                    .Fold(SummedColumns, (inner, column, _) => inner.PutFormula(
                         row,
                         column,
                         $"SUMIF($B${first.ToInvariant()}:$B${last.ToInvariant()},$A{row.ToInvariant()},{Address.Column(column)}${first.ToInvariant()}:{Address.Column(column)}${last.ToInvariant()})",

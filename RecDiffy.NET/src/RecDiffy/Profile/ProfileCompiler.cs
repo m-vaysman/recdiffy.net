@@ -280,11 +280,15 @@ internal static class ProfileCompiler
         }
 
         foreach (var path in document.Paths)
+        {
             foreach (var line in PathLines(path))
                 yield return line;
+        }
         foreach (var side in document.Consolidation.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+        {
             foreach (var line in ConsolidationLines(side.Key, side.Value))
                 yield return line;
+        }
     }
 
     private static IEnumerable<string> Calls(string side, string phase, IReadOnlyList<RuleCall> calls)

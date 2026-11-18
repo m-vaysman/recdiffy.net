@@ -108,7 +108,7 @@ internal static class Address
     {
         <= 0 => throw new ArgumentOutOfRangeException(nameof(column)),
         <= 26 => ((char)('A' + column - 1)).ToString(),
-        _ => Column((column - 1) / 26) + (char)('A' + (column - 1) % 26),
+        _ => Column((column - 1) / 26) + (char)('A' + ((column - 1) % 26)),
     };
 
     public static string Cell(int row, int column) => $"{Column(column)}{row.ToInvariant()}";

@@ -36,7 +36,7 @@ internal static class SideBySideCompare
         var netCash = fields.Contains(ReportRole.NetCash);
         var deltaColumn = fixedColumns.Length + 1 + 2 * fields.Length;
         var otherColumn = deltaColumn + (netCash ? 1 : 0);
-        var legend = ReportSheet.Body;
+        const int legend = ReportSheet.Body;
         var h1 = legend + 2;
         var first = h1 + 2;
         var last = Math.Max(first, h1 + 1 + rows.Length);

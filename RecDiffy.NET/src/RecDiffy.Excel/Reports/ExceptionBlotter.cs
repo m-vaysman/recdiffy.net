@@ -11,6 +11,7 @@ internal static class ExceptionBlotter
     private sealed record Amounts(object? Ours, object? Theirs, object? Delta, string Format, string DeltaFormat);
 
     private const int Columns = 19;
+    private static readonly ImmutableArray<string> OptionalTypes = ["Ambiguous", "Search incomplete"];
 
     public static ReportDefinition Definition { get; } = new(
         ReportKind.ExceptionBlotter,
@@ -33,9 +34,9 @@ internal static class ExceptionBlotter
         ImmutableArray<string> types =
         [
             "Field break", "Unmatched ours", "Unmatched theirs",
-            .. new[] { "Ambiguous", "Search incomplete" }.Where(type => items.Any(item => item.ItemType == type)),
+            .. OptionalTypes.Where(type => items.Any(item => item.ItemType == type)),
         ];
-        var r0 = ReportSheet.Body;
+        const int r0 = ReportSheet.Body;
         var summaryRows = Math.Max(statuses.Length, types.Length);
         var total = r0 + 1 + summaryRows;
         var header = total + 2;
