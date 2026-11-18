@@ -63,7 +63,7 @@ internal sealed record PairIndex(
     }
 
     public override IReadOnlyList<ResidueCluster> Residue() =>
-        [.. Left.Keys.Union(Right.Keys, MatchKey.OrdinalEquality).OrderBy(key => key, MatchKey.Ordinal).SelectMany(Cluster)];
+        [.. Left.Keys.Union(Right.Keys, MatchKey.OrdinalEquality).Order(MatchKey.Ordinal).SelectMany(Cluster)];
 
     // A key with rows on only one side is not residue. Those rows stay free for a later pass.
     private IEnumerable<ResidueCluster> Cluster(MatchKey key) =>
@@ -100,8 +100,8 @@ internal sealed record PairIndex(
         var left = Members(Left, key);
         var right = Members(Right, key);
         return (
-            [.. left.Where(index => right.Any(other => ApplyVeto is false || Veto(index, other) is false)).OrderBy(index => index)],
-            [.. right.Where(index => left.Any(other => ApplyVeto is false || Veto(other, index) is false)).OrderBy(index => index)]);
+            [.. left.Where(index => right.Any(other => ApplyVeto is false || Veto(index, other) is false)).Order()],
+            [.. right.Where(index => left.Any(other => ApplyVeto is false || Veto(other, index) is false)).Order()]);
     }
 
     private bool Veto(int left, int right) =>

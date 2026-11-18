@@ -44,8 +44,8 @@ public class CascadeScaleBench
         var row = RowContext.Create(id, side, new Dictionary<string, object?>(StringComparer.Ordinal));
         var (partyPool, party) = row.Pool.InternSymbol("C");
         row = row.WithPool(partyPool).Write("Counterparty", CanonicalCell.FromInterned(FieldType.Symbol, party), "bench", null, "C");
-        var (instrumentPool, instrument) = row.Pool.InternSymbol("I" + index);
-        row = row.WithPool(instrumentPool).Write("Instrument", CanonicalCell.FromInterned(FieldType.Symbol, instrument), "bench", null, "I" + index);
+        var (instrumentPool, instrument) = row.Pool.InternSymbol($"I{index.ToInvariant()}");
+        row = row.WithPool(instrumentPool).Write("Instrument", CanonicalCell.FromInterned(FieldType.Symbol, instrument), "bench", null, $"I{index.ToInvariant()}");
         row = row.Write("Quantity", CanonicalCell.FromDecimal(10m), "bench", null, null);
         return new ConsolidatedRow([new SourceRef(side == Side.Left ? "left" : "right", id, index)], row, false, null, null);
     }

@@ -38,8 +38,8 @@ internal static class BreakHeatmap
             .ThenBy(group => group.Key, StringComparer.Ordinal)
             .Select(group => group.Key)
             .ToImmutableArray();
-        var header = ReportSheet.Body;
-        var first = header + 1;
+        const int header = ReportSheet.Body;
+        const int first = header + 1;
         var total = first + counterparties.Length;
         var totalColumn = 2 + categories.Length;
         var counterparty = items.Range("counterparty");

@@ -37,7 +37,7 @@ internal static class AuditTrail
     private static ReportBody Build(ReportContext context)
     {
         var info = ReportCatalogue.Of(ReportKind.AuditTrail);
-        var note = ReportSheet.Body;
+        const int note = ReportSheet.Body;
         var sheet = Selected(context).Aggregate(
             (Sheet: ReportSheet.Head(context, info)
                 .Put(note, 1, "The engine's explanation records the pass that committed each match, or the pass that left an entry open, with its key, candidates and detail. Passes an entry fell through before that are not recorded by the engine.", Styles.Note),
@@ -92,13 +92,13 @@ internal static class AuditTrail
                     "NoKey" or "NoCandidate" or "LeftOnly" or "RightOnly" => new CellStyle(Bold: true, Color: Palette.AttributedText, Fill: Palette.Attributed),
                     "Vetoed" => new CellStyle(Bold: true, Color: Palette.BreakText, Fill: Palette.Break),
                     "Matched" => new CellStyle(Bold: true, Color: Palette.OkText, Fill: Palette.Ok),
-                    _ => new CellStyle(Bold: true, Fill: step.Hint ? Palette.Card : Palette.Sub, Italic: step.Hint),
+                    _ => new CellStyle(Bold: true, Italic: step.Hint, Fill: step.Hint ? Palette.Card : Palette.Sub),
                 };
                 return current
                     .Put(line, 1, step.Name, Styles.Bold)
                     .Put(line, 2, step.Verdict, verdict)
-                    .Put(line, 3, step.Detail, new CellStyle(Wrap: true, Italic: step.Hint, VAlign: VerticalAlign.Top))
-                    .Put(line, 4, step.Candidates, new CellStyle(Wrap: true, Color: Palette.Muted, VAlign: VerticalAlign.Top));
+                    .Put(line, 3, step.Detail, new CellStyle(Italic: step.Hint, Wrap: true, VAlign: VerticalAlign.Top))
+                    .Put(line, 4, step.Candidates, new CellStyle(Color: Palette.Muted, Wrap: true, VAlign: VerticalAlign.Top));
             });
         return (drawn, row + 3 + steps.Length);
     }

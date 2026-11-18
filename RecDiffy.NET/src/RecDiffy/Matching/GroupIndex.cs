@@ -57,7 +57,7 @@ internal sealed record GroupIndex(
             ImmutableDictionary.Create<string, ImmutableList<ReadyProposal>>(StringComparer.Ordinal),
             ImmutableDictionary.Create<MatchKey, ImmutableArray<string>>(MatchKey.OrdinalEquality),
             ImmutableSortedSet.Create<string>(StringComparer.Ordinal));
-        return EvaluateAll(seeded, seeded.Blocks.Keys.OrderBy(key => key, MatchKey.Ordinal), counters.Built(), false);
+        return EvaluateAll(seeded, seeded.Blocks.Keys.Order(MatchKey.Ordinal), counters.Built(), false);
     }
 
     public override (PassIndex Index, MatchCounters Counters) Release(IReadOnlyList<int> taken, MatchCounters counters)
@@ -92,12 +92,12 @@ internal sealed record GroupIndex(
         if (dropped.Blocks.TryGetValue(key, out var members) is false || members.IsEmpty)
             return (dropped with { Decisions = dropped.Decisions.Remove(key), Blocks = dropped.Blocks.Remove(key) }, counters);
 
-        var items = members.OrderBy(index => index).Select(index => Workspace.Items[index]).ToArray();
+        var items = members.Order().Select(index => Workspace.Items[index]).ToArray();
         var components = Couple(items);
         return PostComponents(dropped, key, components, counters, dirty);
     }
 
-    private (GroupIndex Index, MatchCounters Counters) PostComponents(
+    private static (GroupIndex Index, MatchCounters Counters) PostComponents(
         GroupIndex dropped,
         MatchKey key,
         IEnumerable<Component> components,
@@ -231,7 +231,7 @@ internal sealed record GroupIndex(
     private IEnumerable<Component> Couple(IReadOnlyList<ActiveItem> blockItems)
     {
         Workspace.Cancellation.ThrowIfCancellationRequested();
-        var targets = blockItems.Where(item => item.Side != Many).Select(item => item.Index).OrderBy(index => index).ToArray();
+        var targets = blockItems.Where(item => item.Side != Many).Select(item => item.Index).Order().ToArray();
         var manyItems = blockItems.Where(item => item.Side == Many).Select(item => item.Index).ToArray();
         var census = Census.Collect(manyItems, ClaimOf, Workspace.Cancellation);
         var claims = Claims(targets);
@@ -302,8 +302,11 @@ internal sealed record GroupIndex(
                 if (covered)
                     continue;
                 foreach (var item in census.Many)
+                {
                     if (seen.Add(item))
                         result.Add(item);
+                }
+
                 covered = true;
                 continue;
             }
@@ -311,8 +314,10 @@ internal sealed record GroupIndex(
             if (covered || claim.Value is not { } value || emitted.Add(value) is false)
                 continue;
             foreach (var item in census.For(value))
+            {
                 if (seen.Add(item))
                     result.Add(item);
+            }
         }
 
         return [.. result];

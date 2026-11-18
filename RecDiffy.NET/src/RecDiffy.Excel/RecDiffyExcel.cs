@@ -40,11 +40,11 @@ public static partial class RecDiffyExcel
         ArgumentNullException.ThrowIfNull(options);
         cancellationToken.ThrowIfCancellationRequested();
         var context = Context(result, options);
-        var composed = Selected(options).Select(definition => Checked(cancellationToken, () => Compose(context, definition))).ToArray();
+        var composed = Selected(options).Select(definition => Checked(() => Compose(context, definition), cancellationToken)).ToArray();
         if (composed.Any(item => item.Workbook is not null))
             Directory.CreateDirectory(folder);
         return [.. composed.Select(item => item.Workbook is { } workbook
-            ? Checked(cancellationToken, () => Save(workbook, folder, item))
+            ? Checked(() => Save(workbook, folder, item), cancellationToken)
             : new ReportOutcome(item.Kind, item.FileName, null, item.SkipReason))];
     }
 
@@ -131,7 +131,7 @@ public static partial class RecDiffyExcel
     private static IEnumerable<ReportDefinition> Selected(ExcelReportOptions options) =>
         (options.Reports ?? Enum.GetValues<ReportKind>()).Distinct().Select(ReportRegistry.Of);
 
-    private static T Checked<T>(CancellationToken cancellationToken, Func<T> step)
+    private static T Checked<T>(Func<T> step, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         return step();

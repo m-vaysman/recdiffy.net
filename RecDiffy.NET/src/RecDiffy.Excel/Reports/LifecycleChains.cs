@@ -42,7 +42,7 @@ internal static class LifecycleChains
             return null;
         var members = (source == "left" ? entry.Entry.Left : entry.Entry.Right).Select(member => context.Facts.RowByRef[member]).ToArray();
         var chain = linked.Where(row => row.Source == source && row.Row.Suppression is not null).Concat(members.Where(row => row.Values[ReportRole.LifecycleAction].Text.Length > 0)).Distinct().ToArray();
-        var survivor = members.FirstOrDefault(row => row.Values[ReportRole.LifecycleAction].Text.Length > 0) ?? members.First();
+        var survivor = members.FirstOrDefault(row => row.Values[ReportRole.LifecycleAction].Text.Length > 0) ?? members[0];
         var others = (source == "left" ? entry.Entry.Right : entry.Entry.Left).Select(member => context.Facts.RowByRef[member]).ToImmutableArray();
         return new Chain(entry, [.. LinkOrder(chain)], others, survivor);
     }
@@ -91,8 +91,8 @@ internal static class LifecycleChains
             {
                 var line = header + 1 + index;
                 var live = fact == chain.Survivor;
-                var style = live ? new CellStyle(Bold: true, Color: Palette.Link) : new CellStyle(Color: Palette.Muted, Strike: true);
-                var text = live ? Styles.Bold : new CellStyle(Color: Palette.Muted, Strike: true);
+                var style = live ? new CellStyle(Bold: true, Color: Palette.Link) : new CellStyle(Strike: true, Color: Palette.Muted);
+                var text = live ? Styles.Bold : new CellStyle(Strike: true, Color: Palette.Muted);
                 var disposition = fact.Row.Suppression switch
                 {
                     SuppressionReason.Superseded => "Superseded",

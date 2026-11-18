@@ -46,8 +46,8 @@ internal static class CascadeFunnel
                 : Array.Empty<Stage>(),
             new("Residue", null, column => Items(Side(column), column == "C" ? "LeftOnly" : "RightOnly"), "Unmatched ours and unmatched theirs", Residue: true),
         ];
-        var header = ReportSheet.Body;
-        var first = header + 1;
+        const int header = ReportSheet.Body;
+        const int first = header + 1;
         var residue = header + stages.Length;
         var lastStage = residue - 1;
         var check = residue + 1;
