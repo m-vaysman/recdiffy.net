@@ -47,6 +47,7 @@ foreach (var entry in result.LeftOnly)
 | `.And(l => …, r => …)` | Adds another member to the latest pass, so that pass matches only when all its members are equal. |
 | `.ThenMatchOn(l => …, r => …)` | The next pass. It only tries items that the earlier passes left unmatched. |
 | `.Value("BUY", accepts: ["B", "BOT", "BUY"])` | Right after a string key member: names a value and the spellings that count as it. A function can decide instead. See [Spellings that mean the same thing](#spellings-that-mean-the-same-thing). |
+| `.Opposite("BUY", "SELL")` | Right after a string key member: says two values are opposites, so a buy on one side matches a sell on the other. See [Opposites](#opposites). |
 | `.Compare(l => …, r => …, tolerance)` | Compares a member pair on every matched pair. A number may differ by up to `tolerance`, inclusive. |
 | `.Sum(l => …, r => …)` | Sums a decimal member pair, so several rows on one side can match one row on the other. See [Several rows against one](#several-rows-against-one). |
 | `.Named(id, version)` | Names the profile the builder generates. Optional. |
@@ -113,6 +114,34 @@ Use `Value(ours: …, theirs: …)` for a function on each side. List the values
 - **The profile holds a table, not your function.** The function is asked once about each distinct spelling in the two lists, when the profile is built, and the answers go into the profile. `result.Profile.ToJson()` shows the table, and the profile hash covers it.
 - **A spelling nobody listed is quarantined,** with the diagnostic `UnknownSymbol`. It is never guessed. A spelling that shows up only in later data is not in a function's table, so it is quarantined too.
 - **A spelling is matched exactly,** after trimming spaces. `bot` is not `BOT`. List each case you expect.
+
+### Opposites
+
+Your books say you bought. The broker's confirm says it sold. The two rows describe one trade, and their sides are opposite. `Opposite` says which values go together that way:
+
+```csharp
+var result = RecBuilder.Between(ours, confirms)
+    .MatchOn(trade => trade.Isin, confirm => confirm.Isin)
+        .And(trade => trade.Quantity, confirm => confirm.Qty)
+        .And(trade => trade.Side, confirm => confirm.BuySell)
+            .Value("BUY",  accepts: ["B", "BOT", "BUY"])
+            .Value("SELL", accepts: ["S", "SLD", "SELL"])
+            .Opposite("BUY", "SELL")
+    .Run();
+```
+
+Our `B` now matches their `SLD`. Two rows that agree, both buys or both sells, do not match: they stay in `LeftOnly` and `RightOnly`.
+
+Without `Value`, list the pairs of spellings, our value first: `.Opposite(("BUY", "S"), ("SELL", "B"))`. When both sides use the same words from their own point of view, `.Opposite("BUY", "SELL")` is enough. A function can decide, and is asked about every left value paired with every right value:
+
+```csharp
+.Opposite((ours, theirs) => (ours, theirs) is ("BUY", "S") or ("SELL", "B"))
+```
+
+- **The profile holds tables.** The left side is read as it is. Each right spelling is read as the left value it matches, so the key stays an exact match. `result.Profile.ToJson()` shows both tables, and the profile hash covers them.
+- **A spelling nobody listed is quarantined** with `UnknownSymbol`, as with `Value`. A right value that has no opposite is not accepted either.
+- **A value can have one opposite.** Naming two for the same value is refused.
+- **A pair has to name values that exist.** When you list values with `Value`, a pair that names another value is refused, and the message says which value and which side.
 
 ---
 
