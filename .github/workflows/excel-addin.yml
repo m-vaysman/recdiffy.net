@@ -142,11 +142,11 @@ jobs:
           if ($files.Count -ne $expected) {
             throw "Expected $expected file(s) to sign, got $($files.Count)."
           }
-          $paths = foreach ($file in $files) {
+          $paths = @(foreach ($file in $files) {
             $path = if ([System.IO.Path]::IsPathRooted($file)) { $file } else { Join-Path $env:GITHUB_WORKSPACE $file }
             if (-not (Test-Path -LiteralPath $path)) { throw "File to sign was not found: $path" }
             $path
-          }
+          })
           & $env:SIGNTOOL sign /v /fd SHA256 /tr http://timestamp.acs.microsoft.com /td SHA256 /dlib $env:DLIB /dmdf $env:METADATA @paths
           if ($LASTEXITCODE -ne 0) { throw "signtool sign failed with exit code $LASTEXITCODE." }
           foreach ($path in $paths) {
