@@ -236,9 +236,9 @@ jobs:
             New-Item -ItemType Directory -Force -Path $extract | Out-Null
             $target = (Resolve-Path -LiteralPath $extract).Path.TrimEnd('\') + '\\'
             $msiFull = (Resolve-Path -LiteralPath $msiPath).Path
-            & "$env:SystemRoot\System32\msiexec.exe" /a $msiFull /qn "TARGETDIR=$target"
-            if ($LASTEXITCODE -ne 0) {
-              throw "Reading the MSI layout failed. msiexec exit code $LASTEXITCODE."
+            $msiexec = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList @('/a', "`"$msiFull`"", '/qn', "TARGETDIR=$target") -Wait -PassThru
+            if ($msiexec.ExitCode -ne 0) {
+              throw "Reading the MSI layout failed. msiexec exit code $($msiexec.ExitCode)."
             }
             foreach ($name in $names) {
               $embedded = @(Get-ChildItem -LiteralPath $extract -Recurse -File -Filter $name)
