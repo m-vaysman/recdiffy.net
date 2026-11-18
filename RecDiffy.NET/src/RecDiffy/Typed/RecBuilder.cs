@@ -171,6 +171,75 @@ public sealed class RecBuilder<TLeft, TRight>
     public RecBuilder<TLeft, TRight> Value(Func<string, string?> ours, Func<string, string?> theirs) =>
         Meaning(nameof(Value), meaning => meaning.Decided(ours, theirs));
 
+    /// <summary>
+    /// Says that two values of the string member just added to the key are opposites, so a left item with one matches a right
+    /// item with the other: a buy on one side is a sell on the other. The values are the ones named with <c>Value</c>; without
+    /// <c>Value</c> they are the spellings in the data, each accepted as written. The profile it writes reads each right spelling
+    /// as the left value that matches it, so the key itself is still an exact match. A right row with a spelling nobody listed is
+    /// quarantined with <c>UnknownSymbol</c>. Two items that agree, such as two buys, do not match.
+    /// </summary>
+    /// <param name="value">One value of the pair.</param>
+    /// <param name="opposite">The value that matches it. Each is the opposite of the other, so <c>Opposite("BUY", "SELL")</c> covers both ways.</param>
+    /// <example>
+    /// <code>
+    /// RecBuilder.Between(ours, confirms)
+    ///     .MatchOn(trade => trade.Isin, confirm => confirm.Isin)
+    ///         .And(trade => trade.Side, confirm => confirm.BuySell)
+    ///             .Value("BUY",  accepts: ["B", "BOT", "BUY"])
+    ///             .Value("SELL", accepts: ["S", "SLD", "SELL"])
+    ///             .Opposite("BUY", "SELL")
+    ///     .Run();
+    /// // We bought and the broker sold: our "B" matches their "SLD". Both sold, or both bought, do not match.
+    /// </code>
+    /// </example>
+    public RecBuilder<TLeft, TRight> Opposite(string value, string opposite)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(opposite);
+        return Meaning(nameof(Opposite), meaning => meaning.Opposite([(value, opposite), (opposite, value)]));
+    }
+
+    /// <summary>
+    /// Says which value of the right items matches which value of the left items, one pair at a time: a pair is the left value
+    /// first, then the right value that matches it. Use it when the two sides use different words and you do not want to name
+    /// the values with <c>Value</c>. The rules of <see cref="Opposite(string, string)"/> apply.
+    /// </summary>
+    /// <param name="pairs">Each pair is (a left value, the right value that matches it).</param>
+    /// <example>
+    /// <code>
+    /// RecBuilder.Between(ours, confirms)
+    ///     .MatchOn(trade => trade.Isin, confirm => confirm.Isin)
+    ///         .And(trade => trade.Side, confirm => confirm.BuySell)
+    ///             .Opposite(("BUY", "S"), ("SELL", "B"))
+    ///     .Run();
+    /// // Our "BUY" matches their "S", and our "SELL" matches their "B". Any other spelling is quarantined.
+    /// </code>
+    /// </example>
+    public RecBuilder<TLeft, TRight> Opposite(params (string Ours, string Theirs)[] pairs)
+    {
+        ArgumentNullException.ThrowIfNull(pairs);
+        return Meaning(nameof(Opposite), meaning => meaning.Opposite(pairs));
+    }
+
+    /// <summary>
+    /// Decides which values are opposites with a function. It is asked about every left value paired with every right value, once,
+    /// when the profile is built, and the pairs it answers true for go into the profile. The values are the ones named with
+    /// <c>Value</c>, or the distinct spellings in the data when none are named. The rules of
+    /// <see cref="Opposite(string, string)"/> apply.
+    /// </summary>
+    /// <param name="areOpposite">Returns true when a left value and a right value match as opposites.</param>
+    /// <example>
+    /// <code>
+    /// RecBuilder.Between(ours, confirms)
+    ///     .MatchOn(trade => trade.Isin, confirm => confirm.Isin)
+    ///         .And(trade => trade.Side, confirm => confirm.BuySell)
+    ///             .Opposite((ours, theirs) => (ours, theirs) is ("BUY", "S") or ("SELL", "B"))
+    ///     .Run();
+    /// </code>
+    /// </example>
+    public RecBuilder<TLeft, TRight> Opposite(Func<string, string, bool> areOpposite) =>
+        Meaning(nameof(Opposite), meaning => meaning.Opposite(areOpposite));
+
     /// <summary>Compares a member pair on matched items. A decimal may differ by up to <paramref name="tolerance"/>, inclusive.</summary>
     public RecBuilder<TLeft, TRight> Compare<TLeftValue, TRightValue>(Expression<Func<TLeft, TLeftValue>> left, Expression<Func<TRight, TRightValue>> right, decimal? tolerance = null)
     {
