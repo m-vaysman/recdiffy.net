@@ -25,8 +25,8 @@ internal static class Ageing
         var category = items.Range("category");
         var age = items.Range("ageBD");
         var status = items.Range("status");
-        var header = ReportSheet.Body;
-        var first = header + 1;
+        const int header = ReportSheet.Body;
+        const int first = header + 1;
         var total = first + categories.Length;
         var statusColumn = 2 + Ages.Length;
         var totalColumn = statusColumn + Statuses.Length;

@@ -43,9 +43,9 @@ internal static class ToleranceUsage
         var info = ReportCatalogue.Of(ReportKind.ToleranceUsage);
         var diffs = DataTabs.Diffs(context);
         var rows = Tolerated(context);
-        var note = ReportSheet.Body;
-        var header = note + 1;
-        var first = header + 1;
+        const int note = ReportSheet.Body;
+        const int header = note + 1;
+        const int first = header + 1;
         var last = Math.Max(first, header + rows.Length);
 
         var sheet = ReportSheet.Head(context, info)

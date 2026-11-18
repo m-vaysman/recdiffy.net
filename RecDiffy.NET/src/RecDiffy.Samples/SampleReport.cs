@@ -26,12 +26,12 @@ internal static class SampleReport
         }
     }
 
-    private static string Keys(IReadOnlyList<SourceRef> rows) => string.Join(",", rows.Select(row => row.RowKey));
+    private static string Keys(IReadOnlyList<SourceRef> rows) => string.Join(',', rows.Select(row => row.RowKey));
 
     private static string Diagnostics(RowResult row) => row.Diagnostics switch
     {
         [] => "",
-        _ => " diagnostics=" + string.Join(",", row.Diagnostics.Select(diagnostic => diagnostic.Code)),
+        _ => " diagnostics=" + string.Join(',', row.Diagnostics.Select(diagnostic => diagnostic.Code)),
     };
 
     private static string Money(decimal number) => number.ToString(CultureInfo.InvariantCulture);
