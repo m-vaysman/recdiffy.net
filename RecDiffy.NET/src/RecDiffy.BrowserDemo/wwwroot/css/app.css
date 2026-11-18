@@ -84,7 +84,8 @@ a { color: var(--action); }
     font-size: 14px;
 }
 
-.sides { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.side { min-width: 0; }
 
 .drop {
     position: relative;
@@ -113,7 +114,7 @@ a { color: var(--action); }
 
 .pair { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 8px; }
 .pair select, .pair input { padding: 6px 8px; border: 1px solid #c3cad5; border-radius: 4px; background: var(--paper); color: var(--ink); font: 14px var(--ui); }
-.pair select { min-width: 180px; }
+.pair select { min-width: 180px; max-width: 100%; }
 .pair input { width: 120px; font-family: var(--data); }
 .eq { color: var(--muted); font-weight: 600; min-width: 1.5em; text-align: center; }
 .tolerance { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 14px; }
@@ -168,7 +169,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 #blazor-error-ui .dismiss { position: absolute; right: 14px; top: 8px; cursor: pointer; }
 
 @media (max-width: 760px) {
-    .sides { grid-template-columns: 1fr; }
+    .sides { grid-template-columns: minmax(0, 1fr); }
     .proof { grid-template-columns: 1fr; }
     .proof-count { text-align: left; }
     .pair select { min-width: 0; flex: 1 1 140px; }
