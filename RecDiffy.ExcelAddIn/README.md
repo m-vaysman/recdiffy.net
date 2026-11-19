@@ -2,7 +2,7 @@
 
 Reconcile two datasets without leaving Excel. Choose the data for each side, from an open workbook, a closed workbook or a CSV file. Say which columns match records and which values must agree. RecDiffy lines the records up and lists every difference.
 
-> **Preview.** The add-in works end to end. Its installer isn't signed yet, so Windows warns before it runs it. See [Install](#install).
+> **Preview.** The add-in works end to end.
 
 ![Reconciling a broker's CSV against a blotter workbook in Excel: open RecDiffy from the ribbon, select the left data, choose the right CSV, pair the columns, run, explain a break, and write the results to a new workbook](docs/readme-flow.gif)
 
@@ -62,9 +62,9 @@ You need:
 - Excel for Windows: Microsoft 365, or Excel 2016 or later, in 64-bit or 32-bit;
 - the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0), in the same bitness as Excel.
 
-1. **Download the installer,** [`RecDiffy.ExcelAddIn.msi`](https://github.com/m-vaysman/recdiffy.net/releases/download/excel-addin/RecDiffy.ExcelAddIn.msi). It's rebuilt each time the add-in changes. It isn't signed yet, so your browser may warn that it isn't commonly downloaded: choose to keep it. To build it yourself, see [Build and test](#build-and-test).
+1. **Download the installer,** [`RecDiffy.ExcelAddIn.msi`](https://github.com/m-vaysman/recdiffy.net/releases/download/excel-addin/RecDiffy.ExcelAddIn.msi). It's rebuilt each time the add-in changes, and both it and the add-ins inside it are signed. If your browser warns that it isn't commonly downloaded, choose to keep it. To build it yourself, see [Build and test](#build-and-test).
 2. **Close Excel.** Excel rewrites its list of add-ins when it closes, so the installer stops if Excel is open.
-3. **Open the downloaded file.** Windows SmartScreen asks first, because the file isn't signed: choose **More info**, then **Run anyway**.
+3. **Open the downloaded file.** If Windows SmartScreen asks first, choose **More info**, then **Run anyway**.
 
 The installer:
 
