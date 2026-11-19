@@ -29,7 +29,7 @@ internal sealed record TypedSpellings(ImmutableDictionary<string, string> Listed
 
     public TypedSpellings Decided(Func<string, string?> decide, string parameter)
     {
-        ArgumentNullException.ThrowIfNull(decide);
+        ArgumentNullException.ThrowIfNull(decide, parameter);
         return this switch
         {
             { Decide: not null } => throw new InvalidOperationException("The values are decided by a function already."),
