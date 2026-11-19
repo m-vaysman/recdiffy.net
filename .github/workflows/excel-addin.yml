@@ -337,5 +337,5 @@ jobs:
             gh release upload excel-addin installer/RecDiffy.ExcelAddIn.msi --clobber
             gh release edit excel-addin --notes "$notes"
           else
-            gh release create excel-addin installer/RecDiffy.ExcelAddIn.msi --target "$GITHUB_SHA" --prerelease --title "RecDiffy Excel add-in" --notes "$notes"
+            gh release create excel-addin installer/RecDiffy.ExcelAddIn.msi --target "$GITHUB_SHA" --latest=false --title "RecDiffy Excel add-in" --notes "$notes"
           fi
