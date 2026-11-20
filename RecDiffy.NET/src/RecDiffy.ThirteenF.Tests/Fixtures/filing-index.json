@@ -1,0 +1,11 @@
+{
+  "directory": {
+    "item": [
+      { "name": "0009000001-index.html", "type": "text.gif", "size": "" },
+      { "name": "0009000001.txt", "type": "text.gif", "size": "" },
+      { "name": "primary_doc.xml", "type": "text.gif", "size": "3200" },
+      { "name": "infotable.xml", "type": "text.gif", "size": "14800" }
+    ],
+    "name": "/Archives/edgar/data/9000001/000900000126000001"
+  }
+}

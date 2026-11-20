@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<informationTable xmlns="http://www.sec.gov/edgar/document/thirteenf/informationtable">
+  <infoTable>
+    <nameOfIssuer>EPSILON CLOUD SYSTEMS</nameOfIssuer>
+    <titleOfClass>COM</titleOfClass>
+    <cusip>666666606</cusip>
+    <value>800000</value>
+    <shrsOrPrnAmt>
+      <sshPrnamt>4000</sshPrnamt>
+      <sshPrnamtType>SH</sshPrnamtType>
+    </shrsOrPrnAmt>
+    <investmentDiscretion>SOLE</investmentDiscretion>
+    <votingAuthority><Sole>4000</Sole><Shared>0</Shared><None>0</None></votingAuthority>
+  </infoTable>
+</informationTable>

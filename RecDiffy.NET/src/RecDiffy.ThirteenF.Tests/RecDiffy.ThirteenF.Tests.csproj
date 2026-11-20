@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ProjectGuid>{D19C7B42-83A5-47E1-B609-52F18C90E3A7}</ProjectGuid>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RunSettingsFilePath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../allure.runsettings'))</RunSettingsFilePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Allure.Xunit" Version="2.15.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.15" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <!-- 2.8.2 is the last adapter that loads Allure.Xunit's v2 reporter. 3.x does not. -->
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\allureConfig.json" Link="allureConfig.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RecDiffy\RecDiffy.csproj" />
+    <ProjectReference Include="..\RecDiffy.ThirteenF\RecDiffy.ThirteenF.csproj" />
+  </ItemGroup>
+
+</Project>
