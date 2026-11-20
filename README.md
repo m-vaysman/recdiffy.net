@@ -15,6 +15,17 @@ It is the engine inside your own tools, not a workflow or audit platform. Don't 
 
 ---
 
+## Documentation for AI agents
+
+> [!TIP]
+> **Give your AI agent one link:** `https://m-vaysman.github.io/recdiffy.net/docs/llms.txt`
+>
+> It is the root of a tree of [`llms.txt`](docs/llms.txt) files. The agent reads it, then follows the links to the pages its task needs. Then just ask, for example: *"Using RecDiffy, build a profile that reconciles our blotter against the broker's confirms."*
+>
+> **Setup and more prompts: [Use RecDiffy.NET with your AI agent](docs/agents.md)**
+
+---
+
 ## See it live
 
 [RecDiffy.NET, reconciling public data](https://m-vaysman.github.io/recdiffy.net/) runs the engine on public datasets every business day:
