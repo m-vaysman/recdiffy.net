@@ -53,7 +53,7 @@ public static class FixReader
         return fields switch
         {
             { Count: < 4 } => Scan.Fail("too few fields"),
-            _ when text.Any(c => c > 127) => Scan.Fail("non-ASCII character"),
+            _ when text.Any(c => c > 255) => Scan.Fail("character outside ISO 8859-1 (Latin-1)"),
             _ when fields[0].Tag != 8 || fields[1].Tag != 9 || fields[2].Tag != 35 => Scan.Fail("header must start 8, 9, 35"),
             _ when fields[^1].Tag != 10 => Scan.Fail("CheckSum (10) must be the last field"),
             _ when fields.Take(fields.Count - 1).Any(field => field.Tag == 10) => Scan.Fail("CheckSum (10) appears before the end"),
@@ -82,6 +82,8 @@ public static class FixReader
             if (end < 0 || end >= text.Length || text[end] != delimiter)
                 return Scan.Fail($"field {tag.ToInvariant()} is not closed by the delimiter");
             var value = text[start..end];
+            if (value.Length == 0)
+                return Scan.Fail($"field {tag.ToInvariant()} has an empty value");
             fields.Add(new FixField(tag, value));
             pendingLength = DataFields.ContainsKey(tag) && int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var length) ? (tag, length) : (0, 0);
             position = end + 1;
