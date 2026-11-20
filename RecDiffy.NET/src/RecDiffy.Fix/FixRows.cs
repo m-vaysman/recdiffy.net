@@ -58,7 +58,7 @@ public sealed record FixRows(
             (true, _, "3") or (false, "I", _) => Kind.Skip("order status reply"),
             (true, _, "1") or (false, "H", _) => Kind.Fill("CANC"),
             (true, _, "2") or (false, "G", _) => Kind.Fill("CORR"),
-            (true, "1" or "2", "0" or null) or (false, "F", _) => Kind.Fill("NEW"),
+            (_, "1" or "2", "0" or null) or (false, "F", _) => Kind.Fill("NEW"),
             (_, "0", _) => Kind.Order("NEW"),
             (_, "5" or "D", _) => Kind.Order("CORR"),
             (_, "4" or "C", _) => Kind.Order("CANC"),
