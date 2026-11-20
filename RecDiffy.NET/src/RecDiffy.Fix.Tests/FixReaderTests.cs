@@ -85,7 +85,7 @@ public class FixReaderTests
         ]);
 
         Assert.IsType<FixAccepted>(FixReader.ReadMessage(text, Wire.Options));
-        Assert.Equal(["AL1/FUND-A", "AL1/FUND-B"], FixRows.Read(text, Wire.Options).Allocations.Select(row => row["AllocRow"]), StringComparer.Ordinal);
+        Assert.Equal(["FUND-A", "FUND-B"], FixFlattener.Read(text, Wire.Options, new FixFlattenOptions(Grain: 78)).Rows.Select(row => row["79"]), StringComparer.Ordinal);
     }
 
     [Fact]

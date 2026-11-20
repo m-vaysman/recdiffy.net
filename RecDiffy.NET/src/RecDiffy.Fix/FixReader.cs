@@ -16,7 +16,7 @@ public static class FixReader
     // Count field -> the fields that repeat once per entry, including the count fields of groups nested inside it.
     // The first member opens each entry. These are the groups of trading and post-trade messages
     // (executions, allocations, confirmations, trade reports, settlement status).
-    private static readonly FrozenDictionary<int, int[]> Groups = new Dictionary<int, int[]>
+    internal static readonly FrozenDictionary<int, int[]> Groups = new Dictionary<int, int[]>
     {
         [73] = [11, 37, 198, 526, 66, 38, 799, 800, 862],
         [862] = [528, 529, 863],
