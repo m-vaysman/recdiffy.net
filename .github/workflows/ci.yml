@@ -91,6 +91,7 @@ jobs:
           dotnet pack RecDiffy.NET/src/RecDiffy.RulePacks.Trading/RecDiffy.RulePacks.Trading.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true
           dotnet pack RecDiffy.NET/src/RecDiffy.Excel/RecDiffy.Excel.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true
           dotnet pack RecDiffy.NET/src/RecDiffy.IO/RecDiffy.IO.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true
+          dotnet pack RecDiffy.NET/src/RecDiffy.Fix/RecDiffy.Fix.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true
 
       - name: Upload packages
         if: matrix.os == 'ubuntu-latest' && github.event_name == 'push' && github.ref == 'refs/heads/main'

@@ -53,10 +53,10 @@ jobs:
       - name: Pack the whole solution
         run: dotnet pack RecDiffy.slnx -c Release -o ../artifacts/packages -warnaserror -p:Version="$VERSION"
 
-      - name: Check that only the five libraries were packed
+      - name: Check that only the six libraries were packed
         working-directory: artifacts/packages
         run: |
-          expected="RecDiffy RecDiffy.Excel RecDiffy.Extensions RecDiffy.IO RecDiffy.RulePacks.Trading"
+          expected="RecDiffy RecDiffy.Excel RecDiffy.Extensions RecDiffy.Fix RecDiffy.IO RecDiffy.RulePacks.Trading"
           status=0
           for kind in nupkg snupkg; do
             actual=$(for file in *."$kind"; do echo "${file%."$VERSION.$kind"}"; done | sort | xargs)
