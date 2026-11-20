@@ -9,6 +9,7 @@
     <Title>Reconciliation: FIX messages as rows for RecDiffy.NET</Title>
     <Description>Reconciliation for .NET: read FIX tag=value messages strictly, reject or label anything malformed, and flatten orders, fills, allocations and trade reports into rows a RecDiffy.NET profile reconciles.</Description>
     <PackageTags>reconciliation;reconcile;data-reconciliation;matching;diff;dotnet;fix;fix-protocol;trading</PackageTags>
+    <PackageVersion Condition="'$(FixPackageVersion)' != ''">$(FixPackageVersion)</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>

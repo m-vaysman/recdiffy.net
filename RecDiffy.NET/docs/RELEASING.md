@@ -1,8 +1,10 @@
 # Releasing RecDiffy.NET
 
-Packages published by the release workflow are `RecDiffy`, `RecDiffy.RulePacks.Trading`, `RecDiffy.Excel` and `RecDiffy.IO`. Tests, benchmarks, samples and the AOT host are not packed.
+Packages published by the release workflow are `RecDiffy`, `RecDiffy.RulePacks.Trading`, `RecDiffy.Excel` and `RecDiffy.IO`, plus `RecDiffy.Fix`. Tests, benchmarks, samples and the AOT host are not packed.
 
 A release is a prerelease, tagged `vX.Y.Z-label`, or stable, tagged `vX.Y.Z`. Only the release workflow packs a stable version. Any other pack of a version with no prerelease label, such as `1.2.0`, fails the build.
+
+**`RecDiffy.Fix` is always a prerelease, until the lead says otherwise.** A labelled tag packs it at the tag's version, like the others. A stable tag `vX.Y.Z` packs it as `X.Y.Z-rtm`, which depends on `RecDiffy` `X.Y.Z`; `rtm` ranks above `preview` and `rc`, so it stays the newest Fix prerelease. The release workflow sets this with `-p:FixPackageVersion` and never passes `AllowStableVersion` for it. `-p:Version` alone would give the dependency the label too.
 
 ## Release scope
 
