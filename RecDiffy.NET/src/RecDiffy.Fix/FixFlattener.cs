@@ -20,7 +20,13 @@ public sealed record FixFilter(
 /// <summary>How messages become rows.</summary>
 /// <param name="Grain">The count tag of the repeating group whose entries become rows, such as 78 for accounts; null for one row per message.</param>
 /// <param name="Filter">Which messages to keep; null keeps every application message.</param>
-public sealed record FixFlattenOptions(int? Grain = null, FixFilter? Filter = null);
+/// <param name="Keys">Composite columns: each name gets the values of its tags joined with '|', or null when any tag is missing. A row key can be one of them, such as Key = 70|79 for an account row.</param>
+/// <param name="Reference">A message's ID tag and the tag that refers to an earlier message, such as (70, 72). At a group grain, a message that refers to an earlier one but has no entries of its own stands for each entry of the earlier one.</param>
+public sealed record FixFlattenOptions(
+    int? Grain = null,
+    FixFilter? Filter = null,
+    IReadOnlyDictionary<string, IReadOnlyList<int>>? Keys = null,
+    (int Id, int Ref)? Reference = null);
 
 /// <summary>Flattened rows, and the messages that made none.</summary>
 public sealed record FixFlat(
@@ -71,8 +77,19 @@ public static class FixFlattener
             return state with { Rejected = state.Rejected.Add(FixReader.Reject(new FixRejected(message.Text, "neither SenderCompID (49) nor TargetCompID (56) is ours"), options)) };
         var (chain, chains) = Chain(state.Chains, message, counterparty);
         var derived = (IReadOnlyList<(string Column, string? Value)>)[("Counterparty", counterparty), .. chain];
-        var rows = Rows(FixTree.Parse(message.Fields), settings.Grain).Select(fields => Row(fields, derived));
-        return state with { Rows = state.Rows.AddRange(rows), Chains = chains };
+        var tree = FixTree.Parse(message.Fields);
+        var own = Rows(tree, settings.Grain);
+        var entries = (own, settings.Reference) switch
+        {
+            ([], { } reference) when message.Get(reference.Ref) is { } earlier && state.Entries.TryGetValue((counterparty, earlier), out var referenced) =>
+                [.. referenced.Select(entry => (IReadOnlyList<FixField>)[.. entry, .. Fold(tree)])],
+            _ => own,
+        };
+        var remembered = settings.Reference is { } ids && message.Get(ids.Id) is { } id && entries.Count > 0
+            ? state.Entries.SetItem((counterparty, id), entries)
+            : state.Entries;
+        var rows = entries.Select(fields => Row(fields, derived, settings.Keys));
+        return state with { Rows = state.Rows.AddRange(rows), Chains = chains, Entries = remembered };
     }
 
     // An execution report continues the chain of its OrigClOrdID (41) when it has one, otherwise of its own ClOrdID (11).
@@ -106,14 +123,25 @@ public static class FixFlattener
     private static IReadOnlyList<FixField> Fold(FixNode node, int? except = null) =>
         [.. node.Fields, .. node.Groups.Where(group => group.CountTag != except && group.Entries.Count == 1).SelectMany(group => Fold(group.Entries[0]))];
 
-    private static FrozenDictionary<string, string?> Row(IReadOnlyList<FixField> fields, IReadOnlyList<(string Column, string? Value)> derived)
+    private static FrozenDictionary<string, string?> Row(
+        IReadOnlyList<FixField> fields,
+        IReadOnlyList<(string Column, string? Value)> derived,
+        IReadOnlyDictionary<string, IReadOnlyList<int>>? keys)
     {
         var tagged = fields.Select(field => (Column: field.Tag.ToInvariant(), Value: (string?)field.Value));
         var timestamps = fields
             .Select(field => (field.Tag, Nanos: Nanos(field.Value)))
             .Where(field => field.Nanos is not null)
             .Select(field => (Column: $"{field.Tag.ToInvariant()}:ns", Value: field.Nanos));
-        return tagged.Concat(timestamps).Concat(derived)
+        var cells = tagged.Concat(timestamps).Concat(derived)
+            .GroupBy(cell => cell.Column, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.Last().Value, StringComparer.Ordinal);
+        var composite = (keys ?? FrozenDictionary<string, IReadOnlyList<int>>.Empty).Select(key => (
+            Column: key.Key,
+            Value: key.Value.Select(tag => cells.GetValueOrDefault(tag.ToInvariant())).ToArray() is var parts && parts.All(part => part is not null)
+                ? string.Join('|', parts)
+                : null));
+        return cells.Select(cell => (Column: cell.Key, cell.Value)).Concat(composite)
             .GroupBy(cell => cell.Column, StringComparer.Ordinal)
             .ToFrozenDictionary(group => group.Key, group => group.Last().Value, StringComparer.Ordinal);
     }
@@ -145,8 +173,9 @@ public static class FixFlattener
         ImmutableList<FrozenDictionary<string, string?>> Rows,
         ImmutableList<FixSkipped> Skipped,
         ImmutableList<FixRejected> Rejected,
-        ImmutableDictionary<(string, string), Link> Chains)
+        ImmutableDictionary<(string, string), Link> Chains,
+        ImmutableDictionary<(string, string), IReadOnlyList<IReadOnlyList<FixField>>> Entries)
     {
-        public static State Empty { get; } = new([], [], [], ImmutableDictionary<(string, string), Link>.Empty);
+        public static State Empty { get; } = new([], [], [], ImmutableDictionary<(string, string), Link>.Empty, ImmutableDictionary<(string, string), IReadOnlyList<IReadOnlyList<FixField>>>.Empty);
     }
 }

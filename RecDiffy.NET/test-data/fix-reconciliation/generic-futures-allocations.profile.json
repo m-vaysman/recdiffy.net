@@ -1,0 +1,46 @@
+{
+  "formatVersion": 1,
+  "profileId": "fix-futures-allocations-generic-columns",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "Key" },
+    "right": { "rowKey": "Key" }
+  },
+  "fields": [
+    { "name": "Counterparty", "type": "Symbol", "role": "Key" },
+    { "name": "IndividualAllocId", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "467", "to": "IndividualAllocId" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "80", "to": "Quantity" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "467", "to": "IndividualAllocId" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "80", "to": "Quantity" }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "allocations",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.naturalKey", "key": [ "Counterparty", "IndividualAllocId" ] },
+        { "id": "P2", "pass": "match.groupSum", "block": [ "Counterparty", "IndividualAllocId" ], "conserve": [ "Quantity" ], "many": "right" }
+      ],
+      "diff": { "fields": {} }
+    }
+  ]
+}

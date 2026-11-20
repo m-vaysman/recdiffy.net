@@ -1,0 +1,81 @@
+{
+  "formatVersion": 1,
+  "profileId": "fix-equity-allocations-generic-columns",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "Key" },
+    "right": { "rowKey": "664" }
+  },
+  "fields": [
+    { "name": "Counterparty", "type": "Symbol", "role": "Key" },
+    { "name": "IndividualAllocId", "type": "Symbol", "role": "Identity" },
+    { "name": "Account", "type": "Symbol", "role": "Key" },
+    { "name": "Instrument", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "AvgPx", "type": "Decimal", "role": "Economic", "scale": 6 },
+    { "name": "NetMoney", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "Commission", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "Fees", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "AllocType", "type": "Symbol", "role": "Identity" },
+    { "name": "Action", "type": "Symbol", "role": "Lifecycle" },
+    { "name": "Target", "type": "Text", "role": "Lifecycle" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "467", "to": "IndividualAllocId" },
+        { "rule": "symbol.map", "from": "79", "to": "Account" },
+        { "rule": "symbol.map", "from": "55", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "626", "to": "AllocType" },
+        { "rule": "symbol.map", "from": "71", "to": "Action", "map": { "0": "NEW", "1": "CORR", "2": "CANC" } },
+        { "rule": "text.copy", "from": "TargetKey", "to": "Target" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "80", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "6", "to": "AvgPx" },
+        { "rule": "decimal.parse", "from": "154", "to": "NetMoney" },
+        { "rule": "decimal.parse", "from": "12", "to": "Commission" },
+        { "rule": "decimal.parse", "from": "137", "to": "Fees" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "467", "to": "IndividualAllocId" },
+        { "rule": "symbol.map", "from": "79", "to": "Account" },
+        { "rule": "symbol.map", "from": "55", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "35", "to": "AllocType", "map": { "AK": "2" }, "passthrough": "false" },
+        { "rule": "symbol.map", "from": "666", "to": "Action", "map": { "0": "NEW", "1": "CORR", "2": "CANC" } },
+        { "rule": "text.copy", "from": "772", "to": "Target" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "80", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "6", "to": "AvgPx" },
+        { "rule": "decimal.parse", "from": "118", "to": "NetMoney" },
+        { "rule": "decimal.parse", "from": "2640", "to": "Commission" },
+        { "rule": "decimal.parse", "from": "137", "to": "Fees" }
+      ]
+    }
+  },
+  "consolidation": {
+    "left": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty" } },
+    "right": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty" } }
+  },
+  "paths": [
+    {
+      "id": "allocations",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.naturalKey", "key": [ "Counterparty", "IndividualAllocId" ] },
+        { "id": "P2", "pass": "match.reducedKey", "key": [ "Counterparty", "Account", "Instrument", "Quantity" ] }
+      ],
+      "diff": {
+        "fields": {
+          "NetMoney": { "tolerance": { "absolute": 0.05, "when": { "field": "AllocType", "equals": "2" } } }
+        }
+      }
+    }
+  ]
+}
