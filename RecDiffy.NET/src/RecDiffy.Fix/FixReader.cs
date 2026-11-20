@@ -115,7 +115,7 @@ public static class FixReader
 
     private static (int Declared, int Actual) BodyLength(string text, char delimiter)
     {
-        var afterLength = text.IndexOf(delimiter, text.IndexOf(delimiter) + 1) + 1;
+        var afterLength = text.IndexOf(delimiter, text.IndexOf(delimiter, StringComparison.Ordinal) + 1) + 1;
         var checksumField = text.LastIndexOf(delimiter + "10=", StringComparison.Ordinal) + 1;
         var declared = int.TryParse(Value(text, 9, delimiter), NumberStyles.None, CultureInfo.InvariantCulture, out var length) ? length : -1;
         return (declared, checksumField - afterLength);
@@ -141,7 +141,7 @@ public static class FixReader
         return fields
             .Where(field => !repeating.Contains(field.Tag))
             .GroupBy(field => field.Tag)
-            .Where(group => group.Count() > 1)
+            .Where(group => group.Skip(1).Any())
             .Select(group => (int?)group.Key)
             .FirstOrDefault();
     }
@@ -161,7 +161,7 @@ public static class FixReader
             .Select(group => $"group {group.Count.ToInvariant()} declares {group.Declared.ToInvariant()} entries but has {group.Entries.ToInvariant()}")
             .FirstOrDefault();
 
-    private static IReadOnlyList<(string Text, string? Error)> Frames(string text, char delimiter)
+    private static List<(string Text, string? Error)> Frames(string text, char delimiter)
     {
         var frames = new List<(string Text, string? Error)>();
         var position = 0;
