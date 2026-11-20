@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>RecDiffy.ThirteenFDemo</RootNamespace>
     <IsPackable>false</IsPackable>
+    <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
   </PropertyGroup>
 
   <ItemGroup>
