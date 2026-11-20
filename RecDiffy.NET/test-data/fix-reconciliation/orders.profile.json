@@ -1,0 +1,67 @@
+{
+  "formatVersion": 1,
+  "profileId": "fix-orders",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "ClOrdID" },
+    "right": { "rowKey": "ClOrdID" }
+  },
+  "fields": [
+    { "name": "Counterparty", "type": "Symbol", "role": "Key" },
+    { "name": "Account", "type": "Symbol", "role": "Key" },
+    { "name": "Instrument", "type": "Symbol", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Key" },
+    { "name": "Root", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 6 },
+    { "name": "Action", "type": "Symbol", "role": "Lifecycle" },
+    { "name": "Target", "type": "Text", "role": "Lifecycle" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "Account", "to": "Account" },
+        { "rule": "symbol.map", "from": "Symbol", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side" },
+        { "rule": "symbol.map", "from": "Root", "to": "Root" },
+        { "rule": "symbol.map", "from": "Action", "to": "Action" },
+        { "rule": "text.copy", "from": "Target", "to": "Target" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "OrderQty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "Account", "to": "Account" },
+        { "rule": "symbol.map", "from": "Symbol", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side" },
+        { "rule": "symbol.map", "from": "Root", "to": "Root" },
+        { "rule": "symbol.map", "from": "Action", "to": "Action" },
+        { "rule": "text.copy", "from": "Target", "to": "Target" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "OrderQty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" }
+      ]
+    }
+  },
+  "consolidation": {
+    "left": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty", "corrTarget": "NEW" } },
+    "right": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty", "corrTarget": "NEW" } }
+  },
+  "paths": [
+    {
+      "id": "orders",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.naturalKey", "key": [ "Counterparty", "Account", "Instrument", "Side", "Root" ] }
+      ],
+      "diff": { "fields": {} }
+    }
+  ]
+}

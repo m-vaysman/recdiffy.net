@@ -1,0 +1,7 @@
+Case,ExecID,Root,Counterparty,Account,Symbol,Side,LastQty
+booked-against-partial-fills,P1-F1,P1,GS,ACC1,MSFT,BUY,100
+booked-against-partial-fills,P1-F2,P1,GS,ACC1,MSFT,BUY,100
+booked-against-partial-fills,P1-F3,P1,GS,ACC1,MSFT,BUY,100
+booked-against-one-fill,S1-F1,S1,MS,ACC2,IBM,SELL,80
+booked-short-of-fills,Q1-F1,Q1,JPM,ACC1,TSLA,BUY,100
+booked-short-of-fills,Q1-F2,Q1,JPM,ACC1,TSLA,BUY,200

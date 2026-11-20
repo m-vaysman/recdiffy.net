@@ -1,0 +1,9 @@
+Case,AllocRow,AllocID,AllocRoot,Action,Target,Counterparty,AllocAccount,AllocQty,AvgPx
+split-across-accounts,AL1/FUND-A,AL1,AL1,NEW,,GS,FUND-A,100,410.10
+split-across-accounts,AL1/FUND-B,AL1,AL1,NEW,,GS,FUND-B,150,410.10
+split-across-accounts,AL1/FUND-C,AL1,AL1,NEW,,GS,FUND-C,50,410.10
+allocation-replace,AL2/FUND-A,AL2,AL2,NEW,,MS,FUND-A,200,150.00
+allocation-replace,AL3/FUND-A,AL3,AL2,CORR,AL2/FUND-A,MS,FUND-A,180,150.00
+allocation-cancel,AL4/FUND-B,AL4,AL4,NEW,,MS,FUND-B,90,120.00
+allocation-cancel,AL4x/FUND-B,AL4x,AL4,CANC,AL4/FUND-B,MS,FUND-B,90,120.00
+quantity-break,AL5/FUND-C,AL5,AL5,NEW,,JPM,FUND-C,100,330.00
