@@ -18,7 +18,7 @@ on:
       - RecDiffy.NET/src/RecDiffy.PublicDataDemo/**
       - RecDiffy.NET/src/RecDiffy.BrowserDemo/**
       - .github/workflows/public-data-demo.yml
-      - llms.txt
+      - .github/scripts/llms-docs.pl
       - README.md
       - docs/**
       - RecDiffy.NET/docs/**
@@ -97,25 +97,10 @@ jobs:
           grep -q "<base href=\"$base\" />" site/try/index.html
           touch site/.nojekyll
 
-      # The docs for AI agents (#530): llms.txt, the agents page, and llms-full.txt, which joins the agents page and the
-      # reference docs into one file a model can load at once. It is built here from the docs on this commit, so it never
-      # drifts from them.
+      # The docs for AI agents (#530): the tree of llms.txt files under docs/, the long docs sliced into one page per
+      # section, and llms-full.txt. The script fails when a link points at nothing; CI runs it on every pull request.
       - name: Add the docs for AI agents
-        run: |
-          cp llms.txt site/llms.txt
-          cp docs/agents.md site/agents.md
-          {
-            echo "# RecDiffy.NET: the documentation in one file"
-            echo
-            echo "> Built from ${GITHUB_REPOSITORY}@${GITHUB_SHA::7}. The index is https://m-vaysman.github.io/recdiffy.net/llms.txt. Each part below starts with the URL of the file it was taken from; links inside a part are relative to that file."
-            for doc in docs/agents.md README.md RecDiffy.NET/docs/PROFILES.md RecDiffy.NET/docs/RESULTS.md \
-                       docs/typed-reconciliation/README.md RecDiffy.NET/docs/FIX-RECIPE.md \
-                       RecDiffy.NET/docs/PROFILE-EXAMPLES.md RecDiffy.NET/docs/RESULT-EXAMPLES.md; do
-              printf '\n\n---\n\nSource: https://github.com/%s/blob/main/%s\n\n' "$GITHUB_REPOSITORY" "$doc"
-              cat "$doc"
-            done
-          } > site/llms-full.txt
-          wc -c site/llms.txt site/agents.md site/llms-full.txt
+        run: perl .github/scripts/llms-docs.pl site
 
       # The newest mutation score from main's nightly mutation workflow: badge.json for the README's shields.io
       # badge, and the Stryker reports. A run without a score (an area did not finish) is skipped for the one before.

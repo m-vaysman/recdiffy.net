@@ -1,0 +1,25 @@
+# RecDiffy.NET: files and other sources
+
+> A run reads each side from a RecordSource. RecDiffy.IO makes one from a CSV file or an Excel sheet with FileSources.FromCsv and FileSources.FromExcel; RecDiffy itself makes one from objects (RecordSources.FromObjects with a SourceMap<T>) or an IDataReader. Nothing is detected unless you ask: state the header and the delimiter or sheet. Up: https://m-vaysman.github.io/recdiffy.net/docs/llms.txt
+
+## Pages
+
+- [Read CSV and Excel files](https://m-vaysman.github.io/recdiffy.net/docs/io/files.md): FileSources, CsvOptions, ExcelOptions, sheet names, peeking at a sample, and the other sources
+- [Reconcile two CSV files with a profile](https://m-vaysman.github.io/recdiffy.net/docs/reference/readme/reconcile-two-csv-files-with-a-profile.md): a console app from scratch, with the files, the profile and the output
+- [Declare how each file is read](https://m-vaysman.github.io/recdiffy.net/docs/reference/readme/declare-how-each-file-is-read.md): one culture per run or per side, numbers, dates and floating point
+
+## Examples
+
+- [FileReaders.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Samples/FileReaders.cs): CSV and Excel sources in a runnable sample
+- [FirstReconciliation.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Samples/FirstReconciliation.cs): a JSON profile run over objects with RecordSources.FromObjects
+
+## Source
+
+- [FileSources.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.IO/FileSources.cs)
+- [FileOptions.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.IO/FileOptions.cs): CsvOptions, CsvDelimiter, ExcelOptions, ExcelSheet and ExcelFormat
+- [RecordSources.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Intake/RecordSource/RecordSources.cs): objects and data readers
+- [SourceMap.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Intake/RecordSource/SourceMap.cs): the Text, Decimal and Date binders
+
+## Optional
+
+- [Support matrix](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/docs/SUPPORT.md): RecDiffy.IO's dependencies and platforms

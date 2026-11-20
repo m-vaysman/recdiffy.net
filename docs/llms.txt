@@ -1,0 +1,38 @@
+# RecDiffy.NET
+
+> RecDiffy.NET is an MIT-licensed reconciliation engine for .NET 8 and later. Give it two lists of records, called left and right, and a profile that declares the fields, how each side's cells are normalized, optional lifecycle and package consolidation, the matching passes and the comparison tolerances. It matches the records, compares every field at the tolerance you set, and explains every row left over. A run goes Normalize → Consolidate → Match → Compare → Explain.
+
+This is the root of the RecDiffy.NET docs for language models. Each section below has its own llms.txt: fetch the one your task needs, then follow its links down to the pages. Every page is Markdown.
+
+## Getting started
+
+- [Start here](https://m-vaysman.github.io/recdiffy.net/docs/start.md): install, which API fits which job, how a run works, and the rules that keep a result correct. Read it before you report a result.
+- Install with `dotnet add package RecDiffy --prerelease`. Every release is a prerelease.
+- Use only the names in the [public API baseline](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Tests/ApiBaseline/RecDiffy.txt). When a doc and the code disagree, the code is right.
+- The repository's AGENTS.md is for agents that change RecDiffy.NET itself, not for agents that use it.
+
+## Sections
+
+- [Engine](https://m-vaysman.github.io/recdiffy.net/docs/engine/llms.txt): compile a profile, run it over two record sources, read the result, and push rows in batches
+- [Profiles](https://m-vaysman.github.io/recdiffy.net/docs/profiles/llms.txt): what a profile declares: fields and roles, normalization rules, consolidation, matching passes, tolerances, and every error and diagnostic code
+- [Profiles in code](https://m-vaysman.github.io/recdiffy.net/docs/builders/llms.txt): RecBuilder with typed lambdas over your own objects, and ProfileBuilder, SideBuilder and PathBuilder for everything a JSON profile can say
+- [Files](https://m-vaysman.github.io/recdiffy.net/docs/io/llms.txt): CSV and Excel files, objects and data readers as record sources
+- [FIX](https://m-vaysman.github.io/recdiffy.net/docs/fix/llms.txt): RecDiffy.Fix: read FIX messages strictly with FixReader, turn them into tag-column rows with FixFlattener, and reconcile them with a profile
+
+## Which section
+
+- Two lists of your own objects: Profiles in code, RecBuilder.
+- A profile with row keys, cultures, cancel and correct chains, routes or trading rules: Profiles, then Profiles in code for ProfileBuilder.
+- Why a row broke, didn't match or was quarantined: Engine, reading the result, then Profiles, errors and diagnostics.
+- Files on disk: Files. FIX logs or drop copies: FIX.
+
+## Optional
+
+- [llms-full.txt](https://m-vaysman.github.io/recdiffy.net/llms-full.txt): every page in one file
+- [README](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/README.md): ten RecBuilder examples, a CSV quickstart, consolidation, cultures and Excel reports
+- [Write Excel reports](https://m-vaysman.github.io/recdiffy.net/docs/reference/readme/write-excel-reports.md): RecDiffy.Excel, its thirteen reports and the roles they need
+- [Excel report layouts](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/docs/report-specs/README.md): what each report shows
+- [Support matrix](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/docs/SUPPORT.md): what each package supports, and how each claim is checked
+- [Capacity and concurrency](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/docs/CAPACITY.md): how large a reconciliation can be, and how many can run at once
+- [Excel add-in user guide](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.ExcelAddIn/docs/USER-GUIDE.md): the same engine inside Excel, for people who don't write C#
+- [Live demo](https://m-vaysman.github.io/recdiffy.net/): the engine on public FINRA and US Treasury data, every business day

@@ -1,0 +1,22 @@
+# RecDiffy.NET profiles: fields and roles
+
+> A profile's fields are its canonical schema. Each has a name, a type (Decimal, Date, Symbol, Identifier, Text), a role (Key, Economic, Identity, Lifecycle, Package, Text) and a scale. Only Key and Economic fields are compared after matching. Up: https://m-vaysman.github.io/recdiffy.net/docs/profiles/llms.txt
+
+## Reference
+
+- [Top-level settings](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/top-level-settings.md): formatVersion, profileId, version, rounding, culture, strictDateFormats, and which keys are required
+- [Sources: row keys and reading](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/sources-row-keys-and-reading.md): each side's rowKey and culture, blank keys, and duplicate rows
+- [Fields: the canonical schema](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/fields-the-canonical-schema.md): every type and role, what each type keys and compares by, and scale
+- [Declare how each file is read](https://m-vaysman.github.io/recdiffy.net/docs/reference/readme/declare-how-each-file-is-read.md): culture resolution, numbers, strict dates, floating point, and result.Run.Reading
+- [The profile hash](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/the-profile-hash.md): what changes CompiledProfile.Hash and what doesn't
+
+## Examples
+
+- [What compile fills in](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/what-compile-fills-in.md): the defaults a compiled profile holds
+- [Row keys and duplicates](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/row-keys-and-duplicates.md): identical copies collapse, differing copies quarantine
+- [Key text](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/key-text.md): how each type is written as a match key
+
+## Source
+
+- [ProfileParser.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Profile/ProfileParser.cs): how the JSON is read
+- [ProfileDocument.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Profile/ProfileDocument.cs): the document a profile parses into

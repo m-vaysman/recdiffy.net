@@ -1,0 +1,40 @@
+# RecDiffy.NET: engine
+
+> Compile a profile once with Reconciler.Compile, run it over a left and a right record source with Reconciler.Run, and read the IReconciliationResult. Types are in the RecDiffy namespace; result types are in RecDiffy.Results. Up: https://m-vaysman.github.io/recdiffy.net/docs/llms.txt
+
+## Pages
+
+- [Compile and run](https://m-vaysman.github.io/recdiffy.net/docs/engine/compile-and-run.md): Reconciler.Compile, Run and RunAsync, registries, record sources, ReferenceDataSet, and the shape of a JSON profile
+- [Read the result](https://m-vaysman.github.io/recdiffy.net/docs/engine/reading-results.md): the four separate questions, every member of IReconciliationResult (Raw, Canonical, Trace, Projection, Run), and what not to assume
+- [Push and snapshot](https://m-vaysman.github.io/recdiffy.net/docs/engine/push-and-snapshot.md): profile.Push, batch.Snapshot, RecBatch and RecView, and carrying a result's open rows into the next batch
+
+## Results in depth
+
+- [What the result holds](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/what-the-result-holds.md): Entries, Rows, Summary and Run
+- [When there is no result](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/when-there-is-no-result.md): a profile that doesn't compile, and a cancelled run
+- [Matched doesn't mean balanced](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/matched-doesnt-mean-balanced.md): how a field is compared, grouped entries and attributed differences
+- [Missing isn't zero](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/missing-isnt-zero.md): nulls through reading, matching, comparing and combining
+- [Ambiguity](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/ambiguity.md): why rows are left undecided, and how to resolve them
+- [Incomplete search](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/incomplete-search.md): BlockTooLarge and BudgetExhausted
+- [Quarantine](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/quarantine.md): rows whose input can't be trusted
+- [Suppression](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/suppression.md): rows a lifecycle chain replaced
+- [Provenance](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/provenance.md): SourceRef, entry ids, the explanation trail, Raw, Canonical and Trace
+- [Counting](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/counting.md): which RunSummary counts are entries and which are rows
+- [Before you publish a report](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/before-you-publish-a-report.md): a checklist
+- [Every section of RESULTS.md](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/llms.txt)
+
+## Examples
+
+- [Result examples](https://m-vaysman.github.io/recdiffy.net/docs/reference/result-examples/llms.txt): real engine output for each result concept: a ledger against a bank statement, bins against a book, trade events
+
+## Source
+
+- [Reconciler.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Reconciler.cs): Compile, Run and RunAsync
+- [IReconciliationResult.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Results/IReconciliationResult.cs): the result interface
+- [ResultModel.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Results/ResultModel.cs): entries, rows, diffs, explanations and the run summary
+- [RecPush.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Push/RecPush.cs): Push and Snapshot
+
+## Optional
+
+- [RESULTS.md, whole](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/docs/RESULTS.md)
+- [Capacity and concurrency](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/docs/CAPACITY.md)

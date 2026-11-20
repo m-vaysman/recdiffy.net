@@ -102,3 +102,16 @@ jobs:
             artifacts/*.nupkg
             artifacts/*.snupkg
           if-no-files-found: error
+
+  # The docs for AI agents (#530): builds the llms.txt tree as the Pages workflow does, and fails when a link in it
+  # points at a page or a repository file that isn't there.
+  llms-docs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Build the docs for AI agents and check their links
+        run: perl .github/scripts/llms-docs.pl "$RUNNER_TEMP/llms-site"

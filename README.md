@@ -604,7 +604,7 @@ To reconcile objects you already hold in memory, replace the two `FileSources.Fr
 
 ## Documentation
 
-- **[For AI agents](docs/agents.md):** which API to use and the rules for a correct result. Load [llms.txt](llms.txt) for the index, or [llms-full.txt](https://m-vaysman.github.io/recdiffy.net/llms-full.txt) for the docs in one file.
+- **[Use RecDiffy.NET with your AI agent](docs/agents.md):** give your agent one link, [docs/llms.txt](docs/llms.txt), the root of a tree of `llms.txt` files it follows to the pages it needs.
 - **[What a result means](RecDiffy.NET/docs/RESULTS.md):** how to read a result.
 - **[Result examples](RecDiffy.NET/docs/RESULT-EXAMPLES.md):** real engine output for each result concept.
 - **[Profile reference](RecDiffy.NET/docs/PROFILES.md):** what a profile can declare.

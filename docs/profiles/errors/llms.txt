@@ -1,0 +1,22 @@
+# RecDiffy.NET profiles: errors and diagnostics
+
+> A profile problem fails before a run: ProfileDocument.Parse and Reconciler.Compile throw ProfileCompileException with a ProfileError(Code, Message) per problem, and ProfileBuilder returns ProfileProblem(Code, Message, Location). A row problem doesn't stop a run: it becomes a Diagnostic on RowResult.Diagnostics, and an Invalid one quarantines the row. Up: https://m-vaysman.github.io/recdiffy.net/docs/profiles/llms.txt
+
+## Reference
+
+- [Compile errors](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/compile-errors.md): every code from Parse, Compile and ProfileBuilder, with its cause and fix
+- [Run diagnostics](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/run-diagnostics.md): every row diagnostic, its severity, the rule that raises it, and what to do
+- [Write, check and compile a profile](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/write-check-and-compile-a-profile.md): the four failures that are not ProfileCompileException
+- [Troubleshooting a profile](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/troubleshooting.md): symptom, then the first thing to check
+- [Quarantine in the result](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/quarantine.md): what a quarantined row looks like
+- [Troubleshooting a run](https://m-vaysman.github.io/recdiffy.net/docs/reference/readme/troubleshooting.md): install, SDK, culture and floating-point problems
+
+## Examples
+
+- [Every compile error at once](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/every-compile-error-at-once.md)
+- [Values a rule can't read](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/values-a-rule-cant-read.md)
+
+## Source
+
+- [ProfileCompiler.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Profile/ProfileCompiler.cs): the compile checks
+- [ProfileValidation.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Profile/ProfileValidation.cs): the structural checks

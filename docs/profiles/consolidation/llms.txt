@@ -1,0 +1,21 @@
+# RecDiffy.NET profiles: consolidation
+
+> Consolidation runs on each side after normalization and before matching, and is optional. lifecycle collapses each chain of cancels (CANC) and corrections (CORR) into the one row that survives; the rows it replaced are suppressed, not dropped. packages merges the linked legs of one trade into a single item. Up: https://m-vaysman.github.io/recdiffy.net/docs/profiles/llms.txt
+
+## Reference
+
+- [Consolidation: lifecycles and packages](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/consolidation-lifecycles-and-packages.md): both blocks, with every key and default
+- [Lifecycle](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/lifecycle.md): action, target, scope and corrTarget; chains, survivors and the quarantine codes
+- [Packages](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/packages.md): link, role, requiredRoles, and the Same, Sum, FromRole and DifferenceByRole aggregators
+- [Consolidation, worked](https://m-vaysman.github.io/recdiffy.net/docs/reference/readme/consolidation.md): a broker's NEW, CANC and CORR rows collapsing to one survivor, with the profile and output
+- [Suppression in the result](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/suppression.md): Superseded, CancelEvent and FullyCancelled
+
+## Examples
+
+- [A lifecycle chain](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/a-lifecycle-chain.md): a chain and the dispositions it gives
+- [Trade events](https://m-vaysman.github.io/recdiffy.net/docs/reference/result-examples/trade-events.md): real output for lifecycle chains
+- [ProfileBuilder](https://m-vaysman.github.io/recdiffy.net/docs/builders/profilebuilder.md): Lifecycle(side) and Packages(side, PackageBuilder) in code
+
+## Source
+
+- [Lifecycle.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Consolidation/Lifecycle.cs): the chain collapse
