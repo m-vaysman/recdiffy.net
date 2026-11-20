@@ -1,0 +1,38 @@
+# RecDiffy.NET: FIX messages
+
+> RecDiffy.Fix reads FIX tag=value messages strictly with FixReader, rejecting any frame that fails a check with its reason, and FixFlattener turns accepted messages into rows whose columns are tag numbers. Nothing is interpreted: the profile decides what each value means. Up: https://m-vaysman.github.io/recdiffy.net/docs/llms.txt
+
+## Pages
+
+- [FixReader and FixFlattener](https://m-vaysman.github.io/recdiffy.net/docs/fix/flattener.md): reading, every check, the grain, filter, keys and reference options, the derived Counterparty, RootClOrdID, PrevExecID and {tag}:ns columns, and the options each sample profile needs
+
+## Recipe
+
+The rules a FIX reconciliation depends on. The column tables describe the named CSV fixtures; with FixFlattener, a profile reads tag numbers instead.
+
+- [Who validates the wire](https://m-vaysman.github.io/recdiffy.net/docs/reference/fix-recipe/who-validates-the-wire.md): framing, BodyLength, CheckSum, groups and sequence numbers
+- [The rules](https://m-vaysman.github.io/recdiffy.net/docs/reference/fix-recipe/the-rules.md): which messages become rows, keys and targets, the lifecycle scope, timestamps
+- [FIX versions](https://m-vaysman.github.io/recdiffy.net/docs/reference/fix-recipe/fix-versions.md): fills, corrections, busts and status replies in 4.2 and in 4.3 and later
+- [What the fixtures show](https://m-vaysman.github.io/recdiffy.net/docs/reference/fix-recipe/what-the-fixtures-show.md): every scenario and its result
+- [Every section of FIX-RECIPE.md](https://m-vaysman.github.io/recdiffy.net/docs/reference/fix-recipe/llms.txt)
+
+## Sample profiles
+
+- [generic-orders.profile.json](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/test-data/fix-reconciliation/generic-orders.profile.json): order states, with replaces and cancels collapsed
+- [generic-fills.profile.json](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/test-data/fix-reconciliation/generic-fills.profile.json): fills, with corrections and busts
+- [generic-equity-allocations.profile.json](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/test-data/fix-reconciliation/generic-equity-allocations.profile.json): our allocation instructions against the broker's confirmations
+- [generic-futures-allocations.profile.json](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/test-data/fix-reconciliation/generic-futures-allocations.profile.json): one account against the broker's reshaped rows
+- [generic-bond-allocations.profile.json](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/test-data/fix-reconciliation/generic-bond-allocations.profile.json): the dealer's net money and accrued
+
+## Source and tests
+
+- [FixReader.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Fix/FixReader.cs): the strict reader, and the repeating groups it knows
+- [FixFlattener.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Fix/FixFlattener.cs): FixFlattenOptions, FixFilter, FixFlat, and the flattening
+- [FixMessage.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Fix/FixMessage.cs): FixOptions, FixMessage, FixAccepted, FixRejected, FixSkipped and FixRejectedException
+- [FixScenarioTests.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Fix.Tests/FixScenarioTests.cs): every sample profile run against FIX messages
+- [FixFlattenerTests.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Fix.Tests/FixFlattenerTests.cs): grains, filters, keys, references and derived columns
+
+## Optional
+
+- [FIX-RECIPE.md, whole](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/docs/FIX-RECIPE.md)
+- [The named-column FIX profiles built in code](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.IO.Tests/FixProfilesBuiltInCodeTests.cs): orders, fills, executions, allocations and trades with ProfileBuilder

@@ -1,0 +1,24 @@
+# RecDiffy.NET: profiles in code
+
+> Two ways to build a profile without JSON. RecBuilder reconciles two lists of your own objects: pairs of typed Expression<Func<...>> lambdas choose what to match, compare and sum, and it writes and runs the profile. ProfileBuilder, SideBuilder, PathBuilder and PackageBuilder build any profile JSON can, as a ProfileDocument you compile with Reconciler.Compile. Up: https://m-vaysman.github.io/recdiffy.net/docs/llms.txt
+
+## Pages
+
+- [RecBuilder](https://m-vaysman.github.io/recdiffy.net/docs/builders/recbuilder.md): MatchOn, ThenMatchOn, And, Compare, Sum, Value and Opposite; RecResult; the types it infers; and what it can't express
+- [ProfileBuilder, SideBuilder and PathBuilder](https://m-vaysman.github.io/recdiffy.net/docs/builders/profilebuilder.md): every method and the JSON it writes, ProfileProblem locations, and conditions and packages
+- [Typed reconciliation](https://m-vaysman.github.io/recdiffy.net/docs/typed-reconciliation/README.md): RecBuilder with your own objects, step by step
+
+## Examples
+
+- [FixProfilesBuiltInCodeTests.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.IO.Tests/FixProfilesBuiltInCodeTests.cs): the five FIX sample profiles built with ProfileBuilder, each compiling to its JSON profile's hash, and the one RecBuilder can express
+- [BuiltProfile.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Samples/BuiltProfile.cs): the warehouse profile in code, a problem with its location, and a header check
+- [TypedReconciliation.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Samples/TypedReconciliation.cs): a runnable RecBuilder sample
+- [ProfileBuilderTests.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Tests/ProfileBuilderTests.cs): every ProfileBuilder method, value maps and conditional tolerances
+- [Trade match in 60 seconds](https://m-vaysman.github.io/recdiffy.net/docs/reference/readme/1-trade-match-in-60-seconds-our-blotter-vs-broker-confirms.md): the README's first RecBuilder example; its nine others sit beside it in the [README sections](https://m-vaysman.github.io/recdiffy.net/docs/reference/readme/llms.txt)
+
+## Source
+
+- [RecBuilder.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Typed/RecBuilder.cs)
+- [ProfileBuilder.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Profile/ProfileBuilder.cs)
+- [SideBuilder.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Profile/SideBuilder.cs)
+- [PathBuilder.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Profile/PathBuilder.cs)
