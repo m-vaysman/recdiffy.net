@@ -1,0 +1,57 @@
+{
+  "formatVersion": 1,
+  "profileId": "fix-bond-allocations-generic-columns",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "Key" },
+    "right": { "rowKey": "Key" }
+  },
+  "fields": [
+    { "name": "Counterparty", "type": "Symbol", "role": "Key" },
+    { "name": "Account", "type": "Symbol", "role": "Key" },
+    { "name": "Instrument", "type": "Symbol", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "NetMoney", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "Accrued", "type": "Decimal", "role": "Economic", "scale": 2 }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "79", "to": "Account" },
+        { "rule": "symbol.map", "from": "55", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "54", "to": "Side" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "80", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "154", "to": "NetMoney" },
+        { "rule": "decimal.parse", "from": "742", "to": "Accrued" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "79", "to": "Account" },
+        { "rule": "symbol.map", "from": "55", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "54", "to": "Side" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "80", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "154", "to": "NetMoney" },
+        { "rule": "decimal.parse", "from": "742", "to": "Accrued" }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "allocations",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.naturalKey", "key": [ "Counterparty", "Account", "Instrument", "Side" ] }
+      ],
+      "diff": { "fields": { "NetMoney": { "tolerance": { "absolute": 0.02 } } } }
+    }
+  ]
+}

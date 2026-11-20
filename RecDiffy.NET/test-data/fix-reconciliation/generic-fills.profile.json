@@ -1,0 +1,61 @@
+{
+  "formatVersion": 1,
+  "profileId": "fix-fills-generic-columns",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "17" },
+    "right": { "rowKey": "17" }
+  },
+  "fields": [
+    { "name": "Counterparty", "type": "Symbol", "role": "Key" },
+    { "name": "ExecId", "type": "Symbol", "role": "Identity" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 6 },
+    { "name": "TransactNanos", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Action", "type": "Symbol", "role": "Lifecycle" },
+    { "name": "Target", "type": "Text", "role": "Lifecycle" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "17", "to": "ExecId" },
+        { "rule": "symbol.map", "from": "150", "to": "Action", "map": { "F": "NEW", "1": "NEW", "2": "NEW", "G": "CORR", "H": "CANC" } },
+        { "rule": "text.copy", "from": "19", "to": "Target" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "32", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "31", "to": "Price" },
+        { "rule": "decimal.parse", "from": "60:ns", "to": "TransactNanos" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "17", "to": "ExecId" },
+        { "rule": "symbol.map", "from": "150", "to": "Action", "map": { "F": "NEW", "1": "NEW", "2": "NEW", "G": "CORR", "H": "CANC" } },
+        { "rule": "text.copy", "from": "19", "to": "Target" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "32", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "31", "to": "Price" },
+        { "rule": "decimal.parse", "from": "60:ns", "to": "TransactNanos" }
+      ]
+    }
+  },
+  "consolidation": {
+    "left": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty" } },
+    "right": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty" } }
+  },
+  "paths": [
+    {
+      "id": "fills",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.naturalKey", "key": [ "Counterparty", "ExecId" ] }
+      ],
+      "diff": { "fields": { "TransactNanos": { "tolerance": { "absolute": 500000000 } } } }
+    }
+  ]
+}
