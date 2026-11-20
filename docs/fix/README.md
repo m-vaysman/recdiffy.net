@@ -22,6 +22,10 @@ Nothing about your setup is built into the code. The profile is yours, and you c
 
 ## The whole thing, start to finish
 
+```shell
+dotnet add package RecDiffy.Fix --prerelease
+```
+
 ```csharp
 using RecDiffy;
 using RecDiffy.Fix;
@@ -43,4 +47,4 @@ Each scenario page shows the `MyProfile()` for that case, written with the lambd
 
 The profiles on these pages come from [FixScenarioProfilesInCodeTests.cs](../../RecDiffy.NET/src/RecDiffy.Fix.Tests/FixScenarioProfilesInCodeTests.cs). Each one is checked to build exactly the same profile as its JSON twin in [test-data/fix-reconciliation](../../RecDiffy.NET/test-data/fix-reconciliation) (`generic-*.profile.json`), and to run from FIX text to a snapshot. [FixScenarioTests.cs](../../RecDiffy.NET/src/RecDiffy.Fix.Tests/FixScenarioTests.cs) covers the edge cases each page lists.
 
-The reader's checks and every flattener option are in [FixReader.cs](../../RecDiffy.NET/src/RecDiffy.Fix/FixReader.cs) and [FixFlattener.cs](../../RecDiffy.NET/src/RecDiffy.Fix/FixFlattener.cs), with tests in [FixFlattenerTests.cs](../../RecDiffy.NET/src/RecDiffy.Fix.Tests/FixFlattenerTests.cs).
+The reader's checks and every flattener option are in [FixReader and FixFlattener](flattener.md).

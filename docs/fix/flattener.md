@@ -1,6 +1,6 @@
 # Reconcile FIX messages: FixReader and FixFlattener
 
-Part of the [FIX section](llms.txt). `RecDiffy.Fix` reads FIX tag=value text strictly and turns accepted messages into rows. The rows keep FIX's own tag numbers as column names and interpret nothing: the profile decides what each value means.
+Part of the [FIX section](llms.txt). `RecDiffy.Fix` reads FIX tag=value text strictly and turns accepted messages into rows. The rows keep FIX's own tag numbers as column names and interpret nothing: the profile decides what each value means. For a guided start, with sample messages and a profile per scenario, see [Reconcile FIX with RecDiffy](README.md).
 
 ```shell
 dotnet add package RecDiffy.Fix --prerelease

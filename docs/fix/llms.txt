@@ -4,6 +4,12 @@
 
 ## Pages
 
+- [Reconcile FIX, by scenario](https://m-vaysman.github.io/recdiffy.net/docs/fix/README.md): read, flatten, reconcile, start to finish, and which scenario page answers which question
+- [Orders](https://m-vaysman.github.io/recdiffy.net/docs/fix/orders.md): order states after replaces, unsolicited cancels, restatements and expiries; sample execution reports and the profile in C#
+- [Fills](https://m-vaysman.github.io/recdiffy.net/docs/fix/fills.md): fills against the drop copy, with corrections, busts and times within a tolerance; sample messages and the profile in C#
+- [Equity allocations](https://m-vaysman.github.io/recdiffy.net/docs/fix/equities.md): your allocation instruction (J) against the broker's confirmations (AK), per account, net money within tolerance when the sell side calculates
+- [Futures allocations](https://m-vaysman.github.io/recdiffy.net/docs/fix/futures.md): one account against the broker's reshaped allocation report (AS) rows, quantities summed
+- [Bond allocations](https://m-vaysman.github.io/recdiffy.net/docs/fix/bonds.md): the dealer's net money and accrued interest against yours
 - [FixReader and FixFlattener](https://m-vaysman.github.io/recdiffy.net/docs/fix/flattener.md): reading, every check, the grain, filter, keys and reference options, the derived Counterparty, RootClOrdID, PrevExecID and {tag}:ns columns, and the options each sample profile needs
 
 ## Recipe
@@ -30,6 +36,7 @@ The rules a FIX reconciliation depends on. The column tables describe the named 
 - [FixFlattener.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Fix/FixFlattener.cs): FixFlattenOptions, FixFilter, FixFlat, and the flattening
 - [FixMessage.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Fix/FixMessage.cs): FixOptions, FixMessage, FixAccepted, FixRejected, FixSkipped and FixRejectedException
 - [FixScenarioTests.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Fix.Tests/FixScenarioTests.cs): every sample profile run against FIX messages
+- [FixScenarioProfilesInCodeTests.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Fix.Tests/FixScenarioProfilesInCodeTests.cs): each scenario profile built in C#, checked against its JSON twin, and run from FIX text to a snapshot
 - [FixFlattenerTests.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Fix.Tests/FixFlattenerTests.cs): grains, filters, keys, references and derived columns
 
 ## Optional
