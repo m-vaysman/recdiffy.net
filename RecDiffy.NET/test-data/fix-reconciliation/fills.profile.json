@@ -1,0 +1,73 @@
+{
+  "formatVersion": 1,
+  "profileId": "fix-fills",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "ExecID" },
+    "right": { "rowKey": "ExecID" }
+  },
+  "fields": [
+    { "name": "Counterparty", "type": "Symbol", "role": "Key" },
+    { "name": "ExecId", "type": "Symbol", "role": "Identity" },
+    { "name": "Account", "type": "Symbol", "role": "Key" },
+    { "name": "Instrument", "type": "Symbol", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Key" },
+    { "name": "Root", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 6 },
+    { "name": "TransactNanos", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Action", "type": "Symbol", "role": "Lifecycle" },
+    { "name": "Target", "type": "Text", "role": "Lifecycle" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "ExecID", "to": "ExecId" },
+        { "rule": "symbol.map", "from": "Account", "to": "Account" },
+        { "rule": "symbol.map", "from": "Symbol", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side" },
+        { "rule": "symbol.map", "from": "Root", "to": "Root" },
+        { "rule": "symbol.map", "from": "Action", "to": "Action" },
+        { "rule": "text.copy", "from": "Target", "to": "Target" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "LastQty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "LastPx", "to": "Price" },
+        { "rule": "decimal.parse", "from": "TransactNanos", "to": "TransactNanos" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "ExecID", "to": "ExecId" },
+        { "rule": "symbol.map", "from": "Account", "to": "Account" },
+        { "rule": "symbol.map", "from": "Symbol", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side" },
+        { "rule": "symbol.map", "from": "Root", "to": "Root" },
+        { "rule": "symbol.map", "from": "Action", "to": "Action" },
+        { "rule": "text.copy", "from": "Target", "to": "Target" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "LastQty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "LastPx", "to": "Price" },
+        { "rule": "decimal.parse", "from": "TransactNanos", "to": "TransactNanos" }
+      ]
+    }
+  },
+  "consolidation": {
+    "left": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty", "corrTarget": "NEW" } },
+    "right": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty", "corrTarget": "NEW" } }
+  },
+  "paths": [
+    {
+      "id": "fills",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.naturalKey", "key": [ "Counterparty", "ExecId" ] }
+      ],
+      "diff": { "fields": { "TransactNanos": { "tolerance": { "absolute": 500000000 } } } }
+    }
+  ]
+}

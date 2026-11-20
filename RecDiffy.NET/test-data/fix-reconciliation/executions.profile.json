@@ -1,0 +1,55 @@
+{
+  "formatVersion": 1,
+  "profileId": "fix-booked-executions",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "ExecID" },
+    "right": { "rowKey": "ExecID" }
+  },
+  "fields": [
+    { "name": "Counterparty", "type": "Symbol", "role": "Key" },
+    { "name": "Account", "type": "Symbol", "role": "Key" },
+    { "name": "Instrument", "type": "Symbol", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Key" },
+    { "name": "Root", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "Account", "to": "Account" },
+        { "rule": "symbol.map", "from": "Symbol", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side" },
+        { "rule": "symbol.map", "from": "Root", "to": "Root" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "LastQty", "to": "Quantity" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "Account", "to": "Account" },
+        { "rule": "symbol.map", "from": "Symbol", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side" },
+        { "rule": "symbol.map", "from": "Root", "to": "Root" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "LastQty", "to": "Quantity" }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "executions",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.naturalKey", "key": [ "Counterparty", "Account", "Instrument", "Side", "Root" ] },
+        { "id": "P2", "pass": "match.groupSum", "block": [ "Counterparty", "Account", "Instrument", "Side", "Root" ], "conserve": [ "Quantity" ], "many": "right" }
+      ],
+      "diff": { "fields": {} }
+    }
+  ]
+}

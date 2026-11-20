@@ -1,0 +1,61 @@
+{
+  "formatVersion": 1,
+  "profileId": "fix-allocations",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "AllocRow" },
+    "right": { "rowKey": "AllocRow" }
+  },
+  "fields": [
+    { "name": "Counterparty", "type": "Symbol", "role": "Key" },
+    { "name": "AllocRoot", "type": "Symbol", "role": "Key" },
+    { "name": "AllocAccount", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "AvgPrice", "type": "Decimal", "role": "Economic", "scale": 6 },
+    { "name": "Action", "type": "Symbol", "role": "Lifecycle" },
+    { "name": "Target", "type": "Text", "role": "Lifecycle" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "AllocRoot", "to": "AllocRoot" },
+        { "rule": "symbol.map", "from": "AllocAccount", "to": "AllocAccount" },
+        { "rule": "symbol.map", "from": "Action", "to": "Action" },
+        { "rule": "text.copy", "from": "Target", "to": "Target" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "AllocQty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "AvgPx", "to": "AvgPrice" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "AllocRoot", "to": "AllocRoot" },
+        { "rule": "symbol.map", "from": "AllocAccount", "to": "AllocAccount" },
+        { "rule": "symbol.map", "from": "Action", "to": "Action" },
+        { "rule": "text.copy", "from": "Target", "to": "Target" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "AllocQty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "AvgPx", "to": "AvgPrice" }
+      ]
+    }
+  },
+  "consolidation": {
+    "left": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty", "corrTarget": "NEW" } },
+    "right": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty", "corrTarget": "NEW" } }
+  },
+  "paths": [
+    {
+      "id": "allocations",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.naturalKey", "key": [ "Counterparty", "AllocRoot", "AllocAccount" ] }
+      ],
+      "diff": { "fields": {} }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+Case,ClOrdID,Root,Action,Target,Counterparty,Account,Symbol,Side,OrderQty,Price,OrdStatus
+new-order,N1,N1,NEW,,GS,ACC1,IBM,BUY,100,150.25,0
+partial-fills,P1,P1,NEW,,GS,ACC1,MSFT,BUY,300,410.10,1
+replace-mid-fill,R1,R1,NEW,,GS,ACC2,AAPL,SELL,200,225.00,1
+replace-mid-fill,R1b,R1,CORR,R1,GS,ACC2,AAPL,SELL,250,225.00,5
+multi-step-replace,M1,M1,NEW,,MS,ACC1,IBM,BUY,100,150.00,0
+multi-step-replace,M2,M1,CORR,M1,MS,ACC1,IBM,BUY,150,150.00,5
+multi-step-replace,M3,M1,CORR,M2,MS,ACC1,IBM,BUY,120,150.00,5
+rejected-replace,J1,J1,NEW,,MS,ACC2,ORCL,BUY,100,180.00,0
+cancel-after-partial-fill,C1,C1,NEW,,MS,ACC3,NVDA,BUY,500,140.00,1
+cancel-after-partial-fill,C1x,C1,CANC,C1,MS,ACC3,NVDA,BUY,500,140.00,4
+late-arrival,L1,L1,NEW,,GS,ACC3,AMZN,SELL,75,210.00,0
+multi-day-order,G1,G1,NEW,,JPM,ACC1,TSLA,BUY,400,330.00,0
+multi-day-order,G1b,G1,CORR,G1,JPM,ACC1,TSLA,BUY,600,330.00,5
+partition,X1,X1,NEW,,MS,ACC1,META,BUY,50,590.00,0
