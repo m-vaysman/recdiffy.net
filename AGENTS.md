@@ -44,6 +44,7 @@ Docs follow the code: when a README or other doc disagrees with the code, fix th
 ### Build gotcha
 
 - **No `[GeneratedRegex]` in test projects.** The Sonar build strips source generators from test projects, so that code fails there with CS8795 even though `ci.yml` passes. Use `new Regex(pattern, options, TimeSpan)` fields instead.
+- **A clean build can still fail the Sonar gate.** The gate allows no new issue, and Sonar counts every analyzer diagnostic, including the info-level suggestions that `-warnaserror` ignores (for example MA0001, MA0031 and CA1859). The `SonarQube` check on your PR fails when the gate does. Its summary and log list each new issue with its rule, file and line: read them with `gh run view <run-id> --log`. The server keeps one analysis, the last one to finish, so runs are queued one at a time.
 
 ### Culture-invariant formatting
 

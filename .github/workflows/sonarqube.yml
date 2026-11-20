@@ -15,6 +15,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: sonarqube-analysis
+  cancel-in-progress: false
+
 jobs:
   sonarqube:
     name: Analyze
@@ -107,7 +111,8 @@ jobs:
             /d:sonar.host.url="$SONAR_HOST_URL" \
             /s:"$GITHUB_WORKSPACE/RecDiffy.NET/SonarQube.Analysis.xml" \
             /d:sonar.cs.opencover.reportsPaths="$GITHUB_WORKSPACE/RecDiffy.NET/TestResults/**/coverage.opencover.xml" \
-            /d:sonar.dotnet.excludeTestProjects=true
+            /d:sonar.dotnet.excludeTestProjects=true \
+            /d:sonar.qualitygate.wait=true
 
       - name: Restore
         if: steps.secrets.outputs.configured == 'true'
@@ -132,7 +137,31 @@ jobs:
           dotnet test src/RecDiffy.Extensions.Tests/RecDiffy.Extensions.Tests.csproj -c Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --results-directory TestResults
 
       - name: End SonarQube analysis
+        id: end
         if: steps.secrets.outputs.configured == 'true'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
+
+      - name: List the quality gate and new-code issues
+        if: ${{ !cancelled() && (steps.end.outcome == 'success' || steps.end.outcome == 'failure') }}
+        continue-on-error: true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          key=m-vaysman_recdiffy.net
+          api() { curl -sSf -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/$1"; }
+          gate=$(api "qualitygates/project_status?projectKey=$key")
+          issues=$(api "issues/search?componentKeys=$key&inNewCodePeriod=true&resolved=false&ps=100")
+          {
+            echo "### SonarQube quality gate: $(jq -r .projectStatus.status <<< "$gate")"
+            echo
+            echo "| Condition | Status | Actual | Threshold |"
+            echo "|---|---|---|---|"
+            jq -r '.projectStatus.conditions[] | "| \(.metricKey) | \(.status) | \(.actualValue) | \(.errorThreshold) |"' <<< "$gate"
+            echo
+            echo "New-code issues: $(jq -r .total <<< "$issues")"
+            echo
+            jq -r '.issues[] | "- \(.rule) \(.component | sub("^[^:]*:"; "")):\(.line // "-") \(.message)"' <<< "$issues"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
