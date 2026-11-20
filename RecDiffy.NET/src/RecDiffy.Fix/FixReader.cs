@@ -13,12 +13,33 @@ public static class FixReader
         [354] = 355, [356] = 357, [358] = 359, [445] = 446, [618] = 619, [621] = 622,
     }.ToFrozenDictionary();
 
-    // Count field -> the fields that repeat once per entry. The first member opens each entry.
+    // Count field -> the fields that repeat once per entry, including the count fields of groups nested inside it.
+    // The first member opens each entry. These are the groups of trading and post-trade messages
+    // (executions, allocations, confirmations, trade reports, settlement status).
     private static readonly FrozenDictionary<int, int[]> Groups = new Dictionary<int, int[]>
     {
-        [78] = [79, 80, 467, 539, 524, 525, 538],
-        [453] = [448, 447, 452],
-        [552] = [54, 37, 11, 1, 453, 448, 447, 452, 528, 581],
+        [73] = [11, 37, 198, 526, 66, 38, 799, 800, 862],
+        [862] = [528, 529, 863],
+        [124] = [32, 17, 1003, 527, 31, 669, 29, 1002],
+        [78] = [79, 661, 573, 366, 80, 467, 1593, 539, 153, 154, 12, 13, 479, 497, 81, 208, 209, 161, 360, 361, 742, 741, 736, 737, 776, 136, 2653, 2639, 85, 862],
+        [539] = [524, 525, 538, 804],
+        [804] = [545, 805],
+        [136] = [137, 138, 139, 891, 2216, 2217, 2633],
+        [2633] = [2634, 2635, 2636],
+        [2653] = [2654, 2655, 2726, 2656, 2657],
+        [2639] = [2640, 2641, 2725, 2642, 2643, 2644],
+        [85] = [165, 787, 781],
+        [781] = [782, 783, 784, 2389, 801],
+        [801] = [785, 786],
+        [453] = [448, 447, 452, 2376, 802],
+        [802] = [523, 803],
+        [552] = [54, 37, 198, 11, 526, 66, 1, 660, 581, 453, 528, 529, 582, 121, 120, 155, 156, 77, 58, 654, 70, 78, 136, 12, 13, 119],
+        [1907] = [1903, 1905, 1904, 1906, 2411, 2406, 2399],
+        [555] = [600, 602, 603, 624, 687, 654, 566, 587, 588, 670],
+        [670] = [671, 674, 673, 672, 1366, 1367],
+        [711] = [311, 309, 305, 313, 310, 318, 810],
+        [1445] = [1446, 1447, 1448],
+        [382] = [375, 337, 437, 438, 655],
     }.ToFrozenDictionary();
 
     /// <summary>Splits text into frames by BodyLength and reads each. Whitespace and line breaks between frames are ignored.</summary>
@@ -125,12 +146,16 @@ public static class FixReader
             .FirstOrDefault();
     }
 
+    // A nested group's count field appears once per outer entry, so its counts are summed and compared with every entry
+    // of its first member across the message.
     private static string? GroupMismatch(IReadOnlyList<FixField> fields) =>
         Groups
             .Where(group => fields.Any(field => field.Tag == group.Key))
             .Select(group => (
                 Count: group.Key,
-                Declared: int.TryParse(fields.First(field => field.Tag == group.Key).Value, NumberStyles.None, CultureInfo.InvariantCulture, out var n) ? n : -1,
+                Declared: fields
+                    .Where(field => field.Tag == group.Key)
+                    .Sum(field => int.TryParse(field.Value, NumberStyles.None, CultureInfo.InvariantCulture, out var n) ? n : -1),
                 Entries: fields.Count(field => field.Tag == group.Value[0])))
             .Where(group => group.Declared != group.Entries)
             .Select(group => $"group {group.Count.ToInvariant()} declares {group.Declared.ToInvariant()} entries but has {group.Entries.ToInvariant()}")
