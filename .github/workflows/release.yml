@@ -62,7 +62,9 @@ jobs:
           dotnet pack RecDiffy.NET/src/RecDiffy.RulePacks.Trading/RecDiffy.RulePacks.Trading.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:AllowStableVersion=true -p:ContinuousIntegrationBuild=true
           dotnet pack RecDiffy.NET/src/RecDiffy.Excel/RecDiffy.Excel.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:AllowStableVersion=true -p:ContinuousIntegrationBuild=true
           dotnet pack RecDiffy.NET/src/RecDiffy.IO/RecDiffy.IO.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:AllowStableVersion=true -p:ContinuousIntegrationBuild=true
-          dotnet pack RecDiffy.NET/src/RecDiffy.Fix/RecDiffy.Fix.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:AllowStableVersion=true -p:ContinuousIntegrationBuild=true
+          fix_version="$VERSION"
+          [[ $fix_version == *-* ]] || fix_version="$VERSION-rtm"
+          dotnet pack RecDiffy.NET/src/RecDiffy.Fix/RecDiffy.Fix.csproj -c Release -o artifacts --no-restore -p:Version="$VERSION" -p:FixPackageVersion="$fix_version" -p:ContinuousIntegrationBuild=true
 
       # #296: the files pushed to nuget.org are the files these checks see. Both scripts read the packages from
       # RecDiffy.NET/tests/PackageSmoke/feed, so copy them there first, and let either script fail the job before
