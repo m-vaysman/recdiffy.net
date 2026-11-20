@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ProjectGuid>{3B9E5D21-7A4C-4F18-9D63-1E2A8C5B7F04}</ProjectGuid>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>RecDiffy.Fix</RootNamespace>
+    <Title>Reconciliation: FIX messages as rows for RecDiffy.NET</Title>
+    <Description>Reconciliation for .NET: read FIX tag=value messages strictly, reject or label anything malformed, and flatten orders, fills, allocations and trade reports into rows a RecDiffy.NET profile reconciles.</Description>
+    <PackageTags>reconciliation;reconcile;data-reconciliation;matching;diff;dotnet;fix;fix-protocol;trading</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RecDiffy\RecDiffy.csproj" />
+  </ItemGroup>
+
+</Project>
