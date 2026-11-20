@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using RecDiffy.Results;
 
-namespace RecDiffy.Sessions;
+namespace RecDiffy;
 
 /// <summary>What a snapshot returns: the run's result over every row pushed so far.</summary>
 /// <param name="Result">The result of <see cref="Reconciler.Run"/>, unchanged.</param>
