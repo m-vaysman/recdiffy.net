@@ -25,10 +25,10 @@ public class FixReconciliationFixtureTests
     }
 
     [Theory]
-    [InlineData("orders", 24, 22)]
+    [InlineData("orders", 26, 23)]
     [InlineData("fills", 25, 27)]
     [InlineData("executions", 4, 7)]
-    [InlineData("allocations", 11, 9)]
+    [InlineData("allocations", 12, 10)]
     [InlineData("trades", 8, 7)]
     public void Every_fixture_row_and_no_other_reaches_the_result(string name, int left, int right)
     {
@@ -118,7 +118,17 @@ public class FixReconciliationFixtureTests
 
         Assert.Equal(["S1-1"], Keys(entry.Right), StringComparer.Ordinal);
         Assert.Equal(FieldOutcome.Exact, entry.Outcome);
+        Assert.Equal((500m, 500m), (Quantity(Orders.Value, entry.Left), Quantity(Orders.Value, entry.Right)));
         Assert.Equal(SuppressionReason.Superseded, Row(Orders.Value, "left", "S1-0").Suppression);
+    }
+
+    [Fact]
+    public void A_restatement_one_side_missed_is_a_quantity_break()
+    {
+        var entry = Entry(Orders.Value, "S2-1");
+
+        Assert.Equal(["S2-0"], Keys(entry.Right), StringComparer.Ordinal);
+        Assert.Equal((FieldOutcome.Break, 500m), (Diff(entry, "Quantity").Outcome, Diff(entry, "Quantity").Delta.Number));
     }
 
     [Fact]
@@ -136,10 +146,12 @@ public class FixReconciliationFixtureTests
         Assert.Equal(FieldOutcome.Exact, entry.Outcome);
     }
 
-    [Fact]
-    public void A_replace_on_a_later_day_breaks_its_chain_when_scope_includes_the_day()
+    [Theory]
+    [InlineData("SessionDay")]
+    [InlineData("Account")]
+    public void A_replace_on_a_later_day_into_another_account_breaks_its_chain_under_a_narrower_scope(string scope)
     {
-        var result = Run("orders", profile => profile.Replace("\"scope\": \"Counterparty\"", "\"scope\": \"SessionDay\"", StringComparison.Ordinal));
+        var result = Run("orders", profile => profile.Replace("\"scope\": \"Counterparty\"", $"\"scope\": \"{scope}\"", StringComparison.Ordinal));
         var row = Row(result, "left", "20261119-G1-1");
 
         Assert.Equal(Disposition.Quarantined, row.Disposition);
@@ -150,6 +162,7 @@ public class FixReconciliationFixtureTests
     [InlineData("orders", "X1-0", "X1-0")]
     [InlineData("fills", "XF-F1", "XF-F1")]
     [InlineData("executions", "XE-E", "XE-F1")]
+    [InlineData("allocations", "AL8/FUND-A", "AL8/FUND-A")]
     [InlineData("trades", "TRX", "TRX")]
     public void Rows_of_different_counterparties_never_match(string name, string leftKey, string rightKey)
     {
@@ -169,6 +182,10 @@ public class FixReconciliationFixtureTests
     public void Fills_under_both_order_ids_of_a_replace_each_match()
     {
         Assert.All(["R1-F1", "R1-F2"], key => Assert.Equal(FieldOutcome.Exact, Entry(Fills.Value, key).Outcome));
+        Assert.Equal(
+            ["R1", "R1b"],
+            new[] { "R1-F1", "R1-F2" }.Select(key => Fills.Value.Canonical(Row(Fills.Value, "left", key).Row).Text("ClOrdId")),
+            StringComparer.Ordinal);
     }
 
     [Fact]
@@ -274,6 +291,7 @@ public class FixReconciliationFixtureTests
         var entry = Entry(Executions.Value, "S1-E");
 
         Assert.Equal((Composition.OneToOne, FieldOutcome.Exact), (entry.Composition, entry.Outcome));
+        Assert.Equal(["S1-F1"], Keys(entry.Right), StringComparer.Ordinal);
     }
 
     [Fact]

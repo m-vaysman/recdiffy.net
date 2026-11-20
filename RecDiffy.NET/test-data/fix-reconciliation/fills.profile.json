@@ -14,6 +14,7 @@
     { "name": "Instrument", "type": "Symbol", "role": "Key" },
     { "name": "Side", "type": "Symbol", "role": "Key" },
     { "name": "Root", "type": "Symbol", "role": "Key" },
+    { "name": "ClOrdId", "type": "Symbol", "role": "Economic" },
     { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
     { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 6 },
     { "name": "TransactNanos", "type": "Decimal", "role": "Economic", "scale": 0 },
@@ -29,6 +30,7 @@
         { "rule": "symbol.map", "from": "Symbol", "to": "Instrument" },
         { "rule": "symbol.map", "from": "Side", "to": "Side" },
         { "rule": "symbol.map", "from": "Root", "to": "Root" },
+        { "rule": "symbol.map", "from": "ClOrdID", "to": "ClOrdId" },
         { "rule": "symbol.map", "from": "Action", "to": "Action" },
         { "rule": "text.copy", "from": "Target", "to": "Target" }
       ],
@@ -46,6 +48,7 @@
         { "rule": "symbol.map", "from": "Symbol", "to": "Instrument" },
         { "rule": "symbol.map", "from": "Side", "to": "Side" },
         { "rule": "symbol.map", "from": "Root", "to": "Root" },
+        { "rule": "symbol.map", "from": "ClOrdID", "to": "ClOrdId" },
         { "rule": "symbol.map", "from": "Action", "to": "Action" },
         { "rule": "text.copy", "from": "Target", "to": "Target" }
       ],
@@ -57,8 +60,8 @@
     }
   },
   "consolidation": {
-    "left": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty", "corrTarget": "NEW" } },
-    "right": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty", "corrTarget": "NEW" } }
+    "left": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty" } },
+    "right": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty" } }
   },
   "paths": [
     {

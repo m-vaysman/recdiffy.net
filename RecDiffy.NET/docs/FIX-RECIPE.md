@@ -20,7 +20,7 @@ The transform owns everything about the FIX wire: framing, BodyLength (9), Check
 
    The transform keeps the last accepted `ExecID` of each order to fill in `Target`. `Root` is the order's first `ClOrdID`, so fills booked under any `ClOrdID` of the order group together.
 4. **Some reports never become order rows:** pending states (`150=A`, `6`, `E`), done for day (`150=3`), order status replies (`150=I`, and FIX 4.2 `20=3`), and suspended or stopped orders (`150=9`, `150=7`). Fills sent while an order is pending carry its old `ClOrdID`; `Root` keeps them together.
-5. **The lifecycle scope is the counterparty, not the day.** A good-till-cancel order replaced on a later day must still collapse to its last version. A scope that includes the day breaks that chain, and the fixtures show it.
+5. **The lifecycle scope is the counterparty, not the day or the account.** A good-till-cancel order replaced on a later day, even into another account, must still collapse to its last version. A scope that includes the day, or the account, breaks that chain, and the fixtures show both.
 6. **IDs must be unique within a counterparty.** FIX only promises a unique `ExecID` within a trading day or the life of a multi-day order. When a counterparty reuses IDs across days, prefix them with the trade date, as the multi-day fixture does.
 7. **Timestamps are decimal nanoseconds since the Unix epoch.** RecDiffy dates are calendar days, so a time of day can't travel as a date. Convert `UTCTimestamp` (`yyyyMMdd-HH:mm:ss`, with optional `.sss`, `.ssssss` or `.sssssssss`) to nanoseconds, and never through a binary floating-point type. A decimal field compares exactly to 1 ns, and an absolute tolerance is inclusive: `500000000` accepts exactly half a second.
 8. **Counterparty is in every pass key,** so no row can match across counterparties and each counterparty can be reconciled on its own. Every fixture checks this.
@@ -47,9 +47,9 @@ Each file has a `Case` column naming the fixture case. Profiles ignore it.
 |---|---|---|
 | `ExecID` | 17 | `M1-2` |
 | `ClOrdID` | 11 | `M3` |
-| `OrigClOrdID` | 41, informational | `M2` |
+| `OrigClOrdID` | 41, compared | `M2` |
 | `Root` | the order's first 11 | `M1` |
-| `ExecType` | 150, informational | `5` |
+| `ExecType` | 150, compared | `5` |
 | `Action` | `NEW` for 150=0; `CORR` for 150=5 and 150=D; `CANC` for 150=4 and 150=C | `CORR` |
 | `Target` | the previous accepted state's 17 | `M1-1` |
 | `Counterparty` | 49 or 56, resolved to one name | `MS` |
@@ -67,6 +67,7 @@ Each file has a `Case` column naming the fixture case. Profiles ignore it.
 | Column | FIX source |
 |---|---|
 | `ExecID` | 17 |
+| `ClOrdID` | 11, compared: the order's `ClOrdID` when it filled |
 | `Root` | the order's first 11 |
 | `Action` | `NEW` for a fill, `CORR` for a correction, `CANC` for a bust (see FIX versions) |
 | `Target` | 19 |
@@ -83,7 +84,7 @@ Some firms book one execution per order while the broker reports every fill. Thi
 
 ### Allocations: one row per account in an allocation
 
-Here your side is your instruction (`35=J`), not an acknowledgement, so a broker that doesn't accept an account shows as a break. The broker's side is what it accepted: `35=AS`, or a `35=P` with `87=0`. `87=3` only means received, so it never becomes a row, and `87=2` rejects some accounts, so only the accepted accounts become rows.
+Here your side is your instruction (`35=J`), not an acknowledgement, so an account the broker hasn't accepted stays open on your side (left only) instead of disappearing. The broker's side is what it accepted: `35=AS`, or a `35=P` with `87=0`. `87=3` only means received, so it never becomes a row, and `87=2` rejects some accounts, so only the accepted accounts become rows.
 
 | Column | FIX source |
 |---|---|
@@ -123,8 +124,9 @@ A report becomes a row on the counterparty's side only once it's accepted: a `35
 | Rejected replace written as a row anyway | A false break on quantity and status |
 | Cancel after a partial fill, unsolicited cancel, expiry | The order is suppressed on both sides; its fill still matches |
 | Restatement | Matched on the restated quantity |
+| Restatement one side missed | A quantity break of 500 |
 | Not yet acknowledged | Left only |
-| Replace on a later day | Matched on the replacement, and quarantined if the scope includes the day |
+| Replace on a later day into another account | Matched on the replacement, and quarantined if the scope includes the day or the account |
 | Same IDs at two counterparties | Never matched across them, in every file |
 | Busted fill, bust then re-fill | The busted fill is suppressed on both sides; the new fill matches |
 | Corrected fill, correction of a correction | Matched on the last correction |
