@@ -333,6 +333,22 @@ RecDiffy.ProfileWriter :: type public static class
 RecDiffy.ProposalSink :: constructor public ()
 RecDiffy.ProposalSink :: method public void Propose(System.Collections.Generic.IReadOnlyList<int> left, System.Collections.Generic.IReadOnlyList<int> right, string key)
 RecDiffy.ProposalSink :: type public sealed class
+RecDiffy.RecBatch :: constructor public (RecDiffy.CompiledProfile Profile, RecDiffy.ReferenceDataSet Reference, System.Collections.Immutable.ImmutableList<RecDiffy.RecRow> Left, System.Collections.Immutable.ImmutableList<RecDiffy.RecRow> Right, int Version)
+RecDiffy.RecBatch :: method public RecDiffy.RecBatch <Clone>$()
+RecDiffy.RecBatch :: method public bool Equals(RecDiffy.RecBatch? other)
+RecDiffy.RecBatch :: method public override bool Equals(object? obj)
+RecDiffy.RecBatch :: method public override int GetHashCode()
+RecDiffy.RecBatch :: method public override string ToString()
+RecDiffy.RecBatch :: method public static bool op_Equality(RecDiffy.RecBatch? left, RecDiffy.RecBatch? right)
+RecDiffy.RecBatch :: method public static bool op_Inequality(RecDiffy.RecBatch? left, RecDiffy.RecBatch? right)
+RecDiffy.RecBatch :: method public void Deconstruct(out RecDiffy.CompiledProfile Profile, out RecDiffy.ReferenceDataSet Reference, out System.Collections.Immutable.ImmutableList<RecDiffy.RecRow> Left, out System.Collections.Immutable.ImmutableList<RecDiffy.RecRow> Right, out int Version)
+RecDiffy.RecBatch :: property public RecDiffy.CompiledProfile Profile { get; init; }
+RecDiffy.RecBatch :: property public RecDiffy.ReferenceDataSet Reference { get; init; }
+RecDiffy.RecBatch :: property public System.Collections.Immutable.ImmutableList<RecDiffy.RecRow> Left { get; init; }
+RecDiffy.RecBatch :: property public System.Collections.Immutable.ImmutableList<RecDiffy.RecRow> Right { get; init; }
+RecDiffy.RecBatch :: property public bool IsCurrent { get; }
+RecDiffy.RecBatch :: property public int Version { get; init; }
+RecDiffy.RecBatch :: type public sealed class implements System.IEquatable<RecDiffy.RecBatch>
 RecDiffy.RecBuilder :: method public static RecDiffy.RecBuilder<TLeft, TRight> Between<TLeft, TRight>(System.Collections.Generic.IEnumerable<TLeft> left, System.Collections.Generic.IEnumerable<TRight> right)
 RecDiffy.RecBuilder :: type public static class
 RecDiffy.RecBuilder<TLeft, TRight> :: method public RecDiffy.RecBuilder<TLeft, TRight> And<TLeftValue, TRightValue>(System.Linq.Expressions.Expression<System.Func<TLeft, TLeftValue>> left, System.Linq.Expressions.Expression<System.Func<TRight, TRightValue>> right)
@@ -377,6 +393,12 @@ RecDiffy.RecMatch<TLeft, TRight> :: property public System.Collections.Generic.I
 RecDiffy.RecMatch<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<TLeft> Left { get; init; }
 RecDiffy.RecMatch<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<TRight> Right { get; init; }
 RecDiffy.RecMatch<TLeft, TRight> :: type public sealed class implements System.IEquatable<RecDiffy.RecMatch<TLeft, TRight>>
+RecDiffy.RecPush :: method public static RecDiffy.RecBatch Push(this RecDiffy.CompiledProfile profile, RecDiffy.IReconciliationResult previous, RecDiffy.ReferenceDataSet? reference = null)
+RecDiffy.RecPush :: method public static RecDiffy.RecBatch Push(this RecDiffy.CompiledProfile profile, System.Collections.Generic.IEnumerable<System.Collections.Generic.IReadOnlyDictionary<string, string?>> left, System.Collections.Generic.IEnumerable<System.Collections.Generic.IReadOnlyDictionary<string, string?>> right, RecDiffy.ReferenceDataSet? reference = null)
+RecDiffy.RecPush :: method public static RecDiffy.RecBatch Push(this RecDiffy.RecBatch batch, RecDiffy.IReconciliationResult previous)
+RecDiffy.RecPush :: method public static RecDiffy.RecBatch Push(this RecDiffy.RecBatch batch, System.Collections.Generic.IEnumerable<System.Collections.Generic.IReadOnlyDictionary<string, string?>> left, System.Collections.Generic.IEnumerable<System.Collections.Generic.IReadOnlyDictionary<string, string?>> right)
+RecDiffy.RecPush :: method public static System.ValueTuple<RecDiffy.RecView, RecDiffy.RecBatch> Snapshot(this RecDiffy.RecBatch batch) [tuple names: View, Batch]
+RecDiffy.RecPush :: type public static class
 RecDiffy.RecResult<TLeft, TRight> :: property public RecDiffy.IReconciliationResult Result { get; }
 RecDiffy.RecResult<TLeft, TRight> :: property public RecDiffy.ProfileDocument Profile { get; }
 RecDiffy.RecResult<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<RecDiffy.RecGroup<TLeft, TRight>> Ambiguous { get; }
@@ -385,6 +407,31 @@ RecDiffy.RecResult<TLeft, TRight> :: property public System.Collections.Generic.
 RecDiffy.RecResult<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<TLeft> LeftOnly { get; }
 RecDiffy.RecResult<TLeft, TRight> :: property public System.Collections.Generic.IReadOnlyList<TRight> RightOnly { get; }
 RecDiffy.RecResult<TLeft, TRight> :: type public sealed class
+RecDiffy.RecRow :: constructor public (System.Collections.Immutable.ImmutableSortedDictionary<string, string?> Cells)
+RecDiffy.RecRow :: method public RecDiffy.RecRow <Clone>$()
+RecDiffy.RecRow :: method public bool Equals(RecDiffy.RecRow? other)
+RecDiffy.RecRow :: method public override bool Equals(object? obj)
+RecDiffy.RecRow :: method public override int GetHashCode()
+RecDiffy.RecRow :: method public override string ToString()
+RecDiffy.RecRow :: method public static RecDiffy.RecRow Of(System.Collections.Generic.IReadOnlyDictionary<string, string?> cells)
+RecDiffy.RecRow :: method public static bool op_Equality(RecDiffy.RecRow? left, RecDiffy.RecRow? right)
+RecDiffy.RecRow :: method public static bool op_Inequality(RecDiffy.RecRow? left, RecDiffy.RecRow? right)
+RecDiffy.RecRow :: method public void Deconstruct(out System.Collections.Immutable.ImmutableSortedDictionary<string, string?> Cells)
+RecDiffy.RecRow :: property public System.Collections.Immutable.ImmutableSortedDictionary<string, string?> Cells { get; init; }
+RecDiffy.RecRow :: type public sealed class implements System.IEquatable<RecDiffy.RecRow>
+RecDiffy.RecView :: constructor public (RecDiffy.IReconciliationResult Result, int Version)
+RecDiffy.RecView :: method public RecDiffy.RecView <Clone>$()
+RecDiffy.RecView :: method public bool Equals(RecDiffy.RecView? other)
+RecDiffy.RecView :: method public override bool Equals(object? obj)
+RecDiffy.RecView :: method public override int GetHashCode()
+RecDiffy.RecView :: method public override string ToString()
+RecDiffy.RecView :: method public static bool op_Equality(RecDiffy.RecView? left, RecDiffy.RecView? right)
+RecDiffy.RecView :: method public static bool op_Inequality(RecDiffy.RecView? left, RecDiffy.RecView? right)
+RecDiffy.RecView :: method public void Deconstruct(out RecDiffy.IReconciliationResult Result, out int Version)
+RecDiffy.RecView :: property public RecDiffy.IReconciliationResult Result { get; init; }
+RecDiffy.RecView :: property public System.Collections.Immutable.ImmutableArray<RecDiffy.Results.ResultEntry> Breaks { get; }
+RecDiffy.RecView :: property public int Version { get; init; }
+RecDiffy.RecView :: type public sealed class implements System.IEquatable<RecDiffy.RecView>
 RecDiffy.Reconciler :: method public static RecDiffy.CompiledProfile Compile(RecDiffy.ProfileDocument document, RecDiffy.RuleRegistry registry)
 RecDiffy.Reconciler :: method public static RecDiffy.IReconciliationResult Run(RecDiffy.CompiledProfile profile, RecDiffy.RecordSource left, RecDiffy.RecordSource right, RecDiffy.ReferenceDataSet referenceData, RecDiffy.RunOptions? options = null, System.Threading.CancellationToken cancellationToken = default)
 RecDiffy.Reconciler :: method public static System.Threading.Tasks.Task<RecDiffy.IReconciliationResult> RunAsync(RecDiffy.CompiledProfile profile, RecDiffy.RecordSource left, RecDiffy.RecordSource right, RecDiffy.ReferenceDataSet referenceData, RecDiffy.RunOptions? options = null, System.Threading.CancellationToken cancellationToken = default)

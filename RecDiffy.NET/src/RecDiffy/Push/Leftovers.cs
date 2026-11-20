@@ -1,11 +1,11 @@
 using System.Collections.Immutable;
 using RecDiffy.Results;
 
-namespace RecDiffy.Sessions;
+namespace RecDiffy;
 
 internal static class Leftovers
 {
-    public static IReadOnlyList<SessionRow> Of(IReconciliationResult result, ProfileDocument profile, string side)
+    public static IReadOnlyList<RecRow> Of(IReconciliationResult result, ProfileDocument profile, string side)
     {
         var open = result.Entries.Where(entry => entry.Alignment is not Alignment.Matched).Select(entry => entry.Id).ToImmutableHashSet();
         var columns = Columns(profile, side);
@@ -19,7 +19,7 @@ internal static class Leftovers
         ];
     }
 
-    private static SessionRow Rebuild(IReconciliationResult result, SourceRef row, ImmutableArray<string> columns) =>
+    private static RecRow Rebuild(IReconciliationResult result, SourceRef row, ImmutableArray<string> columns) =>
         new(columns
             .Select(column => (Column: column, Text: result.Raw(row, column)))
             .Where(cell => cell.Text is not null)
