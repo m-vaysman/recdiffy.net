@@ -402,6 +402,7 @@ Prefer a readable sequence of named, single-assignment stages. Do not minimize l
 - **Expressions over statements** where they stay clear, including short ternaries and expression-bodied members. Do not compress substantial logic merely to make it expression-bodied.
 - **Higher-order functions:** pass delegates and compose small functions when doing so clarifies variation or rule application. Keep related rules cohesive; do not require one file per function or rule.
 - **Explicit results for expected failures:** use a small result type or an appropriate nullable return when absence is sufficient. Represent failure reasons explicitly when callers need them.
+- **Return specific, accept general:** return the most specific type you can, and accept the most general type that works. The return type tells the caller what it holds; the parameter type asks only for what the method needs.
 
 ### Keep side effects at the edges
 
