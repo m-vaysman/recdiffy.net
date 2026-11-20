@@ -1,0 +1,979 @@
+@page "/"
+@implements IDisposable
+@inject IThirteenFService ThirteenF
+@inject TimeProvider Clock
+
+<PageTitle>Reconcile SEC 13F holdings · RecDiffy.NET</PageTitle>
+
+<section class="step">
+    <h2><span class="n">1</span> Manager</h2>
+
+    <div class="lookup-box">
+        <label class="field-label" for="manager-search">Institutional investment manager (Form 13F filer)</label>
+        <div class="search-input-wrap">
+            <input id="manager-search"
+                   class="search-input"
+                   type="text"
+                   autocomplete="off"
+                   spellcheck="false"
+                   placeholder="Type 2+ letters of a manager name or CIK, e.g. Berkshire, Vanguard, Renaissance…"
+                   role="combobox"
+                   aria-autocomplete="list"
+                   aria-expanded="@(dropdownOpen ? "true" : "false")"
+                   aria-controls="manager-listbox"
+                   aria-activedescendant="@ActiveDescendantId"
+                   value="@searchQuery"
+                   @oninput="OnSearchInputAsync"
+                   @onkeydown="OnSearchKeyDownAsync"
+                   @onfocus="OnSearchFocus" />
+            @if (searchQuery.Length > 0)
+            {
+                <button type="button" class="clear-btn" title="Clear search" aria-label="Clear search" @onclick="ClearSearch">×</button>
+            }
+        </div>
+
+        @if (searchingManagers)
+        {
+            <p class="status-line" role="status">Searching SEC 13F filers…</p>
+        }
+        else if (searchError is not null)
+        {
+            <p class="error" role="alert">@searchError</p>
+        }
+        else if (dropdownOpen && searchCompleted && managerHits.Count == 0 && searchQuery.Trim().Length >= 2)
+        {
+            <div id="manager-listbox" class="typeahead-panel" role="status">
+                <p class="typeahead-empty">No matching 13F filers found for “@searchQuery.Trim()”.</p>
+            </div>
+        }
+        else if (dropdownOpen && managerHits.Count > 0)
+        {
+            <ul id="manager-listbox" class="typeahead-list" role="listbox" aria-label="Matching managers">
+                @for (var i = 0; i < managerHits.Count; i++)
+                {
+                    var index = i;
+                    var hit = managerHits[index];
+                    var isActive = index == activeHitIndex;
+                    <li id="@($"manager-hit-{index.ToInvariant()}")"
+                        class="typeahead-item @(isActive ? "active" : "")"
+                        role="option"
+                        aria-selected="@(isActive ? "true" : "false")"
+                        @onmouseenter="() => activeHitIndex = index"
+                        @onclick="() => SelectManagerAsync(hit)">
+                        <span class="hit-name">@hit.Name</span>
+                        <span class="hit-cik">CIK @hit.Cik</span>
+                    </li>
+                }
+            </ul>
+        }
+        else if (selectedManager is null)
+        {
+            <p class="note">Type at least 2 characters to search, then use ↑/↓ and Enter or click a filer.</p>
+        }
+    </div>
+
+    @if (selectedManager is { } manager)
+    {
+        <div class="selected-manager">
+            <div>
+                <span class="selected-label">Selected filer</span>
+                <strong class="selected-name">@manager.Name</strong>
+            </div>
+            <span class="selected-cik">CIK @manager.Cik</span>
+        </div>
+    }
+</section>
+
+@if (selectedManager is not null)
+{
+    <section class="step">
+        <h2><span class="n">2</span> Filings</h2>
+
+        @if (loadingInitialFilings)
+        {
+            <p class="status-line" role="status">Loading 13F filings for @selectedManager.Name…</p>
+        }
+        else if (filingsError is not null)
+        {
+            <div class="error-box" role="alert">
+                <p class="error">@filingsError</p>
+                <button type="button" class="link" @onclick="ReloadManagerFilingsAsync">Try loading filings again</button>
+            </div>
+        }
+        else
+        {
+            <div class="year-bar">
+                <label class="field-inline" for="default-year-select">
+                    <span>Filing year</span>
+                    <select id="default-year-select" value="@primaryYear.ToInvariant()" @onchange="OnPrimaryYearChangedAsync">
+                        @foreach (var year in selectableYears)
+                        {
+                            <option value="@year.ToInvariant()">@year.ToInvariant()</option>
+                        }
+                    </select>
+                </label>
+                <span class="hint">Defaults to the latest year with 13F filings; each side can also switch years independently below.</span>
+            </div>
+
+            <div class="sides">
+                <div class="side filing-card">
+                    <h3>Prior quarter</h3>
+                    <div class="pair">
+                        <label class="picker-field" for="prior-year-select">
+                            <span>Year</span>
+                            <select id="prior-year-select"
+                                    class="year-select"
+                                    disabled="@loadingPriorYear"
+                                    value="@priorYear.ToInvariant()"
+                                    @onchange="OnPriorYearChangedAsync">
+                                @foreach (var year in selectableYears)
+                                {
+                                    <option value="@year.ToInvariant()">@year.ToInvariant()</option>
+                                }
+                            </select>
+                        </label>
+                        <label class="picker-field picker-quarter" for="prior-filing-select">
+                            <span>13F filing</span>
+                            <select id="prior-filing-select"
+                                    disabled="@(loadingPriorYear || priorFilings.Count == 0)"
+                                    value="@(priorFiling?.AccessionNumber ?? "")"
+                                    @onchange="OnPriorFilingChanged">
+                                @if (priorFilings.Count == 0)
+                                {
+                                    <option value="">No 13F filings in @priorYear.ToInvariant()</option>
+                                }
+                                else
+                                {
+                                    @foreach (var filing in priorFilings)
+                                    {
+                                        <option value="@filing.AccessionNumber">@HoldingsPresentation.FilingOptionLabel(filing)</option>
+                                    }
+                                }
+                            </select>
+                        </label>
+                    </div>
+                    @if (loadingPriorYear)
+                    {
+                        <p class="file-meta" role="status">Loading @priorYear.ToInvariant() filings…</p>
+                    }
+                    else if (priorFiling is { } pf)
+                    {
+                        <p class="file-meta">
+                            Period @pf.PeriodOfReport.ToInvariant("yyyy-MM-dd") · Filed @pf.Filed.ToInvariant("yyyy-MM-dd") · @pf.FormType · Accession @pf.AccessionNumber
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="file-meta">No Form 13F filings reported in @priorYear.ToInvariant(). Pick another year.</p>
+                    }
+                </div>
+
+                <div class="side filing-card">
+                    <h3>Current quarter</h3>
+                    <div class="pair">
+                        <label class="picker-field" for="current-year-select">
+                            <span>Year</span>
+                            <select id="current-year-select"
+                                    class="year-select"
+                                    disabled="@loadingCurrentYear"
+                                    value="@currentYear.ToInvariant()"
+                                    @onchange="OnCurrentYearChangedAsync">
+                                @foreach (var year in selectableYears)
+                                {
+                                    <option value="@year.ToInvariant()">@year.ToInvariant()</option>
+                                }
+                            </select>
+                        </label>
+                        <label class="picker-field picker-quarter" for="current-filing-select">
+                            <span>13F filing</span>
+                            <select id="current-filing-select"
+                                    disabled="@(loadingCurrentYear || currentFilings.Count == 0)"
+                                    value="@(currentFiling?.AccessionNumber ?? "")"
+                                    @onchange="OnCurrentFilingChanged">
+                                @if (currentFilings.Count == 0)
+                                {
+                                    <option value="">No 13F filings in @currentYear.ToInvariant()</option>
+                                }
+                                else
+                                {
+                                    @foreach (var filing in currentFilings)
+                                    {
+                                        <option value="@filing.AccessionNumber">@HoldingsPresentation.FilingOptionLabel(filing)</option>
+                                    }
+                                }
+                            </select>
+                        </label>
+                    </div>
+                    @if (loadingCurrentYear)
+                    {
+                        <p class="file-meta" role="status">Loading @currentYear.ToInvariant() filings…</p>
+                    }
+                    else if (currentFiling is { } cf)
+                    {
+                        <p class="file-meta">
+                            Period @cf.PeriodOfReport.ToInvariant("yyyy-MM-dd") · Filed @cf.Filed.ToInvariant("yyyy-MM-dd") · @cf.FormType · Accession @cf.AccessionNumber
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="file-meta">No Form 13F filings reported in @currentYear.ToInvariant(). Pick another year.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="run">
+                <button type="button"
+                        class="primary"
+                        disabled="@(!CanCompare || comparing)"
+                        @onclick="CompareSelectedAsync">
+                    @(comparing ? "Comparing…" : "Compare quarters")
+                </button>
+                @if (priorFiling is not null && currentFiling is not null && priorFiling.AccessionNumber != currentFiling.AccessionNumber)
+                {
+                    <button type="button" class="link" disabled="@comparing" @onclick="SwapQuarters">Swap prior and current</button>
+                }
+                @if (priorFiling is null || currentFiling is null)
+                {
+                    <span class="hint">Select a 13F filing on each side to compare.</span>
+                }
+                else if (priorFiling.AccessionNumber == currentFiling.AccessionNumber)
+                {
+                    <span class="hint">Choose two different filings to compare.</span>
+                }
+                else if (priorFiling.PeriodOfReport > currentFiling.PeriodOfReport)
+                {
+                    <span class="hint">Note: prior period (@priorFiling.PeriodOfReport.ToInvariant("yyyy-MM-dd")) is later than current period (@currentFiling.PeriodOfReport.ToInvariant("yyyy-MM-dd")).</span>
+                }
+            </div>
+        }
+    </section>
+}
+
+@if (compareError is not null)
+{
+    <section class="step" role="alert">
+        <p class="error">@compareError</p>
+        @if (CanCompare)
+        {
+            <button type="button" class="link" @onclick="RetryCompareAsync">Try comparing again</button>
+        }
+    </section>
+}
+
+@if (comparing && comparison is null)
+{
+    <section class="step" role="status">
+        <p class="status-line">Reconciling 13F holdings between quarters…</p>
+    </section>
+}
+
+@if (comparison is { } result)
+{
+    var allCount = HoldingsPresentation.TotalHoldingsCount(result);
+    var totalPct = HoldingsPresentation.FormatPercentChange(HoldingsPresentation.TotalChangePct(result.PriorTotalUsd, result.CurrentTotalUsd));
+    var dollarDelta = HoldingsPresentation.FormatDollarDelta(result.PriorTotalUsd, result.CurrentTotalUsd);
+    var pageWindow = HoldingsPresentation.ComputePageWindow(result.TotalRows, result.Page, result.PageSize);
+    var shareScale = HoldingsPresentation.ColumnScale(result.Rows.SelectMany(row => new[] { row.PriorShares, row.CurrentShares }));
+    var valueScale = HoldingsPresentation.ColumnScale(result.Rows.SelectMany(row => new[] { row.PriorValueUsd, row.CurrentValueUsd }));
+
+    <section class="step">
+        <h2><span class="n">3</span> Result</h2>
+
+        <div class="totals-strip">
+            <div class="total-card">
+                <span class="total-label">Prior total (@HoldingsPresentation.QuarterLabel(result.Prior.PeriodOfReport))</span>
+                <strong class="total-value">@HoldingsPresentation.FormatUsd(result.PriorTotalUsd)</strong>
+            </div>
+            <div class="total-card">
+                <span class="total-label">Current total (@HoldingsPresentation.QuarterLabel(result.Current.PeriodOfReport))</span>
+                <strong class="total-value">@HoldingsPresentation.FormatUsd(result.CurrentTotalUsd)</strong>
+            </div>
+            <div class="total-card">
+                <span class="total-label">Total value change</span>
+                <strong class="total-value @totalPct.CssClass">@totalPct.Text</strong>
+                <span class="total-sub @dollarDelta.CssClass">@dollarDelta.Text</span>
+            </div>
+        </div>
+
+        <div class="chips" role="group" aria-label="Filter holdings by status">
+            <button type="button"
+                    class="chip @(statusFilter is null ? "on" : "")"
+                    disabled="@comparing"
+                    @onclick="() => SetFilterAsync(null)">
+                All <b>@allCount.ToInvariant("N0")</b>
+            </button>
+            <button type="button"
+                    class="chip tag-Unchanged @(statusFilter is HoldingStatus.Unchanged ? "on" : "")"
+                    disabled="@comparing"
+                    @onclick="() => SetFilterAsync(HoldingStatus.Unchanged)">
+                Unchanged <b>@result.Unchanged.ToInvariant("N0")</b>
+            </button>
+            <button type="button"
+                    class="chip tag-Changed @(statusFilter is HoldingStatus.Changed ? "on" : "")"
+                    disabled="@comparing"
+                    @onclick="() => SetFilterAsync(HoldingStatus.Changed)">
+                Changed <b>@result.Changed.ToInvariant("N0")</b>
+            </button>
+            <button type="button"
+                    class="chip tag-New @(statusFilter is HoldingStatus.New ? "on" : "")"
+                    disabled="@comparing"
+                    @onclick="() => SetFilterAsync(HoldingStatus.New)">
+                New <b>@result.New.ToInvariant("N0")</b>
+            </button>
+            <button type="button"
+                    class="chip tag-Exited @(statusFilter is HoldingStatus.Exited ? "on" : "")"
+                    disabled="@comparing"
+                    @onclick="() => SetFilterAsync(HoldingStatus.Exited)">
+                Exited <b>@result.Exited.ToInvariant("N0")</b>
+            </button>
+        </div>
+
+        <div class="pager-bar">
+            <p class="pager-summary">
+                @if (pageWindow.TotalRows == 0)
+                {
+                    <span>0 holdings@(statusFilter is { } active ? $" with status {FilterName(active)}" : "")</span>
+                }
+                else
+                {
+                    <span>
+                        Showing @pageWindow.FirstRow.ToInvariant("N0")–@pageWindow.LastRow.ToInvariant("N0") of @pageWindow.TotalRows.ToInvariant("N0")
+                        @(statusFilter is { } active ? $"{FilterName(active).ToLowerInvariant()} " : "")holdings
+                    </span>
+                }
+                @if (comparing)
+                {
+                    <span class="updating-pill">Updating…</span>
+                }
+            </p>
+
+            <div class="pager-controls">
+                <label class="page-size-label" for="page-size-select">
+                    Rows per page
+                    <select id="page-size-select"
+                            disabled="@comparing"
+                            value="@pageSize.ToInvariant()"
+                            @onchange="OnPageSizeChangedAsync">
+                        @foreach (var size in HoldingsPresentation.SupportedPageSizes)
+                        {
+                            <option value="@size.ToInvariant()">@size.ToInvariant()</option>
+                        }
+                    </select>
+                </label>
+
+                <div class="page-buttons">
+                    <button type="button"
+                            class="pager-btn"
+                            disabled="@(!pageWindow.HasPrevious || comparing)"
+                            @onclick="() => GoToPageAsync(1)">
+                        First
+                    </button>
+                    <button type="button"
+                            class="pager-btn"
+                            disabled="@(!pageWindow.HasPrevious || comparing)"
+                            @onclick="() => GoToPageAsync(pageWindow.Page - 1)">
+                        Previous
+                    </button>
+                    <span class="page-indicator">Page @pageWindow.Page.ToInvariant("N0") of @pageWindow.TotalPages.ToInvariant("N0")</span>
+                    <button type="button"
+                            class="pager-btn"
+                            disabled="@(!pageWindow.HasNext || comparing)"
+                            @onclick="() => GoToPageAsync(pageWindow.Page + 1)">
+                        Next
+                    </button>
+                    <button type="button"
+                            class="pager-btn"
+                            disabled="@(!pageWindow.HasNext || comparing)"
+                            @onclick="() => GoToPageAsync(pageWindow.TotalPages)">
+                        Last
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        @if (result.Rows.Count == 0)
+        {
+            <div class="empty-grid">
+                <p>No holdings match @(statusFilter is { } active ? $"the “{FilterName(active)}” filter" : "these filings").</p>
+                @if (statusFilter is not null)
+                {
+                    <button type="button" class="link" @onclick="() => SetFilterAsync(null)">Show all holdings</button>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="grid-wrap @(comparing ? "grid-busy" : "")">
+                <table class="grid">
+                    <thead>
+                        <tr>
+                            <th>Issuer</th>
+                            <th>CUSIP</th>
+                            <th>Class</th>
+                            <th>Put/Call</th>
+                            <th>Status</th>
+                            <th class="num">Prior shares</th>
+                            <th class="num">Current shares</th>
+                            <th class="num">Shares change %</th>
+                            <th class="num">Prior value</th>
+                            <th class="num">Current value</th>
+                            <th class="num">Value change %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in result.Rows)
+                        {
+                            var sharesDelta = HoldingsPresentation.FormatPercentChange(row.SharesChangePct);
+                            var valueDelta = HoldingsPresentation.FormatPercentChange(row.ValueChangePct);
+                            <tr>
+                                <td class="issuer-cell">@row.Issuer</td>
+                                <td>@row.Cusip</td>
+                                <td class="class-cell">@row.TitleOfClass</td>
+                                <td>
+                                    @if (row.PutCall is { Length: > 0 } putCall)
+                                    {
+                                        <span class="tag option-tag">@putCall</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="muted-dash">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="tag @HoldingsPresentation.StatusBadgeClass(row.Status)">@HoldingsPresentation.StatusText(row.Status)</span>
+                                </td>
+                                <td class="num">@HoldingsPresentation.FormatNullableShares(row.PriorShares, shareScale)</td>
+                                <td class="num">@HoldingsPresentation.FormatNullableShares(row.CurrentShares, shareScale)</td>
+                                <td class="num @sharesDelta.CssClass">@sharesDelta.Text</td>
+                                <td class="num">@HoldingsPresentation.FormatNullableUsd(row.PriorValueUsd, valueScale)</td>
+                                <td class="num">@HoldingsPresentation.FormatNullableUsd(row.CurrentValueUsd, valueScale)</td>
+                                <td class="num @valueDelta.CssClass">@valueDelta.Text</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <dl class="stamp">
+            <div><dt>Manager</dt><dd>@result.Manager.Name (CIK @result.Manager.Cik)</dd></div>
+            <div><dt>Prior</dt><dd>@result.Prior.FormType · @result.Prior.PeriodOfReport.ToInvariant("yyyy-MM-dd") (@result.Prior.AccessionNumber)</dd></div>
+            <div><dt>Current</dt><dd>@result.Current.FormType · @result.Current.PeriodOfReport.ToInvariant("yyyy-MM-dd") (@result.Current.AccessionNumber)</dd></div>
+        </dl>
+    </section>
+}
+
+@code {
+    private const int SearchTake = 10;
+    private const long DebounceMs = 250L;
+    private const int MaxInitialLookbackYears = 8;
+
+    private readonly LatestRequestGate _searchGate = new();
+    private readonly LatestRequestGate _filingsGate = new();
+    private readonly LatestRequestGate _compareGate = new();
+    private readonly Dictionary<(string Cik, int Year), IReadOnlyList<FilingRef>> _filingsCache = [];
+
+    private IReadOnlyList<int> selectableYears = [];
+
+    private string searchQuery = "";
+    private IReadOnlyList<ManagerHit> managerHits = [];
+    private int activeHitIndex = -1;
+    private bool dropdownOpen;
+    private bool searchingManagers;
+    private bool searchCompleted;
+    private string? searchError;
+
+    private ManagerHit? selectedManager;
+    private bool loadingInitialFilings;
+    private bool loadingPriorYear;
+    private bool loadingCurrentYear;
+    private string? filingsError;
+
+    private int primaryYear;
+    private int priorYear;
+    private int currentYear;
+    private IReadOnlyList<FilingRef> priorFilings = [];
+    private IReadOnlyList<FilingRef> currentFilings = [];
+    private FilingRef? priorFiling;
+    private FilingRef? currentFiling;
+
+    private QuarterComparison? comparison;
+    private HoldingStatus? statusFilter;
+    private int currentPage = 1;
+    private int pageSize = 25;
+    private bool comparing;
+    private string? compareError;
+
+    private string? ActiveDescendantId =>
+        dropdownOpen && activeHitIndex >= 0 && activeHitIndex < managerHits.Count
+            ? $"manager-hit-{activeHitIndex.ToInvariant()}"
+            : null;
+
+    private bool CanCompare =>
+        selectedManager is not null
+        && priorFiling is not null
+        && currentFiling is not null
+        && priorFiling.AccessionNumber != currentFiling.AccessionNumber
+        && !loadingInitialFilings
+        && !loadingPriorYear
+        && !loadingCurrentYear;
+
+    protected override void OnInitialized()
+    {
+        var year = Clock.GetUtcNow().Year;
+        selectableYears = HoldingsPresentation.SelectableYears(year);
+        primaryYear = year;
+        priorYear = year;
+        currentYear = year;
+    }
+
+    private async Task OnSearchInputAsync(ChangeEventArgs e)
+    {
+        searchQuery = e.Value?.ToString() ?? "";
+        searchError = null;
+
+        var trimmed = searchQuery.Trim();
+        if (trimmed.Length < 2)
+        {
+            _searchGate.Cancel();
+            searchingManagers = false;
+            searchCompleted = false;
+            dropdownOpen = false;
+            managerHits = [];
+            activeHitIndex = -1;
+            return;
+        }
+
+        var token = _searchGate.Next();
+        searchingManagers = true;
+        searchCompleted = false;
+        dropdownOpen = true;
+
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(DebounceMs), Clock, token);
+            var hits = await ThirteenF.SearchManagersAsync(trimmed, SearchTake, token);
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            managerHits = hits;
+            activeHitIndex = hits.Count > 0 ? 0 : -1;
+            searchCompleted = true;
+            searchingManagers = false;
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+        }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or IOException or InvalidDataException or InvalidOperationException)
+        {
+            searchingManagers = false;
+            searchCompleted = true;
+            managerHits = [];
+            activeHitIndex = -1;
+            searchError = HoldingsPresentation.FriendlySecError(ex, "searching 13F managers");
+        }
+    }
+
+    private async Task OnSearchKeyDownAsync(KeyboardEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case "ArrowDown" when managerHits.Count > 0:
+                dropdownOpen = true;
+                activeHitIndex = activeHitIndex < 0
+                    ? 0
+                    : (activeHitIndex + 1) % managerHits.Count;
+                break;
+
+            case "ArrowUp" when managerHits.Count > 0:
+                dropdownOpen = true;
+                activeHitIndex = activeHitIndex <= 0
+                    ? managerHits.Count - 1
+                    : activeHitIndex - 1;
+                break;
+
+            case "Enter" when dropdownOpen && activeHitIndex >= 0 && activeHitIndex < managerHits.Count:
+                await SelectManagerAsync(managerHits[activeHitIndex]);
+                break;
+
+            case "Escape":
+                dropdownOpen = false;
+                activeHitIndex = -1;
+                break;
+        }
+    }
+
+    private void OnSearchFocus()
+    {
+        if (searchCompleted && searchQuery.Trim().Length >= 2)
+        {
+            dropdownOpen = true;
+        }
+    }
+
+    private void ClearSearch()
+    {
+        _searchGate.Cancel();
+        searchQuery = "";
+        searchingManagers = false;
+        searchCompleted = false;
+        searchError = null;
+        dropdownOpen = false;
+        managerHits = [];
+        activeHitIndex = -1;
+    }
+
+    private async Task SelectManagerAsync(ManagerHit manager)
+    {
+        _searchGate.Cancel();
+        _compareGate.Cancel();
+
+        selectedManager = manager;
+        searchQuery = manager.Name;
+        searchingManagers = false;
+        searchCompleted = false;
+        searchError = null;
+        dropdownOpen = false;
+        managerHits = [];
+        activeHitIndex = -1;
+
+        comparison = null;
+        compareError = null;
+        comparing = false;
+        statusFilter = null;
+        currentPage = 1;
+
+        await LoadInitialFilingsForManagerAsync(manager);
+    }
+
+    private Task ReloadManagerFilingsAsync() =>
+        selectedManager is { } manager ? LoadInitialFilingsForManagerAsync(manager) : Task.CompletedTask;
+
+    private async Task LoadInitialFilingsForManagerAsync(ManagerHit manager)
+    {
+        var token = _filingsGate.Next();
+        loadingInitialFilings = true;
+        loadingPriorYear = false;
+        loadingCurrentYear = false;
+        filingsError = null;
+
+        try
+        {
+            var topYear = selectableYears[0];
+            var candidateYears = selectableYears.Take(MaxInitialLookbackYears);
+            var resolvedYear = topYear;
+            IReadOnlyList<FilingRef> latestYearFilings = [];
+
+            foreach (var year in candidateYears)
+            {
+                var filings = await FetchFilingsCachedAsync(manager.Cik, year, token);
+                if (filings.Count > 0)
+                {
+                    resolvedYear = year;
+                    latestYearFilings = filings;
+                    break;
+                }
+            }
+
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            var (priorInLatest, currentInLatest) = HoldingsPresentation.PickLatestTwoPeriods(latestYearFilings);
+
+            if (currentInLatest is not null && priorInLatest is null && resolvedYear > selectableYears[^1])
+            {
+                var prevYear = resolvedYear - 1;
+                var prevFilings = await FetchFilingsCachedAsync(manager.Cik, prevYear, token);
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                if (prevFilings.Count > 0)
+                {
+                    primaryYear = resolvedYear;
+                    currentYear = resolvedYear;
+                    currentFilings = latestYearFilings;
+                    currentFiling = currentInLatest;
+                    priorYear = prevYear;
+                    priorFilings = prevFilings;
+                    priorFiling = prevFilings[0];
+                    loadingInitialFilings = false;
+                    return;
+                }
+            }
+
+            primaryYear = resolvedYear;
+            priorYear = resolvedYear;
+            currentYear = resolvedYear;
+            priorFilings = latestYearFilings;
+            currentFilings = latestYearFilings;
+            priorFiling = priorInLatest;
+            currentFiling = currentInLatest;
+            loadingInitialFilings = false;
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+        }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or IOException or InvalidDataException or InvalidOperationException)
+        {
+            loadingInitialFilings = false;
+            filingsError = HoldingsPresentation.FriendlySecError(ex, "loading 13F filings");
+        }
+    }
+
+    private async Task OnPrimaryYearChangedAsync(ChangeEventArgs e)
+    {
+        if (selectedManager is not { } manager || ParseYear(e) is not { } year)
+        {
+            return;
+        }
+
+        var token = _filingsGate.Next();
+        primaryYear = year;
+        priorYear = year;
+        currentYear = year;
+        loadingPriorYear = true;
+        loadingCurrentYear = true;
+        filingsError = null;
+
+        try
+        {
+            var filings = await FetchFilingsCachedAsync(manager.Cik, year, token);
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            var (prior, current) = HoldingsPresentation.PickLatestTwoPeriods(filings);
+            priorFilings = filings;
+            currentFilings = filings;
+            priorFiling = prior ?? filings.FirstOrDefault();
+            currentFiling = current;
+            loadingPriorYear = false;
+            loadingCurrentYear = false;
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+        }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or IOException or InvalidDataException or InvalidOperationException)
+        {
+            loadingPriorYear = false;
+            loadingCurrentYear = false;
+            filingsError = HoldingsPresentation.FriendlySecError(ex, $"loading {year.ToInvariant()} filings");
+        }
+    }
+
+    private async Task OnPriorYearChangedAsync(ChangeEventArgs e)
+    {
+        if (selectedManager is not { } manager || ParseYear(e) is not { } year)
+        {
+            return;
+        }
+
+        var token = _filingsGate.Next();
+        priorYear = year;
+        loadingPriorYear = true;
+        filingsError = null;
+
+        try
+        {
+            var filings = await FetchFilingsCachedAsync(manager.Cik, year, token);
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            priorFilings = filings;
+            priorFiling = filings.FirstOrDefault(candidate => candidate.AccessionNumber != currentFiling?.AccessionNumber)
+                ?? filings.FirstOrDefault();
+            loadingPriorYear = false;
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+        }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or IOException or InvalidDataException or InvalidOperationException)
+        {
+            loadingPriorYear = false;
+            filingsError = HoldingsPresentation.FriendlySecError(ex, $"loading {year.ToInvariant()} filings");
+        }
+    }
+
+    private async Task OnCurrentYearChangedAsync(ChangeEventArgs e)
+    {
+        if (selectedManager is not { } manager || ParseYear(e) is not { } year)
+        {
+            return;
+        }
+
+        var token = _filingsGate.Next();
+        currentYear = year;
+        loadingCurrentYear = true;
+        filingsError = null;
+
+        try
+        {
+            var filings = await FetchFilingsCachedAsync(manager.Cik, year, token);
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            currentFilings = filings;
+            currentFiling = filings.FirstOrDefault(candidate => candidate.AccessionNumber != priorFiling?.AccessionNumber)
+                ?? filings.FirstOrDefault();
+            loadingCurrentYear = false;
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+        }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or IOException or InvalidDataException or InvalidOperationException)
+        {
+            loadingCurrentYear = false;
+            filingsError = HoldingsPresentation.FriendlySecError(ex, $"loading {year.ToInvariant()} filings");
+        }
+    }
+
+    private void OnPriorFilingChanged(ChangeEventArgs e)
+    {
+        var accession = e.Value?.ToString() ?? "";
+        priorFiling = priorFilings.FirstOrDefault(filing => filing.AccessionNumber == accession);
+    }
+
+    private void OnCurrentFilingChanged(ChangeEventArgs e)
+    {
+        var accession = e.Value?.ToString() ?? "";
+        currentFiling = currentFilings.FirstOrDefault(filing => filing.AccessionNumber == accession);
+    }
+
+    private void SwapQuarters()
+    {
+        (priorYear, currentYear) = (currentYear, priorYear);
+        (priorFilings, currentFilings) = (currentFilings, priorFilings);
+        (priorFiling, currentFiling) = (currentFiling, priorFiling);
+    }
+
+    private async Task CompareSelectedAsync()
+    {
+        statusFilter = null;
+        currentPage = 1;
+        await ExecuteCompareAsync();
+    }
+
+    private Task RetryCompareAsync() => ExecuteCompareAsync();
+
+    private async Task SetFilterAsync(HoldingStatus? nextFilter)
+    {
+        var effective = statusFilter == nextFilter && nextFilter is not null ? null : nextFilter;
+        statusFilter = effective;
+        currentPage = 1;
+        await ExecuteCompareAsync();
+    }
+
+    private async Task OnPageSizeChangedAsync(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), System.Globalization.CultureInfo.InvariantCulture, out var parsed)
+            || !HoldingsPresentation.SupportedPageSizes.Contains(parsed))
+        {
+            return;
+        }
+
+        pageSize = parsed;
+        currentPage = 1;
+        await ExecuteCompareAsync();
+    }
+
+    private async Task GoToPageAsync(int targetPage)
+    {
+        if (targetPage < 1 || targetPage == currentPage)
+        {
+            return;
+        }
+
+        currentPage = targetPage;
+        await ExecuteCompareAsync();
+    }
+
+    private async Task ExecuteCompareAsync()
+    {
+        if (selectedManager is not { } manager || priorFiling is not { } prior || currentFiling is not { } current)
+        {
+            return;
+        }
+
+        var token = _compareGate.Next();
+        comparing = true;
+        compareError = null;
+
+        try
+        {
+            var result = await ThirteenF.CompareAsync(
+                manager.Cik,
+                prior,
+                current,
+                statusFilter,
+                currentPage,
+                pageSize,
+                token);
+
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            comparison = result;
+            currentPage = result.Page;
+            comparing = false;
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+        }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or IOException or InvalidDataException or InvalidOperationException)
+        {
+            comparing = false;
+            compareError = HoldingsPresentation.FriendlySecError(ex, "comparing 13F holdings");
+        }
+    }
+
+    private async Task<IReadOnlyList<FilingRef>> FetchFilingsCachedAsync(string cik, int year, CancellationToken ct)
+    {
+        if (_filingsCache.TryGetValue((cik, year), out var cached))
+        {
+            return cached;
+        }
+
+        var raw = await ThirteenF.GetFilingsAsync(cik, year, ct);
+        var ordered = HoldingsPresentation.OrderFilingsNewestFirst(raw);
+        if (!ct.IsCancellationRequested)
+        {
+            _filingsCache[(cik, year)] = ordered;
+        }
+
+        return ordered;
+    }
+
+    private static int? ParseYear(ChangeEventArgs e) =>
+        int.TryParse(e.Value?.ToString(), System.Globalization.CultureInfo.InvariantCulture, out var year)
+            ? year
+            : null;
+
+    private static string FilterName(HoldingStatus status) => status switch
+    {
+        HoldingStatus.Unchanged => "Unchanged",
+        HoldingStatus.Changed => "Changed",
+        HoldingStatus.New => "New",
+        HoldingStatus.Exited => "Exited",
+        _ => status.ToInvariant(),
+    };
+
+    public void Dispose()
+    {
+        _searchGate.Dispose();
+        _filingsGate.Dispose();
+        _compareGate.Dispose();
+    }
+}
