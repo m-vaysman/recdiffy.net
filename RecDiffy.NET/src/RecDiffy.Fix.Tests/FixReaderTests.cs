@@ -72,6 +72,53 @@ public class FixReaderTests
     }
 
     [Fact]
+    public void An_equity_allocation_instruction_with_orders_accounts_parties_and_fees_is_accepted()
+    {
+        var text = Wire.Message("J",
+        [
+            (70, "AL1"), (71, "0"), (626, "1"), (54, "1"), (55, "IBM"), (53, "300"), (6, "150.25"), (75, "20261119"),
+            (73, "2"), (11, "C1"), (37, "O1"), (38, "200"), (11, "C2"), (37, "O2"), (38, "100"),
+            (78, "2"),
+            (79, "FUND-A"), (80, "200"), (467, "IA1"), (539, "1"), (524, "BRK"), (525, "D"), (538, "4"), (136, "1"), (137, "12.50"), (138, "USD"), (139, "7"),
+            (79, "FUND-B"), (80, "100"), (467, "IA2"), (539, "1"), (524, "BRK"), (525, "D"), (538, "4"), (136, "1"), (137, "6.25"), (138, "USD"), (139, "7"),
+            (453, "2"), (448, "US"), (447, "D"), (452, "13"), (448, "GS"), (447, "D"), (452, "1"),
+        ]);
+
+        Assert.IsType<FixAccepted>(FixReader.ReadMessage(text, Wire.Options));
+        Assert.Equal(["AL1/FUND-A", "AL1/FUND-B"], FixRows.Read(text, Wire.Options).Allocations.Select(row => row["AllocRow"]), StringComparer.Ordinal);
+    }
+
+    [Fact]
+    public void A_confirmation_with_settlement_parties_nested_two_deep_is_accepted()
+    {
+        var text = Wire.Message("AK",
+        [
+            (664, "CF1"), (666, "0"), (773, "2"), (665, "4"), (70, "AL1"), (467, "IA1"), (79, "FUND-A"), (80, "200"), (6, "150.25"),
+            (381, "30050"), (118, "30062.50"),
+            (862, "1"), (528, "A"), (863, "200"),
+            (2639, "1"), (2640, "12.50"), (2641, "3"),
+            (136, "2"), (137, "1.00"), (139, "4"), (137, "0.50"), (139, "2"),
+            (85, "1"), (165, "1"), (787, "S"), (781, "3"), (782, "DTCYUS33"), (784, "10"), (782, "BRKUS33"), (784, "27"), (782, "AGENTUS33"), (784, "30"), (801, "1"), (785, "123"), (786, "10"),
+            (1907, "1"), (1903, "UTI1"), (1905, "1"), (1904, "1"), (1906, "0"),
+        ]);
+
+        Assert.IsType<FixAccepted>(FixReader.ReadMessage(text, Wire.Options));
+    }
+
+    [Fact]
+    public void A_nested_group_whose_counts_do_not_add_up_is_rejected()
+    {
+        var text = Wire.Message("J",
+        [
+            (70, "AL1"), (71, "0"), (78, "2"),
+            (79, "FUND-A"), (80, "200"), (136, "1"), (137, "12.50"), (139, "7"),
+            (79, "FUND-B"), (80, "100"), (136, "1"), (137, "6.25"), (139, "7"), (137, "1.00"), (139, "4"),
+        ]);
+
+        Assert.Equal("group 136 declares 2 entries but has 3", Assert.IsType<FixRejected>(FixReader.ReadMessage(text, Wire.Options)).Reason);
+    }
+
+    [Fact]
     public void A_group_with_the_wrong_number_of_entries_is_rejected()
     {
         var text = Wire.Message("J", (70, "AL1"), (71, "0"), (78, "3"), (79, "FUND-A"), (80, "100"), (79, "FUND-B"), (80, "50"));
