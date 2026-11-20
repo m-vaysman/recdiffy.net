@@ -1,0 +1,21 @@
+# RecDiffy.NET profiles: diff and tolerances
+
+> After matching, every Key and Economic field of a matched entry is compared. Decimals are rounded to the field's scale first, then judged against the tolerance, which is inclusive. A compared field with no tolerance is compared exactly. Null against a value is a Break: missing isn't zero. Up: https://m-vaysman.github.io/recdiffy.net/docs/profiles/llms.txt
+
+## Reference
+
+- [Diff](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/diff.md): absolute, relative, days and attributed tolerances, when, applicableWhen, and which kind fits which type
+- [How a field is compared](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/how-a-field-is-compared.md): rounding first, then the inclusive bound
+- [Grouped entries](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/grouped-entries.md): how a many-to-one match is compared
+- [Attributions](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/attributions.md): trading.netCash and trading.proRataToQuantity
+- [Attributed differences in the result](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/attributed-differences.md): FieldDiff.AttributedTo
+- [Missing isn't zero](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/missing-isnt-zero.md): nulls in comparison, and why to check IsNull before Delta
+
+## Examples
+
+- [Tolerances after rounding](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/tolerances-after-rounding.md)
+- [Relative tolerances](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/relative-tolerances.md)
+
+## Source
+
+- [FieldDiffer.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/Diff/FieldDiffer.cs): the comparison

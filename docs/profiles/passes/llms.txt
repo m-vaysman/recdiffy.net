@@ -1,0 +1,22 @@
+# RecDiffy.NET profiles: matching passes
+
+> A path takes the rows its route accepts and matches them with its passes, in order of preference: the earliest pass that can commit a match takes the rows. Pair passes match one row to one row on a key; match.groupSum matches several rows on one side to one row on the other when the conserved fields sum exactly. A key with more than one row on a side is ambiguous, and RecDiffy doesn't guess. Up: https://m-vaysman.github.io/recdiffy.net/docs/profiles/llms.txt
+
+## Reference
+
+- [Paths: routes, passes and comparison](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/paths-routes-passes-and-comparison.md): the whole paths section
+- [Route](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/route.md): route.all and route.byField, overlap, and unrouted rows
+- [Passes](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/passes.md): match.sharedRef, match.naturalKey, match.reducedKey and match.groupSum; keys, blocks, conserved fields and the TradeRef veto
+- [Limits: search limits](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/limits-search-limits.md): maxGroupSize, maxBlockItems, maxTargetsPerComponent and maxNodesPerTarget
+- [Ambiguity in the result](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/ambiguity.md): when a pass finds more than one way to match
+- [Incomplete search in the result](https://m-vaysman.github.io/recdiffy.net/docs/reference/results/incomplete-search.md): BlockTooLarge and BudgetExhausted
+
+## Examples
+
+- [Routing](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/routing.md): rows sent to different paths
+- [Search limits](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/search-limits.md): a block over the limit, left unresolved
+- [Fallback match](https://m-vaysman.github.io/recdiffy.net/docs/reference/readme/10-fallback-match-when-the-reference-is-missing.md): a second pass on fewer fields, with RecBuilder
+
+## Source
+
+- [CascadeTests.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.Tests/CascadeTests.cs): pass order, ambiguity and contests

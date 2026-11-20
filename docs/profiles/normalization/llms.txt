@@ -1,0 +1,23 @@
+# RecDiffy.NET profiles: normalization rules
+
+> Each side's rules turn raw cells into canonical fields, in four phases that run in order: identify, parse, derive, validate. Each rule call names a registered rule, its from and to, its parameters, and an optional when condition. A value a rule can't read quarantines its row. Up: https://m-vaysman.github.io/recdiffy.net/docs/profiles/llms.txt
+
+## Reference
+
+- [Normalization: from raw cells to fields](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/normalization-from-raw-cells-to-fields.md): phases, rule calls, and the checks compile makes on each
+- [What reaches a rule](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/what-reaches-a-rule.md): values from a data reader and from objects
+- [Core rules](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/core-rules.md): decimal.parse, date.parse, symbol.map, identifier.map, text.copy, required.present
+- [Trading rules](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/trading-rules.md): party.resolveLei, party.resolveAlias, side.resolve, quantity.absolute, price.from32nds
+- [Conditions](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/conditions.md): equals, notEquals and in, for a rule's when, a field's applicableWhen and a tolerance's when
+
+## Examples
+
+- [Values a rule can't read](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/values-a-rule-cant-read.md): the diagnostics each rule raises
+- [Conditions](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/conditions.md): rules that run only on some rows
+- [SideBuilder](https://m-vaysman.github.io/recdiffy.net/docs/builders/profilebuilder.md): the same rules in code
+
+## Source
+
+- [RuleRegistry.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy/RuleRegistry.cs): the core rule names and the classes they build
+- [TradingRulePack.cs](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/src/RecDiffy.RulePacks.Trading/TradingRulePack.cs): the trading rules and attributions
+- [RecordSource intake](https://github.com/m-vaysman/recdiffy.net/blob/main/RecDiffy.NET/src/RecDiffy/Intake/RecordSource): exactly which values reach the rules

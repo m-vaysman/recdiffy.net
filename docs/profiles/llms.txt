@@ -1,0 +1,29 @@
+# RecDiffy.NET: profiles
+
+> A profile is the policy for a reconciliation: the fields, how each side's cells become those fields, optional consolidation, the matching passes and the tolerances. Write it as JSON and read it with ProfileDocument.Parse, or build it in code; either way, compile it once with Reconciler.Compile. Names and keys are case-sensitive, and an unknown key is ignored. Up: https://m-vaysman.github.io/recdiffy.net/docs/llms.txt
+
+## Categories
+
+- [Fields and roles](https://m-vaysman.github.io/recdiffy.net/docs/profiles/fields/llms.txt): top-level settings, row keys, field types, roles and scales, cultures, and the profile hash
+- [Normalization rules](https://m-vaysman.github.io/recdiffy.net/docs/profiles/normalization/llms.txt): the four phases, every core and trading rule, and conditions
+- [Consolidation](https://m-vaysman.github.io/recdiffy.net/docs/profiles/consolidation/llms.txt): lifecycle chains of cancels and corrections, and packages of linked legs
+- [Matching passes](https://m-vaysman.github.io/recdiffy.net/docs/profiles/passes/llms.txt): paths, routes, one-to-one and group passes, and search limits
+- [Diff and tolerances](https://m-vaysman.github.io/recdiffy.net/docs/profiles/diff/llms.txt): how fields compare, tolerance kinds, and attributions
+- [Errors and diagnostics](https://m-vaysman.github.io/recdiffy.net/docs/profiles/errors/llms.txt): every compile error and run diagnostic code, and what to do about each
+
+## Start
+
+- [Write, check and compile a profile](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/write-check-and-compile-a-profile.md): Parse, Compile, ProfileBuilder, ProfileCheck, ToJson, and the four failures outside these rules
+- [The shape of a profile](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/the-shape-of-a-profile.md): every section and key, with placeholder values
+- [A first profile](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/a-first-profile.md): the smallest profile that runs, with its output
+- [Reconcile two CSV files with a profile](https://m-vaysman.github.io/recdiffy.net/docs/reference/readme/reconcile-two-csv-files-with-a-profile.md): a complete JSON profile, step by step
+
+## All sections
+
+- [Every section of PROFILES.md](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/llms.txt)
+- [Every profile example](https://m-vaysman.github.io/recdiffy.net/docs/reference/profile-examples/llms.txt): profiles that run, with the output each gives
+
+## Optional
+
+- [PROFILES.md, whole](https://raw.githubusercontent.com/m-vaysman/recdiffy.net/main/RecDiffy.NET/docs/PROFILES.md)
+- [Profiles in code](https://m-vaysman.github.io/recdiffy.net/docs/builders/llms.txt)
