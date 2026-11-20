@@ -1,0 +1,21 @@
+@page "/Error"
+@using System.Diagnostics
+
+<PageTitle>Error · RecDiffy.NET</PageTitle>
+
+<section class="step" role="alert">
+    <h2>Something went wrong</h2>
+    <p class="error">An unexpected error occurred while processing your request.</p>
+    @if (RequestId is { Length: > 0 } requestId)
+    {
+        <p class="file-meta">Request ID: @requestId</p>
+    }
+    <p class="note"><a href="/">Return to 13F reconciliation</a></p>
+</section>
+
+@code {
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    private string? RequestId => Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+}
