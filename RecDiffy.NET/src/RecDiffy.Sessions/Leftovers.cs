@@ -5,15 +5,18 @@ namespace RecDiffy.Sessions;
 
 internal static class Leftovers
 {
-    public static IEnumerable<SessionRow> Of(IReconciliationResult result, ProfileDocument profile, string side)
+    public static IReadOnlyList<SessionRow> Of(IReconciliationResult result, ProfileDocument profile, string side)
     {
         var open = result.Entries.Where(entry => entry.Alignment is not Alignment.Matched).Select(entry => entry.Id).ToImmutableHashSet();
         var columns = Columns(profile, side);
-        return result.Rows
-            .Where(row => string.Equals(row.Row.Source, side, StringComparison.Ordinal))
-            .Where(row => row.Disposition is Disposition.Quarantined || (row.EntryId is { } id && open.Contains(id)))
-            .OrderBy(row => row.Row.Ordinal)
-            .Select(row => Rebuild(result, row.Row, columns));
+        return
+        [
+            .. result.Rows
+                .Where(row => string.Equals(row.Row.Source, side, StringComparison.Ordinal))
+                .Where(row => row.Disposition is Disposition.Quarantined || (row.EntryId is { } id && open.Contains(id)))
+                .OrderBy(row => row.Row.Ordinal)
+                .Select(row => Rebuild(result, row.Row, columns)),
+        ];
     }
 
     private static SessionRow Rebuild(IReconciliationResult result, SourceRef row, ImmutableArray<string> columns) =>
