@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "culture": "en-US",
   "sources": {
-    "left": { "rowKey": "ClOrdID" },
-    "right": { "rowKey": "ClOrdID" }
+    "left": { "rowKey": "ExecID" },
+    "right": { "rowKey": "ExecID" }
   },
   "fields": [
     { "name": "Counterparty", "type": "Symbol", "role": "Key" },
@@ -15,8 +15,10 @@
     { "name": "Root", "type": "Symbol", "role": "Key" },
     { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
     { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 6 },
+    { "name": "OrdStatus", "type": "Symbol", "role": "Economic" },
     { "name": "Action", "type": "Symbol", "role": "Lifecycle" },
-    { "name": "Target", "type": "Text", "role": "Lifecycle" }
+    { "name": "Target", "type": "Text", "role": "Lifecycle" },
+    { "name": "SessionDay", "type": "Symbol", "role": "Lifecycle" }
   ],
   "normalization": {
     "left": {
@@ -27,7 +29,9 @@
         { "rule": "symbol.map", "from": "Side", "to": "Side" },
         { "rule": "symbol.map", "from": "Root", "to": "Root" },
         { "rule": "symbol.map", "from": "Action", "to": "Action" },
-        { "rule": "text.copy", "from": "Target", "to": "Target" }
+        { "rule": "text.copy", "from": "Target", "to": "Target" },
+        { "rule": "symbol.map", "from": "OrdStatus", "to": "OrdStatus" },
+        { "rule": "symbol.map", "from": "SessionDay", "to": "SessionDay" }
       ],
       "parse": [
         { "rule": "decimal.parse", "from": "OrderQty", "to": "Quantity" },
@@ -42,7 +46,9 @@
         { "rule": "symbol.map", "from": "Side", "to": "Side" },
         { "rule": "symbol.map", "from": "Root", "to": "Root" },
         { "rule": "symbol.map", "from": "Action", "to": "Action" },
-        { "rule": "text.copy", "from": "Target", "to": "Target" }
+        { "rule": "text.copy", "from": "Target", "to": "Target" },
+        { "rule": "symbol.map", "from": "OrdStatus", "to": "OrdStatus" },
+        { "rule": "symbol.map", "from": "SessionDay", "to": "SessionDay" }
       ],
       "parse": [
         { "rule": "decimal.parse", "from": "OrderQty", "to": "Quantity" },
