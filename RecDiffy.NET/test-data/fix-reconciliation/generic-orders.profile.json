@@ -1,0 +1,70 @@
+{
+  "formatVersion": 1,
+  "profileId": "fix-orders-generic-columns",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "17" },
+    "right": { "rowKey": "17" }
+  },
+  "fields": [
+    { "name": "Counterparty", "type": "Symbol", "role": "Key" },
+    { "name": "Account", "type": "Symbol", "role": "Key" },
+    { "name": "Instrument", "type": "Symbol", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Key" },
+    { "name": "Root", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 6 },
+    { "name": "OrdStatus", "type": "Symbol", "role": "Economic" },
+    { "name": "Action", "type": "Symbol", "role": "Lifecycle" },
+    { "name": "Target", "type": "Text", "role": "Lifecycle" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "1", "to": "Account" },
+        { "rule": "symbol.map", "from": "55", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "54", "to": "Side", "map": { "1": "BUY", "2": "SELL" } },
+        { "rule": "symbol.map", "from": "RootClOrdID", "to": "Root" },
+        { "rule": "symbol.map", "from": "39", "to": "OrdStatus" },
+        { "rule": "symbol.map", "from": "150", "to": "Action", "map": { "0": "NEW", "5": "CORR", "D": "CORR", "4": "CANC", "C": "CANC" } },
+        { "rule": "text.copy", "from": "PrevExecID", "to": "Target" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "38", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "44", "to": "Price" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Counterparty", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "1", "to": "Account" },
+        { "rule": "symbol.map", "from": "55", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "54", "to": "Side", "map": { "1": "BUY", "2": "SELL" } },
+        { "rule": "symbol.map", "from": "RootClOrdID", "to": "Root" },
+        { "rule": "symbol.map", "from": "39", "to": "OrdStatus" },
+        { "rule": "symbol.map", "from": "150", "to": "Action", "map": { "0": "NEW", "5": "CORR", "D": "CORR", "4": "CANC", "C": "CANC" } },
+        { "rule": "text.copy", "from": "PrevExecID", "to": "Target" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "38", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "44", "to": "Price" }
+      ]
+    }
+  },
+  "consolidation": {
+    "left": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty" } },
+    "right": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty" } }
+  },
+  "paths": [
+    {
+      "id": "orders",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.naturalKey", "key": [ "Counterparty", "Account", "Instrument", "Side", "Root" ] }
+      ],
+      "diff": { "fields": {} }
+    }
+  ]
+}
