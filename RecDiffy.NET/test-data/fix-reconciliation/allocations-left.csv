@@ -10,3 +10,4 @@ quantity-break,AL5/FUND-C,AL5,AL5,NEW,,JPM,FUND-C,100,330.00
 received-not-accepted,AL6/FUND-A,AL6,AL6,NEW,,GS,FUND-A,70,55.00
 account-level-reject,AL7/FUND-A,AL7,AL7,NEW,,MS,FUND-A,120,62.00
 account-level-reject,AL7/FUND-B,AL7,AL7,NEW,,MS,FUND-B,80,62.00
+partition,AL8/FUND-A,AL8,AL8,NEW,,GS,FUND-A,60,95.00

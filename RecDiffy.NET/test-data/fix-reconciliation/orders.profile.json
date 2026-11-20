@@ -16,6 +16,9 @@
     { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
     { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 6 },
     { "name": "OrdStatus", "type": "Symbol", "role": "Economic" },
+    { "name": "ClOrdId", "type": "Symbol", "role": "Economic" },
+    { "name": "OrigClOrdId", "type": "Symbol", "role": "Economic" },
+    { "name": "ExecType", "type": "Symbol", "role": "Economic" },
     { "name": "Action", "type": "Symbol", "role": "Lifecycle" },
     { "name": "Target", "type": "Text", "role": "Lifecycle" },
     { "name": "SessionDay", "type": "Symbol", "role": "Lifecycle" }
@@ -31,6 +34,9 @@
         { "rule": "symbol.map", "from": "Action", "to": "Action" },
         { "rule": "text.copy", "from": "Target", "to": "Target" },
         { "rule": "symbol.map", "from": "OrdStatus", "to": "OrdStatus" },
+        { "rule": "symbol.map", "from": "ClOrdID", "to": "ClOrdId" },
+        { "rule": "symbol.map", "from": "OrigClOrdID", "to": "OrigClOrdId" },
+        { "rule": "symbol.map", "from": "ExecType", "to": "ExecType" },
         { "rule": "symbol.map", "from": "SessionDay", "to": "SessionDay" }
       ],
       "parse": [
@@ -48,6 +54,9 @@
         { "rule": "symbol.map", "from": "Action", "to": "Action" },
         { "rule": "text.copy", "from": "Target", "to": "Target" },
         { "rule": "symbol.map", "from": "OrdStatus", "to": "OrdStatus" },
+        { "rule": "symbol.map", "from": "ClOrdID", "to": "ClOrdId" },
+        { "rule": "symbol.map", "from": "OrigClOrdID", "to": "OrigClOrdId" },
+        { "rule": "symbol.map", "from": "ExecType", "to": "ExecType" },
         { "rule": "symbol.map", "from": "SessionDay", "to": "SessionDay" }
       ],
       "parse": [
@@ -57,8 +66,8 @@
     }
   },
   "consolidation": {
-    "left": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty", "corrTarget": "NEW" } },
-    "right": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty", "corrTarget": "NEW" } }
+    "left": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty" } },
+    "right": { "lifecycle": { "action": "Action", "target": "Target", "scope": "Counterparty" } }
   },
   "paths": [
     {
