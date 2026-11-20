@@ -30,7 +30,7 @@ body {
 a { color: var(--action); }
 
 .page {
-    max-width: 1360px;
+    max-width: 1440px;
     margin: 0 auto;
     padding: 32px 16px 48px;
 }
@@ -277,19 +277,19 @@ table.grid th {
     font-weight: 600;
     text-align: left;
     white-space: nowrap;
-    padding: 8px 10px;
+    padding: 8px 8px;
     border-bottom: 1px solid #cbd5e1;
     vertical-align: baseline;
 }
 table.grid td {
-    padding: 6px 10px;
+    padding: 6px 8px;
     border-bottom: 1px solid #e2e8f0;
     white-space: nowrap;
     vertical-align: baseline;
     font-family: var(--data);
 }
-table.grid td.issuer-cell { font: 600 12px var(--ui); color: var(--ink); }
-table.grid td.class-cell { font: 12px var(--ui); color: var(--muted); }
+table.grid td.issuer-cell { font: 600 12px var(--ui); color: var(--ink); max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+table.grid td.class-cell { font: 12px var(--ui); color: var(--muted); max-width: 145px; overflow: hidden; text-overflow: ellipsis; }
 table.grid th.num, table.grid td.num { text-align: right; }
 table.grid tbody tr:hover { background: #f8fafc; }
 

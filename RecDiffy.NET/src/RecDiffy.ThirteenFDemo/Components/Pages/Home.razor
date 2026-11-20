@@ -244,6 +244,10 @@
                 {
                     <span class="hint">Note: prior period (@priorFiling.PeriodOfReport.ToInvariant("yyyy-MM-dd")) is later than current period (@currentFiling.PeriodOfReport.ToInvariant("yyyy-MM-dd")).</span>
                 }
+                else if (SelectionDiffersFromResult)
+                {
+                    <span class="hint">Quarter selection changed — click Compare quarters to update results below.</span>
+                }
             </div>
         }
     </section>
@@ -412,9 +416,9 @@
                             <th>Class</th>
                             <th>Put/Call</th>
                             <th>Status</th>
-                            <th class="num">Prior shares</th>
-                            <th class="num">Current shares</th>
-                            <th class="num">Shares change %</th>
+                            <th class="num">Prior shrs / prn</th>
+                            <th class="num">Current shrs / prn</th>
+                            <th class="num">Shrs / prn Δ %</th>
                             <th class="num">Prior value</th>
                             <th class="num">Current value</th>
                             <th class="num">Value change %</th>
@@ -464,7 +468,7 @@
 }
 
 @code {
-    private const int SearchTake = 10;
+    private const int SearchTake = 25;
     private const long DebounceMs = 250L;
     private const int MaxInitialLookbackYears = 8;
 
@@ -517,6 +521,12 @@
         && !loadingInitialFilings
         && !loadingPriorYear
         && !loadingCurrentYear;
+
+    private bool SelectionDiffersFromResult =>
+        comparison is { } result
+        && priorFiling is { } pf
+        && currentFiling is { } cf
+        && (pf.AccessionNumber != result.Prior.AccessionNumber || cf.AccessionNumber != result.Current.AccessionNumber);
 
     protected override void OnInitialized()
     {
@@ -682,38 +692,12 @@
                 return;
             }
 
-            var (priorInLatest, currentInLatest) = HoldingsPresentation.PickLatestTwoPeriods(latestYearFilings);
-
-            if (currentInLatest is not null && priorInLatest is null && resolvedYear > selectableYears[^1])
+            await ApplyYearFilingsWithFallbackAsync(manager.Cik, resolvedYear, latestYearFilings, token);
+            if (token.IsCancellationRequested)
             {
-                var prevYear = resolvedYear - 1;
-                var prevFilings = await FetchFilingsCachedAsync(manager.Cik, prevYear, token);
-                if (token.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                if (prevFilings.Count > 0)
-                {
-                    primaryYear = resolvedYear;
-                    currentYear = resolvedYear;
-                    currentFilings = latestYearFilings;
-                    currentFiling = currentInLatest;
-                    priorYear = prevYear;
-                    priorFilings = prevFilings;
-                    priorFiling = prevFilings[0];
-                    loadingInitialFilings = false;
-                    return;
-                }
+                return;
             }
 
-            primaryYear = resolvedYear;
-            priorYear = resolvedYear;
-            currentYear = resolvedYear;
-            priorFilings = latestYearFilings;
-            currentFilings = latestYearFilings;
-            priorFiling = priorInLatest;
-            currentFiling = currentInLatest;
             loadingInitialFilings = false;
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
@@ -749,11 +733,12 @@
                 return;
             }
 
-            var (prior, current) = HoldingsPresentation.PickLatestTwoPeriods(filings);
-            priorFilings = filings;
-            currentFilings = filings;
-            priorFiling = prior ?? filings.FirstOrDefault();
-            currentFiling = current;
+            await ApplyYearFilingsWithFallbackAsync(manager.Cik, year, filings, token);
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
             loadingPriorYear = false;
             loadingCurrentYear = false;
         }
@@ -766,6 +751,45 @@
             loadingCurrentYear = false;
             filingsError = HoldingsPresentation.FriendlySecError(ex, $"loading {year.ToInvariant()} filings");
         }
+    }
+
+    private async Task ApplyYearFilingsWithFallbackAsync(
+        string cik,
+        int year,
+        IReadOnlyList<FilingRef> yearFilings,
+        CancellationToken token)
+    {
+        var (priorInYear, currentInYear) = HoldingsPresentation.PickLatestTwoPeriods(yearFilings);
+
+        if (currentInYear is not null && priorInYear is null && year > selectableYears[^1])
+        {
+            var prevYear = year - 1;
+            var prevFilings = await FetchFilingsCachedAsync(cik, prevYear, token);
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            if (prevFilings.Count > 0)
+            {
+                primaryYear = year;
+                currentYear = year;
+                currentFilings = yearFilings;
+                currentFiling = currentInYear;
+                priorYear = prevYear;
+                priorFilings = prevFilings;
+                priorFiling = prevFilings[0];
+                return;
+            }
+        }
+
+        primaryYear = year;
+        priorYear = year;
+        currentYear = year;
+        priorFilings = yearFilings;
+        currentFilings = yearFilings;
+        priorFiling = priorInYear ?? yearFilings.FirstOrDefault();
+        currentFiling = currentInYear;
     }
 
     private async Task OnPriorYearChangedAsync(ChangeEventArgs e)
@@ -859,24 +883,40 @@
 
     private async Task CompareSelectedAsync()
     {
+        if (priorFiling is not { } prior || currentFiling is not { } current)
+        {
+            return;
+        }
+
         statusFilter = null;
         currentPage = 1;
-        await ExecuteCompareAsync();
+        await ExecuteCompareAsync(prior, current);
     }
 
-    private Task RetryCompareAsync() => ExecuteCompareAsync();
+    private Task RetryCompareAsync() =>
+        comparison is { } active && !SelectionDiffersFromResult
+            ? ExecuteCompareAsync(active.Prior, active.Current)
+            : priorFiling is { } prior && currentFiling is { } current
+                ? ExecuteCompareAsync(prior, current)
+                : Task.CompletedTask;
 
     private async Task SetFilterAsync(HoldingStatus? nextFilter)
     {
+        if (comparison is not { } active)
+        {
+            return;
+        }
+
         var effective = statusFilter == nextFilter && nextFilter is not null ? null : nextFilter;
         statusFilter = effective;
         currentPage = 1;
-        await ExecuteCompareAsync();
+        await ExecuteCompareAsync(active.Prior, active.Current);
     }
 
     private async Task OnPageSizeChangedAsync(ChangeEventArgs e)
     {
-        if (!int.TryParse(e.Value?.ToString(), System.Globalization.CultureInfo.InvariantCulture, out var parsed)
+        if (comparison is not { } active
+            || !int.TryParse(e.Value?.ToString(), System.Globalization.CultureInfo.InvariantCulture, out var parsed)
             || !HoldingsPresentation.SupportedPageSizes.Contains(parsed))
         {
             return;
@@ -884,23 +924,23 @@
 
         pageSize = parsed;
         currentPage = 1;
-        await ExecuteCompareAsync();
+        await ExecuteCompareAsync(active.Prior, active.Current);
     }
 
     private async Task GoToPageAsync(int targetPage)
     {
-        if (targetPage < 1 || targetPage == currentPage)
+        if (comparison is not { } active || targetPage < 1 || targetPage == currentPage)
         {
             return;
         }
 
         currentPage = targetPage;
-        await ExecuteCompareAsync();
+        await ExecuteCompareAsync(active.Prior, active.Current);
     }
 
-    private async Task ExecuteCompareAsync()
+    private async Task ExecuteCompareAsync(FilingRef prior, FilingRef current)
     {
-        if (selectedManager is not { } manager || priorFiling is not { } prior || currentFiling is not { } current)
+        if (selectedManager is not { } manager)
         {
             return;
         }

@@ -18,7 +18,9 @@ public sealed class SecThirteenFService : IThirteenFService
     private readonly ConcurrentDictionary<(string Cik, string Accession, DateOnly Filed), ImmutableArray<RawHoldingEntry>> _filingHoldings = new();
     private readonly ConcurrentDictionary<ComparisonCacheKey, FullComparison> _comparisons = new();
 
-    private ImmutableArray<ManagerHit>? _managerDirectory;
+    private readonly Lock _directoryGate = new();
+    private ManagerHit[]? _managerDirectory;
+    private Task<ManagerHit[]>? _directoryLoadTask;
 
     public SecThirteenFService(HttpClient httpClient, string userAgentContact, TimeProvider? timeProvider = null)
         : this(
@@ -46,12 +48,7 @@ public sealed class SecThirteenFService : IThirteenFService
             return [];
 
         var directory = await EnsureManagerDirectoryAsync(ct).ConfigureAwait(false);
-        return
-        [
-            .. directory
-                .Where(manager => manager.Name.StartsWith(trimmed, StringComparison.OrdinalIgnoreCase))
-                .Take(take),
-        ];
+        return FilterManagers(directory, trimmed, take);
     }
 
     public async Task<IReadOnlyList<FilingRef>> GetFilingsAsync(string cik, int year, CancellationToken ct)
@@ -135,11 +132,57 @@ public sealed class SecThirteenFService : IThirteenFService
         return new SecTransport(httpClient, userAgent, throttle, cache);
     }
 
-    private async ValueTask<ImmutableArray<ManagerHit>> EnsureManagerDirectoryAsync(CancellationToken ct)
+    private static ManagerHit[] FilterManagers(ManagerHit[] directory, string trimmedQuery, int take)
     {
-        if (_managerDirectory is { } existing)
-            return existing;
+        var nameMatches = directory
+            .Where(manager => manager.Name.StartsWith(trimmedQuery, StringComparison.OrdinalIgnoreCase));
 
+        if (SecText.TryExtractCikDigits(trimmedQuery) is not { } cikDigits)
+            return [.. nameMatches.Take(take)];
+
+        var paddedQuery = cikDigits.PadLeft(10, '0');
+        var strippedQuery = SecText.ArchiveCikSegment(paddedQuery);
+
+        var cikMatches = directory
+            .Where(manager =>
+                manager.Cik.StartsWith(cikDigits, StringComparison.Ordinal)
+                || SecText.ArchiveCikSegment(manager.Cik).StartsWith(strippedQuery, StringComparison.Ordinal))
+            .OrderBy(manager => string.Equals(manager.Cik, paddedQuery, StringComparison.Ordinal) ? 0 : 1)
+            .ThenBy(manager => manager.Name, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(manager => manager.Cik, StringComparer.Ordinal);
+
+        return
+        [
+            .. nameMatches
+                .Concat(cikMatches)
+                .DistinctBy(manager => manager.Cik, StringComparer.Ordinal)
+                .Take(take),
+        ];
+    }
+
+    private ValueTask<ManagerHit[]> EnsureManagerDirectoryAsync(CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        if (Volatile.Read(ref _managerDirectory) is { } existing)
+            return ValueTask.FromResult(existing);
+
+        Task<ManagerHit[]> loadTask;
+        lock (_directoryGate)
+        {
+            if (_managerDirectory is { } ready)
+                return ValueTask.FromResult(ready);
+
+            if (_directoryLoadTask is null or { IsFaulted: true } or { IsCanceled: true })
+                _directoryLoadTask = LoadManagerDirectoryCoreAsync();
+
+            loadTask = _directoryLoadTask;
+        }
+
+        return new ValueTask<ManagerHit[]>(loadTask.WaitAsync(ct));
+    }
+
+    private async Task<ManagerHit[]> LoadManagerDirectoryCoreAsync()
+    {
         var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime);
         var candidates = SecParsers.RecentQuarters(today, TargetIndexedQuarters + 1);
         var loadedEntries = new List<MasterIndexEntry>();
@@ -152,7 +195,7 @@ public sealed class SecThirteenFService : IThirteenFService
             var uri = new Uri($"{SecArchivesBase}full-index/{year.ToInvariant()}/QTR{quarter.ToInvariant()}/master.gz");
             try
             {
-                var content = await _transport.GetStringAsync(uri, ct).ConfigureAwait(false);
+                var content = await _transport.GetStringAsync(uri, CancellationToken.None).ConfigureAwait(false);
                 loadedEntries.AddRange(SecParsers.ParseMasterIndex(content));
                 loadedQuarters++;
             }
@@ -165,8 +208,12 @@ public sealed class SecThirteenFService : IThirteenFService
         if (loadedQuarters == 0 && lastNotFound is not null)
             throw lastNotFound;
 
-        var built = SecParsers.BuildManagerDirectory(loadedEntries);
-        _managerDirectory = built;
+        var built = SecParsers.BuildManagerDirectory(loadedEntries).ToArray();
+        lock (_directoryGate)
+        {
+            Volatile.Write(ref _managerDirectory, built);
+        }
+
         return built;
     }
 

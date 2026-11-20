@@ -115,15 +115,21 @@ public static class HoldingsPresentation
     {
         ArgumentNullException.ThrowIfNull(values);
 
-        return Math.Clamp(
-            values
-                .Where(value => value.HasValue)
-                .Select(value => (int)value.GetValueOrDefault().Scale)
-                .DefaultIfEmpty(0)
-                .Max(),
-            0,
-            4);
+        return values
+            .Where(value => value.HasValue)
+            .Select(value => EffectiveScale(value.GetValueOrDefault()))
+            .DefaultIfEmpty(0)
+            .Max();
     }
+
+    private static int EffectiveScale(decimal value) => value switch
+    {
+        _ when value == decimal.Truncate(value) => 0,
+        _ when value * 10m == decimal.Truncate(value * 10m) => 1,
+        _ when value * 100m == decimal.Truncate(value * 100m) => 2,
+        _ when value * 1_000m == decimal.Truncate(value * 1_000m) => 3,
+        _ => 4,
+    };
 
     public static decimal? TotalChangePct(decimal priorTotalUsd, decimal currentTotalUsd) =>
         priorTotalUsd == 0m

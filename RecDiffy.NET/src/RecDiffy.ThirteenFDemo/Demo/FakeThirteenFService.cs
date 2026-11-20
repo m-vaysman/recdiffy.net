@@ -126,7 +126,12 @@ public sealed class FakeThirteenFService : IThirteenFService
             return [];
         }
 
-        var normalizedDigits = trimmed.TrimStart('0');
+        var cikCandidate = trimmed.StartsWith("CIK", StringComparison.OrdinalIgnoreCase)
+            ? trimmed[3..].Trim()
+            : trimmed;
+        var normalizedDigits = cikCandidate.Length > 0 && cikCandidate.All(char.IsAsciiDigit)
+            ? cikCandidate.TrimStart('0')
+            : "";
 
         return
         [
@@ -134,7 +139,7 @@ public sealed class FakeThirteenFService : IThirteenFService
                 .Select(seed => seed.Hit)
                 .Where(hit =>
                     hit.Name.Contains(trimmed, StringComparison.OrdinalIgnoreCase)
-                    || hit.Cik.Contains(trimmed, StringComparison.OrdinalIgnoreCase)
+                    || (cikCandidate.Length > 0 && cikCandidate.All(char.IsAsciiDigit) && hit.Cik.StartsWith(cikCandidate, StringComparison.Ordinal))
                     || (normalizedDigits.Length > 0 && hit.Cik.TrimStart('0').StartsWith(normalizedDigits, StringComparison.Ordinal)))
                 .OrderBy(hit => hit.Name.StartsWith(trimmed, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
                 .ThenBy(hit => hit.Name, StringComparer.Ordinal)
@@ -262,8 +267,10 @@ public sealed class FakeThirteenFService : IThirteenFService
             .. Securities
                 .Select((security, index) => BuildRow(security, index, manager, priorQuarterIndex, currentQuarterIndex))
                 .OfType<HoldingRow>()
-                .OrderBy(row => StatusRank(row.Status))
-                .ThenByDescending(row => row.CurrentValueUsd ?? row.PriorValueUsd ?? 0m)
+                .OrderByDescending(row => row.CurrentValueUsd ?? 0m)
+                .ThenByDescending(row => row.PriorValueUsd ?? 0m)
+                .ThenBy(row => row.Cusip, StringComparer.Ordinal)
+                .ThenBy(row => row.PutCall ?? "", StringComparer.Ordinal)
                 .ThenBy(row => row.Issuer, StringComparer.Ordinal),
         ];
     }
@@ -372,13 +379,4 @@ public sealed class FakeThirteenFService : IThirteenFService
 
     private static int QuarterOrdinal(DateOnly period) =>
         (period.Year * 4) + ((period.Month - 1) / 3);
-
-    private static int StatusRank(HoldingStatus status) => status switch
-    {
-        HoldingStatus.Changed => 0,
-        HoldingStatus.New => 1,
-        HoldingStatus.Exited => 2,
-        HoldingStatus.Unchanged => 3,
-        _ => 4,
-    };
 }
