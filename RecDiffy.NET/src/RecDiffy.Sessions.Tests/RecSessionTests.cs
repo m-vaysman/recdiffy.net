@@ -119,10 +119,12 @@ public class RecSessionTests
 
 internal static class ChunkPairs
 {
-    public static IEnumerable<(IReadOnlyList<IReadOnlyDictionary<string, string?>> Left, IReadOnlyList<IReadOnlyDictionary<string, string?>> Right)> ZipLongest(
+    public static IReadOnlyList<(IReadOnlyList<IReadOnlyDictionary<string, string?>> Left, IReadOnlyList<IReadOnlyDictionary<string, string?>> Right)> ZipLongest(
         this IReadOnlyList<IReadOnlyList<IReadOnlyDictionary<string, string?>>> left,
         IReadOnlyList<IReadOnlyList<IReadOnlyDictionary<string, string?>>> right) =>
-        Enumerable.Range(0, Math.Max(left.Count, right.Count)).Select(index => (
-            index < left.Count ? left[index] : (IReadOnlyList<IReadOnlyDictionary<string, string?>>)[],
-            index < right.Count ? right[index] : (IReadOnlyList<IReadOnlyDictionary<string, string?>>)[]));
+        [
+            .. Enumerable.Range(0, Math.Max(left.Count, right.Count)).Select(index => (
+                index < left.Count ? left[index] : (IReadOnlyList<IReadOnlyDictionary<string, string?>>)[],
+                index < right.Count ? right[index] : (IReadOnlyList<IReadOnlyDictionary<string, string?>>)[])),
+        ];
 }
