@@ -35,4 +35,24 @@ internal static class SecText
         string.IsNullOrWhiteSpace(text)
             ? ""
             : string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+
+    public static string StripWhitespace(string? text) =>
+        string.IsNullOrWhiteSpace(text)
+            ? ""
+            : string.Concat(text.Where(ch => !char.IsWhiteSpace(ch)));
+
+    public static string? TryExtractCikDigits(string? query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return null;
+
+        var trimmed = query.Trim();
+        var candidate = trimmed.StartsWith("CIK", StringComparison.OrdinalIgnoreCase)
+            ? trimmed[3..].Trim()
+            : trimmed;
+
+        return candidate.Length is >= 1 and <= 10 && candidate.All(char.IsAsciiDigit)
+            ? candidate
+            : null;
+    }
 }

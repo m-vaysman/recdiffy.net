@@ -287,7 +287,7 @@ internal static class SecParsers
 
     private static RawHoldingEntry ParseInfoTableEntry(XElement element, decimal valueMultiplier, int sequence)
     {
-        var cusip = DirectChildValue(element, "cusip").ToUpperInvariant();
+        var cusip = SecText.StripWhitespace(DirectChildValue(element, "cusip")).ToUpperInvariant();
         if (cusip.Length == 0)
             throw new InvalidDataException("Form 13F infoTable entry is missing a CUSIP.");
 
