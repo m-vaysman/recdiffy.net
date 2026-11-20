@@ -78,7 +78,18 @@ public class FixRowsTests
     }
 
     [Theory]
-    [InlineData("20261119-15:00:01", "1795100401000000000")]
+    [InlineData("1")]
+    [InlineData("2")]
+    public void A_fill_sent_with_the_old_exec_type_in_fix_4_4_is_still_a_fill(string execType)
+    {
+        var rows = Read(Wire.Fill(execType, "F1", "C1", "100", "50.00"));
+
+        Assert.Equal("NEW", Assert.Single(rows.Fills)["Action"]);
+        Assert.Empty(rows.Orders);
+    }
+
+    [Theory]
+    [InlineData("20261119-15:00:01","1795100401000000000")]
     [InlineData("20261119-15:00:01.123", "1795100401123000000")]
     [InlineData("20261119-15:00:01.123456789", "1795100401123456789")]
     public void Transact_time_becomes_exact_nanoseconds_since_the_epoch(string timestamp, string nanos)
