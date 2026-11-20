@@ -8,8 +8,21 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Swap point: replace FakeThirteenFService with the real RecDiffy.ThirteenF service registration.
-builder.Services.AddSingleton<IThirteenFService, FakeThirteenFService>();
+if (string.Equals(builder.Configuration["Demo:UseSampleData"], "true", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddSingleton<IThirteenFService, FakeThirteenFService>();
+}
+else
+{
+    var contact = builder.Configuration["Sec:UserAgentContact"];
+    if (string.IsNullOrWhiteSpace(contact))
+    {
+        throw new InvalidOperationException(
+            "SEC EDGAR requires a contact in the User-Agent header. Set configuration key 'Sec:UserAgentContact' (environment variable 'Sec__UserAgentContact'), or set 'Demo:UseSampleData=true' to run offline with sample data.");
+    }
+
+    builder.Services.AddThirteenF(contact);
+}
 
 var app = builder.Build();
 
