@@ -1,0 +1,26 @@
+{
+  "accessionNumber": [
+    "0009000001-23-000002",
+    "0009000001-22-000001"
+  ],
+  "filingDate": [
+    "2023-02-14",
+    "2022-11-14"
+  ],
+  "reportDate": [
+    "2022-12-31",
+    "2022-09-30"
+  ],
+  "acceptanceDateTime": [
+    "2023-02-14T16:00:00.000Z",
+    "2022-11-14T16:00:00.000Z"
+  ],
+  "form": [
+    "13F-HR",
+    "13F-HR"
+  ],
+  "primaryDocument": [
+    "xslForm13F_X02/primary_doc.xml",
+    "xslForm13F_X01/primary_doc.xml"
+  ]
+}
