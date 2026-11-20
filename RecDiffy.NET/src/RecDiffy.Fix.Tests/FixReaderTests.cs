@@ -27,6 +27,24 @@ public class FixReaderTests
     }
 
     [Fact]
+    public void Latin_1_text_is_accepted_and_anything_beyond_it_is_rejected()
+    {
+        var latin1 = Wire.Message("8", (11, "C1"), (17, "E1"), (150, "0"), (58, "Société Générale"));
+        var beyond = Wire.Message("8", (11, "C1"), (17, "E1"), (150, "0"), (58, "Ŝ"));
+
+        Assert.Equal("Société Générale", Assert.IsType<FixAccepted>(FixReader.ReadMessage(latin1, Wire.Options)).Message.Get(58));
+        Assert.Contains("Latin-1", Assert.IsType<FixRejected>(FixReader.ReadMessage(beyond, Wire.Options)).Reason, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void An_empty_value_is_rejected()
+    {
+        var text = Wire.Message("8", (11, "C1"), (17, "E1"), (150, "0"), (58, ""));
+
+        Assert.Equal("field 58 has an empty value", Assert.IsType<FixRejected>(FixReader.ReadMessage(text, Wire.Options)).Reason);
+    }
+
+    [Fact]
     public void A_header_out_of_order_is_rejected()
     {
         var good = Wire.Ack("0", "E1", "C1", null, "100");
