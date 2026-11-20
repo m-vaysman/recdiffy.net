@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ProjectGuid>{6F1D2A7B-3C84-4E59-9B0A-2D7E5C1F8A43}</ProjectGuid>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>RecDiffy.Sessions</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <Title>Reconciliation: sessions that keep their rows and reconcile on demand</Title>
+    <Description>Reconciliation for .NET: a RecDiffy.NET session that rows are pushed into and that reconciles them on demand, carrying a previous result's open rows forward.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RecDiffy\RecDiffy.csproj" />
+  </ItemGroup>
+
+</Project>

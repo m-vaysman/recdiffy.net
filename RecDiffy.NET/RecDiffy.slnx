@@ -14,5 +14,7 @@
     <Project Path="src/RecDiffy.Extensions/RecDiffy.Extensions.csproj" />
     <Project Path="src/RecDiffy.Extensions.Tests/RecDiffy.Extensions.Tests.csproj" />
     <Project Path="src/RecDiffy.BrowserDemo/RecDiffy.BrowserDemo.csproj" />
+    <Project Path="src/RecDiffy.Sessions/RecDiffy.Sessions.csproj" />
+    <Project Path="src/RecDiffy.Sessions.Tests/RecDiffy.Sessions.Tests.csproj" />
   </Folder>
 </Solution>
