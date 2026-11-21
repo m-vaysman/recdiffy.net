@@ -72,8 +72,7 @@ internal sealed class FactorDecimalRule(string from, string to, decimal factor, 
     // The unsigned 96-bit integer a decimal stores: 0.0050 is 50 at scale 4.
     private static BigInteger Mantissa(decimal value)
     {
-        Span<int> bits = stackalloc int[4];
-        decimal.GetBits(value, bits);
+        var bits = decimal.GetBits(value);
         return ((BigInteger)(uint)bits[2] << 64) | ((BigInteger)(uint)bits[1] << 32) | (uint)bits[0];
     }
 
