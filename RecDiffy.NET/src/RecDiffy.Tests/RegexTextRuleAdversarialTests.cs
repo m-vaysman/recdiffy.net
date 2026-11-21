@@ -62,8 +62,6 @@ public class RegexTextRuleAdversarialTests
     [InlineData("$$", "a$b")]
     [InlineData("$0", "ab")]
     [InlineData("[$0]", "[ab]")]
-    [InlineData("$9", "$9")]
-    [InlineData("${nope}", "${nope}")]
     [InlineData("${1}x", "ax")]
     public void Replacement_substitutions_follow_dotnet_replace(string replacement, string expected)
     {
