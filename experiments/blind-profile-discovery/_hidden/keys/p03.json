@@ -1,0 +1,300 @@
+{
+  "pairId": "p03",
+  "title": "Trade ids that differ by prefix, padding, and case",
+  "phenomenon": "The same trades. The id text differs; every other column is identical and repeats.",
+  "correspondence": "Trade 42 is TRD-000042 on the left and trd42 on the right.",
+  "plantedBreaks": 0,
+  "engineExpressible": false,
+  "expectClean": false,
+  "engineGap": "No rule case-folds text, strips a prefix, or strips leading zeros. identifier.map and symbol.map keep the trimmed text. Listing all 640 raw values in a symbol.map would match this finite file and is not the representation rule.",
+  "engineNotes": "The profile in this key maps the columns and matches TradeId as written, so nothing pairs. The records themselves correspond after the transform.",
+  "confounds": [],
+  "rounding": "ToEven",
+  "rowKey": {
+    "left": "TradeId",
+    "right": "TradeId"
+  },
+  "match": {
+    "pass": "match.naturalKey",
+    "key": [
+      "TradeId"
+    ],
+    "block": [],
+    "conserve": [],
+    "many": null
+  },
+  "columns": [
+    {
+      "field": "TradeId",
+      "type": "Identifier",
+      "role": "Identity",
+      "scale": 0,
+      "left": "TradeId",
+      "right": "TradeId",
+      "transform": "strip prefix TRD- or trd, strip leading zeros, compare the integer"
+    },
+    {
+      "field": "Book",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Book",
+      "right": "Book",
+      "transform": "none"
+    },
+    {
+      "field": "Ticker",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Ticker",
+      "right": "Ticker",
+      "transform": "none"
+    },
+    {
+      "field": "TradeDate",
+      "type": "Date",
+      "role": "Key",
+      "scale": 0,
+      "left": "TradeDate",
+      "right": "TradeDate",
+      "transform": "none"
+    },
+    {
+      "field": "Side",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Side",
+      "right": "Side",
+      "transform": "none"
+    },
+    {
+      "field": "Quantity",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 0,
+      "left": "Quantity",
+      "right": "Quantity",
+      "transform": "none"
+    },
+    {
+      "field": "Price",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2,
+      "left": "Price",
+      "right": "Price",
+      "transform": "none"
+    }
+  ],
+  "transforms": [
+    {
+      "field": "TradeId",
+      "side": "both",
+      "op": "canonicalize-key",
+      "detail": "Remove a leading TRD- or trd prefix, strip leading zeros, and compare the remaining integer. Left TRD-000042 and right trd42 are both 42."
+    }
+  ],
+  "profile": {
+    "formatVersion": 1,
+    "profileId": "p03",
+    "version": "1",
+    "culture": "en-US",
+    "rounding": {
+      "midpoint": "ToEven"
+    },
+    "sources": {
+      "left": {
+        "rowKey": "TradeId"
+      },
+      "right": {
+        "rowKey": "TradeId"
+      }
+    },
+    "fields": [
+      {
+        "name": "TradeId",
+        "type": "Identifier",
+        "role": "Identity"
+      },
+      {
+        "name": "Book",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "Ticker",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "TradeDate",
+        "type": "Date",
+        "role": "Key"
+      },
+      {
+        "name": "Side",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "Quantity",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 0
+      },
+      {
+        "name": "Price",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 2
+      }
+    ],
+    "normalization": {
+      "left": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "TradeId",
+            "to": "TradeId",
+            "scheme": "TRADE"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Book",
+            "to": "Book"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Ticker",
+            "to": "Ticker"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Side",
+            "to": "Side"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "date.parse",
+            "from": "TradeDate",
+            "to": "TradeDate",
+            "formats": [
+              "yyyy-MM-dd"
+            ]
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Quantity",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Price",
+            "to": "Price"
+          }
+        ]
+      },
+      "right": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "TradeId",
+            "to": "TradeId",
+            "scheme": "TRADE"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Book",
+            "to": "Book"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Ticker",
+            "to": "Ticker"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Side",
+            "to": "Side"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "date.parse",
+            "from": "TradeDate",
+            "to": "TradeDate",
+            "formats": [
+              "yyyy-MM-dd"
+            ]
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Quantity",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Price",
+            "to": "Price"
+          }
+        ]
+      }
+    },
+    "paths": [
+      {
+        "id": "trades",
+        "route": {
+          "rule": "route.all"
+        },
+        "passes": [
+          {
+            "id": "trade",
+            "pass": "match.naturalKey",
+            "key": [
+              "TradeId"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rightRowOrder": "shuffled",
+  "dataCheck": "Every record matches its counterpart after the transforms in this key. No planted breaks. Row order is not part of the correspondence.",
+  "leftFile": "pairs/p03/left.csv",
+  "rightFile": "pairs/p03/right.csv",
+  "leftRows": 640,
+  "rightRows": 640,
+  "leftHeader": [
+    "TradeId",
+    "Book",
+    "Ticker",
+    "TradeDate",
+    "Side",
+    "Quantity",
+    "Price"
+  ],
+  "rightHeader": [
+    "TradeId",
+    "Book",
+    "Ticker",
+    "TradeDate",
+    "Side",
+    "Quantity",
+    "Price"
+  ],
+  "verifiedRun": {
+    "matched": 0,
+    "exact": 0,
+    "withinTolerance": 0,
+    "break": 0,
+    "leftOnly": 640,
+    "rightOnly": 640,
+    "ambiguous": 0,
+    "searchIncomplete": 0,
+    "quarantined": 0,
+    "suppressed": 0
+  }
+}

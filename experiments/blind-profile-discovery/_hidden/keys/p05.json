@@ -1,0 +1,320 @@
+{
+  "pairId": "p05",
+  "title": "Renamed and reordered trade columns",
+  "phenomenon": "Same values. The right file uses different header names and a different column order.",
+  "correspondence": "ref=TradeId, desk=Book, sym=Ticker, td=TradeDate, bs=Side, qty=Quantity, px=Price, cash=NetCash.",
+  "plantedBreaks": 0,
+  "engineExpressible": true,
+  "expectClean": true,
+  "engineGap": null,
+  "engineNotes": "Column names compare ordinally. The values need no transform.",
+  "confounds": [],
+  "rounding": "ToEven",
+  "rowKey": {
+    "left": "TradeId",
+    "right": "ref"
+  },
+  "match": {
+    "pass": "match.naturalKey",
+    "key": [
+      "TradeId"
+    ],
+    "block": [],
+    "conserve": [],
+    "many": null
+  },
+  "columns": [
+    {
+      "field": "TradeId",
+      "type": "Identifier",
+      "role": "Identity",
+      "scale": 0,
+      "left": "TradeId",
+      "right": "ref",
+      "transform": "none"
+    },
+    {
+      "field": "Book",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Book",
+      "right": "desk",
+      "transform": "none"
+    },
+    {
+      "field": "Ticker",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Ticker",
+      "right": "sym",
+      "transform": "none"
+    },
+    {
+      "field": "TradeDate",
+      "type": "Date",
+      "role": "Key",
+      "scale": 0,
+      "left": "TradeDate",
+      "right": "td",
+      "transform": "none"
+    },
+    {
+      "field": "Side",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Side",
+      "right": "bs",
+      "transform": "none"
+    },
+    {
+      "field": "Quantity",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 0,
+      "left": "Quantity",
+      "right": "qty",
+      "transform": "none"
+    },
+    {
+      "field": "Price",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2,
+      "left": "Price",
+      "right": "px",
+      "transform": "none"
+    },
+    {
+      "field": "NetCash",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2,
+      "left": "NetCash",
+      "right": "cash",
+      "transform": "none"
+    }
+  ],
+  "transforms": [],
+  "profile": {
+    "formatVersion": 1,
+    "profileId": "p05",
+    "version": "1",
+    "culture": "en-US",
+    "rounding": {
+      "midpoint": "ToEven"
+    },
+    "sources": {
+      "left": {
+        "rowKey": "TradeId"
+      },
+      "right": {
+        "rowKey": "ref"
+      }
+    },
+    "fields": [
+      {
+        "name": "TradeId",
+        "type": "Identifier",
+        "role": "Identity"
+      },
+      {
+        "name": "Book",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "Ticker",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "TradeDate",
+        "type": "Date",
+        "role": "Key"
+      },
+      {
+        "name": "Side",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "Quantity",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 0
+      },
+      {
+        "name": "Price",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 2
+      },
+      {
+        "name": "NetCash",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 2
+      }
+    ],
+    "normalization": {
+      "left": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "TradeId",
+            "to": "TradeId",
+            "scheme": "TRADE"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Book",
+            "to": "Book"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Ticker",
+            "to": "Ticker"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Side",
+            "to": "Side"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "date.parse",
+            "from": "TradeDate",
+            "to": "TradeDate",
+            "formats": [
+              "yyyy-MM-dd"
+            ]
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Quantity",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Price",
+            "to": "Price"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "NetCash",
+            "to": "NetCash"
+          }
+        ]
+      },
+      "right": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "ref",
+            "to": "TradeId",
+            "scheme": "TRADE"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "desk",
+            "to": "Book"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "sym",
+            "to": "Ticker"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "bs",
+            "to": "Side"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "date.parse",
+            "from": "td",
+            "to": "TradeDate",
+            "formats": [
+              "yyyy-MM-dd"
+            ]
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "qty",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "px",
+            "to": "Price"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "cash",
+            "to": "NetCash"
+          }
+        ]
+      }
+    },
+    "paths": [
+      {
+        "id": "trades",
+        "route": {
+          "rule": "route.all"
+        },
+        "passes": [
+          {
+            "id": "trade",
+            "pass": "match.naturalKey",
+            "key": [
+              "TradeId"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rightRowOrder": "shuffled",
+  "dataCheck": "Every record matches its counterpart after the transforms in this key. No planted breaks. Row order is not part of the correspondence.",
+  "leftFile": "pairs/p05/left.csv",
+  "rightFile": "pairs/p05/right.csv",
+  "leftRows": 1200,
+  "rightRows": 1200,
+  "leftHeader": [
+    "TradeId",
+    "Book",
+    "Ticker",
+    "TradeDate",
+    "Side",
+    "Quantity",
+    "Price",
+    "NetCash"
+  ],
+  "rightHeader": [
+    "cash",
+    "px",
+    "qty",
+    "bs",
+    "td",
+    "sym",
+    "desk",
+    "ref"
+  ],
+  "verifiedRun": {
+    "matched": 1200,
+    "exact": 1200,
+    "withinTolerance": 0,
+    "break": 0,
+    "leftOnly": 0,
+    "rightOnly": 0,
+    "ambiguous": 0,
+    "searchIncomplete": 0,
+    "quarantined": 0,
+    "suppressed": 0
+  }
+}

@@ -1,0 +1,235 @@
+{
+  "pairId": "p01",
+  "title": "Positions that need a composite key",
+  "phenomenon": "Same columns and values. No single column, and no pair of columns, identifies a row.",
+  "correspondence": "One row to one row on Account + Ticker + AsOf. Quantity and MarketValue repeat.",
+  "plantedBreaks": 0,
+  "engineExpressible": true,
+  "expectClean": true,
+  "engineGap": null,
+  "engineNotes": "There is no row-id column. A natural key on any proper subset is ambiguous. Quantity takes three values and MarketValue takes three values.",
+  "confounds": [],
+  "rounding": "ToEven",
+  "rowKey": {
+    "left": null,
+    "right": null
+  },
+  "match": {
+    "pass": "match.naturalKey",
+    "key": [
+      "Account",
+      "Ticker",
+      "AsOf"
+    ],
+    "block": [],
+    "conserve": [],
+    "many": null
+  },
+  "columns": [
+    {
+      "field": "Account",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Account",
+      "right": "Account",
+      "transform": "none"
+    },
+    {
+      "field": "Ticker",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Ticker",
+      "right": "Ticker",
+      "transform": "none"
+    },
+    {
+      "field": "AsOf",
+      "type": "Date",
+      "role": "Key",
+      "scale": 0,
+      "left": "AsOf",
+      "right": "AsOf",
+      "transform": "none"
+    },
+    {
+      "field": "Quantity",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 0,
+      "left": "Quantity",
+      "right": "Quantity",
+      "transform": "none"
+    },
+    {
+      "field": "MarketValue",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2,
+      "left": "MarketValue",
+      "right": "MarketValue",
+      "transform": "none"
+    }
+  ],
+  "transforms": [],
+  "profile": {
+    "formatVersion": 1,
+    "profileId": "p01",
+    "version": "1",
+    "culture": "en-US",
+    "rounding": {
+      "midpoint": "ToEven"
+    },
+    "fields": [
+      {
+        "name": "Account",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "Ticker",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "AsOf",
+        "type": "Date",
+        "role": "Key"
+      },
+      {
+        "name": "Quantity",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 0
+      },
+      {
+        "name": "MarketValue",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 2
+      }
+    ],
+    "normalization": {
+      "left": {
+        "identify": [
+          {
+            "rule": "symbol.map",
+            "from": "Account",
+            "to": "Account"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Ticker",
+            "to": "Ticker"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "date.parse",
+            "from": "AsOf",
+            "to": "AsOf",
+            "formats": [
+              "yyyy-MM-dd"
+            ]
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Quantity",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "MarketValue",
+            "to": "MarketValue"
+          }
+        ]
+      },
+      "right": {
+        "identify": [
+          {
+            "rule": "symbol.map",
+            "from": "Account",
+            "to": "Account"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Ticker",
+            "to": "Ticker"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "date.parse",
+            "from": "AsOf",
+            "to": "AsOf",
+            "formats": [
+              "yyyy-MM-dd"
+            ]
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Quantity",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "MarketValue",
+            "to": "MarketValue"
+          }
+        ]
+      }
+    },
+    "paths": [
+      {
+        "id": "positions",
+        "route": {
+          "rule": "route.all"
+        },
+        "passes": [
+          {
+            "id": "holding",
+            "pass": "match.naturalKey",
+            "key": [
+              "Account",
+              "Ticker",
+              "AsOf"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rightRowOrder": "shuffled",
+  "dataCheck": "Every record matches its counterpart after the transforms in this key. No planted breaks. Row order is not part of the correspondence.",
+  "leftFile": "pairs/p01/left.csv",
+  "rightFile": "pairs/p01/right.csv",
+  "leftRows": 480,
+  "rightRows": 480,
+  "leftHeader": [
+    "Account",
+    "Ticker",
+    "AsOf",
+    "Quantity",
+    "MarketValue"
+  ],
+  "rightHeader": [
+    "Account",
+    "Ticker",
+    "AsOf",
+    "Quantity",
+    "MarketValue"
+  ],
+  "verifiedRun": {
+    "matched": 480,
+    "exact": 480,
+    "withinTolerance": 0,
+    "break": 0,
+    "leftOnly": 0,
+    "rightOnly": 0,
+    "ambiguous": 0,
+    "searchIncomplete": 0,
+    "quarantined": 0,
+    "suppressed": 0
+  }
+}

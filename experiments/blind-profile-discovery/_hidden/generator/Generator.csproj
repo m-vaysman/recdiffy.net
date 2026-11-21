@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>BlindDiscovery.Generator</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../../RecDiffy.NET/src/RecDiffy/RecDiffy.csproj" />
+    <ProjectReference Include="../../../../RecDiffy.NET/src/RecDiffy.IO/RecDiffy.IO.csproj" />
+    <ProjectReference Include="../../../../RecDiffy.NET/src/RecDiffy.RulePacks.Trading/RecDiffy.RulePacks.Trading.csproj" />
+  </ItemGroup>
+</Project>

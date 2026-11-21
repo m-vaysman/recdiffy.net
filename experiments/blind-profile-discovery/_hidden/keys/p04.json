@@ -1,0 +1,245 @@
+{
+  "pairId": "p04",
+  "title": "Prices rounded to cents",
+  "phenomenon": "Same trades. The right price is the left price rounded to cents, midpoint away from zero. Quantity and NetCash are identical; NetCash uses the rounded price.",
+  "correspondence": "One row to one row on TradeId. The largest absolute price difference is 0.005.",
+  "plantedBreaks": 0,
+  "engineExpressible": true,
+  "expectClean": true,
+  "engineGap": null,
+  "engineNotes": "Price scale 2 with midpoint AwayFromZero makes the two prices the same number. Quantity is scale 0 and NetCash is scale 2.",
+  "confounds": [
+    "An absolute tolerance of 0.005 also accepts every price on this file. A wider tolerance accepts a difference this file does not contain."
+  ],
+  "rounding": "AwayFromZero",
+  "rowKey": {
+    "left": "TradeId",
+    "right": "TradeId"
+  },
+  "match": {
+    "pass": "match.naturalKey",
+    "key": [
+      "TradeId"
+    ],
+    "block": [],
+    "conserve": [],
+    "many": null
+  },
+  "columns": [
+    {
+      "field": "TradeId",
+      "type": "Identifier",
+      "role": "Identity",
+      "scale": 0,
+      "left": "TradeId",
+      "right": "TradeId",
+      "transform": "none"
+    },
+    {
+      "field": "Ticker",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Ticker",
+      "right": "Ticker",
+      "transform": "none"
+    },
+    {
+      "field": "Quantity",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 0,
+      "left": "Quantity",
+      "right": "Quantity",
+      "transform": "none"
+    },
+    {
+      "field": "Price",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2,
+      "left": "Price",
+      "right": "Price",
+      "transform": "round half away from zero to 2 decimal places"
+    },
+    {
+      "field": "NetCash",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2,
+      "left": "NetCash",
+      "right": "NetCash",
+      "transform": "none"
+    }
+  ],
+  "transforms": [
+    {
+      "field": "Price",
+      "side": "right",
+      "op": "round",
+      "detail": "Right price is the left price rounded to 2 decimal places, midpoint away from zero. Max abs(left - right) is 0.005."
+    }
+  ],
+  "profile": {
+    "formatVersion": 1,
+    "profileId": "p04",
+    "version": "1",
+    "culture": "en-US",
+    "rounding": {
+      "midpoint": "AwayFromZero"
+    },
+    "sources": {
+      "left": {
+        "rowKey": "TradeId"
+      },
+      "right": {
+        "rowKey": "TradeId"
+      }
+    },
+    "fields": [
+      {
+        "name": "TradeId",
+        "type": "Identifier",
+        "role": "Identity"
+      },
+      {
+        "name": "Ticker",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "Quantity",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 0
+      },
+      {
+        "name": "Price",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 2
+      },
+      {
+        "name": "NetCash",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 2
+      }
+    ],
+    "normalization": {
+      "left": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "TradeId",
+            "to": "TradeId",
+            "scheme": "TRADE"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Ticker",
+            "to": "Ticker"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "decimal.parse",
+            "from": "Quantity",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Price",
+            "to": "Price"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "NetCash",
+            "to": "NetCash"
+          }
+        ]
+      },
+      "right": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "TradeId",
+            "to": "TradeId",
+            "scheme": "TRADE"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Ticker",
+            "to": "Ticker"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "decimal.parse",
+            "from": "Quantity",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Price",
+            "to": "Price"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "NetCash",
+            "to": "NetCash"
+          }
+        ]
+      }
+    },
+    "paths": [
+      {
+        "id": "trades",
+        "route": {
+          "rule": "route.all"
+        },
+        "passes": [
+          {
+            "id": "trade",
+            "pass": "match.naturalKey",
+            "key": [
+              "TradeId"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rightRowOrder": "shuffled",
+  "dataCheck": "Every record matches its counterpart after the transforms in this key. No planted breaks. Row order is not part of the correspondence.",
+  "leftFile": "pairs/p04/left.csv",
+  "rightFile": "pairs/p04/right.csv",
+  "leftRows": 700,
+  "rightRows": 700,
+  "leftHeader": [
+    "TradeId",
+    "Ticker",
+    "Quantity",
+    "Price",
+    "NetCash"
+  ],
+  "rightHeader": [
+    "TradeId",
+    "Ticker",
+    "Quantity",
+    "Price",
+    "NetCash"
+  ],
+  "verifiedRun": {
+    "matched": 700,
+    "exact": 700,
+    "withinTolerance": 0,
+    "break": 0,
+    "leftOnly": 0,
+    "rightOnly": 0,
+    "ambiguous": 0,
+    "searchIncomplete": 0,
+    "quarantined": 0,
+    "suppressed": 0
+  }
+}
