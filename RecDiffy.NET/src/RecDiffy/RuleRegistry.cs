@@ -16,6 +16,7 @@ public sealed record RuleRegistry
         new RuleRegistry()
             .RegisterWithSettings("decimal.parse", RulePhase.Parse, ["from", "to"], (call, schema, settings) =>
                 new CultureDecimalRule(call.Strings["from"], call.Strings["to"], schema.Scale(call.Strings["to"]), settings.Midpoint, settings.Culture.NumberFormat))
+            .RegisterWithSettings("decimal.scale", RulePhase.Parse, FactorDecimalRule.Required, FactorDecimalRule.Create)
             .RegisterWithSettings("date.parse", RulePhase.Parse, ["from", "to"], (call, _, settings) =>
                 new PartyFormatDateRule(
                     call.Strings["from"],

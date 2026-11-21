@@ -385,7 +385,9 @@ public class GeneratedProfileOracleSweepTests
         else
             parse.Add(Rule("decimal.parse", ("from", "Price"), ("to", "Price")));
 
-        parse.Add(Rule("decimal.parse", ("from", "Accrued"), ("to", "Accrued")));
+        parse.Add(spec.UseFormatBy
+            ? Rule("decimal.scale", ("from", "Accrued"), ("to", "Accrued"), ("factor", "1"))
+            : Rule("decimal.parse", ("from", "Accrued"), ("to", "Accrued")));
         // The street feed has no commission column: fees.inferFromNet writes Fees on the right.
         if (!includeLifecycle)
             parse.Add(Rule("decimal.parse", ("from", "Fees"), ("to", "Fees")));
