@@ -34,6 +34,7 @@ internal static class FloatingPointAllowlist
         new("RecDiffy/Rules/PartyFormatDateRule.cs", "double.IsFinite(serial) && serial is > -657435.0d and < 2958466.0d", "date.parse's PartyFormatDateRule bounds the double serial to the OLE Automation range."),
 
         new("RecDiffy/Rules/CultureDecimalRule.cs", "double or float or Half => Reject(row, \"FloatValue\", rawText),", "decimal.parse matches floating types only to reject them; it never converts (#158)."),
+        new("RecDiffy/Rules/FactorDecimalRule.cs", "double or float or Half => Reject(row, \"FloatValue\", rawText),", "decimal.scale matches floating types only to reject them, as decimal.parse does (#547)."),
 
         new("RecDiffy/Rules/NumberRead.cs", "double value when Rounding.TryFromDouble(value, out var number) => NumberRead.Of(number),", "Numbers.CanBeNumber is called only by the [Obsolete] ParseDecimalRule and AbsoluteQuantityRule, which no registered rule name reaches; no active rule may call it (#361 audit)."),
         new("RecDiffy/Rules/NumberRead.cs", "float value when Rounding.TryFromDouble(value, out var number) => NumberRead.Of(number),", "Same as the double line: it widens a float to double for the [Obsolete] rules only, so 0.1f reads as 0.10000000149011612m (#361 audit)."),
@@ -64,6 +65,7 @@ internal static class FloatingPointAllowlist
     [
         new("RecDiffy.DataReaderSource.CellOf(System.Object)", "Type-tests double, float and Half to pass them through unchanged so decimal.parse can reject them (#158); nothing converts.", TypeTests()),
         new("RecDiffy.Rules.CultureDecimalRule.Parse(RecDiffy.Rules.RowContext)", "decimal.parse type-tests double, float and Half only to reject them.", TypeTests()),
+        new("RecDiffy.Rules.FactorDecimalRule.Parse(RecDiffy.Rules.RowContext)", "decimal.scale type-tests double, float and Half only to reject them.", TypeTests()),
         new("RecDiffy.RulePacks.Trading.ScaledQuantityRule.Absolute(RecDiffy.Rules.RowContext)", "quantity.absolute type-tests double, float and Half only to leave them unread.", TypeTests()),
         new("RecDiffy.RulePacks.Trading.CultureQuantityRule.Absolute(RecDiffy.Rules.RowContext)", "The [Obsolete] CultureQuantityRule type-tests double, float and Half only to leave them unread.", TypeTests()),
         new("RecDiffy.RulePacks.Trading.CultureSideResolution.Raw(RecDiffy.Rules.RowContext, System.String, System.Globalization.NumberFormatInfo)", "side.resolve type-tests double, float and Half to refuse a floating quantity.", TypeTests()),
