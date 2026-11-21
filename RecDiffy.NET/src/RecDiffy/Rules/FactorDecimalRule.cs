@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Numerics;
 
 namespace RecDiffy.Rules;
 
@@ -52,13 +53,29 @@ internal sealed class FactorDecimalRule(string from, string to, decimal factor, 
         };
     }
 
-    // A product outside the decimal range is not a number RecDiffy can hold, so it is unreadable, as a bad number is.
+    // decimal rounds a product it cannot hold exactly, half-even, before the profile midpoint is applied (#551). So the
+    // rule multiplies only when the product is certain to be exact: the digits of the number times the digits of the
+    // factor, as written, fit in decimal's 96 bits, and their decimal places add up to 28 or fewer. Anything else is a
+    // number RecDiffy cannot hold, as a bad number is.
     private RowContext Scaled(RowContext row, decimal number, string? rawText) =>
-        CheckedDecimal.Multiply(number, factor) switch
+        (FitsExactly(number, factor) ? CheckedDecimal.Multiply(number, factor) : null) switch
         {
             { } product => WriteRounded(row, Rounding.Round(product, scale, midpoint), rawText),
             null => Reject(row, "DecimalParse", rawText),
         };
+
+    private static readonly BigInteger MaxMantissa = (BigInteger.One << 96) - 1;
+
+    private static bool FitsExactly(decimal number, decimal factor) =>
+        number.Scale + factor.Scale <= 28 && Mantissa(number) * Mantissa(factor) <= MaxMantissa;
+
+    // The unsigned 96-bit integer a decimal stores: 0.0050 is 50 at scale 4.
+    private static BigInteger Mantissa(decimal value)
+    {
+        Span<int> bits = stackalloc int[4];
+        decimal.GetBits(value, bits);
+        return ((BigInteger)(uint)bits[2] << 64) | ((BigInteger)(uint)bits[1] << 32) | (uint)bits[0];
+    }
 
     private RowContext WriteRounded(RowContext row, decimal rounded, string? rawText) =>
         row.Write(to, CanonicalCell.FromDecimal(rounded), RuleId, rawText, rounded.ToString(CultureInfo.InvariantCulture));
