@@ -259,30 +259,34 @@ public class FactorDecimalRuleAdversarialTests
         Assert.Equal(Mid(raw, MidpointRounding.AwayFromZero), awayValue);
     }
 
-    [Fact]
-    public void A_product_with_more_than_28_significant_digits_rounds_once_by_the_profile_midpoint()
+    [Theory]
+    [InlineData("1.0000000000000000000000000001", "1.0000000000000000000000000001")]
+    [InlineData("0.5", "0.0000000000000000000000000001")]
+    [InlineData("123456789012345", "1234567890123456")]
+    public void A_product_decimal_cannot_hold_exactly_is_DecimalParse_under_either_midpoint(string raw, string factor)
     {
-        var left = 1.0000000000000000000000000001m;
-        var args = Args(("from", "Qty"), ("to", "Quantity"), ("factor", "1.0000000000000000000000000001"));
+        var args = Args(("from", "Qty"), ("to", "Quantity"), ("factor", factor));
 
-        foreach (var (mode, rounding) in new[] { (MidpointMode.ToEven, MidpointRounding.ToEven), (MidpointMode.AwayFromZero, MidpointRounding.AwayFromZero) })
+        foreach (var mode in new[] { MidpointMode.ToEven, MidpointMode.AwayFromZero })
         {
-            var row = ApplyRule("decimal.scale", args, "1.0000000000000000000000000001", "en-US", 28, mode);
+            var row = ApplyRule("decimal.scale", args, raw, "en-US", 28, mode);
 
-            Assert.Equal(decimal.Round(left * 1.0000000000000000000000000001m, 28, rounding), row.Values["Quantity"].Number);
+            Assert.True(row.Values["Quantity"].IsNull);
+            Assert.Equal("DecimalParse", Assert.Single(row.Diagnostics).Code);
         }
     }
 
-    [Fact(Skip = "Defect: decimal multiplication rounds a product past 28 places half-even before Rounding.Round applies the profile midpoint, so AwayFromZero gives 0 here. Shared by every CheckedDecimal.Multiply followed by Rounding.Round.")]
-    public void A_midpoint_beyond_the_28th_place_follows_the_profile_midpoint_not_a_hidden_even_rounding()
+    [Theory]
+    [InlineData("79228162514264337593543950335", "1")]
+    [InlineData("79228162514264337593543950335", "-1")]
+    [InlineData("5", "0.0000000000000000000000000001")]
+    [InlineData("12345678901234", "12345678901234")]
+    public void A_product_decimal_holds_exactly_is_never_rejected_by_the_limit(string raw, string factor)
     {
-        var args = Args(("from", "Qty"), ("to", "Quantity"), ("factor", "0.0000000000000000000000000001"));
+        var row = ApplyRule("decimal.scale", Args(("from", "Qty"), ("to", "Quantity"), ("factor", factor)), raw, "en-US", 28);
 
-        var even = ApplyRule("decimal.scale", args, "0.5", "en-US", 28).Values["Quantity"].Number;
-        var away = ApplyRule("decimal.scale", args, "0.5", "en-US", 28, MidpointMode.AwayFromZero).Values["Quantity"].Number;
-
-        Assert.Equal(0m, even);
-        Assert.Equal(0.0000000000000000000000000001m, away);
+        Assert.Empty(row.Diagnostics);
+        Assert.Equal(decimal.Parse(raw, CultureInfo.InvariantCulture) * decimal.Parse(factor, CultureInfo.InvariantCulture), row.Values["Quantity"].Number);
     }
 
     [Fact]
