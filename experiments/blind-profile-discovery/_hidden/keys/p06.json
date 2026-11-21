@@ -1,0 +1,265 @@
+{
+  "pairId": "p06",
+  "title": "Position signs that depend on book view",
+  "phenomenon": "Same positions. When BookView is COUNTERPARTY the right quantity and market value are the negation of the left. INTERNAL rows already use the left sign. BookView is only on the right.",
+  "correspondence": "One row to one row on PositionId after negating COUNTERPARTY amounts.",
+  "plantedBreaks": 0,
+  "engineExpressible": true,
+  "expectClean": true,
+  "engineGap": null,
+  "engineNotes": "cash.toPerspective negates Quantity and MarketValue on the right when BookView is COUNTERPARTY. The column is raw text; it is not a canonical field.",
+  "confounds": [
+    "quantity.absolute on both sides also compares equal on this file, because every right quantity is the left quantity or its exact negation. That drops the sign. The representation is the conditional negation, which keeps the internal sign."
+  ],
+  "rounding": "ToEven",
+  "rowKey": {
+    "left": "PositionId",
+    "right": "PositionId"
+  },
+  "match": {
+    "pass": "match.naturalKey",
+    "key": [
+      "PositionId"
+    ],
+    "block": [],
+    "conserve": [],
+    "many": null
+  },
+  "columns": [
+    {
+      "field": "PositionId",
+      "type": "Identifier",
+      "role": "Identity",
+      "scale": 0,
+      "left": "PositionId",
+      "right": "PositionId",
+      "transform": "none"
+    },
+    {
+      "field": "Account",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Account",
+      "right": "Account",
+      "transform": "none"
+    },
+    {
+      "field": "Ticker",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Ticker",
+      "right": "Ticker",
+      "transform": "none"
+    },
+    {
+      "field": "Quantity",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2,
+      "left": "Quantity",
+      "right": "Quantity",
+      "transform": "negate when BookView is COUNTERPARTY"
+    },
+    {
+      "field": "MarketValue",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2,
+      "left": "MarketValue",
+      "right": "MarketValue",
+      "transform": "negate when BookView is COUNTERPARTY"
+    }
+  ],
+  "transforms": [
+    {
+      "field": "Quantity",
+      "side": "right",
+      "op": "negate-when",
+      "detail": "Negate the right quantity when BookView is COUNTERPARTY. Leave INTERNAL rows unchanged."
+    },
+    {
+      "field": "MarketValue",
+      "side": "right",
+      "op": "negate-when",
+      "detail": "Same convention as Quantity."
+    }
+  ],
+  "profile": {
+    "formatVersion": 1,
+    "profileId": "p06",
+    "version": "1",
+    "culture": "en-US",
+    "rounding": {
+      "midpoint": "ToEven"
+    },
+    "sources": {
+      "left": {
+        "rowKey": "PositionId"
+      },
+      "right": {
+        "rowKey": "PositionId"
+      }
+    },
+    "fields": [
+      {
+        "name": "PositionId",
+        "type": "Identifier",
+        "role": "Identity"
+      },
+      {
+        "name": "Account",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "Ticker",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "Quantity",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 2
+      },
+      {
+        "name": "MarketValue",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 2
+      }
+    ],
+    "normalization": {
+      "left": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "PositionId",
+            "to": "PositionId",
+            "scheme": "POSITION"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Account",
+            "to": "Account"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Ticker",
+            "to": "Ticker"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "decimal.parse",
+            "from": "Quantity",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "MarketValue",
+            "to": "MarketValue"
+          }
+        ]
+      },
+      "right": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "PositionId",
+            "to": "PositionId",
+            "scheme": "POSITION"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Account",
+            "to": "Account"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Ticker",
+            "to": "Ticker"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "decimal.parse",
+            "from": "Quantity",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "MarketValue",
+            "to": "MarketValue"
+          }
+        ],
+        "derive": [
+          {
+            "rule": "cash.toPerspective",
+            "to": "Quantity",
+            "perspective": "BookView",
+            "invertWhen": "COUNTERPARTY"
+          },
+          {
+            "rule": "cash.toPerspective",
+            "to": "MarketValue",
+            "perspective": "BookView",
+            "invertWhen": "COUNTERPARTY"
+          }
+        ]
+      }
+    },
+    "paths": [
+      {
+        "id": "positions",
+        "route": {
+          "rule": "route.all"
+        },
+        "passes": [
+          {
+            "id": "position",
+            "pass": "match.naturalKey",
+            "key": [
+              "PositionId"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rightRowOrder": "shuffled",
+  "dataCheck": "Every record matches its counterpart after the transforms in this key. No planted breaks. Row order is not part of the correspondence.",
+  "leftFile": "pairs/p06/left.csv",
+  "rightFile": "pairs/p06/right.csv",
+  "leftRows": 900,
+  "rightRows": 900,
+  "leftHeader": [
+    "PositionId",
+    "Account",
+    "Ticker",
+    "Quantity",
+    "MarketValue"
+  ],
+  "rightHeader": [
+    "PositionId",
+    "Account",
+    "Ticker",
+    "Quantity",
+    "MarketValue",
+    "BookView"
+  ],
+  "verifiedRun": {
+    "matched": 900,
+    "exact": 900,
+    "withinTolerance": 0,
+    "break": 0,
+    "leftOnly": 0,
+    "rightOnly": 0,
+    "ambiguous": 0,
+    "searchIncomplete": 0,
+    "quarantined": 0,
+    "suppressed": 0
+  }
+}

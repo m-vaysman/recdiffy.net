@@ -1,0 +1,291 @@
+{
+  "pairId": "p08",
+  "title": "Fills that sum to orders",
+  "phenomenon": "Each right row is one order. The left rows are its fills: 2 to 6 of them. Fill quantities and net cash add up exactly to the order. Ticker, side, and price are the same on every fill and on the order.",
+  "correspondence": "Many fills to one order, blocked by OrderId + Ticker + Side + Price, conserving Quantity and NetCash.",
+  "plantedBreaks": 0,
+  "engineExpressible": true,
+  "expectClean": true,
+  "engineGap": null,
+  "engineNotes": "match.groupSum, many = left. Price is a block field, so the engine does not sum it. There is no sum tolerance; the sums are exact. Fill counts are 2 to 6, under the group cap of 16. A block that omits OrderId can exceed the default maxBlockItems of 24. The left row key is FillId, not OrderId: duplicate order ids on the fills are not row-key conflicts.",
+  "confounds": [],
+  "rounding": "ToEven",
+  "rowKey": {
+    "left": "FillId",
+    "right": "OrderId"
+  },
+  "match": {
+    "pass": "match.groupSum",
+    "key": [],
+    "block": [
+      "OrderId",
+      "Ticker",
+      "Side",
+      "Price"
+    ],
+    "conserve": [
+      "Quantity",
+      "NetCash"
+    ],
+    "many": "left"
+  },
+  "columns": [
+    {
+      "field": "OrderId",
+      "type": "Identifier",
+      "role": "Identity",
+      "scale": 0,
+      "left": "OrderId",
+      "right": "OrderId",
+      "transform": "none"
+    },
+    {
+      "field": "Ticker",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Ticker",
+      "right": "Ticker",
+      "transform": "none"
+    },
+    {
+      "field": "Side",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Side",
+      "right": "Side",
+      "transform": "none"
+    },
+    {
+      "field": "Quantity",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 0,
+      "left": "Quantity",
+      "right": "Quantity",
+      "transform": "sum fills"
+    },
+    {
+      "field": "Price",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2,
+      "left": "Price",
+      "right": "Price",
+      "transform": "same on every fill"
+    },
+    {
+      "field": "NetCash",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2,
+      "left": "NetCash",
+      "right": "NetCash",
+      "transform": "sum fills"
+    }
+  ],
+  "transforms": [
+    {
+      "field": "Quantity",
+      "side": "left",
+      "op": "sum",
+      "detail": "Sum fill quantity to the order quantity. Exact, no tolerance."
+    },
+    {
+      "field": "NetCash",
+      "side": "left",
+      "op": "sum",
+      "detail": "Sum fill net cash to the order net cash. Exact, no tolerance."
+    }
+  ],
+  "profile": {
+    "formatVersion": 1,
+    "profileId": "p08",
+    "version": "1",
+    "culture": "en-US",
+    "rounding": {
+      "midpoint": "ToEven"
+    },
+    "sources": {
+      "left": {
+        "rowKey": "FillId"
+      },
+      "right": {
+        "rowKey": "OrderId"
+      }
+    },
+    "fields": [
+      {
+        "name": "OrderId",
+        "type": "Identifier",
+        "role": "Identity"
+      },
+      {
+        "name": "Ticker",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "Side",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "Quantity",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 0
+      },
+      {
+        "name": "Price",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 2
+      },
+      {
+        "name": "NetCash",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 2
+      }
+    ],
+    "normalization": {
+      "left": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "OrderId",
+            "to": "OrderId",
+            "scheme": "ORDER"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Ticker",
+            "to": "Ticker"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Side",
+            "to": "Side"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "decimal.parse",
+            "from": "Quantity",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Price",
+            "to": "Price"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "NetCash",
+            "to": "NetCash"
+          }
+        ]
+      },
+      "right": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "OrderId",
+            "to": "OrderId",
+            "scheme": "ORDER"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Ticker",
+            "to": "Ticker"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Side",
+            "to": "Side"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "decimal.parse",
+            "from": "Quantity",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Price",
+            "to": "Price"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "NetCash",
+            "to": "NetCash"
+          }
+        ]
+      }
+    },
+    "paths": [
+      {
+        "id": "orders",
+        "route": {
+          "rule": "route.all"
+        },
+        "passes": [
+          {
+            "id": "fills",
+            "pass": "match.groupSum",
+            "many": "left",
+            "block": [
+              "OrderId",
+              "Ticker",
+              "Side",
+              "Price"
+            ],
+            "conserve": [
+              "Quantity",
+              "NetCash"
+            ],
+            "maxGroupSize": 8
+          }
+        ]
+      }
+    ]
+  },
+  "rightRowOrder": "shuffled",
+  "dataCheck": "Every record matches its counterpart after the transforms in this key. No planted breaks. Row order is not part of the correspondence.",
+  "leftFile": "pairs/p08/left.csv",
+  "rightFile": "pairs/p08/right.csv",
+  "leftRows": 1200,
+  "rightRows": 300,
+  "leftHeader": [
+    "FillId",
+    "OrderId",
+    "Ticker",
+    "Side",
+    "Quantity",
+    "Price",
+    "NetCash"
+  ],
+  "rightHeader": [
+    "OrderId",
+    "Ticker",
+    "Side",
+    "Quantity",
+    "Price",
+    "NetCash"
+  ],
+  "verifiedRun": {
+    "matched": 300,
+    "exact": 300,
+    "withinTolerance": 0,
+    "break": 0,
+    "leftOnly": 0,
+    "rightOnly": 0,
+    "ambiguous": 0,
+    "searchIncomplete": 0,
+    "quarantined": 0,
+    "suppressed": 0
+  }
+}
