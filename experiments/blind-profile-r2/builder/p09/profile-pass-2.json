@@ -1,0 +1,60 @@
+{
+  "formatVersion": 1,
+  "profileId": "p09",
+  "version": "1.0.0",
+  "rounding": { "midpoint": "AwayFromZero" },
+  "sources": {
+    "left":  { "culture": "en-US" },
+    "right": { "culture": "de-DE" }
+  },
+  "fields": [
+    { "name": "Instrument", "type": "Symbol", "role": "Key" },
+    { "name": "AssetClass", "type": "Symbol", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 4 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 6 },
+    { "name": "Accrued", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "TradeDate", "type": "Date", "role": "Key" },
+    { "name": "SettleDate", "type": "Date", "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "ISIN", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "Asset Class", "to": "AssetClass", "map": { "EQ": "Equity", "BD": "Bond" }, "passthrough": false },
+        { "rule": "symbol.map", "from": "Side", "to": "Side", "map": { "B": "BUY", "S": "SELL" }, "passthrough": false }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "decimal.parse", "from": "Accrued", "to": "Accrued" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "TradeDate", "formats": ["yyyy-MM-dd"] },
+        { "rule": "date.parse", "from": "Settle Date", "to": "SettleDate", "formats": ["yyyy-MM-dd"] }
+      ],
+      "validate": [ { "rule": "required.present", "fields": ["Instrument", "Quantity", "Price", "TradeDate", "SettleDate"] } ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Security ID", "to": "Instrument" },
+        { "rule": "symbol.map", "from": "Type", "to": "AssetClass", "map": { "Equity": "Equity", "Fixed Income": "Bond" }, "passthrough": false },
+        { "rule": "symbol.map", "from": "Dir", "to": "Side", "map": { "BUY": "BUY", "SELL": "SELL" }, "passthrough": false }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Face/Shares", "to": "Quantity" },
+        { "rule": "price.from32nds", "from": "Clean Px", "to": "Price", "when": { "field": "AssetClass", "equals": "Bond" } },
+        { "rule": "decimal.parse", "from": "Clean Px", "to": "Price", "when": { "field": "AssetClass", "notEquals": "Bond" } },
+        { "rule": "decimal.parse", "from": "Accrued Int", "to": "Accrued" },
+        { "rule": "date.parse", "from": "TD", "to": "TradeDate", "formats": ["yyyyMMdd"] },
+        { "rule": "date.parse", "from": "SD", "to": "SettleDate", "formats": ["dd-MM-yy"] }
+      ],
+      "validate": [ { "rule": "required.present", "fields": ["Instrument", "Quantity", "Price", "TradeDate", "SettleDate"] } ]
+    }
+  },
+  "paths": [
+    { "id": "all", "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "full", "pass": "match.naturalKey", "key": ["Instrument", "Side", "TradeDate", "Quantity"] },
+        { "id": "loose", "pass": "match.naturalKey", "key": ["Instrument", "Side", "TradeDate"] }
+      ] }
+  ]
+}

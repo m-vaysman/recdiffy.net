@@ -1,0 +1,4 @@
+{"pair":"p07","rows":{"left":1000,"right":780},"cardinality":"560 1:1 + 220 swaps (two left legs P/R -> one right row)","summary":"matched=780 exact=780 break=0 composition package=220",
+"columnMap":{"Deal":"Trade Ref (right lowercase)","Pkg Link":"(none, left package link)","Leg":"(none, left role P/R)","Product":"Product Type","Notional":"Notional","Leg Amount":"Net Cash (PAY minus REC for swaps)","Maturity":"Maturity Date","Party":"(none)"},
+"transforms":["left packages: link PkgLink role Leg requiredRoles [PAY,REC]; Leg symbol.map P->PAY R->REC","aggregate Net=DifferenceByRole(PAY,REC); TradeRef/Product/Notional/Maturity=Same","right trade ref lowercase: text.regex case upper","right culture de-DE, dates dd.MM.yyyy"],
+"pass":"match.naturalKey [TradeRef]","difficulty":"packages with aggregators; blank link rows stay apart; 1:1 mixed with packages; groupSum cannot express it (a difference, not a sum)"}

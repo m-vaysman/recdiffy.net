@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1, "profileId": "p01", "version": "1.0.0",
+  "sources": { "left": { "rowKey": "Trade ID", "culture": "en-US" }, "right": { "rowKey": "Confirm Ref", "culture": "de-DE" } },
+  "fields": [
+    { "name": "TradeRef", "type": "Symbol", "role": "Key" },
+    { "name": "Isin", "type": "Symbol", "role": "Economic" },
+    { "name": "Side", "type": "Symbol", "role": "Economic" },
+    { "name": "Currency", "type": "Symbol", "role": "Economic" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 4 },
+    { "name": "NetAmount", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "TradeDate", "type": "Date", "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Trade ID", "to": "TradeRef" },
+        { "rule": "symbol.map", "from": "ISIN", "to": "Isin" },
+        { "rule": "symbol.map", "from": "Buy/Sell", "to": "Side", "map": { "B": "BUY", "S": "SELL" } },
+        { "rule": "symbol.map", "from": "Currency", "to": "Currency" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "decimal.parse", "from": "Net Amount", "to": "NetAmount" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "TradeDate", "formats": ["yyyy-MM-dd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Confirm Ref", "to": "TradeRef" },
+        { "rule": "symbol.map", "from": "ISIN", "to": "Isin" },
+        { "rule": "symbol.map", "from": "Dir", "to": "Side" },
+        { "rule": "symbol.map", "from": "CCY", "to": "Currency" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Px", "to": "Price" },
+        { "rule": "decimal.parse", "from": "Total", "to": "NetAmount" },
+        { "rule": "date.parse", "from": "Dealt On", "to": "TradeDate", "formats": ["dd.MM.yyyy"] }
+      ]
+    }
+  },
+  "paths": [ { "id": "all", "route": { "rule": "route.all" }, "passes": [ { "id": "ref", "pass": "match.naturalKey", "key": ["TradeRef"] } ] } ]
+}

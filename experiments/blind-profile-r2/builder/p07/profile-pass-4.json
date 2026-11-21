@@ -1,0 +1,63 @@
+﻿{
+  "formatVersion": 1,
+  "profileId": "p07",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "strictDateFormats": true,
+  "sources": {
+    "left": { "culture": "en-US" },
+    "right": { "rowKey": "Trade Ref", "culture": "de-DE" }
+  },
+  "fields": [
+    { "name": "TradeRef", "type": "Symbol", "role": "Key" },
+    { "name": "PkgLink", "type": "Symbol", "role": "Package" },
+    { "name": "Leg", "type": "Symbol", "role": "Package" },
+    { "name": "Product", "type": "Symbol", "role": "Key" },
+    { "name": "Notional", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "NetCash", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "Maturity", "type": "Date", "role": "Economic" },
+    { "name": "Party", "type": "Symbol", "role": "Identity" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "Deal", "to": "TradeRef", "pattern": "\\s+", "replacement": "", "case": "upper" },
+        { "rule": "symbol.map", "from": "Pkg Link", "to": "PkgLink" },
+        { "rule": "symbol.map", "from": "Leg", "to": "Leg" },
+        { "rule": "symbol.map", "from": "Product", "to": "Product" },
+        { "rule": "symbol.map", "from": "Party", "to": "Party" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Notional", "to": "Notional" },
+        { "rule": "decimal.parse", "from": "Leg Amount", "to": "NetCash" },
+        { "rule": "date.parse", "from": "Maturity", "to": "Maturity", "formats": ["yyyy-MM-dd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "text.regex", "from": "Trade Ref", "to": "TradeRef", "pattern": "\\s+", "replacement": "", "case": "upper" },
+        { "rule": "symbol.map", "from": "Product Type", "to": "Product" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Notional", "to": "Notional" },
+        { "rule": "decimal.parse", "from": "Net Cash", "to": "NetCash" },
+        { "rule": "date.parse", "from": "Maturity Date", "to": "Maturity", "formats": ["dd.MM.yyyy"] }
+      ]
+    }
+  },
+  "consolidation": {
+    "left": {
+      "packages": [
+        { "link": "PkgLink", "role": "Leg", "requiredRoles": ["R", "P"], "aggregate": { "NetCash": "DifferenceByRole(R,P)" } }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "all",
+      "route": { "rule": "route.all" },
+      "passes": [ { "id": "ref", "pass": "match.naturalKey", "key": ["TradeRef"] } ]
+    }
+  ]
+}
+

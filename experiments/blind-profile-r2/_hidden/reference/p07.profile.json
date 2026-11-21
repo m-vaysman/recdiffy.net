@@ -1,0 +1,53 @@
+{
+  "formatVersion": 1, "profileId": "p07", "version": "1.0.0",
+  "sources": { "left": { "culture": "en-US" }, "right": { "culture": "de-DE" } },
+  "fields": [
+    { "name": "TradeRef", "type": "Symbol", "role": "Key" },
+    { "name": "Product", "type": "Symbol", "role": "Economic" },
+    { "name": "Notional", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Net", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "Maturity", "type": "Date", "role": "Economic" },
+    { "name": "PkgLink", "type": "Symbol", "role": "Package" },
+    { "name": "Leg", "type": "Symbol", "role": "Package" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Deal", "to": "TradeRef" },
+        { "rule": "symbol.map", "from": "Product", "to": "Product" },
+        { "rule": "symbol.map", "from": "Pkg Link", "to": "PkgLink" },
+        { "rule": "symbol.map", "from": "Leg", "to": "Leg", "map": { "P": "PAY", "R": "REC" } }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Notional", "to": "Notional" },
+        { "rule": "decimal.parse", "from": "Leg Amount", "to": "Net" },
+        { "rule": "date.parse", "from": "Maturity", "to": "Maturity", "formats": ["yyyy-MM-dd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "text.regex", "from": "Trade Ref", "to": "TradeRef", "pattern": "^(.+)$", "replacement": "$1", "case": "upper" },
+        { "rule": "symbol.map", "from": "Product Type", "to": "Product" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Notional", "to": "Notional" },
+        { "rule": "decimal.parse", "from": "Net Cash", "to": "Net" },
+        { "rule": "date.parse", "from": "Maturity Date", "to": "Maturity", "formats": ["dd.MM.yyyy"] }
+      ]
+    }
+  },
+  "consolidation": {
+    "left": {
+      "packages": [
+        {
+          "link": "PkgLink", "role": "Leg", "requiredRoles": ["PAY", "REC"],
+          "aggregate": {
+            "TradeRef": "Same", "Product": "Same", "Notional": "Same", "Maturity": "Same",
+            "Net": "DifferenceByRole(PAY,REC)"
+          }
+        }
+      ]
+    }
+  },
+  "paths": [ { "id": "all", "route": { "rule": "route.all" }, "passes": [ { "id": "ref", "pass": "match.naturalKey", "key": ["TradeRef"] } ] } ]
+}

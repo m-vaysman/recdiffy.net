@@ -1,0 +1,5 @@
+{"pair":"p06","rows":{"left":1000,"right":1000},"cardinality":"1:1","summary":"matched=1000 exact=1000 break=0",
+"columnMap":{"Our Ref":"Cpty Ref (blank on one or both sides for ~40% of rows)","ISIN":"Security","Side":"Action","Qty":"Size","Price":"Px","Trade Date":"Trade Dt","Net":"Proceeds"},
+"transforms":["ref left TR-100234 regex ^TR-([0-9]+)$ -> $1 (blank stays null); right plain digits","side BUY/SELL vs B/S symbol.map","left en-US dd MMM yyyy; right de-DE yyyy.MM.dd","TradeRef must be role Identity (Key makes null vs value a break)"],
+"passes":["match.sharedRef [TradeRef]","match.naturalKey [Isin,Side,Quantity,Price,TradeDate]"],
+"difficulty":"~14% of ref-carrying trades have an identical economic twin, so natural key alone is ambiguous; ref pass is required for those; the rest (blank refs) need natural key"}

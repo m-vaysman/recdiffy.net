@@ -1,0 +1,58 @@
+{
+  "formatVersion": 1,
+  "profileId": "p10",
+  "version": "2.0.0",
+  "sources": {
+    "left": { "culture": "en-US" },
+    "right": { "culture": "de-DE" }
+  },
+  "fields": [
+    { "name": "TradeRef", "type": "Symbol", "role": "Identity" },
+    { "name": "BlockKey", "type": "Symbol", "role": "Identity" },
+    { "name": "Isin", "type": "Symbol", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 4 },
+    { "name": "NetCash", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "Date", "type": "Date", "role": "Economic" },
+    { "name": "L_Block", "type": "Text", "role": "Text" },
+    { "name": "L_Entity", "type": "Text", "role": "Text" },
+    { "name": "R_BlockId", "type": "Text", "role": "Text" },
+    { "name": "R_Venue", "type": "Text", "role": "Text" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "Ref", "to": "TradeRef", "pattern": "^TR-0*([0-9]+)$", "replacement": "$1", "ignoreCase": "true", "passthrough": "false" },
+        { "rule": "text.regex", "from": "ISIN", "to": "Isin", "pattern": "[ ]+", "replacement": "", "case": "upper" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side", "map": { "B": "BUY", "S": "SELL" }, "passthrough": "false" },
+        { "rule": "text.copy", "from": "Block", "to": "L_Block" },
+        { "rule": "text.copy", "from": "Entity", "to": "L_Entity" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "decimal.parse", "from": "Net Cash", "to": "NetCash" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "Date", "formats": ["yyyy-MM-dd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "text.regex", "from": "Cpty Ref", "to": "TradeRef", "pattern": "^TR/0*([0-9]+)$", "replacement": "$1", "ignoreCase": "true", "passthrough": "false" },
+        { "rule": "text.regex", "from": "ISIN Code", "to": "Isin", "pattern": "[ ]+", "replacement": "", "case": "upper" },
+        { "rule": "symbol.map", "from": "Buy/Sell", "to": "Side", "map": { "BUY": "BUY", "SELL": "SELL" }, "passthrough": "false" },
+        { "rule": "text.copy", "from": "Block ID", "to": "R_BlockId" },
+        { "rule": "text.copy", "from": "Venue", "to": "R_Venue" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Px", "to": "Price" },
+        { "rule": "decimal.scale", "from": "Cash (cents)", "to": "NetCash", "factor": "-0.01", "when": { "field": "D/C", "equals": "D" } },
+        { "rule": "decimal.scale", "from": "Cash (cents)", "to": "NetCash", "factor": "0.01", "when": { "field": "D/C", "equals": "C" } },
+        { "rule": "date.parse", "from": "Settled", "to": "Date", "formats": ["dd.MM.yyyy"] }
+      ]
+    }
+  },
+  "paths": [ { "id": "all", "route": { "rule": "route.all" },
+    "passes": [ { "id": "ref", "pass": "match.naturalKey", "key": ["TradeRef"] } ] } ]
+}

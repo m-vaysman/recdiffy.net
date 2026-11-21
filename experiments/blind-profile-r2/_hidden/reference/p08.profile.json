@@ -1,0 +1,46 @@
+{
+  "formatVersion": 1, "profileId": "p08", "version": "1.0.0",
+  "sources": { "left": { "rowKey": "Event ID", "culture": "en-US" }, "right": { "rowKey": "Trade No", "culture": "de-DE" } },
+  "fields": [
+    { "name": "TradeRef", "type": "Symbol", "role": "Key" },
+    { "name": "Isin", "type": "Symbol", "role": "Economic" },
+    { "name": "Side", "type": "Symbol", "role": "Economic" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 4 },
+    { "name": "TradeDate", "type": "Date", "role": "Economic" },
+    { "name": "Counterparty", "type": "Symbol", "role": "Identity" },
+    { "name": "EventAction", "type": "Symbol", "role": "Lifecycle" },
+    { "name": "EventTarget", "type": "Symbol", "role": "Lifecycle" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "Deal Ref", "to": "TradeRef", "pattern": "^D([0-9]+)$", "replacement": "$1" },
+        { "rule": "symbol.map", "from": "ISIN", "to": "Isin" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side", "map": { "B": "BUY", "S": "SELL" } },
+        { "rule": "symbol.map", "from": "Party", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "Event Type", "to": "EventAction", "map": { "AMEND": "CORR", "CANCEL": "CANC" } },
+        { "rule": "symbol.map", "from": "Replaces", "to": "EventTarget" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "TradeDate", "formats": ["yyyy-MM-dd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "text.regex", "from": "Trade No", "to": "TradeRef", "pattern": "^D-([0-9]+)$", "replacement": "$1" },
+        { "rule": "symbol.map", "from": "Instrument", "to": "Isin" },
+        { "rule": "symbol.map", "from": "B/S", "to": "Side" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "date.parse", "from": "Booked On", "to": "TradeDate", "formats": ["yyyyMMdd"] }
+      ]
+    }
+  },
+  "consolidation": { "left": { "lifecycle": {} } },
+  "paths": [ { "id": "all", "route": { "rule": "route.all" }, "passes": [ { "id": "ref", "pass": "match.naturalKey", "key": ["TradeRef"] } ] } ]
+}

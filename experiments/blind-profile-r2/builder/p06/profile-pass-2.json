@@ -1,0 +1,47 @@
+{
+  "formatVersion": 1,
+  "profileId": "p06-probe",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left":  { "rowKey": "Our Ref" },
+    "right": { "rowKey": "Cpty Ref" }
+  },
+  "fields": [
+    { "name": "Isin", "type": "Symbol", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Economic" },
+    { "name": "TradeDate", "type": "Symbol", "role": "Economic" },
+    { "name": "Quantity", "type": "Symbol", "role": "Economic" },
+    { "name": "Price", "type": "Symbol", "role": "Economic" },
+    { "name": "Net", "type": "Symbol", "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "ISIN", "to": "Isin" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side" },
+        { "rule": "symbol.map", "from": "Trade Date", "to": "TradeDate" },
+        { "rule": "symbol.map", "from": "Qty", "to": "Quantity" },
+        { "rule": "symbol.map", "from": "Price", "to": "Price" },
+        { "rule": "symbol.map", "from": "Net", "to": "Net" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Security", "to": "Isin" },
+        { "rule": "symbol.map", "from": "Action", "to": "Side" },
+        { "rule": "symbol.map", "from": "Trade Dt", "to": "TradeDate" },
+        { "rule": "symbol.map", "from": "Size", "to": "Quantity" },
+        { "rule": "symbol.map", "from": "Px", "to": "Price" },
+        { "rule": "symbol.map", "from": "Proceeds", "to": "Net" }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "all",
+      "route": { "rule": "route.all" },
+      "passes": [ { "id": "P1", "pass": "match.naturalKey", "key": ["Isin"] } ]
+    }
+  ]
+}

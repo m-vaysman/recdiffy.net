@@ -1,0 +1,57 @@
+{
+  "formatVersion": 1,
+  "profileId": "p06",
+  "version": "1.0.0",
+  "strictDateFormats": true,
+  "sources": {
+    "left":  { "culture": "en-US" },
+    "right": { "culture": "de-DE" }
+  },
+  "fields": [
+    { "name": "TradeRef", "type": "Symbol", "role": "Identity" },
+    { "name": "Isin", "type": "Identifier", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Key" },
+    { "name": "TradeDate", "type": "Date", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "scale": 0, "role": "Economic" },
+    { "name": "Price", "type": "Decimal", "scale": 4, "role": "Economic" },
+    { "name": "Net", "type": "Decimal", "scale": 2, "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "Our Ref", "to": "TradeRef", "pattern": "^TR-", "replacement": "" },
+        { "rule": "identifier.map", "from": "ISIN", "to": "Isin", "scheme": "ISIN" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side", "map": { "BUY": "BUY", "SELL": "SELL" }, "passthrough": false }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "decimal.parse", "from": "Net", "to": "Net" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "TradeDate", "formats": ["dd MMM yyyy"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Cpty Ref", "to": "TradeRef" },
+        { "rule": "identifier.map", "from": "Security", "to": "Isin", "scheme": "ISIN" },
+        { "rule": "symbol.map", "from": "Action", "to": "Side", "map": { "B": "BUY", "S": "SELL" }, "passthrough": false }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Size", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Px", "to": "Price" },
+        { "rule": "decimal.parse", "from": "Proceeds", "to": "Net" },
+        { "rule": "date.parse", "from": "Trade Dt", "to": "TradeDate", "formats": ["yyyy.MM.dd"] }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "all",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "ref", "pass": "match.naturalKey", "key": ["TradeRef"] },
+        { "id": "natural", "pass": "match.reducedKey", "key": ["Isin", "Side", "TradeDate", "Quantity"] }
+      ]
+    }
+  ]
+}

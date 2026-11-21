@@ -1,0 +1,52 @@
+{
+  "formatVersion": 1,
+  "profileId": "p05-blocks",
+  "version": "2.0.0",
+  "culture": "",
+  "sources": { "left": { "rowKey": "Alloc ID" }, "right": {} },
+  "fields": [
+    { "name": "BlockKey", "type": "Symbol", "role": "Key" },
+    { "name": "Fund", "type": "Symbol", "role": "Identity" },
+    { "name": "Instrument", "type": "Identifier", "role": "Economic" },
+    { "name": "Side", "type": "Symbol", "role": "Economic" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 4 },
+    { "name": "Amount", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "TradeDate", "type": "Date", "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "Block Ref", "to": "BlockKey", "pattern": "^BLK-([0-9]{4})-0*([0-9]+)$", "replacement": "$2/$1", "passthrough": "false" },
+        { "rule": "symbol.map", "from": "Fund", "to": "Fund" },
+        { "rule": "identifier.map", "from": "ISIN", "to": "Instrument", "scheme": "ISIN" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side", "map": { "B": "BUY", "S": "SELL" }, "passthrough": "false" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Alloc Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Alloc Amount", "to": "Amount" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "TradeDate", "formats": ["dd/MM/yyyy", "yyyy-MM-dd"] }
+      ],
+      "validate": [ { "rule": "required.present", "fields": ["BlockKey", "Instrument", "Side", "Quantity", "Amount", "TradeDate"] } ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "text.regex", "from": "Block", "to": "BlockKey", "pattern": "^0*([0-9]+)/([0-9]{4})$", "replacement": "$1/$2", "passthrough": "false" },
+        { "rule": "identifier.map", "from": "Instr", "to": "Instrument", "scheme": "ISIN" },
+        { "rule": "symbol.map", "from": "Dir", "to": "Side", "map": { "buy": "BUY", "sell": "SELL" }, "passthrough": "false" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Lots", "to": "Quantity" },
+        { "rule": "decimal.scale", "from": "Block Value (k)", "to": "Amount", "factor": "1000" },
+        { "rule": "date.parse", "from": "Dealt", "to": "TradeDate", "formats": ["yyyyMMdd"] }
+      ],
+      "validate": [ { "rule": "required.present", "fields": ["BlockKey", "Instrument", "Side", "Quantity", "Amount", "TradeDate"] } ]
+    }
+  },
+  "consolidation": {
+    "left": { "packages": [ { "link": "BlockKey", "role": "Fund", "aggregate": {
+      "Quantity": "Sum", "Amount": "Sum", "Instrument": "Same", "Side": "Same", "TradeDate": "Same" } } ] }
+  },
+  "paths": [ { "id": "all", "route": { "rule": "route.all" },
+    "passes": [ { "id": "P1", "pass": "match.naturalKey", "key": ["BlockKey"] } ],
+    "diff": { "fields": {} } } ]
+}

@@ -1,0 +1,63 @@
+﻿{
+  "formatVersion": 1,
+  "profileId": "p02",
+  "version": "0.4.0",
+  "culture": "en-US",
+  "sources": {
+    "left":  { "rowKey": "TradeId" },
+    "right": { "rowKey": "Ref" }
+  },
+  "fields": [
+    { "name": "RefNo", "type": "Symbol", "role": "Key" },
+    { "name": "Isin", "type": "Symbol", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Economic" },
+    { "name": "Qty", "type": "Decimal", "scale": 6, "role": "Economic" },
+    { "name": "Px", "type": "Decimal", "scale": 10, "role": "Economic" },
+    { "name": "Net", "type": "Decimal", "scale": 8, "role": "Economic" },
+    { "name": "TradeDate", "type": "Date", "role": "Economic" },
+    { "name": "Ccy", "type": "Symbol", "role": "Economic" },
+    { "name": "Book", "type": "Text", "role": "Text" },
+    { "name": "Allocated", "type": "Symbol", "role": "Identity" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "TradeId", "to": "RefNo", "pattern": "^\\D*0*(\\d+)$", "replacement": "$1", "passthrough": false },
+        { "rule": "text.regex", "from": "Isin", "to": "Isin", "pattern": "[^A-Za-z0-9]", "replacement": "", "case": "upper" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side", "map": { "B": "BUY", "S": "SELL" }, "passthrough": false },
+        { "rule": "text.regex", "from": "Ccy", "to": "Ccy", "pattern": "\\s+", "replacement": "", "case": "upper" },
+        { "rule": "text.copy", "from": "Book", "to": "Book" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Shares", "to": "Qty" },
+        { "rule": "decimal.parse", "from": "Px", "to": "Px" },
+        { "rule": "decimal.parse", "from": "Net", "to": "Net" },
+        { "rule": "date.parse", "from": "TradeDate", "to": "TradeDate", "formats": ["yyyyMMdd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "text.regex", "from": "Ref", "to": "RefNo", "pattern": "^\\D*0*(\\d+)$", "replacement": "$1", "passthrough": false },
+        { "rule": "text.regex", "from": "Security", "to": "Isin", "pattern": "[^A-Za-z0-9]", "replacement": "", "case": "upper" },
+        { "rule": "symbol.map", "from": "Action", "to": "Side", "map": { "BOT": "BUY", "SLD": "SELL" }, "passthrough": false },
+        { "rule": "text.regex", "from": "ccy", "to": "Ccy", "pattern": "\\s+", "replacement": "", "case": "upper" },
+        { "rule": "symbol.map", "from": "Allocated", "to": "Allocated", "map": { "Y": "Y" }, "passthrough": false }
+      ],
+      "parse": [
+        { "rule": "decimal.scale", "from": "Size (000s)", "to": "Qty", "factor": 1000 },
+        { "rule": "decimal.scale", "from": "Px (minor)", "to": "Px", "factor": 0.01 },
+        { "rule": "decimal.scale", "from": "Proceeds (000s)", "to": "Net", "factor": 1000 },
+        { "rule": "date.parse", "from": "Dealt", "to": "TradeDate", "formats": ["d-MMM-yyyy"] }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "all",
+      "route": { "rule": "route.all" },
+      "passes": [ { "id": "economic", "pass": "match.naturalKey", "key": ["Isin", "Side", "Qty", "TradeDate"] } ]
+    }
+  ]
+}
+
+

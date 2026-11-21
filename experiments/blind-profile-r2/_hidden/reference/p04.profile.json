@@ -1,0 +1,47 @@
+{
+  "formatVersion": 1, "profileId": "p04", "version": "1.0.0",
+  "sources": { "left": { "culture": "en-US" }, "right": { "culture": "fr-FR" } },
+  "fields": [
+    { "name": "OrderRef", "type": "Symbol", "role": "Key" },
+    { "name": "Isin", "type": "Symbol", "role": "Economic" },
+    { "name": "Side", "type": "Symbol", "role": "Economic" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Value", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "TradeDate", "type": "Date", "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "Order No", "to": "OrderRef", "pattern": "^ORD-0*([0-9]+)$", "replacement": "$1" },
+        { "rule": "symbol.map", "from": "Security", "to": "Isin" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side", "map": { "Buy": "BUY", "Sell": "SELL" } }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Order Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Order Value", "to": "Value" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "TradeDate", "formats": ["yyyy-MM-dd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "text.regex", "from": "Parent Order", "to": "OrderRef", "pattern": "^ord([0-9]+)$", "replacement": "$1", "ignoreCase": "true" },
+        { "rule": "symbol.map", "from": "ISIN", "to": "Isin" },
+        { "rule": "symbol.map", "from": "B/S", "to": "Side", "map": { "B": "BUY", "S": "SELL" } }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Fill Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Fill Amount", "to": "Value" },
+        { "rule": "date.parse", "from": "Exec Date", "to": "TradeDate", "formats": ["dd/MM/yyyy"] }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "all", "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "fills", "pass": "match.groupSum", "block": ["OrderRef"], "conserve": ["Quantity", "Value"], "many": "right" },
+        { "id": "single", "pass": "match.naturalKey", "key": ["OrderRef"] }
+      ]
+    }
+  ]
+}

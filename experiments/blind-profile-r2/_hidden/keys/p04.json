@@ -1,0 +1,5 @@
+{"pair":"p04","rows":{"left":600,"right":925},"cardinality":"376 1:1 + 224 orders each = several fills (oneToMany, right is many)","summary":"matched=600 exact=600 break=0",
+"columnMap":{"Order No":"Parent Order","Security":"ISIN","Side":"B/S","Order Qty":"Fill Qty (sum)","Order Value":"Fill Amount (sum)","Trade Date":"Exec Date","Account":"(none)","(none)":"Fill ID, Venue, Fill Px extras"},
+"transforms":["id: ORD-0000123 -> $1 via regex; right ord123 -> regex ignoreCase","side Buy/Sell vs B/S symbol.map","right culture fr-FR (decimal comma, no grouping)","dates yyyy-MM-dd vs dd/MM/yyyy"],
+"passes":["match.groupSum block [OrderRef] conserve [Quantity,Value] many right","match.naturalKey [OrderRef] for single-fill orders"],
+"difficulty":"group pass first then 1:1; fill price must not be declared (not conserved)"}

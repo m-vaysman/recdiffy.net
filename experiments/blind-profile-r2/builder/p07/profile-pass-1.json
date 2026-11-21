@@ -1,0 +1,53 @@
+{
+  "formatVersion": 1,
+  "profileId": "p07-probe",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "Deal" },
+    "right": { "rowKey": "Trade Ref" }
+  },
+  "fields": [
+    { "name": "Ref", "type": "Text", "role": "Text" },
+    { "name": "PkgLink", "type": "Text", "role": "Text" },
+    { "name": "Leg", "type": "Text", "role": "Text" },
+    { "name": "Product", "type": "Text", "role": "Text" },
+    { "name": "NotionalText", "type": "Text", "role": "Text" },
+    { "name": "AmountText", "type": "Text", "role": "Text" },
+    { "name": "MaturityText", "type": "Text", "role": "Text" },
+    { "name": "Party", "type": "Text", "role": "Text" },
+    { "name": "Probe", "type": "Symbol", "role": "Key" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.copy", "from": "Deal", "to": "Ref" },
+        { "rule": "text.copy", "from": "Pkg Link", "to": "PkgLink" },
+        { "rule": "text.copy", "from": "Leg", "to": "Leg" },
+        { "rule": "text.copy", "from": "Product", "to": "Product" },
+        { "rule": "text.copy", "from": "Notional", "to": "NotionalText" },
+        { "rule": "text.copy", "from": "Leg Amount", "to": "AmountText" },
+        { "rule": "text.copy", "from": "Maturity", "to": "MaturityText" },
+        { "rule": "text.copy", "from": "Party", "to": "Party" },
+        { "rule": "text.regex", "from": "Deal", "to": "Probe", "pattern": "^.*$", "replacement": "LEFTPROBE" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "text.copy", "from": "Trade Ref", "to": "Ref" },
+        { "rule": "text.copy", "from": "Product Type", "to": "Product" },
+        { "rule": "text.copy", "from": "Notional", "to": "NotionalText" },
+        { "rule": "text.copy", "from": "Net Cash", "to": "AmountText" },
+        { "rule": "text.copy", "from": "Maturity Date", "to": "MaturityText" },
+        { "rule": "text.regex", "from": "Trade Ref", "to": "Probe", "pattern": "^.*$", "replacement": "RIGHTPROBE" }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "all",
+      "route": { "rule": "route.all" },
+      "passes": [ { "id": "P1", "pass": "match.naturalKey", "key": ["Probe"] } ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{"pair":"p05","rows":{"left":1002,"right":382},"cardinality":"292 blocks = several left allocations (manyToOne, left is many) + 90 1:1","summary":"matched=382 exact=382 break=0",
+"columnMap":{"Block Ref":"Block","ISIN":"Instr","Side":"Dir","Alloc Qty":"Lots (x100)","Alloc Amount":"Block Value (k) (x1000)","Trade Date":"Dealt","Alloc ID/Fund":"extras left"},
+"transforms":["block ref: left BLK-2024-0042 regex ^BLK-([0-9]{4})-0*([0-9]+)$ -> $2/$1; right 42/2024 passthrough","lots: decimal.scale factor 100","block value thousands: decimal.scale factor 1000","side: left B/S symbol.map; right buy/sell -> text.regex case upper","left dates mixed in one column: yyyy-MM-dd and dd/MM/yyyy (two formats listed)"],
+"passes":["match.groupSum block [BlockRef] conserve [Quantity,Value] many left","match.naturalKey [BlockRef]"],
+"difficulty":"many side is LEFT, scales on the single side, mixed date formats, reordered tokens in regex replacement"}
