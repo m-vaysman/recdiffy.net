@@ -6,6 +6,8 @@ namespace RecDiffy.Rules;
 // NonBacktracking runs in time linear in the cell, so no timeout is set: a timeout would make the result depend on the machine.
 internal sealed class RegexTextRule(string from, string to, FieldType type, Regex pattern, string replacement, TextCase textCase, bool passthrough) : INormalizationRule
 {
+    public static readonly IReadOnlyList<string> Required = ["from", "to", "pattern", "replacement"];
+
     public string RuleId => "text.regex";
 
     public RulePhase Phase => RulePhase.Identify;
@@ -18,6 +20,11 @@ internal sealed class RegexTextRule(string from, string to, FieldType type, Rege
     {
         ArgumentNullException.ThrowIfNull(call);
         ArgumentNullException.ThrowIfNull(schema);
+        ProfileError[] shapeErrors = [.. Required.Where(name => call.Strings.ContainsKey(name) is false).Select(name =>
+            new ProfileError("InvalidParameter", $"text.regex {name} must be a string, not a list or an object."))];
+        if (shapeErrors.Length > 0)
+            throw new ProfileCompileException(shapeErrors);
+
         var to = call.Strings["to"];
         var type = schema.TryGet(to, out var field) ? field.Type : FieldType.Text;
         ProfileError[] errors =

@@ -198,6 +198,7 @@ Values arrive from a record source ([Intake/RecordSource](../src/RecDiffy/Intake
 | `symbol.map` | `identify` | `from`, `to` | `map` (object), `passthrough` (default `true`) | `to`, a symbol |
 | `identifier.map` | `identify` | `from`, `to`, `scheme` | `scope` (default `""`) | `to`, an identifier |
 | `text.copy` | `identify` | `from`, `to` | | `to`, text |
+| `text.regex` | `identify` | `from`, `to`, `pattern`, `replacement` | `ignoreCase` (default `false`), `case` (`upper` or `lower`), `passthrough` (default `true`) | `to`, a symbol or text |
 | `required.present` | `validate` | `fields` (list) | | Nothing. It reads each listed field. |
 
 - **`decimal.parse`** reads text in the side's culture. A thousands separator must sit where the culture puts it, so `1,5` on an en-US side is `DecimalParse`, not 15. A blank cell is null with no diagnostic. A `float` or `double` is `FloatValue`. Tests: [CultureDecimalRuleTests.cs](../src/RecDiffy.Tests/CultureDecimalRuleTests.cs), [DecimalParseGroupingTests.cs](../src/RecDiffy.Tests/DecimalParseGroupingTests.cs).
@@ -205,6 +206,7 @@ Values arrive from a record source ([Intake/RecordSource](../src/RecDiffy/Intake
 - **`symbol.map`** trims the value and looks it up in `map`. A value not in the map is kept as it is, unless `passthrough` is `false`, which makes it `UnknownSymbol`. A blank cell is null.
 - **`identifier.map`** trims the value and stores it with `scheme` and `scope`. A blank cell is null.
 - **`text.copy`** trims the value. A blank cell is null.
+- **`text.regex`** reads the cell as invariant text and trims it. A blank cell is null. If `pattern` matches, every match is replaced with `replacement` (`$1` and `${name}` work), the result is trimmed, and `case` is applied; an empty result is null. If nothing matches, `passthrough` `true` keeps the trimmed text with `case` applied, and `false` makes the value null and raises `PatternNoMatch`. `to` must be a symbol or text field. The pattern is compiled once with .NET `NonBacktracking`, so matching is linear time. Lookarounds, backreferences and atomic groups are not supported. An invalid or unsupported pattern, a parameter given as a list or object, or a bad `ignoreCase`, `passthrough` or `case` value fails compile with `InvalidParameter`. Tests: [RegexTextRuleTests.cs](../src/RecDiffy.Tests/RegexTextRuleTests.cs), [RegexTextProfileTests.cs](../src/RecDiffy.Tests/RegexTextProfileTests.cs).
 - **`required.present`** raises `RequiredMissing` for each listed field that is null, which quarantines the row.
 
 ### Trading rules
@@ -498,6 +500,7 @@ A run reports problems with input rows as diagnostics on `RowResult.Diagnostics`
 | `FloatValue` | Invalid | `decimal.parse`, `quantity.absolute` | The source gave a `float` or `double`. | Supply a `decimal` or text. |
 | `DateParse` | Invalid | `date.parse` | The text matches no declared format, or no format is declared. With `formatBy`, the row's party is missing or has no format with a year; then even a blank or a typed date is `DateParse`. | Add the format, or the party's format to the reference data. |
 | `UnknownSymbol` | Invalid | `symbol.map` | The value isn't in `map`, and `passthrough` is `false`. | Add it to the map. |
+| `PatternNoMatch` | Invalid | `text.regex` | The `pattern` matches nothing in the value, and `passthrough` is `false`. | Fix the pattern, or set `passthrough` to `true`. |
 | `RequiredMissing` | Invalid | `required.present` | A required field is null. | Fix the source, or drop the field from the list. |
 | `UnknownParty` | Invalid | `party.resolveLei`, `party.resolveAlias` | The LEI or name isn't in the reference data. | Add it to `ReferenceDataSet`. |
 | `UndeterminedSide` | Invalid | `side.resolve` | The side code isn't one the rule knows, or there is no code and no nonzero quantity to decide from. | Use a known code, or supply the quantity. |
