@@ -6,7 +6,7 @@
 
 - [Normalization: from raw cells to fields](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/normalization-from-raw-cells-to-fields.md): phases, rule calls, and the checks compile makes on each
 - [What reaches a rule](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/what-reaches-a-rule.md): values from a data reader and from objects
-- [Core rules](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/core-rules.md): decimal.parse, date.parse, symbol.map, identifier.map, text.copy, required.present
+- [Core rules](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/core-rules.md): decimal.parse, date.parse, symbol.map, identifier.map, text.copy, text.regex, required.present
 - [Trading rules](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/trading-rules.md): party.resolveLei, party.resolveAlias, side.resolve, quantity.absolute, price.from32nds
 - [Conditions](https://m-vaysman.github.io/recdiffy.net/docs/reference/profiles/conditions.md): equals, notEquals and in, for a rule's when, a field's applicableWhen and a tolerance's when
 
