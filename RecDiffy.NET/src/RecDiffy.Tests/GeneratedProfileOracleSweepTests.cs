@@ -346,7 +346,9 @@ public class GeneratedProfileOracleSweepTests
         }
         else
         {
-            identify.Add(Rule("symbol.map", ("from", "Cpty"), ("to", "Counterparty")));
+            identify.Add(spec.Use32nds
+                ? Rule("text.regex", ("from", "Cpty"), ("to", "Counterparty"), ("pattern", "^cp_([ab])$"), ("replacement", "CP_$1"), ("ignoreCase", "true"), ("case", "upper"), ("passthrough", "false"))
+                : Rule("symbol.map", ("from", "Cpty"), ("to", "Counterparty")));
         }
 
         identify.Add(Rule("symbol.map", ("from", "Asset"), ("to", "AssetClass")));
