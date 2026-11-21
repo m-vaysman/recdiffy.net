@@ -1,0 +1,4 @@
+{"pair":"p02","rows":{"left":1000,"right":1000},"cardinality":"1:1","summary":"matched=1000 exact=1000 break=0",
+"columnMap":{"TradeId":"Ref","Isin":"Security","Side":"Action","Shares":"Size (000s)","Px":"Px (minor)","Net":"Proceeds (000s)","TradeDate":"Dealt","Ccy":"ccy","Book":"Allocated (extra)"},
+"transforms":["id: left TRD-0001234 -> text.regex ^TRD-0*([0-9]+)$ -> $1; right trd/1234 -> ^trd/([0-9]+)$ ignoreCase -> $1","isin: right lowercase with hyphens/spaces -> text.regex [^A-Za-z0-9] -> empty replacement, case upper","side B/S vs BOT/SLD: symbol.map","quantity right in thousands: decimal.scale factor 1000","price right in cents: decimal.scale factor 0.01 (scale 4)","net right in thousands: decimal.scale factor 1000","date yyyyMMdd vs d-MMM-yyyy (en-US)","currency case: text.regex case upper"],
+"pass":"match.naturalKey [TradeRef]","difficulty":"regex identifiers, case, three unit scales, date formats"}

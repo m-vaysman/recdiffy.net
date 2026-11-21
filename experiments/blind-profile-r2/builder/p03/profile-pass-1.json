@@ -1,0 +1,48 @@
+{
+  "formatVersion": 1,
+  "profileId": "p03-probe",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left":  { "rowKey": "Entry ID" },
+    "right": { "rowKey": "Bank Ref" }
+  },
+  "fields": [
+    { "name": "Ref", "type": "Identifier", "role": "Key" },
+    { "name": "DateText", "type": "Text", "role": "Text" },
+    { "name": "AmountText", "type": "Text", "role": "Text" },
+    { "name": "SignText", "type": "Text", "role": "Text" },
+    { "name": "CcyText", "type": "Text", "role": "Text" },
+    { "name": "RateText", "type": "Text", "role": "Text" },
+    { "name": "CptyText", "type": "Text", "role": "Text" },
+    { "name": "MemoText", "type": "Text", "role": "Text" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "identifier.map", "from": "Entry ID", "to": "Ref", "scheme": "ref" },
+        { "rule": "text.copy", "from": "Post Date", "to": "DateText" },
+        { "rule": "text.copy", "from": "Amount", "to": "AmountText" },
+        { "rule": "text.copy", "from": "Currency", "to": "CcyText" },
+        { "rule": "text.copy", "from": "Rate", "to": "RateText" },
+        { "rule": "text.copy", "from": "Counterparty", "to": "CptyText" },
+        { "rule": "text.copy", "from": "Memo", "to": "MemoText" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "identifier.map", "from": "Bank Ref", "to": "Ref", "scheme": "ref" },
+        { "rule": "text.copy", "from": "Value Date", "to": "DateText" },
+        { "rule": "text.copy", "from": "Minor Units", "to": "AmountText" },
+        { "rule": "text.copy", "from": "D/C", "to": "SignText" },
+        { "rule": "text.copy", "from": "Ccy", "to": "CcyText" },
+        { "rule": "text.copy", "from": "Rate %", "to": "RateText" },
+        { "rule": "text.copy", "from": "Narrative", "to": "MemoText" }
+      ]
+    }
+  },
+  "paths": [
+    { "id": "all", "route": { "rule": "route.all" },
+      "passes": [ { "id": "ref", "pass": "match.naturalKey", "key": ["Ref"] } ] }
+  ]
+}

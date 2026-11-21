@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1, "profileId": "p02", "version": "1.0.0", "culture": "en-US",
+  "sources": { "left": { "rowKey": "TradeId" }, "right": { "rowKey": "Ref" } },
+  "fields": [
+    { "name": "TradeRef", "type": "Symbol", "role": "Key" },
+    { "name": "Isin", "type": "Symbol", "role": "Economic" },
+    { "name": "Side", "type": "Symbol", "role": "Economic" },
+    { "name": "Currency", "type": "Symbol", "role": "Economic" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 4 },
+    { "name": "NetAmount", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "TradeDate", "type": "Date", "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "TradeId", "to": "TradeRef", "pattern": "^TRD-0*([0-9]+)$", "replacement": "$1" },
+        { "rule": "symbol.map", "from": "Isin", "to": "Isin" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side", "map": { "B": "BUY", "S": "SELL" } },
+        { "rule": "symbol.map", "from": "Ccy", "to": "Currency" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Shares", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Px", "to": "Price" },
+        { "rule": "decimal.parse", "from": "Net", "to": "NetAmount" },
+        { "rule": "date.parse", "from": "TradeDate", "to": "TradeDate", "formats": ["yyyyMMdd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "text.regex", "from": "Ref", "to": "TradeRef", "pattern": "^trd/([0-9]+)$", "replacement": "$1", "ignoreCase": "true" },
+        { "rule": "text.regex", "from": "Security", "to": "Isin", "pattern": "[^A-Za-z0-9]", "replacement": "", "case": "upper" },
+        { "rule": "symbol.map", "from": "Action", "to": "Side", "map": { "BOT": "BUY", "SLD": "SELL" } },
+        { "rule": "text.regex", "from": "ccy", "to": "Currency", "pattern": "^(.*)$", "replacement": "$1", "case": "upper" }
+      ],
+      "parse": [
+        { "rule": "decimal.scale", "from": "Size (000s)", "to": "Quantity", "factor": "1000" },
+        { "rule": "decimal.scale", "from": "Px (minor)", "to": "Price", "factor": "0.01" },
+        { "rule": "decimal.scale", "from": "Proceeds (000s)", "to": "NetAmount", "factor": "1000" },
+        { "rule": "date.parse", "from": "Dealt", "to": "TradeDate", "formats": ["d-MMM-yyyy"] }
+      ]
+    }
+  },
+  "paths": [ { "id": "all", "route": { "rule": "route.all" }, "passes": [ { "id": "ref", "pass": "match.naturalKey", "key": ["TradeRef"] } ] } ]
+}

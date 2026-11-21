@@ -1,0 +1,4 @@
+{"pair":"p01","rows":{"left":1000,"right":1000},"cardinality":"1:1 x1000","summary":"matched=1000 exact=1000 break=0",
+"columnMap":{"Trade ID":"Confirm Ref (key, identical text)","ISIN":"ISIN","Buy/Sell":"Dir","Quantity":"Qty","Price":"Px","Currency":"CCY","Trade Date":"Dealt On","Net Amount":"Total","Account/Desk/Comment":"unmapped extras","(none)":"Venue/Status extras"},
+"transforms":["left culture en-US, right de-DE (sources.culture): decimal.parse on both","dates yyyy-MM-dd vs dd.MM.yyyy: date.parse formats","side B/S -> BUY/SELL: symbol.map map on left, passthrough right"],
+"pass":"match.naturalKey [TradeRef]","difficulty":"easy baseline: renamed/reordered columns, cultures, quoted grouped numbers, extras"}
