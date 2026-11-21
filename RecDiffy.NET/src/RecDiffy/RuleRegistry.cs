@@ -35,6 +35,7 @@ public sealed record RuleRegistry
                 new InvariantIdentifierMapRule(call.Strings["from"], call.Strings["to"], call.Strings["scheme"], call.Strings.GetValueOrDefault("scope") ?? ""))
             .Register("text.copy", RulePhase.Identify, ["from", "to"], (call, _, _) =>
                 new InvariantTextCopyRule(call.Strings["from"], call.Strings["to"]))
+            .Register("text.regex", RulePhase.Identify, ["from", "to", "pattern", "replacement"], (call, schema, _) => RegexTextRule.Create(call, schema))
             .Register("required.present", RulePhase.Validate, ["fields"], (call, _, _) =>
                 new RequiredPresentRule(call.Lists["fields"]));
 
