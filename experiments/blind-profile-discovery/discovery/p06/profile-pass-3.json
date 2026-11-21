@@ -1,0 +1,55 @@
+{
+  "formatVersion": 1,
+  "profileId": "p06",
+  "version": "pass-3",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "PositionId" },
+    "right": { "rowKey": "PositionId" }
+  },
+  "fields": [
+    { "name": "PositionId", "type": "Identifier", "role": "Key" },
+    { "name": "Account", "type": "Symbol", "role": "Key" },
+    { "name": "Ticker", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "MarketValue", "type": "Decimal", "role": "Economic", "scale": 2 }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "identifier.map", "from": "PositionId", "to": "PositionId", "scheme": "position" },
+        { "rule": "symbol.map", "from": "Account", "to": "Account" },
+        { "rule": "symbol.map", "from": "Ticker", "to": "Ticker" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "MarketValue", "to": "MarketValue" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "identifier.map", "from": "PositionId", "to": "PositionId", "scheme": "position" },
+        { "rule": "symbol.map", "from": "Account", "to": "Account" },
+        { "rule": "symbol.map", "from": "Ticker", "to": "Ticker" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "MarketValue", "to": "MarketValue" }
+      ],
+      "derive": [
+        { "rule": "cash.toPerspective", "to": "Quantity", "perspective": "BookView", "invertWhen": "COUNTERPARTY" },
+        { "rule": "cash.toPerspective", "to": "MarketValue", "perspective": "BookView", "invertWhen": "COUNTERPARTY" }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "positions",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.sharedRef", "key": ["PositionId"] }
+      ],
+      "diff": { "fields": {} }
+    }
+  ]
+}

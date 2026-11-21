@@ -1,0 +1,51 @@
+{
+  "formatVersion": 1,
+  "profileId": "p04",
+  "version": "pass-2",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "TradeId" },
+    "right": { "rowKey": "TradeId" }
+  },
+  "fields": [
+    { "name": "TradeId", "type": "Identifier", "role": "Key" },
+    { "name": "Ticker", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "NetCash", "type": "Decimal", "role": "Economic", "scale": 2 }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "identifier.map", "from": "TradeId", "to": "TradeId", "scheme": "trade" },
+        { "rule": "symbol.map", "from": "Ticker", "to": "Ticker" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "decimal.parse", "from": "NetCash", "to": "NetCash" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "identifier.map", "from": "TradeId", "to": "TradeId", "scheme": "trade" },
+        { "rule": "symbol.map", "from": "Ticker", "to": "Ticker" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "decimal.parse", "from": "NetCash", "to": "NetCash" }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "trades",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.sharedRef", "key": ["TradeId"] }
+      ],
+      "diff": { "fields": {} }
+    }
+  ]
+}

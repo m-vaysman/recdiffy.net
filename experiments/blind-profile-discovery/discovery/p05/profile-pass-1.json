@@ -1,0 +1,60 @@
+{
+  "formatVersion": 1,
+  "profileId": "p05",
+  "version": "pass-1",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "TradeId" },
+    "right": { "rowKey": "ref" }
+  },
+  "fields": [
+    { "name": "TradeId", "type": "Identifier", "role": "Key" },
+    { "name": "Book", "type": "Symbol", "role": "Key" },
+    { "name": "Ticker", "type": "Symbol", "role": "Key" },
+    { "name": "TradeDate", "type": "Date", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "NetCash", "type": "Decimal", "role": "Economic", "scale": 2 }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "identifier.map", "from": "TradeId", "to": "TradeId", "scheme": "trade" },
+        { "rule": "symbol.map", "from": "Book", "to": "Book" },
+        { "rule": "symbol.map", "from": "Ticker", "to": "Ticker" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side" }
+      ],
+      "parse": [
+        { "rule": "date.parse", "from": "TradeDate", "to": "TradeDate", "formats": ["yyyy-MM-dd"] },
+        { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "decimal.parse", "from": "NetCash", "to": "NetCash" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "identifier.map", "from": "ref", "to": "TradeId", "scheme": "trade" },
+        { "rule": "symbol.map", "from": "desk", "to": "Book" },
+        { "rule": "symbol.map", "from": "sym", "to": "Ticker" },
+        { "rule": "symbol.map", "from": "bs", "to": "Side" }
+      ],
+      "parse": [
+        { "rule": "date.parse", "from": "td", "to": "TradeDate", "formats": ["yyyy-MM-dd"] },
+        { "rule": "decimal.parse", "from": "qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "px", "to": "Price" },
+        { "rule": "decimal.parse", "from": "cash", "to": "NetCash" }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "trades",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.sharedRef", "key": ["TradeId"] }
+      ],
+      "diff": { "fields": {} }
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "formatVersion": 1,
+  "profileId": "p01",
+  "version": "pass-1",
+  "culture": "en-US",
+  "fields": [
+    { "name": "Account", "type": "Symbol", "role": "Key" },
+    { "name": "Ticker", "type": "Symbol", "role": "Key" },
+    { "name": "AsOf", "type": "Date", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "MarketValue", "type": "Decimal", "role": "Economic", "scale": 2 }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Account", "to": "Account" },
+        { "rule": "symbol.map", "from": "Ticker", "to": "Ticker" }
+      ],
+      "parse": [
+        { "rule": "date.parse", "from": "AsOf", "to": "AsOf", "formats": ["yyyy-MM-dd"] },
+        { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "MarketValue", "to": "MarketValue" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Account", "to": "Account" },
+        { "rule": "symbol.map", "from": "Ticker", "to": "Ticker" }
+      ],
+      "parse": [
+        { "rule": "date.parse", "from": "AsOf", "to": "AsOf", "formats": ["yyyy-MM-dd"] },
+        { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "MarketValue", "to": "MarketValue" }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "holdings",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.naturalKey", "key": ["Account", "Ticker", "AsOf"] }
+      ],
+      "diff": { "fields": {} }
+    }
+  ]
+}
