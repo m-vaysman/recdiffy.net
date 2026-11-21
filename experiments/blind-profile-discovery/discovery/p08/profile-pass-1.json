@@ -1,0 +1,60 @@
+{
+  "formatVersion": 1,
+  "profileId": "p08",
+  "version": "pass-1",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "FillId" },
+    "right": { "rowKey": "OrderId" }
+  },
+  "fields": [
+    { "name": "OrderId", "type": "Symbol", "role": "Key" },
+    { "name": "Ticker", "type": "Symbol", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "NetCash", "type": "Decimal", "role": "Economic", "scale": 2 }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "OrderId", "to": "OrderId" },
+        { "rule": "symbol.map", "from": "Ticker", "to": "Ticker" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "decimal.parse", "from": "NetCash", "to": "NetCash" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "OrderId", "to": "OrderId" },
+        { "rule": "symbol.map", "from": "Ticker", "to": "Ticker" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "decimal.parse", "from": "NetCash", "to": "NetCash" }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "orders",
+      "route": { "rule": "route.all" },
+      "passes": [
+        {
+          "id": "P1",
+          "pass": "match.groupSum",
+          "many": "left",
+          "block": ["OrderId", "Ticker", "Side", "Price"],
+          "conserve": ["Quantity", "NetCash"]
+        }
+      ],
+      "diff": { "fields": {} }
+    }
+  ]
+}

@@ -1,0 +1,230 @@
+{
+  "formatVersion": 1,
+  "profileId": "p07",
+  "version": "pass-2",
+  "culture": "en-US",
+  "sources": {
+    "left": {
+      "rowKey": "LotId"
+    },
+    "right": {
+      "rowKey": "LotId"
+    }
+  },
+  "fields": [
+    {
+      "name": "LotId",
+      "type": "Identifier",
+      "role": "Key"
+    },
+    {
+      "name": "Account",
+      "type": "Symbol",
+      "role": "Key"
+    },
+    {
+      "name": "Ticker",
+      "type": "Symbol",
+      "role": "Key"
+    },
+    {
+      "name": "Quantity",
+      "type": "Symbol",
+      "role": "Economic"
+    },
+    {
+      "name": "Price",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2
+    },
+    {
+      "name": "MarketValue",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 3
+    }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        {
+          "rule": "identifier.map",
+          "from": "LotId",
+          "to": "LotId",
+          "scheme": "lot"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "Account",
+          "to": "Account"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "Ticker",
+          "to": "Ticker"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "Quantity",
+          "to": "Quantity",
+          "map": {
+            "100": "100",
+            "200": "200",
+            "300": "300",
+            "400": "400",
+            "500": "500",
+            "600": "600",
+            "700": "700",
+            "800": "800",
+            "900": "900",
+            "1000": "1000",
+            "1100": "1100",
+            "1200": "1200",
+            "1300": "1300",
+            "1400": "1400",
+            "1500": "1500",
+            "1600": "1600",
+            "1700": "1700",
+            "1800": "1800",
+            "1900": "1900",
+            "2000": "2000",
+            "2100": "2100",
+            "2200": "2200",
+            "2300": "2300",
+            "2400": "2400",
+            "2500": "2500",
+            "2600": "2600",
+            "2700": "2700",
+            "2800": "2800",
+            "2900": "2900",
+            "3000": "3000",
+            "3100": "3100",
+            "3200": "3200",
+            "3300": "3300",
+            "3400": "3400",
+            "3500": "3500",
+            "3600": "3600",
+            "3700": "3700",
+            "3800": "3800",
+            "3900": "3900",
+            "4000": "4000"
+          },
+          "passthrough": false
+        }
+      ],
+      "parse": [
+        {
+          "rule": "decimal.parse",
+          "from": "Price",
+          "to": "Price"
+        },
+        {
+          "rule": "decimal.parse",
+          "from": "MarketValue",
+          "to": "MarketValue"
+        }
+      ]
+    },
+    "right": {
+      "identify": [
+        {
+          "rule": "identifier.map",
+          "from": "LotId",
+          "to": "LotId",
+          "scheme": "lot"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "Account",
+          "to": "Account"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "Ticker",
+          "to": "Ticker"
+        },
+        {
+          "rule": "symbol.map",
+          "from": "Quantity",
+          "to": "Quantity",
+          "map": {
+            "0.1": "100",
+            "0.2": "200",
+            "0.3": "300",
+            "0.4": "400",
+            "0.5": "500",
+            "0.6": "600",
+            "0.7": "700",
+            "0.8": "800",
+            "0.9": "900",
+            "1": "1000",
+            "1.1": "1100",
+            "1.2": "1200",
+            "1.3": "1300",
+            "1.4": "1400",
+            "1.5": "1500",
+            "1.6": "1600",
+            "1.7": "1700",
+            "1.8": "1800",
+            "1.9": "1900",
+            "2": "2000",
+            "2.1": "2100",
+            "2.2": "2200",
+            "2.3": "2300",
+            "2.4": "2400",
+            "2.5": "2500",
+            "2.6": "2600",
+            "2.7": "2700",
+            "2.8": "2800",
+            "2.9": "2900",
+            "3": "3000",
+            "3.1": "3100",
+            "3.2": "3200",
+            "3.3": "3300",
+            "3.4": "3400",
+            "3.5": "3500",
+            "3.6": "3600",
+            "3.7": "3700",
+            "3.8": "3800",
+            "3.9": "3900",
+            "4": "4000"
+          },
+          "passthrough": false
+        }
+      ],
+      "parse": [
+        {
+          "rule": "decimal.parse",
+          "from": "Price",
+          "to": "Price"
+        },
+        {
+          "rule": "decimal.parse",
+          "from": "MarketValue",
+          "to": "MarketValue"
+        }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "lots",
+      "route": {
+        "rule": "route.all"
+      },
+      "passes": [
+        {
+          "id": "P1",
+          "pass": "match.sharedRef",
+          "key": [
+            "LotId"
+          ]
+        }
+      ],
+      "diff": {
+        "fields": {}
+      }
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "profileId": "p02",
+  "version": "pass-1",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "EntryId" },
+    "right": { "rowKey": "EntryId" }
+  },
+  "fields": [
+    { "name": "EntryId", "type": "Identifier", "role": "Key" },
+    { "name": "Account", "type": "Symbol", "role": "Key" },
+    { "name": "ValueDate", "type": "Date", "role": "Key" },
+    { "name": "Currency", "type": "Symbol", "role": "Key" },
+    { "name": "Amount", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "Balance", "type": "Decimal", "role": "Economic", "scale": 2 }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "identifier.map", "from": "EntryId", "to": "EntryId", "scheme": "entry" },
+        { "rule": "symbol.map", "from": "Account", "to": "Account" },
+        { "rule": "symbol.map", "from": "Currency", "to": "Currency" }
+      ],
+      "parse": [
+        { "rule": "date.parse", "from": "ValueDate", "to": "ValueDate", "formats": ["yyyy-MM-dd"] },
+        { "rule": "decimal.parse", "from": "Amount", "to": "Amount" },
+        { "rule": "decimal.parse", "from": "Balance", "to": "Balance" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "identifier.map", "from": "EntryId", "to": "EntryId", "scheme": "entry" },
+        { "rule": "symbol.map", "from": "Account", "to": "Account" },
+        { "rule": "symbol.map", "from": "Currency", "to": "Currency" }
+      ],
+      "parse": [
+        { "rule": "date.parse", "from": "ValueDate", "to": "ValueDate", "formats": ["yyyy-MM-dd"] },
+        { "rule": "decimal.parse", "from": "Amount", "to": "Amount" },
+        { "rule": "decimal.parse", "from": "Balance", "to": "Balance" }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "entries",
+      "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "P1", "pass": "match.sharedRef", "key": ["EntryId"] }
+      ],
+      "diff": { "fields": {} }
+    }
+  ]
+}
