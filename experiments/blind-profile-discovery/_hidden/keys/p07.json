@@ -1,0 +1,275 @@
+{
+  "pairId": "p07",
+  "title": "Quantities and market values in thousands",
+  "phenomenon": "Same lots. Right Quantity and MarketValue are the left values divided by 1000. Price is the same per-share number on both sides.",
+  "correspondence": "One row to one row on LotId after multiplying the right quantity and market value by 1000.",
+  "plantedBreaks": 0,
+  "engineExpressible": false,
+  "expectClean": false,
+  "engineGap": "No rule multiplies or divides a decimal by a constant. A relative tolerance is not this transform: the ratio is exactly 0.001, so the relative gap is 0.999.",
+  "engineNotes": "The profile in this key maps the columns and compares exactly, so every matched row breaks on Quantity and MarketValue and Price stays exact. The records themselves correspond after multiplying the right figures by 1000.",
+  "confounds": [],
+  "rounding": "ToEven",
+  "rowKey": {
+    "left": "LotId",
+    "right": "LotId"
+  },
+  "match": {
+    "pass": "match.naturalKey",
+    "key": [
+      "LotId"
+    ],
+    "block": [],
+    "conserve": [],
+    "many": null
+  },
+  "columns": [
+    {
+      "field": "LotId",
+      "type": "Identifier",
+      "role": "Identity",
+      "scale": 0,
+      "left": "LotId",
+      "right": "LotId",
+      "transform": "none"
+    },
+    {
+      "field": "Account",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Account",
+      "right": "Account",
+      "transform": "none"
+    },
+    {
+      "field": "Ticker",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Ticker",
+      "right": "Ticker",
+      "transform": "none"
+    },
+    {
+      "field": "Quantity",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 4,
+      "left": "Quantity",
+      "right": "Quantity",
+      "transform": "multiply right by 1000"
+    },
+    {
+      "field": "Price",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 4,
+      "left": "Price",
+      "right": "Price",
+      "transform": "none"
+    },
+    {
+      "field": "MarketValue",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 4,
+      "left": "MarketValue",
+      "right": "MarketValue",
+      "transform": "multiply right by 1000"
+    }
+  ],
+  "transforms": [
+    {
+      "field": "Quantity",
+      "side": "right",
+      "op": "multiply",
+      "detail": "Right quantity is in thousands of shares. Multiply by 1000 to reach the left share count."
+    },
+    {
+      "field": "MarketValue",
+      "side": "right",
+      "op": "multiply",
+      "detail": "Right market value is in thousands. Same factor as Quantity. Price is not scaled."
+    }
+  ],
+  "profile": {
+    "formatVersion": 1,
+    "profileId": "p07",
+    "version": "1",
+    "culture": "en-US",
+    "rounding": {
+      "midpoint": "ToEven"
+    },
+    "sources": {
+      "left": {
+        "rowKey": "LotId"
+      },
+      "right": {
+        "rowKey": "LotId"
+      }
+    },
+    "fields": [
+      {
+        "name": "LotId",
+        "type": "Identifier",
+        "role": "Identity"
+      },
+      {
+        "name": "Account",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "Ticker",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "Quantity",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 4
+      },
+      {
+        "name": "Price",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 4
+      },
+      {
+        "name": "MarketValue",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 4
+      }
+    ],
+    "normalization": {
+      "left": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "LotId",
+            "to": "LotId",
+            "scheme": "LOT"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Account",
+            "to": "Account"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Ticker",
+            "to": "Ticker"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "decimal.parse",
+            "from": "Quantity",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Price",
+            "to": "Price"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "MarketValue",
+            "to": "MarketValue"
+          }
+        ]
+      },
+      "right": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "LotId",
+            "to": "LotId",
+            "scheme": "LOT"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Account",
+            "to": "Account"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Ticker",
+            "to": "Ticker"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "decimal.parse",
+            "from": "Quantity",
+            "to": "Quantity"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Price",
+            "to": "Price"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "MarketValue",
+            "to": "MarketValue"
+          }
+        ]
+      }
+    },
+    "paths": [
+      {
+        "id": "lots",
+        "route": {
+          "rule": "route.all"
+        },
+        "passes": [
+          {
+            "id": "lot",
+            "pass": "match.naturalKey",
+            "key": [
+              "LotId"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rightRowOrder": "shuffled",
+  "dataCheck": "Every record matches its counterpart after the transforms in this key. No planted breaks. Row order is not part of the correspondence.",
+  "leftFile": "pairs/p07/left.csv",
+  "rightFile": "pairs/p07/right.csv",
+  "leftRows": 1500,
+  "rightRows": 1500,
+  "leftHeader": [
+    "LotId",
+    "Account",
+    "Ticker",
+    "Quantity",
+    "Price",
+    "MarketValue"
+  ],
+  "rightHeader": [
+    "LotId",
+    "Account",
+    "Ticker",
+    "Quantity",
+    "Price",
+    "MarketValue"
+  ],
+  "verifiedRun": {
+    "matched": 1500,
+    "exact": 0,
+    "withinTolerance": 0,
+    "break": 1500,
+    "leftOnly": 0,
+    "rightOnly": 0,
+    "ambiguous": 0,
+    "searchIncomplete": 0,
+    "quarantined": 0,
+    "suppressed": 0
+  }
+}

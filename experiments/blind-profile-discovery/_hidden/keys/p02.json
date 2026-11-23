@@ -1,0 +1,267 @@
+{
+  "pairId": "p02",
+  "title": "Clean cash ledger",
+  "phenomenon": "Same headers, column order, and values. The right file is not in the same row order.",
+  "correspondence": "One row to one row on EntryId. Every other column repeats.",
+  "plantedBreaks": 0,
+  "engineExpressible": true,
+  "expectClean": true,
+  "engineGap": null,
+  "engineNotes": "Identity mapping. Amount and Balance are exact at scale 2.",
+  "confounds": [],
+  "rounding": "ToEven",
+  "rowKey": {
+    "left": "EntryId",
+    "right": "EntryId"
+  },
+  "match": {
+    "pass": "match.naturalKey",
+    "key": [
+      "EntryId"
+    ],
+    "block": [],
+    "conserve": [],
+    "many": null
+  },
+  "columns": [
+    {
+      "field": "EntryId",
+      "type": "Identifier",
+      "role": "Identity",
+      "scale": 0,
+      "left": "EntryId",
+      "right": "EntryId",
+      "transform": "none"
+    },
+    {
+      "field": "Account",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Account",
+      "right": "Account",
+      "transform": "none"
+    },
+    {
+      "field": "ValueDate",
+      "type": "Date",
+      "role": "Key",
+      "scale": 0,
+      "left": "ValueDate",
+      "right": "ValueDate",
+      "transform": "none"
+    },
+    {
+      "field": "Currency",
+      "type": "Symbol",
+      "role": "Key",
+      "scale": 0,
+      "left": "Currency",
+      "right": "Currency",
+      "transform": "none"
+    },
+    {
+      "field": "Amount",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2,
+      "left": "Amount",
+      "right": "Amount",
+      "transform": "none"
+    },
+    {
+      "field": "Balance",
+      "type": "Decimal",
+      "role": "Economic",
+      "scale": 2,
+      "left": "Balance",
+      "right": "Balance",
+      "transform": "none"
+    }
+  ],
+  "transforms": [],
+  "profile": {
+    "formatVersion": 1,
+    "profileId": "p02",
+    "version": "1",
+    "culture": "en-US",
+    "rounding": {
+      "midpoint": "ToEven"
+    },
+    "sources": {
+      "left": {
+        "rowKey": "EntryId"
+      },
+      "right": {
+        "rowKey": "EntryId"
+      }
+    },
+    "fields": [
+      {
+        "name": "EntryId",
+        "type": "Identifier",
+        "role": "Identity"
+      },
+      {
+        "name": "Account",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "ValueDate",
+        "type": "Date",
+        "role": "Key"
+      },
+      {
+        "name": "Currency",
+        "type": "Symbol",
+        "role": "Key"
+      },
+      {
+        "name": "Amount",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 2
+      },
+      {
+        "name": "Balance",
+        "type": "Decimal",
+        "role": "Economic",
+        "scale": 2
+      }
+    ],
+    "normalization": {
+      "left": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "EntryId",
+            "to": "EntryId",
+            "scheme": "ENTRY"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Account",
+            "to": "Account"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Currency",
+            "to": "Currency"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "date.parse",
+            "from": "ValueDate",
+            "to": "ValueDate",
+            "formats": [
+              "yyyy-MM-dd"
+            ]
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Amount",
+            "to": "Amount"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Balance",
+            "to": "Balance"
+          }
+        ]
+      },
+      "right": {
+        "identify": [
+          {
+            "rule": "identifier.map",
+            "from": "EntryId",
+            "to": "EntryId",
+            "scheme": "ENTRY"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Account",
+            "to": "Account"
+          },
+          {
+            "rule": "symbol.map",
+            "from": "Currency",
+            "to": "Currency"
+          }
+        ],
+        "parse": [
+          {
+            "rule": "date.parse",
+            "from": "ValueDate",
+            "to": "ValueDate",
+            "formats": [
+              "yyyy-MM-dd"
+            ]
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Amount",
+            "to": "Amount"
+          },
+          {
+            "rule": "decimal.parse",
+            "from": "Balance",
+            "to": "Balance"
+          }
+        ]
+      }
+    },
+    "paths": [
+      {
+        "id": "cash",
+        "route": {
+          "rule": "route.all"
+        },
+        "passes": [
+          {
+            "id": "entry",
+            "pass": "match.naturalKey",
+            "key": [
+              "EntryId"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rightRowOrder": "shuffled",
+  "dataCheck": "Every record matches its counterpart after the transforms in this key. No planted breaks. Row order is not part of the correspondence.",
+  "leftFile": "pairs/p02/left.csv",
+  "rightFile": "pairs/p02/right.csv",
+  "leftRows": 800,
+  "rightRows": 800,
+  "leftHeader": [
+    "EntryId",
+    "Account",
+    "ValueDate",
+    "Currency",
+    "Amount",
+    "Balance"
+  ],
+  "rightHeader": [
+    "EntryId",
+    "Account",
+    "ValueDate",
+    "Currency",
+    "Amount",
+    "Balance"
+  ],
+  "verifiedRun": {
+    "matched": 800,
+    "exact": 800,
+    "withinTolerance": 0,
+    "break": 0,
+    "leftOnly": 0,
+    "rightOnly": 0,
+    "ambiguous": 0,
+    "searchIncomplete": 0,
+    "quarantined": 0,
+    "suppressed": 0
+  }
+}
