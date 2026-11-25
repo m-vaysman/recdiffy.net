@@ -1,0 +1,37 @@
+{
+  "formatVersion": 1, "profileId": "p03", "version": "1.0.0", "culture": "en-US",
+  "sources": { "left": { "rowKey": "Entry ID" }, "right": { "rowKey": "Bank Ref" } },
+  "fields": [
+    { "name": "EntryRef", "type": "Symbol", "role": "Key" },
+    { "name": "Currency", "type": "Symbol", "role": "Economic" },
+    { "name": "Amount", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "Rate", "type": "Decimal", "role": "Economic", "scale": 4 },
+    { "name": "ValueDate", "type": "Date", "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "Entry ID", "to": "EntryRef", "pattern": "^GL-([0-9]{4})-([0-9]+)$", "replacement": "$1$2" },
+        { "rule": "symbol.map", "from": "Currency", "to": "Currency" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Amount", "to": "Amount" },
+        { "rule": "decimal.parse", "from": "Rate", "to": "Rate" },
+        { "rule": "date.parse", "from": "Post Date", "to": "ValueDate", "formats": ["yyyy-MM-dd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "text.regex", "from": "Bank Ref", "to": "EntryRef", "pattern": "^([0-9]{4})/([0-9]+)$", "replacement": "$1$2" },
+        { "rule": "symbol.map", "from": "Ccy", "to": "Currency" }
+      ],
+      "parse": [
+        { "rule": "decimal.scale", "from": "Minor Units", "to": "Amount", "factor": "-0.01", "when": { "field": "D/C", "equals": "D" } },
+        { "rule": "decimal.scale", "from": "Minor Units", "to": "Amount", "factor": "0.01", "when": { "field": "D/C", "notEquals": "D" } },
+        { "rule": "decimal.scale", "from": "Rate %", "to": "Rate", "factor": "0.01" },
+        { "rule": "date.parse", "from": "Value Date", "to": "ValueDate", "formats": ["M/d/yyyy"] }
+      ]
+    }
+  },
+  "paths": [ { "id": "all", "route": { "rule": "route.all" }, "passes": [ { "id": "ref", "pass": "match.naturalKey", "key": ["EntryRef"] } ] } ]
+}

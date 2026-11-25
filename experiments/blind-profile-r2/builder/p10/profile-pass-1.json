@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "profileId": "p10-probe",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": { "left": { "rowKey": "Ref" }, "right": { "rowKey": "Cpty Ref" } },
+  "fields": [
+    { "name": "Isin", "type": "Identifier", "role": "Key" },
+    { "name": "L_Ref", "type": "Text", "role": "Text" },
+    { "name": "L_Block", "type": "Text", "role": "Text" },
+    { "name": "L_Side", "type": "Text", "role": "Text" },
+    { "name": "L_Qty", "type": "Text", "role": "Text" },
+    { "name": "L_Price", "type": "Text", "role": "Text" },
+    { "name": "L_NetCash", "type": "Text", "role": "Text" },
+    { "name": "L_TradeDate", "type": "Text", "role": "Text" },
+    { "name": "L_Entity", "type": "Text", "role": "Text" },
+    { "name": "R_BlockId", "type": "Text", "role": "Text" },
+    { "name": "R_CptyRef", "type": "Text", "role": "Text" },
+    { "name": "R_BuySell", "type": "Text", "role": "Text" },
+    { "name": "R_Qty", "type": "Text", "role": "Text" },
+    { "name": "R_Px", "type": "Text", "role": "Text" },
+    { "name": "R_Cash", "type": "Text", "role": "Text" },
+    { "name": "R_DC", "type": "Text", "role": "Text" },
+    { "name": "R_Settled", "type": "Text", "role": "Text" },
+    { "name": "R_Venue", "type": "Text", "role": "Text" }
+  ],
+  "normalization": {
+    "left": { "identify": [
+      { "rule": "identifier.map", "from": "ISIN", "to": "Isin", "scheme": "ISIN" },
+      { "rule": "text.copy", "from": "Ref", "to": "L_Ref" },
+      { "rule": "text.copy", "from": "Block", "to": "L_Block" },
+      { "rule": "text.copy", "from": "Side", "to": "L_Side" },
+      { "rule": "text.copy", "from": "Qty", "to": "L_Qty" },
+      { "rule": "text.copy", "from": "Price", "to": "L_Price" },
+      { "rule": "text.copy", "from": "Net Cash", "to": "L_NetCash" },
+      { "rule": "text.copy", "from": "Trade Date", "to": "L_TradeDate" },
+      { "rule": "text.copy", "from": "Entity", "to": "L_Entity" }
+    ] },
+    "right": { "identify": [
+      { "rule": "identifier.map", "from": "ISIN Code", "to": "Isin", "scheme": "ISIN" },
+      { "rule": "text.copy", "from": "Block ID", "to": "R_BlockId" },
+      { "rule": "text.copy", "from": "Cpty Ref", "to": "R_CptyRef" },
+      { "rule": "text.copy", "from": "Buy/Sell", "to": "R_BuySell" },
+      { "rule": "text.copy", "from": "Qty", "to": "R_Qty" },
+      { "rule": "text.copy", "from": "Px", "to": "R_Px" },
+      { "rule": "text.copy", "from": "Cash (cents)", "to": "R_Cash" },
+      { "rule": "text.copy", "from": "D/C", "to": "R_DC" },
+      { "rule": "text.copy", "from": "Settled", "to": "R_Settled" },
+      { "rule": "text.copy", "from": "Venue", "to": "R_Venue" }
+    ] }
+  },
+  "paths": [ { "id": "all", "route": { "rule": "route.all" },
+    "passes": [ { "id": "isin", "pass": "match.naturalKey", "key": ["Isin"] } ] } ]
+}

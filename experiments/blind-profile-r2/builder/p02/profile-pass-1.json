@@ -1,0 +1,56 @@
+{
+  "formatVersion": 1,
+  "profileId": "p02-probe",
+  "version": "0.1.0",
+  "culture": "en-US",
+  "sources": {
+    "left":  { "rowKey": "TradeId" },
+    "right": { "rowKey": "Ref" }
+  },
+  "fields": [
+    { "name": "Isin", "type": "Symbol", "role": "Key" },
+    { "name": "Ref", "type": "Symbol", "role": "Economic" },
+    { "name": "Side", "type": "Symbol", "role": "Economic" },
+    { "name": "Qty", "type": "Symbol", "role": "Economic" },
+    { "name": "Px", "type": "Symbol", "role": "Economic" },
+    { "name": "Net", "type": "Symbol", "role": "Economic" },
+    { "name": "TradeDate", "type": "Symbol", "role": "Economic" },
+    { "name": "Ccy", "type": "Symbol", "role": "Economic" },
+    { "name": "Book", "type": "Symbol", "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Isin", "to": "Isin" },
+        { "rule": "symbol.map", "from": "TradeId", "to": "Ref" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side" },
+        { "rule": "symbol.map", "from": "Shares", "to": "Qty" },
+        { "rule": "symbol.map", "from": "Px", "to": "Px" },
+        { "rule": "symbol.map", "from": "Net", "to": "Net" },
+        { "rule": "symbol.map", "from": "TradeDate", "to": "TradeDate" },
+        { "rule": "symbol.map", "from": "Ccy", "to": "Ccy" },
+        { "rule": "symbol.map", "from": "Book", "to": "Book" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Security", "to": "Isin" },
+        { "rule": "symbol.map", "from": "Ref", "to": "Ref" },
+        { "rule": "symbol.map", "from": "Action", "to": "Side" },
+        { "rule": "symbol.map", "from": "Size (000s)", "to": "Qty" },
+        { "rule": "symbol.map", "from": "Px (minor)", "to": "Px" },
+        { "rule": "symbol.map", "from": "Proceeds (000s)", "to": "Net" },
+        { "rule": "symbol.map", "from": "Dealt", "to": "TradeDate" },
+        { "rule": "symbol.map", "from": "ccy", "to": "Ccy" },
+        { "rule": "symbol.map", "from": "Allocated", "to": "Book" }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "all",
+      "route": { "rule": "route.all" },
+      "passes": [ { "id": "isin", "pass": "match.naturalKey", "key": ["Isin"] } ]
+    }
+  ]
+}

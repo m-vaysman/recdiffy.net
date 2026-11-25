@@ -1,0 +1,66 @@
+{
+  "formatVersion": 1,
+  "profileId": "p10",
+  "version": "6.0.0",
+  "sources": {
+    "left": { "rowKey": "Ref", "culture": "en-US" },
+    "right": { "culture": "de-DE" }
+  },
+  "fields": [
+    { "name": "TradeRef", "type": "Symbol", "role": "Identity" },
+    { "name": "BlockKey", "type": "Symbol", "role": "Identity" },
+    { "name": "Isin", "type": "Symbol", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 4 },
+    { "name": "NetCash", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "TradeDate", "type": "Date", "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "Ref", "to": "TradeRef", "pattern": "^TR-0*([0-9]+)$", "replacement": "$1", "ignoreCase": "true", "passthrough": "false", "when": { "field": "Block", "equals": "" } },
+        { "rule": "text.regex", "from": "Block", "to": "BlockKey", "pattern": "^BLK-?0*([0-9]+)$", "replacement": "$1", "ignoreCase": "true", "passthrough": "false" },
+        { "rule": "text.regex", "from": "ISIN", "to": "Isin", "pattern": "[ ]+", "replacement": "", "case": "upper" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side", "map": { "B": "BUY", "S": "SELL" }, "passthrough": "false" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "decimal.parse", "from": "Net Cash", "to": "NetCash" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "TradeDate", "formats": ["yyyy-MM-dd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "text.regex", "from": "Cpty Ref", "to": "TradeRef", "pattern": "^TR/0*([0-9]+)$", "replacement": "$1", "ignoreCase": "true", "passthrough": "false" },
+        { "rule": "text.regex", "from": "Block ID", "to": "BlockKey", "pattern": "^BLK-?0*([0-9]+)$", "replacement": "$1", "ignoreCase": "true", "passthrough": "false" },
+        { "rule": "text.regex", "from": "ISIN Code", "to": "Isin", "pattern": "[ ]+", "replacement": "", "case": "upper" },
+        { "rule": "symbol.map", "from": "Buy/Sell", "to": "Side", "map": { "BUY": "BUY", "SELL": "SELL" }, "passthrough": "false" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Px", "to": "Price" },
+        { "rule": "decimal.scale", "from": "Cash (cents)", "to": "NetCash", "factor": "-0.01", "when": { "field": "D/C", "equals": "D" } },
+        { "rule": "decimal.scale", "from": "Cash (cents)", "to": "NetCash", "factor": "0.01", "when": { "field": "D/C", "equals": "C" } },
+        { "rule": "date.parse", "from": "Settled", "to": "TradeDate", "formats": ["dd.MM.yyyy", "yyyyMMdd"] }
+      ],
+      "validate": [
+        { "rule": "required.present", "fields": ["NetCash"] }
+      ]
+    }
+  },
+  "consolidation": {
+    "left": {
+      "packages": [
+        { "link": "BlockKey", "role": "Side", "requiredRoles": [], "aggregate": { "Price": "Same", "Quantity": "Sum", "NetCash": "Sum", "TradeDate": "Same", "Isin": "Same" } }
+      ]
+    }
+  },
+  "paths": [ { "id": "all", "route": { "rule": "route.all" },
+    "passes": [
+      { "id": "ref", "pass": "match.naturalKey", "key": ["TradeRef"] },
+      { "id": "natural", "pass": "match.naturalKey", "key": ["Isin", "Side", "Quantity", "Price"] },
+      { "id": "block", "pass": "match.naturalKey", "key": ["BlockKey", "Isin", "Side"] }
+    ] } ]
+}

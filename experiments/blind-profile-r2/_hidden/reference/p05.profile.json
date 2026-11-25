@@ -1,0 +1,46 @@
+{
+  "formatVersion": 1, "profileId": "p05", "version": "1.0.0", "culture": "en-US",
+  "fields": [
+    { "name": "BlockRef", "type": "Symbol", "role": "Key" },
+    { "name": "Isin", "type": "Symbol", "role": "Economic" },
+    { "name": "Side", "type": "Symbol", "role": "Economic" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 0 },
+    { "name": "Value", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "TradeDate", "type": "Date", "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "Block Ref", "to": "BlockRef", "pattern": "^BLK-([0-9]{4})-0*([0-9]+)$", "replacement": "$2/$1" },
+        { "rule": "symbol.map", "from": "ISIN", "to": "Isin" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side", "map": { "B": "BUY", "S": "SELL" } }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Alloc Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Alloc Amount", "to": "Value" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "TradeDate", "formats": ["yyyy-MM-dd", "dd/MM/yyyy"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Block", "to": "BlockRef" },
+        { "rule": "symbol.map", "from": "Instr", "to": "Isin" },
+        { "rule": "text.regex", "from": "Dir", "to": "Side", "pattern": "^(.+)$", "replacement": "$1", "case": "upper" }
+      ],
+      "parse": [
+        { "rule": "decimal.scale", "from": "Lots", "to": "Quantity", "factor": "100" },
+        { "rule": "decimal.scale", "from": "Block Value (k)", "to": "Value", "factor": "1000" },
+        { "rule": "date.parse", "from": "Dealt", "to": "TradeDate", "formats": ["yyyyMMdd"] }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "all", "route": { "rule": "route.all" },
+      "passes": [
+        { "id": "allocs", "pass": "match.groupSum", "block": ["BlockRef"], "conserve": ["Quantity", "Value"], "many": "left" },
+        { "id": "single", "pass": "match.naturalKey", "key": ["BlockRef"] }
+      ]
+    }
+  ]
+}

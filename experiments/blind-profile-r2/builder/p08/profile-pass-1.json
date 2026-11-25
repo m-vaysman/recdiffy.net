@@ -1,0 +1,43 @@
+{
+  "formatVersion": 1,
+  "profileId": "p08-pass-1",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left":  { "rowKey": "Event ID" },
+    "right": { "rowKey": "Trade No" }
+  },
+  "fields": [
+    { "name": "Isin", "type": "Symbol", "role": "Key" },
+    { "name": "Ref", "type": "Text", "role": "Economic" },
+    { "name": "Side", "type": "Text", "role": "Economic" },
+    { "name": "Quantity", "type": "Text", "role": "Economic" },
+    { "name": "Price", "type": "Text", "role": "Economic" },
+    { "name": "TradeDate", "type": "Text", "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "ISIN", "to": "Isin" },
+        { "rule": "text.copy", "from": "Deal Ref", "to": "Ref" },
+        { "rule": "text.copy", "from": "Side", "to": "Side" },
+        { "rule": "text.copy", "from": "Qty", "to": "Quantity" },
+        { "rule": "text.copy", "from": "Price", "to": "Price" },
+        { "rule": "text.copy", "from": "Trade Date", "to": "TradeDate" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Instrument", "to": "Isin" },
+        { "rule": "text.copy", "from": "Trade No", "to": "Ref" },
+        { "rule": "text.copy", "from": "B/S", "to": "Side" },
+        { "rule": "text.copy", "from": "Quantity", "to": "Quantity" },
+        { "rule": "text.copy", "from": "Price", "to": "Price" },
+        { "rule": "text.copy", "from": "Booked On", "to": "TradeDate" }
+      ]
+    }
+  },
+  "paths": [
+    { "id": "all", "route": { "rule": "route.all" }, "passes": [ { "id": "isin", "pass": "match.naturalKey", "key": ["Isin"] } ] }
+  ]
+}

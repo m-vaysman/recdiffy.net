@@ -1,0 +1,51 @@
+{
+  "formatVersion": 1,
+  "profileId": "p01",
+  "version": "4.0.0",
+  "sources": {
+    "left": { "rowKey": "Trade ID", "culture": "en-US", "strictDateFormats": true },
+    "right": { "rowKey": "Confirm Ref", "culture": "de-DE", "strictDateFormats": true }
+  },
+  "fields": [
+    { "name": "Ref", "type": "Identifier", "role": "Identity" },
+    { "name": "Isin", "type": "Identifier", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Economic" },
+    { "name": "Qty", "type": "Decimal", "role": "Economic", "scale": 6 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 10 },
+    { "name": "Ccy", "type": "Symbol", "role": "Economic" },
+    { "name": "TradeDate", "type": "Date", "role": "Economic" },
+    { "name": "Net", "type": "Decimal", "role": "Economic", "scale": 6 },
+    { "name": "Status", "type": "Symbol", "role": "Lifecycle" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "identifier.map", "from": "Trade ID", "to": "Ref", "scheme": "TRADE" },
+        { "rule": "identifier.map", "from": "ISIN", "to": "Isin", "scheme": "ISIN" },
+        { "rule": "symbol.map", "from": "Buy/Sell", "to": "Side", "map": { "B": "BUY", "S": "SELL" }, "passthrough": false },
+        { "rule": "symbol.map", "from": "Currency", "to": "Ccy" } ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Quantity", "to": "Qty" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "decimal.parse", "from": "Net Amount", "to": "Net" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "TradeDate", "formats": ["yyyy-MM-dd"] } ],
+      "validate": [ { "rule": "required.present", "fields": ["Ref", "Isin", "Side", "Qty", "Price", "Ccy", "TradeDate", "Net"] } ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "identifier.map", "from": "Confirm Ref", "to": "Ref", "scheme": "TRADE" },
+        { "rule": "identifier.map", "from": "ISIN", "to": "Isin", "scheme": "ISIN" },
+        { "rule": "symbol.map", "from": "Dir", "to": "Side", "passthrough": false, "map": { "BUY": "BUY", "SELL": "SELL" } },
+        { "rule": "symbol.map", "from": "CCY", "to": "Ccy" },
+        { "rule": "symbol.map", "from": "Status", "to": "Status", "passthrough": false, "map": { "CONFIRMED": "CONFIRMED" } } ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Qty", "to": "Qty" },
+        { "rule": "decimal.parse", "from": "Px", "to": "Price" },
+        { "rule": "decimal.parse", "from": "Total", "to": "Net" },
+        { "rule": "date.parse", "from": "Dealt On", "to": "TradeDate", "formats": ["dd.MM.yyyy"] } ],
+      "validate": [ { "rule": "required.present", "fields": ["Ref", "Isin", "Side", "Qty", "Price", "Ccy", "TradeDate", "Net"] } ]
+    }
+  },
+  "paths": [ { "id": "all", "route": { "rule": "route.all" },
+    "passes": [ { "id": "natural", "pass": "match.naturalKey", "key": ["Isin", "Side", "TradeDate", "Qty", "Price"] } ] } ]
+}

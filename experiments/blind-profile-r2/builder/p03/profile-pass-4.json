@@ -1,0 +1,56 @@
+﻿{
+  "formatVersion": 1,
+  "profileId": "p03",
+  "version": "4.0.0",
+  "culture": "en-US",
+  "strictDateFormats": true,
+  "sources": {
+    "left":  { "rowKey": "Entry ID" },
+    "right": { "rowKey": "Bank Ref" }
+  },
+  "fields": [
+    { "name": "Ref", "type": "Symbol", "role": "Key" },
+    { "name": "Date", "type": "Date", "role": "Economic" },
+    { "name": "Amount", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "Currency", "type": "Symbol", "role": "Economic" },
+    { "name": "Rate", "type": "Decimal", "role": "Economic", "scale": 6 },
+    { "name": "Memo", "type": "Symbol", "role": "Economic" },
+    { "name": "Counterparty", "type": "Text", "role": "Text" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "Entry ID", "to": "Ref", "pattern": "^GL-(\\d{4})-(\\d+)$", "replacement": "$1/$2", "passthrough": false },
+        { "rule": "symbol.map", "from": "Currency", "to": "Currency" },
+        { "rule": "symbol.map", "from": "Memo", "to": "Memo" },
+        { "rule": "text.copy", "from": "Counterparty", "to": "Counterparty" }
+      ],
+      "parse": [
+        { "rule": "date.parse", "from": "Post Date", "to": "Date", "formats": ["yyyy-MM-dd"] },
+        { "rule": "decimal.parse", "from": "Amount", "to": "Amount" },
+        { "rule": "decimal.parse", "from": "Rate", "to": "Rate" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Bank Ref", "to": "Ref" },
+        { "rule": "symbol.map", "from": "Ccy", "to": "Currency" },
+        { "rule": "symbol.map", "from": "Narrative", "to": "Memo" }
+      ],
+      "parse": [
+        { "rule": "date.parse", "from": "Value Date", "to": "Date", "formats": ["M/d/yyyy"] },
+        { "rule": "decimal.scale", "from": "Minor Units", "to": "Amount", "factor": "-0.01", "when": { "field": "D/C", "equals": "C" } },
+        { "rule": "decimal.scale", "from": "Minor Units", "to": "Amount", "factor": "0.01", "when": { "field": "D/C", "equals": "D" } },
+        { "rule": "decimal.scale", "from": "Rate %", "to": "Rate", "factor": "0.01" }
+      ],
+      "validate": [
+        { "rule": "required.present", "fields": ["Amount"] }
+      ]
+    }
+  },
+  "paths": [
+    { "id": "all", "route": { "rule": "route.all" },
+      "passes": [ { "id": "ref", "pass": "match.naturalKey", "key": ["Ref"] } ] }
+  ]
+}
+

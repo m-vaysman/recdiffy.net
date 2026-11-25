@@ -1,0 +1,52 @@
+{
+  "formatVersion": 1,
+  "profileId": "p06",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "strictDateFormats": true,
+  "sources": {
+    "left":  { "rowKey": "Our Ref" },
+    "right": { "rowKey": "Cpty Ref" }
+  },
+  "fields": [
+    { "name": "Isin", "type": "Identifier", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Key" },
+    { "name": "TradeDate", "type": "Date", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "scale": 4, "role": "Economic" },
+    { "name": "Price", "type": "Decimal", "scale": 6, "role": "Economic" },
+    { "name": "Net", "type": "Decimal", "scale": 4, "role": "Economic" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "identifier.map", "from": "ISIN", "to": "Isin", "scheme": "ISIN" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "decimal.parse", "from": "Net", "to": "Net" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "TradeDate", "formats": ["yyyy-MM-dd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "identifier.map", "from": "Security", "to": "Isin", "scheme": "ISIN" },
+        { "rule": "symbol.map", "from": "Action", "to": "Side" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Size", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Px", "to": "Price" },
+        { "rule": "decimal.parse", "from": "Proceeds", "to": "Net" },
+        { "rule": "date.parse", "from": "Trade Dt", "to": "TradeDate", "formats": ["yyyy-MM-dd"] }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "all",
+      "route": { "rule": "route.all" },
+      "passes": [ { "id": "P1", "pass": "match.naturalKey", "key": ["Isin", "Side", "TradeDate"] } ]
+    }
+  ]
+}

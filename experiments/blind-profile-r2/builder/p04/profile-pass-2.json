@@ -1,0 +1,58 @@
+﻿{
+  "formatVersion": 1,
+  "profileId": "p04-orders-vs-fills",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "Order No" },
+    "right": { "rowKey": "Fill ID" }
+  },
+  "fields": [
+    { "name": "OrderRef", "type": "Symbol", "role": "Key" },
+    { "name": "Security", "type": "Symbol", "role": "Economic" },
+    { "name": "SideCode", "type": "Symbol", "role": "Economic" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 4 },
+    { "name": "Amount", "type": "Decimal", "role": "Economic", "scale": 4 },
+    { "name": "TradeDateText", "type": "Symbol", "role": "Economic" },
+    { "name": "LegRole", "type": "Symbol", "role": "Package" },
+    { "name": "RawQty", "type": "Symbol", "role": "Identity" },
+    { "name": "RawAmt", "type": "Symbol", "role": "Identity" },
+    { "name": "RawPx", "type": "Symbol", "role": "Identity" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Order No", "to": "OrderRef" },
+        { "rule": "symbol.map", "from": "Security", "to": "Security" },
+        { "rule": "symbol.map", "from": "Side", "to": "SideCode" },
+        { "rule": "symbol.map", "from": "Trade Date", "to": "TradeDateText" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Order Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Order Value", "to": "Amount" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Parent Order", "to": "OrderRef" },
+        { "rule": "symbol.map", "from": "ISIN", "to": "Security" },
+        { "rule": "symbol.map", "from": "B/S", "to": "SideCode" },
+        { "rule": "symbol.map", "from": "Exec Date", "to": "TradeDateText" },
+        { "rule": "symbol.map", "from": "Venue", "to": "LegRole" },
+        { "rule": "symbol.map", "from": "Fill Qty", "to": "RawQty" },
+        { "rule": "symbol.map", "from": "Fill Amount", "to": "RawAmt" },
+        { "rule": "symbol.map", "from": "Fill Px", "to": "RawPx" }
+      ],
+      "parse": []
+    }
+  },
+    "paths": [
+    {
+      "id": "all",
+      "route": { "rule": "route.all" },
+      "passes": [ { "id": "P1", "pass": "match.naturalKey", "key": ["OrderRef"] } ],
+      "diff": { "fields": {} }
+    }
+  ]
+}
+

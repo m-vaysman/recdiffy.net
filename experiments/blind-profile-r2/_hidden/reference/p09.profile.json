@@ -1,0 +1,55 @@
+{
+  "formatVersion": 1, "profileId": "p09", "version": "1.0.0",
+  "sources": { "left": { "culture": "en-US" }, "right": { "culture": "de-DE" } },
+  "fields": [
+    { "name": "AssetClass", "type": "Symbol", "role": "Key" },
+    { "name": "Isin", "type": "Symbol", "role": "Key" },
+    { "name": "Side", "type": "Symbol", "role": "Key" },
+    { "name": "Quantity", "type": "Decimal", "role": "Key", "scale": 0 },
+    { "name": "Price", "type": "Decimal", "role": "Economic", "scale": 6 },
+    { "name": "Accrued", "type": "Decimal", "role": "Economic", "scale": 2 },
+    { "name": "TradeDate", "type": "Date", "role": "Key" },
+    { "name": "SettleDate", "type": "Date", "role": "Key" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Asset Class", "to": "AssetClass", "map": { "EQ": "Equity", "BD": "Bond" } },
+        { "rule": "symbol.map", "from": "ISIN", "to": "Isin" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side", "map": { "B": "BUY", "S": "SELL" } }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "decimal.parse", "from": "Accrued", "to": "Accrued" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "TradeDate", "formats": ["yyyy-MM-dd"] },
+        { "rule": "date.parse", "from": "Settle Date", "to": "SettleDate", "formats": ["yyyy-MM-dd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Type", "to": "AssetClass", "map": { "Fixed Income": "Bond" } },
+        { "rule": "symbol.map", "from": "Security ID", "to": "Isin" },
+        { "rule": "symbol.map", "from": "Dir", "to": "Side" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Face/Shares", "to": "Quantity" },
+        { "rule": "price.from32nds", "from": "Clean Px", "to": "Price", "when": { "field": "AssetClass", "equals": "Bond" } },
+        { "rule": "decimal.parse", "from": "Clean Px", "to": "Price", "when": { "field": "AssetClass", "notEquals": "Bond" } },
+        { "rule": "decimal.parse", "from": "Accrued Int", "to": "Accrued" },
+        { "rule": "date.parse", "from": "TD", "to": "TradeDate", "formats": ["yyyyMMdd"] },
+        { "rule": "date.parse", "from": "SD", "to": "SettleDate", "formats": ["dd-MM-yy"] }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "equities", "route": { "rule": "route.byField", "field": "AssetClass", "equals": "Equity" },
+      "passes": [ { "id": "eq", "pass": "match.naturalKey", "key": ["Isin", "Side", "Quantity", "TradeDate"] } ]
+    },
+    {
+      "id": "bonds", "route": { "rule": "route.byField", "field": "AssetClass", "equals": "Bond" },
+      "passes": [ { "id": "bd", "pass": "match.naturalKey", "key": ["Isin", "Side", "Quantity", "SettleDate"] } ]
+    }
+  ]
+}

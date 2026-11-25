@@ -1,0 +1,57 @@
+﻿{
+  "formatVersion": 1,
+  "profileId": "p08-pass-5",
+  "version": "1.0.0",
+  "sources": {
+    "left":  { "rowKey": "Event ID", "culture": "en-US" },
+    "right": { "rowKey": "Trade No", "culture": "de-DE" }
+  },
+  "fields": [
+    { "name": "Ref", "type": "Symbol", "role": "Key" },
+    { "name": "Isin", "type": "Symbol", "role": "Economic" },
+    { "name": "Side", "type": "Symbol", "role": "Economic" },
+    { "name": "Quantity", "type": "Decimal", "scale": 6, "role": "Economic" },
+    { "name": "Price", "type": "Decimal", "scale": 10, "role": "Economic" },
+    { "name": "TradeDate", "type": "Date", "role": "Economic" },
+    { "name": "Counterparty", "type": "Symbol", "role": "Identity" },
+    { "name": "EventAction", "type": "Symbol", "role": "Lifecycle" },
+    { "name": "EventTarget", "type": "Symbol", "role": "Lifecycle" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "Deal Ref", "to": "Ref", "pattern": "-", "replacement": "", "case": "upper" },
+        { "rule": "symbol.map", "from": "ISIN", "to": "Isin" },
+        { "rule": "symbol.map", "from": "Side", "to": "Side", "map": { "B": "BUY", "S": "SELL" }, "passthrough": false },
+        { "rule": "symbol.map", "from": "Party", "to": "Counterparty" },
+        { "rule": "symbol.map", "from": "Event Type", "to": "EventAction", "map": { "NEW": "NEW", "AMEND": "CORR", "CANCEL": "CANC" }, "passthrough": false },
+        { "rule": "symbol.map", "from": "Replaces", "to": "EventTarget" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "TradeDate", "formats": ["yyyy-MM-dd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "text.regex", "from": "Trade No", "to": "Ref", "pattern": "-", "replacement": "", "case": "upper" },
+        { "rule": "symbol.map", "from": "Instrument", "to": "Isin" },
+        { "rule": "symbol.map", "from": "B/S", "to": "Side", "map": { "BUY": "BUY", "SELL": "SELL" }, "passthrough": false }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Quantity", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Price", "to": "Price" },
+        { "rule": "date.parse", "from": "Booked On", "to": "TradeDate", "formats": ["yyyyMMdd"] }
+      ]
+    }
+  },
+  "consolidation": {
+    "left": { "lifecycle": { "action": "EventAction", "target": "EventTarget", "scope": "Counterparty", "corrTarget": "DIRECT" } }
+  },
+  "paths": [
+    { "id": "all", "route": { "rule": "route.all" }, "passes": [ { "id": "ref", "pass": "match.naturalKey", "key": ["Ref"] } ] }
+  ]
+}
+
+

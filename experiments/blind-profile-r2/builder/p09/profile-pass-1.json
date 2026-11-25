@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "profileId": "p09-probe",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "fields": [
+    { "name": "Instrument", "type": "Symbol", "role": "Key" },
+    { "name": "rAsset", "type": "Text", "role": "Text" },
+    { "name": "rSide", "type": "Text", "role": "Text" },
+    { "name": "rQty", "type": "Text", "role": "Text" },
+    { "name": "rPrice", "type": "Text", "role": "Text" },
+    { "name": "rAccrued", "type": "Text", "role": "Text" },
+    { "name": "rTD", "type": "Text", "role": "Text" },
+    { "name": "rSD", "type": "Text", "role": "Text" },
+    { "name": "rAcct", "type": "Text", "role": "Text" },
+    { "name": "rDesk", "type": "Text", "role": "Text" },
+    { "name": "rTrader", "type": "Text", "role": "Text" },
+    { "name": "rCpty", "type": "Text", "role": "Text" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "symbol.map", "from": "ISIN", "to": "Instrument" },
+        { "rule": "text.copy", "from": "Asset Class", "to": "rAsset" },
+        { "rule": "text.copy", "from": "Side", "to": "rSide" },
+        { "rule": "text.copy", "from": "Qty", "to": "rQty" },
+        { "rule": "text.copy", "from": "Price", "to": "rPrice" },
+        { "rule": "text.copy", "from": "Accrued", "to": "rAccrued" },
+        { "rule": "text.copy", "from": "Trade Date", "to": "rTD" },
+        { "rule": "text.copy", "from": "Settle Date", "to": "rSD" },
+        { "rule": "text.copy", "from": "Acct", "to": "rAcct" },
+        { "rule": "text.copy", "from": "Desk", "to": "rDesk" },
+        { "rule": "text.copy", "from": "Trader", "to": "rTrader" }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "symbol.map", "from": "Security ID", "to": "Instrument" },
+        { "rule": "text.copy", "from": "Type", "to": "rAsset" },
+        { "rule": "text.copy", "from": "Dir", "to": "rSide" },
+        { "rule": "text.copy", "from": "Face/Shares", "to": "rQty" },
+        { "rule": "text.copy", "from": "Clean Px", "to": "rPrice" },
+        { "rule": "text.copy", "from": "Accrued Int", "to": "rAccrued" },
+        { "rule": "text.copy", "from": "TD", "to": "rTD" },
+        { "rule": "text.copy", "from": "SD", "to": "rSD" },
+        { "rule": "text.copy", "from": "Cpty", "to": "rCpty" }
+      ]
+    }
+  },
+  "paths": [
+    { "id": "all", "route": { "rule": "route.all" },
+      "passes": [ { "id": "P1", "pass": "match.naturalKey", "key": ["Instrument"] } ] }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "formatVersion": 1,
+  "profileId": "p05-discovery",
+  "version": "1.0.0",
+  "culture": "",
+  "sources": { "left": { "rowKey": "Alloc ID" }, "right": {} },
+  "fields": [
+    { "name": "BlockKey", "type": "Symbol", "role": "Key" },
+    { "name": "L_Fund", "type": "Text", "role": "Text" },
+    { "name": "L_ISIN", "type": "Text", "role": "Text" },
+    { "name": "L_Side", "type": "Text", "role": "Text" },
+    { "name": "L_Qty", "type": "Text", "role": "Text" },
+    { "name": "L_Amount", "type": "Text", "role": "Text" },
+    { "name": "L_Date", "type": "Text", "role": "Text" },
+    { "name": "R_Dealt", "type": "Text", "role": "Text" },
+    { "name": "R_Dir", "type": "Text", "role": "Text" },
+    { "name": "R_Lots", "type": "Text", "role": "Text" },
+    { "name": "R_Value", "type": "Text", "role": "Text" },
+    { "name": "R_Instr", "type": "Text", "role": "Text" }
+  ],
+  "normalization": {
+    "left": { "identify": [
+      { "rule": "symbol.map", "from": "Block Ref", "to": "BlockKey" },
+      { "rule": "text.copy", "from": "Fund", "to": "L_Fund" },
+      { "rule": "text.copy", "from": "ISIN", "to": "L_ISIN" },
+      { "rule": "text.copy", "from": "Side", "to": "L_Side" },
+      { "rule": "text.copy", "from": "Alloc Qty", "to": "L_Qty" },
+      { "rule": "text.copy", "from": "Alloc Amount", "to": "L_Amount" },
+      { "rule": "text.copy", "from": "Trade Date", "to": "L_Date" }
+    ] },
+    "right": { "identify": [
+      { "rule": "symbol.map", "from": "Block", "to": "BlockKey" },
+      { "rule": "text.copy", "from": "Dealt", "to": "R_Dealt" },
+      { "rule": "text.copy", "from": "Dir", "to": "R_Dir" },
+      { "rule": "text.copy", "from": "Lots", "to": "R_Lots" },
+      { "rule": "text.copy", "from": "Block Value (k)", "to": "R_Value" },
+      { "rule": "text.copy", "from": "Instr", "to": "R_Instr" }
+    ] }
+  },
+  "paths": [ { "id": "all", "route": { "rule": "route.all" },
+    "passes": [ { "id": "P1", "pass": "match.naturalKey", "key": ["BlockKey"] } ],
+    "diff": { "fields": {} } } ]
+}

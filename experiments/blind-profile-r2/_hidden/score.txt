@@ -1,0 +1,50 @@
+== p01 profile-pass-3.json
+builder  matched=1000 exact=1000 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+reference matched=1000 exact=1000 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+pairings reference=1000 builder=1000 identical=1000 sameSuppressed=True
+VERDICT clean100=True samePairingsAsKey=True
+== p02 profile-pass-3.json
+builder  matched=1000 exact=1000 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+reference matched=1000 exact=1000 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+pairings reference=1000 builder=1000 identical=1000 sameSuppressed=True
+VERDICT clean100=True samePairingsAsKey=True
+== p03 profile-pass-2.json
+builder  matched=1000 exact=1000 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+reference matched=1000 exact=1000 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+pairings reference=1000 builder=1000 identical=1000 sameSuppressed=True
+VERDICT clean100=True samePairingsAsKey=True
+== p04 profile-pass-3.json
+builder  matched=600 exact=600 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+reference matched=600 exact=600 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+pairings reference=600 builder=600 identical=600 sameSuppressed=True
+VERDICT clean100=True samePairingsAsKey=True
+== p05 profile-pass-3.json
+builder  matched=382 exact=382 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+reference matched=382 exact=382 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+pairings reference=382 builder=382 identical=382 sameSuppressed=True
+VERDICT clean100=True samePairingsAsKey=True
+== p06 profile-pass-6.json
+builder  matched=1000 exact=1000 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+reference matched=1000 exact=1000 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+pairings reference=1000 builder=1000 identical=1000 sameSuppressed=True
+VERDICT clean100=True samePairingsAsKey=True
+== p07 profile-pass-5.json
+builder  matched=780 exact=780 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+reference matched=780 exact=780 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+pairings reference=780 builder=780 identical=780 sameSuppressed=True
+VERDICT clean100=True samePairingsAsKey=True
+== p08 profile-pass-4.json
+builder  matched=760 exact=760 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=360
+reference matched=760 exact=760 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=360
+pairings reference=760 builder=760 identical=760 sameSuppressed=True
+VERDICT clean100=True samePairingsAsKey=True
+== p09 profile-pass-2.json
+builder  matched=1000 exact=1000 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+reference matched=1000 exact=1000 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+pairings reference=1000 builder=1000 identical=1000 sameSuppressed=True
+VERDICT clean100=True samePairingsAsKey=True
+== p10 profile-pass-6.json
+builder  matched=750 exact=750 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+reference matched=750 exact=750 tol=0 break=0 lo=0 ro=0 amb=0 si=0 q=0 sup=0
+pairings reference=750 builder=750 identical=750 sameSuppressed=True
+VERDICT clean100=True samePairingsAsKey=True

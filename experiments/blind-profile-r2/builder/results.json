@@ -1,0 +1,353 @@
+[
+ {
+  "pair": "p09",
+  "finalProfile": "experiments/blind-profile-r2/builder/p09/profile-pass-2.json",
+  "passes": [
+   {
+    "pass": 1,
+    "summary": "summary matched=128 exact=128 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=296 searchIncomplete=0 quarantined=0 suppressed=0 (probe: key Instrument only, other columns copied as text)"
+   },
+   {
+    "pass": 2,
+    "summary": "summary matched=1000 exact=1000 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (final)"
+   },
+   {
+    "pass": 3,
+    "summary": "summary matched=976 exact=976 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=12 searchIncomplete=0 quarantined=0 suppressed=0 (robustness check: key Instrument+TradeDate only)"
+   }
+  ],
+  "confidence": "high",
+  "evidence": "Final pass matches all 1000 rows one-to-one, all exact, with no orphans, no quarantine and no diagnostics. No tolerances are set, so no difference can hide inside one. The code maps (AssetClass EQ/BD and Equity/Fixed Income; Side B/S and BUY/SELL) use passthrough false, so an unknown code would have raised UnknownSymbol, and none did. Left is read as en-US and right as de-DE. Right bond prices are read from 32nds (price.from32nds when AssetClass = Bond). Dates: right TD is yyyyMMdd and SD is dd-MM-yy. Pass 3 kept only Instrument and TradeDate as the key. The 976 pairs it found still agreed exactly on Side, Quantity, Price, Accrued and SettleDate, so the match does not depend on keying those fields and is not a coincidence. Reading SD as dd-MM-yy is confirmed because all 1000 settle dates agree exactly with the left's ISO dates.",
+  "verdict": "Ready for human approval.",
+  "openItems": [
+   "Acct, Desk and Trader exist only on the left, and Cpty only on the right, so they are not reconciled. A human should say whether a counterparty-to-account mapping is expected.",
+   "No row key is declared, so rows are identified by their position."
+  ],
+  "engineGaps": []
+ },
+ {
+  "pair": "p01",
+  "finalProfile": "experiments/blind-profile-r2/builder/p01/profile-pass-3.json",
+  "passes": [
+   {
+    "pass": 1,
+    "summary": "summary matched=34 exact=0 withinTolerance=0 break=34 leftOnly=0 rightOnly=0 ambiguous=255 searchIncomplete=0 quarantined=0 suppressed=0 (raw probe keyed on ISIN)"
+   },
+   {
+    "pass": 2,
+    "summary": "summary matched=1000 exact=0 withinTolerance=0 break=1000 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (only the two probe fields broke)"
+   },
+   {
+    "pass": 3,
+    "summary": "summary matched=1000 exact=1000 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (final)"
+   },
+   {
+    "pass": 4,
+    "summary": "summary matched=1000 exact=1000 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (cross-check: natural key, no ref)"
+   },
+   {
+    "pass": 5,
+    "summary": "summary matched=1000 exact=1000 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (cross-check: ref compared on natural-key pairs)"
+   }
+  ],
+  "confidence": "high",
+  "evidence": "All 1000 rows pair one to one on Trade ID = Confirm Ref. Every compared field agrees exactly: ISIN, side, quantity, price, currency, trade date and net amount. There are no tolerances, no quarantines and no ambiguous rows. Left is read as en-US and right as de-DE, with strict date formats (yyyy-MM-dd and dd.MM.yyyy). Side goes through a closed B/S to BUY/SELL map with passthrough false. Scales are set well past the data (Qty 6, Price 10, Net 6), so rounding cannot hide a difference. required.present covers every compared field. Status is checked against a closed {CONFIRMED} map that would quarantine any other value, and none was quarantined. Passes 4 and 5 check the pairing a second way: matching on ISIN+Side+Date+Qty+Price without the ref gives the same 1000 pairs, all exact, and the ref is equal on every pair. Not compared because they have no counterpart: Account, Desk, Comment (left) and Venue (right). The pass 2 probe showed Desk and Venue hold different concepts. Workspace: I:/Projects/recdiffy.net/.claude/worktrees/issue-553-b2a0ab/experiments/blind-profile-r2/builder/p01 (log.md, report.md, profile-pass-1..5.json).",
+  "verdict": "Ready for human approval.",
+  "openItems": [
+   "Left Account, Desk and Comment and right Venue are not reconciled, because they have no counterpart on the other side. A human may want to confirm that is acceptable."
+  ],
+  "engineGaps": []
+ },
+ {
+  "pair": "p04",
+  "finalProfile": "I:/Projects/recdiffy.net/.claude/worktrees/issue-553-b2a0ab/experiments/blind-profile-r2/builder/p04/profile-pass-3.json",
+  "passes": [
+   {
+    "pass": 1,
+    "summary": "summary matched=0 exact=0 withinTolerance=0 break=0 leftOnly=600 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=925 suppressed=0 (DecimalParse=925: right numbers unreadable in en-US)"
+   },
+   {
+    "pass": 2,
+    "summary": "summary matched=0 exact=0 withinTolerance=0 break=0 leftOnly=600 rightOnly=925 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (diagnostic pass: right numbers read as text; showed comma decimals, dd/MM/yyyy dates, B/S codes, 'ord6760' order refs)"
+   },
+   {
+    "pass": 3,
+    "summary": "summary matched=600 exact=600 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0; composition oneToOne=376 oneToMany=224 package=600; no diagnostics"
+   }
+  ],
+  "confidence": "high",
+  "evidence": "Left holds orders and right holds fills. Fills are packaged by parent order, with Quantity and Amount summed and the other fields required to agree. The key is the order number's digits with leading zeros stripped, so ORD-0005006 and ord5006 both give 5006. Strict regexes reject any other shape. All 600 orders match exactly, with no tolerances, on five fields besides the key: ISIN, side (a closed map from Buy/Sell and B/S, unknown codes rejected), trade date (yyyy-MM-dd on the left, dd/MM/yyyy on the right), summed quantity and summed amount at scale 4 (right side read as de-DE). All 925 fills are used. Nothing is left-only, right-only, ambiguous or quarantined, and there are no diagnostics. A wrong key mapping could not make the ISINs and exact sums line up, and a one-cent difference would break because no tolerance is set. If a fill's date differed within an order, the order would break; none did. The fields not compared exist on one side only: Account (left), Venue and Fill Px (right). Venue serves only as the package role field, with no required roles. Note: the Write tool refused report.md ('subagents should not write report files'), so its content is here. log.md and profile-pass-1/2/3.json are in I:/Projects/recdiffy.net/.claude/worktrees/issue-553-b2a0ab/experiments/blind-profile-r2/builder/p04/. Log disclosure: my first command listed directory names under builder/ recursively. It printed only the name 'p01', and nothing in it was opened. A follow-up listing of p01 was refused by the permission check and never ran.",
+  "verdict": "Ready for human approval.",
+  "openItems": [
+   "Fill Px is not checked: the left side has no price, and the profile language cannot check each fill's Fill Amount against Fill Qty x Fill Px.",
+   "Account (left only) and Venue (right only) have no counterpart and are not compared.",
+   "report.md was not written because the Write tool refused it; its content is in this structured result."
+  ],
+  "engineGaps": [
+   {
+    "gap": "No rule derives a product of two fields, so a fill's amount cannot be checked against its quantity times its price.",
+    "closingRule": "A derive-phase rule such as decimal.multiply (inputs left and right fields, output 'to', rounded to the output field's scale with the profile midpoint), so the diff can compare Amount with Quantity x Price."
+   }
+  ]
+ },
+ {
+  "pair": "p03",
+  "finalProfile": "experiments/blind-profile-r2/builder/p03/profile-pass-2.json",
+  "passes": [
+   {
+    "pass": 1,
+    "summary": "summary matched=0 exact=0 withinTolerance=0 break=0 leftOnly=1000 rightOnly=1000 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (probe: every column copied to Text fields to see canonical values)"
+   },
+   {
+    "pass": 2,
+    "summary": "summary matched=1000 exact=1000 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (final profile)"
+   },
+   {
+    "pass": 3,
+    "summary": "summary matched=1000 exact=1000 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (control: Amount scale 8, Rate scale 12)"
+   },
+   {
+    "pass": 4,
+    "summary": "summary matched=1000 exact=0 withinTolerance=0 break=1000 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (control: D/C signs swapped; Amount break=1000 ratio=-1@1.00)"
+   }
+  ],
+  "confidence": "high",
+  "evidence": "Mapping: left Entry ID GL-yyyy-nnnnnn is rewritten by text.regex (passthrough false) to yyyy/nnnnnn, which equals right Bank Ref. That is the key of a one-to-one naturalKey pass. Post Date is yyyy-MM-dd and Value Date is M/d/yyyy, both strict. Left Amount is parsed en-US. Right Minor Units uses decimal.scale with factor 0.01 when D/C=C and -0.01 when D/C=D, plus required.present. Rate % is scaled by 0.01 to equal Rate. Currency/Ccy and Memo/Narrative are compared exactly. No tolerance is set anywhere.\n\nWhy I believe the result:\n(1) All 1000 rows on each side pair 1:1, with no orphans, ambiguity or quarantine. Five independent fields (Date, Amount, Rate, Currency, Memo) are exact on every pair, so a coincidental pairing is implausible.\n(2) Pass 3 raises the scales to 8 and 12 and the result is unchanged, so rounding is not hiding differences.\n(3) Pass 4 swaps the sign convention and breaks all 1000 amounts with ratio exactly -1. So the comparison is live, every amount is non-zero, and D=negative is correct.\n(4) Zero quarantines under required.present and the passthrough-false regex. So every D/C value is C or D, and every Entry ID has the expected shape.\n\nreport.md was not written: the Write tool refused it as a subagent report file, and I did not work around that refusal (log step 20). Its intended content is this result.",
+  "verdict": "Ready for human approval.",
+  "openItems": [
+   "Counterparty appears only in the left file, so it cannot be checked against the right file. It is carried as a Text field and not compared. It is unverified, not mismatched.",
+   "report.md is missing from experiments/blind-profile-r2/builder/p03/ because the Write tool refused it. A human or the orchestrator should save it from this result if the audit needs the file."
+  ],
+  "engineGaps": []
+ },
+ {
+  "pair": "p07",
+  "finalProfile": "experiments/blind-profile-r2/builder/p07/profile-pass-5.json",
+  "passes": [
+   {
+    "pass": 1,
+    "summary": "probe: matched=0 exact=0 withinTolerance=0 break=0 leftOnly=560 rightOnly=780 ambiguous=0 searchIncomplete=0 quarantined=440 suppressed=0 (DuplicateConflict=440 on left rowKey Deal)"
+   },
+   {
+    "pass": 2,
+    "summary": "probe, positional left key: matched=0 exact=0 withinTolerance=0 break=0 leftOnly=1000 rightOnly=780 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0"
+   },
+   {
+    "pass": 3,
+    "summary": "matched=780 exact=560 withinTolerance=0 break=220 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (NetCash = Sum of legs breaks all 220 packages)"
+   },
+   {
+    "pass": 4,
+    "summary": "matched=780 exact=560 withinTolerance=0 break=220 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (NetCash = DifferenceByRole(R,P), ratio -1 on all 220)"
+   },
+   {
+    "pass": 5,
+    "summary": "matched=780 exact=780 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (NetCash = DifferenceByRole(P,R))"
+   },
+   {
+    "pass": 6,
+    "summary": "check, pass 5 with Notional and NetCash at scale 6: matched=780 exact=780 break=0, nothing unmatched or quarantined"
+   }
+  ],
+  "confidence": "high",
+  "evidence": "The profile uses all 1000 left rows and all 780 right rows: 560 match one to one and 220 are two-leg packages (Pkg Link, legs R and P). Nothing is an orphan, ambiguous, quarantined or flagged by a diagnostic. Every compared field is exact with zero tolerance: TradeRef (Deal vs Trade Ref, upper-cased), Product, Notional, NetCash and Maturity (left en-US with yyyy-MM-dd, right de-DE with dd.MM.yyyy, strict). The fields are still exact at scale 6, so rounding hides nothing. The netting rule was found step by step, not fitted to noise: Sum broke all 220 packages, R-P gave a ratio of -1 on all 220, and P-R made all 220 exact. A wrong pairing could not be exact on Notional, Product, Maturity and NetCash at once. Every package has both an R and a P leg (no IncompletePackage). The legs agree on every field that has no aggregator (no MembersDisagree). There are no value lists: the only mapping is upper-casing the reference. Report content (report.md could not be written because the agent tool refuses report files from subagents; this is noted in log.md): final profile profile-pass-5.json; match rate per pass 0%, 0%, 72% exact (100% matched), 72% exact, 100% exact, 100% exact at scale 6; confidence high; Ready for human approval; no engine gaps.",
+  "verdict": "Ready for human approval.",
+  "openItems": [
+   "Party exists only on the left, so it can't be reconciled. It is carried as an Identity field and not compared.",
+   "report.md was not written: the agent tool refused it as a subagent report file. Its content is in this structured result, and log.md item 23 records the refusal."
+  ],
+  "engineGaps": []
+ },
+ {
+  "pair": "p05",
+  "finalProfile": "experiments/blind-profile-r2/builder/p05/profile-pass-3.json",
+  "passes": [
+   {
+    "pass": 1,
+    "summary": "summary matched=0 exact=0 withinTolerance=0 break=0 leftOnly=1002 rightOnly=382 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (discovery: raw text fields to see formats)"
+   },
+   {
+    "pass": 2,
+    "summary": "summary matched=382 exact=0 withinTolerance=0 break=382 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (Quantity only, ratio 0.01@1.00: lot size 100). First attempt failed JSON parse from a shell-escaping slip, fixed with no logic change."
+   },
+   {
+    "pass": 3,
+    "summary": "summary matched=382 exact=382 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0; composition oneToOne=90 manyToOne=292 package=382; no diagnostics"
+   },
+   {
+    "pass": 4,
+    "summary": "Control only: key changed to Instrument+Side+TradeDate+Quantity+Amount. summary matched=382 exact=382 break=0 leftOnly=0 rightOnly=0; BlockKey (compared, role Key) exact on all 382"
+   }
+  ],
+  "confidence": "high",
+  "evidence": "Left allocations (1002) are packaged by normalized block ref (BLK-YYYY-NNNN -> N/YYYY), summing quantity and amount, with instrument, side and date required to be the same across the package. They then match the 382 right blocks one to one. Right Lots x100 and Block Value (k) x1000. Every field is compared exactly with no tolerance, and amounts tie to the cent on all 382 blocks. A control pass matched on economics only and found the same pairing, with the block key equal on every row, so two independent keys agree. Code maps and the block regex use passthrough false, and required.present covers all compared fields. Nothing was quarantined and there were no diagnostics, so no unexpected code, format or blank exists. The mixed left date formats (dd/MM/yyyy, yyyy-MM-dd) would show a day/month misread as a date break or a package inconsistency, and neither happened. Fund appears only on the left and is not compared.",
+  "verdict": "Ready for human approval.",
+  "openItems": [
+   "Fund exists only on the left, so fund-level allocation can't be checked against the right; that is by data design, not a profile gap."
+  ],
+  "engineGaps": [
+   {
+    "gap": "Lot-size conversion only works as one fixed decimal.scale factor. Per-instrument lot sizes could not be expressed (not needed for this pair).",
+    "closingRule": "A decimal.scaleBy rule that reads the factor from a field or from reference data keyed by instrument."
+   }
+  ]
+ },
+ {
+  "pair": "p06",
+  "finalProfile": "experiments/blind-profile-r2/builder/p06/profile-pass-6.json",
+  "passes": [
+   {
+    "pass": 1,
+    "summary": "matched=0 exact=0 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=2000 suppressed=0 (DateParse=1656 DecimalParse=1408 MissingKey=344)"
+   },
+   {
+    "pass": 2,
+    "summary": "probe with raw Symbols: matched=70 exact=0 break=70 leftOnly=62 rightOnly=0 ambiguous=236 quarantined=344"
+   },
+   {
+    "pass": 3,
+    "summary": "matched=1000 exact=1000 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0"
+   },
+   {
+    "pass": 4,
+    "summary": "control, natural key only: matched=832 exact=832 ambiguous=75"
+   },
+   {
+    "pass": 5,
+    "summary": "control, ref pass only: matched=704 exact=704 leftOnly=296 rightOnly=296"
+   },
+   {
+    "pass": 6,
+    "summary": "pass 3 at raised scales (Qty 6, Price 10, Net 8): matched=1000 exact=1000 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0"
+   }
+  ],
+  "confidence": "high",
+  "evidence": "The final profile matches all 1000 pairs, and every compared field (Isin, Side, TradeDate, Quantity, Price, Net) is exact with no tolerances, including at scales far above the data's precision. There are no diagnostics and nothing is quarantined, ambiguous or unmatched. 704 pairs match on TradeRef (left Our Ref with the TR- prefix stripped, right Cpty Ref), which is independent of the economics, and all of them agree exactly. The other 296 pairs have a blank ref on at least one side and match on Isin+Side+TradeDate+Quantity. Their Price (4 dp) and Net (2 dp) are not in that key and still agree exactly, so these matches are not coincidence. The TradeRef veto was active and blocked nothing, and no fallback key was ambiguous. How the sides differ: left is en-US with dd MMM yyyy dates and BUY/SELL; right is de-DE with yyyy.MM.dd dates and B/S, mapped with a closed code map and passthrough false. No rowKey is declared because refs are blank on 344 rows.",
+  "verdict": "Ready for human approval.",
+  "openItems": [
+   "Pairing between rows whose economics are identical and whose refs are both blank cannot be checked independently. No ambiguity was reported, and a swap would change no compared value."
+  ],
+  "engineGaps": []
+ },
+ {
+  "pair": "p08",
+  "finalProfile": "experiments/blind-profile-r2/builder/p08/profile-pass-4.json",
+  "passes": [
+   {
+    "pass": 1,
+    "summary": "summary matched=71 exact=0 withinTolerance=0 break=71 leftOnly=18 rightOnly=0 ambiguous=269 searchIncomplete=0 quarantined=0 suppressed=0 (exploratory: ISIN key, raw text)"
+   },
+   {
+    "pass": 2,
+    "summary": "summary matched=600 exact=0 withinTolerance=0 break=600 leftOnly=160 rightOnly=0 ambiguous=160 searchIncomplete=0 quarantined=0 suppressed=0 (Ref key, per-side cultures, typed fields; breaks only on temporary probe fields)"
+   },
+   {
+    "pass": 3,
+    "summary": "summary matched=760 exact=760 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=360 (left lifecycle added; composition oneToOne=760 lifecycle=160)"
+   },
+   {
+    "pass": 4,
+    "summary": "summary matched=760 exact=760 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=360 (Quantity scale 6, Price scale 10: rounding hides nothing)"
+   },
+   {
+    "pass": 5,
+    "summary": "summary matched=760 exact=760 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=360 (corrTarget DIRECT sensitivity check: no change)"
+   }
+  ],
+  "confidence": "high",
+  "evidence": "All 760 right rows match one left lifecycle survivor one-to-one and are exact on Isin, Side, Quantity, Price and TradeDate. No field has a tolerance. There are no left-only, right-only, ambiguous or quarantined rows and no diagnostics, and the lifecycle suppressed 360 left events.\n\nThe mapping: left is an event log. Its Event Type values NEW, AMEND and CANCEL go through a closed map to NEW, CORR and CANC with passthrough off, Replaces is the target and Party is the scope. Right is one row per final trade. The key is Deal Ref, which equals Trade No once the '-' is removed. Left is read as en-US and right as de-DE. Side codes are B/S on the left and BUY/SELL on the right, both closed maps. Dates are yyyy-MM-dd on the left and yyyyMMdd on the right.\n\nWhy the match is not a coincidence:\n- Before the collapse (pass 2), AMEND chains disagreed with the right file on quantity, for example 1090 vs 1080. After it they agree, so the right survivor was picked.\n- Raising Quantity to scale 6 and Price to scale 10 changes nothing, so rounding hides no difference.\n- Any Event Type or side code outside the maps would have quarantined its row, and none did.\n- Every Replaces target resolved within its Party.\n- Switching corrTarget to DIRECT gives the same result, so no AMEND targets a CANCEL.\n\nThe Write tool refused to create report.md because subagents may not write report files. I did not work around it: the report content is in this result, and log.md records the refusal at entry 22.",
+  "verdict": "Ready for human approval.",
+  "openItems": [
+   "Party is only in the left file, so it serves as the lifecycle scope and is never compared. A human should confirm that is acceptable.",
+   "report.md could not be written because the Write tool blocked it for a subagent. Its content is in this result, and log.md (entry 22) records the refusal.",
+   "Passes 2 and 4 to 5 each produced a profile file by text replace (pass 2 also used three temporary probe fields that write a constant on the right). No script touched the data."
+  ],
+  "engineGaps": []
+ },
+ {
+  "pair": "p02",
+  "finalProfile": "experiments/blind-profile-r2/builder/p02/profile-pass-3.json",
+  "passes": [
+   {
+    "pass": 1,
+    "summary": "summary matched=0 exact=0 withinTolerance=0 break=0 leftOnly=1000 rightOnly=1000 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (probe: raw values as symbols, keyed on raw Isin)"
+   },
+   {
+    "pass": 2,
+    "summary": "summary matched=1000 exact=1000 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (ref digits key, ISIN cleanup, side code map, x1000/x0.01/x1000 factors, two date formats)"
+   },
+   {
+    "pass": 3,
+    "summary": "summary matched=1000 exact=1000 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (scales raised to Qty 6/Px 10/Net 8; Allocated restricted to Y with passthrough false)"
+   },
+   {
+    "pass": 4,
+    "summary": "summary matched=1000 exact=1000 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (cross-check: keyed on Isin+Side+Qty+TradeDate, RefNo compared as Key)"
+   }
+  ],
+  "confidence": "high",
+  "evidence": "All 1000 rows on each side pair one to one. Seven fields are compared on every pair (Isin, Side, Qty, Px, Net, TradeDate, Ccy), all exact, with no tolerance anywhere. Pass 3 raised every decimal scale far beyond the data's precision and the result stayed all-exact, so rounding to scale hides nothing. Pass 4 found the same pairing without the ref (Isin+Side+Qty+TradeDate) and compared the ref as a Key field: all 1000 exact. Two independent keys give the same pairing, so the ref transform is not coincidental. Side and Allocated use passthrough false, so any unexpected code would have quarantined; none did. The transforms: ref = digits after the prefix with leading zeros dropped (TRD-0001007 / trd/3459); ISIN strip non-alphanumerics + upper case; Side B/S and BOT/SLD to BUY/SELL (closed code map); right Size (000s) x1000, Px (minor) x0.01, Proceeds (000s) x1000; dates yyyyMMdd vs d-MMM-yyyy (en-US); Ccy upper case. Note: the agent tool refused report.md (subagents may not write report files), so the report is in this result, and the log (experiments/blind-profile-r2/builder/p02/log.md) records the refusal.",
+  "verdict": "Ready for human approval.",
+  "openItems": [
+   "Left Book (ACC-nnnn) has no right counterpart; it is carried as uncompared Text. Right Allocated is a different field.",
+   "Right Allocated is Y on every row. The final profile quarantines any other value because its meaning is unknown; a reviewer should decide whether N should be allowed.",
+   "report.md was not written: the agent tool blocks subagent report files. Its content is in this structured result."
+  ],
+  "engineGaps": []
+ },
+ {
+  "pair": "p10",
+  "finalProfile": "experiments/blind-profile-r2/builder/p10/profile-pass-6.json",
+  "passes": [
+   {
+    "pass": 1,
+    "summary": "summary matched=0 exact=0 withinTolerance=0 break=0 leftOnly=1021 rightOnly=380 ambiguous=0 searchIncomplete=0 quarantined=370 suppressed=0 (probe with raw Text columns)"
+   },
+   {
+    "pass": 2,
+    "summary": "summary matched=261 exact=261 withinTolerance=0 break=0 leftOnly=369 rightOnly=241 ambiguous=0 searchIncomplete=0 quarantined=639 suppressed=0 (PatternNoMatch=391 from allocation refs, DateParse=248 from a second right date format)"
+   },
+   {
+    "pass": 3,
+    "summary": "summary matched=630 exact=630 withinTolerance=0 break=0 leftOnly=391 rightOnly=120 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (added the natural-key pass)"
+   },
+   {
+    "pass": 4,
+    "summary": "summary matched=750 exact=630 withinTolerance=0 break=120 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (groupSum: Price is summed across a group, so it breaks)"
+   },
+   {
+    "pass": 5,
+    "summary": "summary matched=750 exact=750 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (left packages by block, Price/Date/ISIN Same; MembersDisagree=391 from per-allocation refs)"
+   },
+   {
+    "pass": 6,
+    "summary": "summary matched=750 exact=750 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0 (final: strict patterns, no diagnostics)"
+   },
+   {
+    "pass": 7,
+    "summary": "summary matched=750 exact=750 ... (check: natural key alone with the TradeRef veto reproduces all matches)"
+   },
+   {
+    "pass": 8,
+    "summary": "summary matched=500 exact=500 leftOnly=250 rightOnly=250 ... (check: 250 right rows carry no ref)"
+   },
+   {
+    "pass": 9,
+    "summary": "summary matched=750 exact=750 ... (check: finer scales 6/10/8, still exact)"
+   }
+  ],
+  "confidence": "high",
+  "evidence": "The final profile is pass 6. It accounts for every row: 1021 left rows and 750 right rows make 630 one-to-one pairs plus 120 blocks matched to 391 left allocations. Nothing is unmatched, ambiguous or quarantined, and the run raises no diagnostic. No tolerance is used. Every pair agrees exactly on ISIN, Side, Quantity, Price, NetCash and TradeDate.\n\nHow the sides are read: left is en-US, right is de-DE. Right Cash (cents) is turned into a signed amount by D/C: D times -0.01, C times 0.01. That sign is checked on every row, because NetCash is compared exactly.\n\nWhy the matches are not coincidence:\n- **Strict reading.** The ref and block patterns and both side maps reject values that do not fit. The two right date formats are declared. NetCash is required on the right, so an unknown D/C code would quarantine the row. None of these fired.\n- **The natural key.** The 250 pairs without a ref are unique on ISIN+Side+Qty+4dp Price. NetCash to the cent and the date also agree, and neither is part of the key.\n- **Two passes agree.** Without the ref pass, the natural key alone (with the TradeRef veto on) gives the same 750 exact matches.\n- **Blocks are checked, not just summed.** Allocations are merged into packages with Price, Date and ISIN set to `Same`, so the engine would reject a block whose allocations disagree. The merged price, summed quantity and summed cash each equal the block row.\n- **No rounding hides a difference.** At finer scales (6, 10 and 8) every match is still exact.",
+  "verdict": "Ready for human approval.",
+  "openItems": [
+   "Left Entity and right Venue have no counterpart on the other side, so they are not compared. A human who knows a relation between them could add one.",
+   "Right 'Settled' holds the same date as left Trade Date in this data, and the profile compares the two exactly. If it ever carries a real settlement date, TradeDate will break and needs a days tolerance or a separate field."
+  ],
+  "engineGaps": [
+   {
+    "gap": "match.groupSum sums every decimal field on the many side, so a per-unit field such as Price is compared as the sum of member prices (pass 4: 120 false Price breaks). Here the allocations carry a block id, so left package consolidation worked around it. Without that link there would be no workaround.",
+    "closingRule": "Let a group pass take a per-field aggregate for non-conserved fields (for example 'Same', as packages do), so a per-unit field is checked for agreement across members and compared once."
+   }
+  ]
+ }
+]

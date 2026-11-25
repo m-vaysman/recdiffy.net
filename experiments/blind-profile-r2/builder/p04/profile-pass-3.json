@@ -1,0 +1,61 @@
+{
+  "formatVersion": 1,
+  "profileId": "p04-orders-vs-fills",
+  "version": "1.0.0",
+  "culture": "en-US",
+  "sources": {
+    "left": { "rowKey": "Order No", "culture": "en-US" },
+    "right": { "rowKey": "Fill ID", "culture": "de-DE" }
+  },
+  "fields": [
+    { "name": "OrderRef", "type": "Symbol", "role": "Key" },
+    { "name": "Security", "type": "Symbol", "role": "Economic" },
+    { "name": "SideCode", "type": "Symbol", "role": "Economic" },
+    { "name": "Quantity", "type": "Decimal", "role": "Economic", "scale": 4 },
+    { "name": "Amount", "type": "Decimal", "role": "Economic", "scale": 4 },
+    { "name": "TradeDate", "type": "Date", "role": "Economic" },
+    { "name": "LegRole", "type": "Symbol", "role": "Package" }
+  ],
+  "normalization": {
+    "left": {
+      "identify": [
+        { "rule": "text.regex", "from": "Order No", "to": "OrderRef", "pattern": "^ORD-0*([0-9]+)$", "replacement": "$1", "passthrough": "false" },
+        { "rule": "symbol.map", "from": "Security", "to": "Security" },
+        { "rule": "symbol.map", "from": "Side", "to": "SideCode", "map": { "Buy": "BUY", "Sell": "SELL" }, "passthrough": "false" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Order Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Order Value", "to": "Amount" },
+        { "rule": "date.parse", "from": "Trade Date", "to": "TradeDate", "formats": ["yyyy-MM-dd"] }
+      ]
+    },
+    "right": {
+      "identify": [
+        { "rule": "text.regex", "from": "Parent Order", "to": "OrderRef", "pattern": "^ord0*([0-9]+)$", "replacement": "$1", "ignoreCase": "true", "passthrough": "false" },
+        { "rule": "symbol.map", "from": "ISIN", "to": "Security" },
+        { "rule": "symbol.map", "from": "B/S", "to": "SideCode", "map": { "B": "BUY", "S": "SELL" }, "passthrough": "false" },
+        { "rule": "symbol.map", "from": "Venue", "to": "LegRole" }
+      ],
+      "parse": [
+        { "rule": "decimal.parse", "from": "Fill Qty", "to": "Quantity" },
+        { "rule": "decimal.parse", "from": "Fill Amount", "to": "Amount" },
+        { "rule": "date.parse", "from": "Exec Date", "to": "TradeDate", "formats": ["dd/MM/yyyy"] }
+      ]
+    }
+  },
+  "consolidation": {
+    "right": {
+      "packages": [
+        { "link": "OrderRef", "role": "LegRole", "requiredRoles": [], "aggregate": { "Quantity": "Sum", "Amount": "Sum" } }
+      ]
+    }
+  },
+  "paths": [
+    {
+      "id": "all",
+      "route": { "rule": "route.all" },
+      "passes": [ { "id": "P1", "pass": "match.naturalKey", "key": ["OrderRef"] } ],
+      "diff": { "fields": {} }
+    }
+  ]
+}

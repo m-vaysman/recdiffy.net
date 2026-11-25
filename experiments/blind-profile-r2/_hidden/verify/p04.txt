@@ -1,0 +1,10 @@
+parse ok
+compile ok
+headers ok
+# delta = right - left. ratio = right / left. sameSign = share of non-zero breaks with the same sign.
+summary matched=600 exact=600 withinTolerance=0 break=0 leftOnly=0 rightOnly=0 ambiguous=0 searchIncomplete=0 quarantined=0 suppressed=0
+composition oneToOne=376 oneToMany=224
+fields none
+unmatched
+  none
+
